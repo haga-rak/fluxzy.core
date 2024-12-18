@@ -32,7 +32,8 @@ namespace Fluxzy.Tests.Cli
 
         protected async Task<HttpResponseMessage> Exec(string yamlContent, 
             HttpRequestMessage requestMessage,
-            bool allowAutoRedirect = true, bool automaticDecompression = false, bool useBouncyCastle = false)
+            bool allowAutoRedirect = true, bool automaticDecompression = false, bool useBouncyCastle = false,
+             string? extraCommandLineArgs = null)
         {
             // Arrange 
             var commandLine = "start -l 127.0.0.1:0";
@@ -46,6 +47,11 @@ namespace Fluxzy.Tests.Cli
 
             if (useBouncyCastle) {
                 commandLine += " --bouncy-castle";
+            }
+
+            if (extraCommandLineArgs != null)
+            {
+                commandLine += $" {extraCommandLineArgs}";
             }
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);

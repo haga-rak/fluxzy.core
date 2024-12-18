@@ -12,11 +12,11 @@ namespace Fluxzy.Tests.UnitTests.Dns
         public async Task Test(string nameOfUri, string hostname, string ipAddress)
         {
             // Arrange
-            var resolver = new DnsOverHttpsResolver(nameOfUri);
+            var resolver = new DnsOverHttpsResolver(nameOfUri, null);
             var ip = System.Net.IPAddress.Parse(ipAddress);
 
             // Act
-            var result = await resolver.SolveDnsAll(hostname, null);
+            var result = await resolver.SolveDnsAll(hostname);
 
             // Assert
             Assert.Contains(ip, result);

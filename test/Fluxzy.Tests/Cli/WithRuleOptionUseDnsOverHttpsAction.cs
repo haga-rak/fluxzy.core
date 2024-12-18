@@ -12,7 +12,7 @@ namespace Fluxzy.Tests.Cli
         [CombinatorialData]
         public async Task Validate_Simple_Request(
             [CombinatorialValues("GOOGLE", "CLOUDFLARE", "https://dns.google.com/resolve")] string nameOrUrl,
-            [CombinatorialValues("https://www.example.com", "https://one.one.one.one/",
+            [CombinatorialValues("https://www.example.com", "https://microsoft.com/",
                 "https://www.example.org")]  string url
             )
         {

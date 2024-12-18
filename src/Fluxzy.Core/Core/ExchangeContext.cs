@@ -195,6 +195,8 @@ namespace Fluxzy.Core
 
         public bool HasRequestBody { get; set; }
 
+        public bool DnsOverHttpsCapture { get; set; }
+
         /// <summary>
         /// Register a response body substitution
         /// </summary>

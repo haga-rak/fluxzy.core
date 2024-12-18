@@ -19,7 +19,7 @@ namespace Fluxzy.Clients.Dns
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreRepository =
             new(StringComparer.OrdinalIgnoreCase);
 
-        public async Task<IReadOnlyCollection<IPAddress>> SolveDnsAll(string hostName, ProxyConfiguration? proxyConfiguration)
+        public async Task<IReadOnlyCollection<IPAddress>> SolveDnsAll(string hostName)
         {
             var lockKey = _semaphoreRepository.GetOrAdd(hostName, new SemaphoreSlim(1));
 
@@ -32,7 +32,7 @@ namespace Fluxzy.Clients.Dns
 
                 try
                 {
-                    var result = (await InternalSolveDns(hostName, proxyConfiguration));
+                    var result = (await InternalSolveDns(hostName));
                     return _cache[hostName] = result.ToList();
                 }
                 catch (Exception ex)
@@ -57,9 +57,9 @@ namespace Fluxzy.Clients.Dns
             }
         }
 
-        public async Task<IPAddress> SolveDns(string hostName, ProxyConfiguration? proxyConfiguration)
+        public async Task<IPAddress> SolveDns(string hostName)
         {
-            var all = (await SolveDnsAll(hostName, proxyConfiguration).ConfigureAwait(false));
+            var all = (await SolveDnsAll(hostName).ConfigureAwait(false));
             var found = all.FirstOrDefault();
 
             if (found == null)
@@ -69,18 +69,17 @@ namespace Fluxzy.Clients.Dns
             return found;
         }
 
-        protected virtual async Task<IEnumerable<IPAddress>> InternalSolveDns(
-            string hostName, ProxyConfiguration? proxyConfiguration)
+        protected virtual async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
         {
             var entry = await System.Net.Dns.GetHostAddressesAsync(hostName).ConfigureAwait(false);
             var result = entry.OrderBy(a => a.AddressFamily == AddressFamily.InterNetworkV6);
             return result;
         }
 
-        public async Task<IPAddress?> SolveDnsQuietly(string hostName, ProxyConfiguration? proxyConfiguration)
+        public async Task<IPAddress?> SolveDnsQuietly(string hostName)
         {
             try {
-                return await SolveDns(hostName, proxyConfiguration).ConfigureAwait(false);
+                return await SolveDns(hostName).ConfigureAwait(false);
             }
             catch {
                 // it's quiet solving 

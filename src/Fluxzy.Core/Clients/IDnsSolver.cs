@@ -7,6 +7,6 @@ namespace Fluxzy.Clients
 {
     public interface IDnsSolver
     {
-        Task<IPAddress> SolveDns(string hostName, ProxyConfiguration? proxyConfiguration);
+        Task<IPAddress> SolveDns(string hostName);
     }
 }

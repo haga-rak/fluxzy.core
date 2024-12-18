@@ -21,12 +21,12 @@ namespace Fluxzy.Tests.UnitTests.Misc
 
             if (rawIp != null) {
 
-                var ip = await solver.SolveDns(host, null); 
+                var ip = await solver.SolveDns(host); 
                 Assert.Equal(IPAddress.Parse(rawIp), ip);
 
             }
             else {
-                 await Assert.ThrowsAsync<ClientErrorException>(() => solver.SolveDns(host, null));
+                 await Assert.ThrowsAsync<ClientErrorException>(() => solver.SolveDns(host));
             }
         }
 
@@ -41,7 +41,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
 
             for (int i = 0; i < 2; i++) { // to hit cache
 
-                var ip = await solver.SolveDnsQuietly(host, null);
+                var ip = await solver.SolveDnsQuietly(host);
 
                 if (rawIp != null)
                 {

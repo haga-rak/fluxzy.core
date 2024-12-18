@@ -1,5 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Net;
+
 namespace Fluxzy.Clients
 {
     /// <summary>
@@ -7,6 +9,17 @@ namespace Fluxzy.Clients
     /// </summary>
     public class ProxyConfiguration
     {
+        public ProxyConfiguration(string host, int port, NetworkCredential? credentials)
+        {
+            Host = host;
+            Port = port;
+            Credentials = credentials;
+
+            if (credentials != null) {
+                ProxyAuthorizationHeader = BasicAuthenticationHelper.GetBasicAuthHeader(credentials);
+            }
+        }
+
         public ProxyConfiguration(string host, int port, string? proxyAuthorizationHeader = null)
         {
             Host = host;
@@ -23,6 +36,11 @@ namespace Fluxzy.Clients
         /// Represents the port number for a proxy server.
         /// </summary>
         public int Port { get; }
+
+        /// <summary>
+        ///  Network credentials for a proxy server.
+        /// </summary>
+        public NetworkCredential? Credentials { get; }
 
         /// <summary>
         /// Represents the Proxy Authorization header for a proxy server.

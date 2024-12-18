@@ -81,6 +81,24 @@ namespace Fluxzy.Core
 
         public int ProxyListenPort { get; set; }
 
+        public ProxyConfiguration?  GetInternalProxyAuthentication()
+        {
+            var validEndPoint = EndPoints.FirstOrDefault(a => !Equals(a.Address, IPAddress.Any));
+
+            if (validEndPoint == null)
+                return null; // No bound endpoint 
+
+            var credentials = StartupSetting.ProxyAuthentication == null ? 
+                null : new NetworkCredential(
+                    StartupSetting.ProxyAuthentication.Username,
+                    StartupSetting.ProxyAuthentication.Password);
+
+            var proxyConfiguration = new ProxyConfiguration(
+                validEndPoint.Address.ToString(), validEndPoint.Port, credentials);
+
+            return proxyConfiguration;
+        }
+
         public void Init()
         {
             var activeRules = StartupSetting.FixedRules()

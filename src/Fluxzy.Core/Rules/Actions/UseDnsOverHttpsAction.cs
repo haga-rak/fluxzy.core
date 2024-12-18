@@ -26,6 +26,12 @@ namespace Fluxzy.Rules.Actions
         [ActionDistinctive]
         public string? NameOrUrl { get; }
 
+        /// <summary>
+        ///  If false, the DNS over HTTPS requests will pass through the proxy.
+        /// </summary>
+        [ActionDistinctive]
+        public bool NoCapture { get; set; } = false; 
+
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
         public override string DefaultDescription => $"DNS over HTTPS";
@@ -35,7 +41,7 @@ namespace Fluxzy.Rules.Actions
             base.Init(startupContext);
 
             if (!string.IsNullOrWhiteSpace(NameOrUrl)) {
-                _ = new DnsOverHttpsResolver(NameOrUrl); // Validate value
+                _ = new DnsOverHttpsResolver(NameOrUrl, null); // Validate value
             }
         }
 
@@ -45,6 +51,7 @@ namespace Fluxzy.Rules.Actions
         {
             if (!string.IsNullOrWhiteSpace(NameOrUrl)) {
                 context.DnsOverHttpsNameOrUrl = NameOrUrl;
+                context.DnsOverHttpsCapture = !NoCapture;
             }
 
             return default;

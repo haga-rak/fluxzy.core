@@ -21,8 +21,9 @@ namespace Fluxzy.Clients.Dns
         private readonly string _finalUrl;
         private readonly HttpClientHandler _clientHandler;
         private readonly HttpClient _client;
+        private readonly string _host;
 
-        public DnsOverHttpsResolver(string nameOrUrl)
+        public DnsOverHttpsResolver(string nameOrUrl, ProxyConfiguration? proxyConfiguration)
         {
             if (DnsOverHttpsDefaultUrl.TryGetValue(nameOrUrl, out var url)) {
                 _finalUrl = url;
@@ -38,17 +39,36 @@ namespace Fluxzy.Clients.Dns
                 }
             }
 
+            if (!Uri.TryCreate(_finalUrl, UriKind.Absolute, out var finalUrl)) {
+                throw new ArgumentException($"FinalUrl must be absolute : {finalUrl}"); 
+            }
+
+            _host = finalUrl.Host;
+
             _clientHandler = new HttpClientHandler();
+
+            if (proxyConfiguration != null)
+            {
+                var webProxy = new WebProxy(proxyConfiguration.Host, proxyConfiguration.Port);
+
+                if (proxyConfiguration.Credentials != null)
+                {
+                    webProxy.Credentials = proxyConfiguration.Credentials;
+                }
+
+                _clientHandler.Proxy = webProxy;
+                _clientHandler.UseProxy = true;
+            }
+            else
+            {
+                _clientHandler.UseProxy = false;
+            }
+
             _client = new HttpClient(_clientHandler);
         }
 
-        protected async Task<IReadOnlyCollection<string?>> GetDnsData(string type, string hostName, ProxyConfiguration? proxyConfiguration)
+        protected async Task<IReadOnlyCollection<string?>> GetDnsData(string type, string hostName)
         {
-            if (proxyConfiguration != null)
-            {
-                _clientHandler.Proxy = new WebProxy(proxyConfiguration.Host, proxyConfiguration.Port);
-            }
-
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_finalUrl}?name={hostName}&type={type}");
 
             requestMessage.Headers.Add("Accept", "application/dns-json");
@@ -80,12 +100,16 @@ namespace Fluxzy.Clients.Dns
                               .ToList();
         }
 
-        protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName,
-            ProxyConfiguration? proxyConfiguration)
+        protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
         {
+            if (string.Equals(hostName, _host, StringComparison.OrdinalIgnoreCase)) {
+                // fallback to default resolver to avoid resolving loop
+                return await base.InternalSolveDns(hostName); 
+            }
+
             // application/dns-json
 
-            var values = await GetDnsData("A", hostName, proxyConfiguration).ConfigureAwait(false);
+            var values = await GetDnsData("A", hostName).ConfigureAwait(false);
 
             // reply with a single linq request 
 
