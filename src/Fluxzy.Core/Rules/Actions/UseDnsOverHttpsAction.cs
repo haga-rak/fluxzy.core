@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Dns;
 using Fluxzy.Core;
@@ -55,6 +56,15 @@ namespace Fluxzy.Rules.Actions
             }
 
             return default;
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Use Cloudflare built-in DoH server", new UseDnsOverHttpsAction("CLOUDFLARE"));
+            yield return new ActionExample("Use provided DoH server: \"https://dns.google/resolve\". Avoid capturing the DNS requests.", 
+                new UseDnsOverHttpsAction("https://dns.google/resolve") {
+                    NoCapture = true
+                });
         }
     }
 }
