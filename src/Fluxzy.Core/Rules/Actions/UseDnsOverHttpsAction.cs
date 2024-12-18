@@ -12,15 +12,15 @@ namespace Fluxzy.Rules.Actions
     /// </summary>
     ///
     [ActionMetadata("Use DNS over HTTPs to resolve the domain name.")]
-    public class ForceDnsOverHttpsAction : Action
+    public class UseDnsOverHttpsAction : Action
     {
-        public ForceDnsOverHttpsAction(string? nameOrUrl)
+        public UseDnsOverHttpsAction(string? nameOrUrl)
         {
             NameOrUrl = nameOrUrl;
         }
 
         /// <summary>
-        /// Name or full HTTPS Url of the DNS server to use. Built-in values are: Google, Cloudflare.
+        /// Name or full Url of the DNS server to use. Built-in values are: Google, Cloudflare.
         /// </summary>
 
         [ActionDistinctive]
