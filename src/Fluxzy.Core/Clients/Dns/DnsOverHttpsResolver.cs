@@ -18,6 +18,8 @@ namespace Fluxzy.Clients.Dns
             ["CLOUDFLARE"] = Environment.GetEnvironmentVariable("FLUXZY_DEFAULT_CLOUDFLARE_DNS_URL") ?? "https://cloudflare-dns.com/dns-query",
         };
 
+        private static readonly HashSet<string> _ByPassList = new(new[] { "localhost" }, StringComparer.OrdinalIgnoreCase);
+
         private readonly string _finalUrl;
         private readonly HttpClientHandler _clientHandler;
         private readonly HttpClient _client;
@@ -102,7 +104,8 @@ namespace Fluxzy.Clients.Dns
 
         protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
         {
-            if (string.Equals(hostName, _host, StringComparison.OrdinalIgnoreCase)) {
+            if (string.Equals(hostName, _host, StringComparison.OrdinalIgnoreCase) ||
+                _ByPassList.Contains(hostName) || IPAddress.TryParse(hostName, out _)) {
                 // fallback to default resolver to avoid resolving loop
                 return await base.InternalSolveDns(hostName); 
             }
@@ -113,10 +116,17 @@ namespace Fluxzy.Clients.Dns
 
             // reply with a single linq request 
 
-            return values
+            var result = values
                    .Select(a => IPAddress.TryParse(a, out var ip) ? ip : default)
                    .Where(ip => ip != null).OfType<IPAddress>()
                    .ToList();
+
+            if (!result.Any())
+            {
+                return await base.InternalSolveDns(hostName);
+            }
+
+            return result;
         }
     }
 

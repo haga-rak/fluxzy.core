@@ -9,10 +9,10 @@ using Fluxzy.Core.Breakpoints;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    ///  Use DNS over HTTPs to resolve the domain name.
+    ///  Use DoH (DNS over HTTPS) to resolve domain names instead of the default DNS provided by the OS.
     /// </summary>
     ///
-    [ActionMetadata("Use DNS over HTTPs to resolve the domain name.")]
+    [ActionMetadata("Use DoH (DNS over HTTPS) to resolve domain names instead of the default DNS provided by the OS")]
     public class UseDnsOverHttpsAction : Action
     {
         public UseDnsOverHttpsAction(string? nameOrUrl)
