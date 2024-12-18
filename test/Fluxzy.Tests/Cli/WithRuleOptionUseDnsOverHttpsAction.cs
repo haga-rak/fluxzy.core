@@ -12,8 +12,8 @@ namespace Fluxzy.Tests.Cli
         [CombinatorialData]
         public async Task Validate_Simple_Request(
             [CombinatorialValues("GOOGLE", "CLOUDFLARE", "https://dns.google.com/resolve")] string nameOrUrl,
-            [CombinatorialValues("https://www.example.com", "https://microsoft.com/",
-                "https://www.example.org")]  string url
+            [CombinatorialValues("https://www.example.com", "https://microsoft.com/")]  string url,
+            [CombinatorialValues(false, true)] bool noCapture
             )
         {
             // Arrange
@@ -24,6 +24,7 @@ namespace Fluxzy.Tests.Cli
                                 action : 
                                   typeKind: useDnsOverHttpsAction
                                   nameOrUrl: {nameOrUrl}
+                                  noCapture: {noCapture}
                               """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
