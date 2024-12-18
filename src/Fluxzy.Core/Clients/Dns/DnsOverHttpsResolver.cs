@@ -42,43 +42,57 @@ namespace Fluxzy.Clients.Dns
             _client = new HttpClient(_clientHandler);
         }
 
-        protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName,
-            ProxyConfiguration? proxyConfiguration)
+        protected async Task<IReadOnlyCollection<string?>> GetDnsData(string type, string hostName, ProxyConfiguration? proxyConfiguration)
         {
-            // application/dns-json
-
             if (proxyConfiguration != null)
             {
                 _clientHandler.Proxy = new WebProxy(proxyConfiguration.Host, proxyConfiguration.Port);
             }
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_finalUrl}?name={hostName}&type=A");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_finalUrl}?name={hostName}&type={type}");
 
             requestMessage.Headers.Add("Accept", "application/dns-json");
 
             var response = await _client.SendAsync(requestMessage).ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode) {
+            if (!response.IsSuccessStatusCode)
+            {
                 throw new FluxzyException("Failed to resolve DNS over HTTPS");
             }
 
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            
+            var dnsResponse = JsonSerializer.Deserialize<DnsOverHttpsResponse>(content);
 
-            var dnsResponse = JsonSerializer.Deserialize<DnsOverHttpsResponse>(content)!;
-
+            if (dnsResponse == null)
+            {
+                throw new FluxzyException("Invalid DNS response (null)");
+            }
+            
             if (dnsResponse.Status != 0)
             {
                 throw new FluxzyException($"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
             }
 
+            return dnsResponse.Answers
+                              .Where(a => a.Type == 1)
+                              .Select(a => a.Data)
+                              .ToList();
+        }
+
+        protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName,
+            ProxyConfiguration? proxyConfiguration)
+        {
+            // application/dns-json
+
+            var values = await GetDnsData("A", hostName, proxyConfiguration).ConfigureAwait(false);
 
             // reply with a single linq request 
 
-            return dnsResponse.Answers
-                .Where(a => a.Type == 1)
-                .Select(a => IPAddress.TryParse(a.Data, out var ip) ? ip : default)
-                .Where(ip => ip != null).OfType<IPAddress>()
-                .ToList();
+            return values
+                   .Select(a => IPAddress.TryParse(a, out var ip) ? ip : default)
+                   .Where(ip => ip != null).OfType<IPAddress>()
+                   .ToList();
         }
     }
 
