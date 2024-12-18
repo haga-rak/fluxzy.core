@@ -10,6 +10,8 @@ namespace Fluxzy.Rules.Actions
     /// <summary>
     ///  Use DNS over HTTPs to resolve the domain name.
     /// </summary>
+    ///
+    [ActionMetadata("Use DNS over HTTPs to resolve the domain name.")]
     public class ForceDnsOverHttpsAction : Action
     {
         public ForceDnsOverHttpsAction(string? nameOrUrl)
