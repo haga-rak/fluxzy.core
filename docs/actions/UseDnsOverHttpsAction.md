@@ -2,7 +2,7 @@
 
 ### Description
 
-Use DNS over HTTPs to resolve the domain name.
+Use DoH (DNS over HTTPS) to resolve domain names instead of the default DNS provided by the OS
 
 ### Evaluation scope
 
