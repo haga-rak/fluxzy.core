@@ -46,7 +46,7 @@ namespace Fluxzy.Clients
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
 
-        private readonly ConcurrentDictionary<string, DefaultDnsSolver> _dnsSolversCache = new();
+        private readonly ConcurrentDictionary<string, DefaultDnsResolver> _dnsSolversCache = new();
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
@@ -111,7 +111,7 @@ namespace Fluxzy.Clients
 
             var dnsSolver = string.IsNullOrWhiteSpace(exchange.Context.DnsOverHttpsNameOrUrl) ? 
                 _dnsSolver : _dnsSolversCache.GetOrAdd(exchange.Context.DnsOverHttpsNameOrUrl,
-                    n => new DnsOverHttpsSolver(n));
+                    n => new DnsOverHttpsResolver(n));
 
             // We should solve DNS here 
             var computeDnsPromise = 

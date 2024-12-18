@@ -33,7 +33,7 @@ namespace Fluxzy.Rules.Actions
             base.Init(startupContext);
 
             if (!string.IsNullOrWhiteSpace(NameOrUrl)) {
-                _ = new DnsOverHttpsSolver(NameOrUrl); // Validate value
+                _ = new DnsOverHttpsResolver(NameOrUrl); // Validate value
             }
         }
 

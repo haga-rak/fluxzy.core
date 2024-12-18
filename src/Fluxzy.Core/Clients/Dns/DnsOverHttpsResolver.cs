@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -10,28 +11,27 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Clients.Dns
 {
-    internal class DnsOverHttpsSolver : DefaultDnsSolver
+    internal class DnsOverHttpsResolver : DefaultDnsResolver
     {
-        private readonly Dictionary<string, string> _dnsOverHttpsDefaultUrl = 
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
-            ["GOOGLE"] = "https://dns.google/query",
-            ["CLOUDFLARE"] = "https://dns.google/query",
+        private static readonly Dictionary<string, string> DnsOverHttpsDefaultUrl = new(StringComparer.OrdinalIgnoreCase) {
+            ["GOOGLE"] = Environment.GetEnvironmentVariable("FLUXZY_DEFAULT_GOOGLE_DNS_URL") ?? "https://dns.google/resolve",
+            ["CLOUDFLARE"] = Environment.GetEnvironmentVariable("FLUXZY_DEFAULT_CLOUDFLARE_DNS_URL") ?? "https://cloudflare-dns.com/dns-query",
         };
 
         private readonly string _finalUrl;
         private readonly HttpClientHandler _clientHandler;
         private readonly HttpClient _client;
 
-        public DnsOverHttpsSolver(string nameOrUrl)
+        public DnsOverHttpsResolver(string nameOrUrl)
         {
-            if (_dnsOverHttpsDefaultUrl.TryGetValue(nameOrUrl, out var url)) {
+            if (DnsOverHttpsDefaultUrl.TryGetValue(nameOrUrl, out var url)) {
                 _finalUrl = url;
             }
             else {
                 if (Uri.TryCreate(nameOrUrl, UriKind.Absolute, out var uriResult) &&
                     uriResult.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 {
-                    _finalUrl = nameOrUrl;
+                    _finalUrl = nameOrUrl.TrimEnd('?');
                 }
                 else {
                     throw new ArgumentException("Invalid DNS over HTTPS URL", nameof(nameOrUrl));
@@ -42,7 +42,8 @@ namespace Fluxzy.Clients.Dns
             _client = new HttpClient(_clientHandler);
         }
 
-        protected override async Task<IPAddress> InternalSolveDns(string hostName, ProxyConfiguration? proxyConfiguration)
+        protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName,
+            ProxyConfiguration? proxyConfiguration)
         {
             // application/dns-json
 
@@ -51,8 +52,11 @@ namespace Fluxzy.Clients.Dns
                 _clientHandler.Proxy = new WebProxy(proxyConfiguration.Host, proxyConfiguration.Port);
             }
 
-            var response = await _client.GetAsync($"{_finalUrl}?name={hostName}&type=A")
-                                        .ConfigureAwait(false);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_finalUrl}?name={hostName}&type=A");
+
+            requestMessage.Headers.Add("Accept", "application/dns-json");
+
+            var response = await _client.SendAsync(requestMessage).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode) {
                 throw new FluxzyException("Failed to resolve DNS over HTTPS");
@@ -67,15 +71,14 @@ namespace Fluxzy.Clients.Dns
                 throw new FluxzyException($"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
             }
 
-            foreach (var answer in dnsResponse.Answer)
-            {
-                if (answer.Type == 1)
-                {
-                    return IPAddress.Parse(answer.Data!);
-                }
-            }
 
-            throw new FluxzyException("Failed to resolve DNS over HTTPS. No A record found");
+            // reply with a single linq request 
+
+            return dnsResponse.Answers
+                .Where(a => a.Type == 1)
+                .Select(a => IPAddress.TryParse(a.Data, out var ip) ? ip : default)
+                .Where(ip => ip != null).OfType<IPAddress>()
+                .ToList();
         }
     }
 
@@ -140,7 +143,7 @@ namespace Fluxzy.Clients.Dns
         public List<DnsOverHttpsQuestion> Question { get; set; } = new();
 
         [JsonPropertyName("Answer")]
-        public List<DnsOverHttpsAnswer> Answer { get; set; } = new();
+        public List<DnsOverHttpsAnswer> Answers { get; set; } = new();
 
         [JsonPropertyName("Comment")]
         public string? Comment { get; set; }
