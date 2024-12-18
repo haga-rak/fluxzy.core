@@ -42,7 +42,7 @@ namespace Fluxzy.Clients.DotNetBridge
             
             _poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, provider),
-                ITimingProvider.Default, new EventOnlyArchiveWriter(), new DefaultDnsSolver());
+                ITimingProvider.Default, new EventOnlyArchiveWriter(), new DefaultDnsResolver());
 
             _idProvider = IIdProvider.FromZero;
 
