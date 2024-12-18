@@ -64,4 +64,5 @@ The following actions are related to this action:
  - [forceTlsVersionAction](forceTlsVersionAction)
  - [setClientCertificateAction](setClientCertificateAction)
  - [skipSslTunnelingAction](skipSslTunnelingAction)
+ - [useDnsOverHttpsAction](useDnsOverHttpsAction)
 

@@ -110,7 +110,7 @@ namespace Fluxzy
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, sslConnectionBuilder),
                 ITimingProvider.Default,
-                Writer, dnsSolver ?? new DefaultDnsSolver());
+                Writer, dnsSolver ?? new DefaultDnsResolver());
 
             ExecutionContext = new ProxyExecutionContext(startupSetting);
 
