@@ -24,8 +24,10 @@ namespace Fluxzy.Tests._Fixtures
 
         private int _requestCount;
 
-        public AddHocConfigurableProxy(int expectedRequestCount = 1, int timeoutSeconds = 5,
-            Action<FluxzySetting> ? configureSetting = null)
+        public AddHocConfigurableProxy(
+            int expectedRequestCount = 1, int timeoutSeconds = 5,
+            Action<FluxzySetting> ? configureSetting = null, 
+            ITcpConnectionProvider ? connectionProvider = null)
         {
             _expectedRequestCount = expectedRequestCount;
 
@@ -39,7 +41,8 @@ namespace Fluxzy.Tests._Fixtures
 
             InternalProxy = new Proxy(StartupSetting,
                 new CertificateProvider(StartupSetting.CaCertificate, new InMemoryCertificateCache()),
-                new DefaultCertificateAuthorityManager(), userAgentProvider: new UaParserUserAgentInfoProvider());
+                new DefaultCertificateAuthorityManager(), userAgentProvider: new UaParserUserAgentInfoProvider(),
+                tcpConnectionProvider: connectionProvider);
 
             InternalProxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 

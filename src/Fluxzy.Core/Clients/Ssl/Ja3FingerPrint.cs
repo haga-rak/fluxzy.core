@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Fluxzy.Clients.Ssl
@@ -14,7 +15,7 @@ namespace Fluxzy.Clients.Ssl
 
         public Ja3FingerPrint? Ja3FingerPrint { get;  }
     }
-
+    
     public class Ja3FingerPrint
     {
         public Ja3FingerPrint(
@@ -56,6 +57,19 @@ namespace Fluxzy.Clients.Ssl
                    $"{string.Join("-", EllipticCurvesFormat)}";
         }
 
+        public string ToString(bool ordered)
+        {
+            if (!ordered)
+            {
+                return ToString();
+            }
+
+            return $"{ProtocolVersion}," +
+                   $"{string.Join("-", Ciphers.OrderBy(c => c))}," +
+                   $"{string.Join("-", ClientExtensions.OrderBy(c => c))}," +
+                   $"{string.Join("-", SupportGroups.OrderBy(c => c))}," +
+                   $"{string.Join("-", EllipticCurvesFormat.OrderBy(c => c))}";
+        }
 
         protected bool Equals(Ja3FingerPrint other)
         {
