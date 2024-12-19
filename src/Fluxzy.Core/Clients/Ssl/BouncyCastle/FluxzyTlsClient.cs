@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
-using Fluxzy.Misc;
 using Org.BouncyCastle.Tls;
 
 #pragma warning disable SYSLIB0039
@@ -20,6 +19,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         private readonly string _targetHost;
         private readonly TlsAuthentication _tlsAuthentication;
         private readonly int[]?  _cipherSuites;
+        private readonly Ja3FingerPrint? _fingerPrint;
 
         public FluxzyTlsClient(
             SslConnectionBuilderOptions builderOptions,
@@ -32,7 +32,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             _applicationProtocols = builderOptions.ApplicationProtocols;
             _tlsAuthentication = tlsAuthentication;
             _crypto = crypto;
-            _cipherSuites = builderOptions.CipherConfiguration?.BouncyCastleCiphers;
+            _fingerPrint = builderOptions.AdvancedTlsSettings?.Ja3FingerPrint; 
+            _cipherSuites = _fingerPrint?.Ciphers.ToArray(); // TODO: Uncessary allocation here
         }
 
         public override void Init(TlsClientContext context)
@@ -45,28 +46,22 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             var extensions = base.GetClientExtensions();
 
-            extensions.Add(0, ServerNameUtilities.CreateFromHost(_targetHost));
-
-            extensions.Add(ExtensionType.renegotiation_info, new byte[1]);
-            extensions.Add(ExtensionType.signed_certificate_timestamp, Array.Empty<byte>());
-            extensions.Remove(ExtensionType.encrypt_then_mac);
-
-            extensions.Add(ExtensionType.compress_certificate, TlsExtensionsUtilities.CreateCompressCertificateExtension(new int[] { 2 }));
-            extensions.Add(ExtensionType.session_ticket, Array.Empty<byte>());
-
-            TlsExtensionsUtilities.AddPskKeyExchangeModesExtension(extensions, new short[1] { 1 });
-            
-            if (_applicationProtocols.Any(p => p == SslApplicationProtocol.Http2)) {
-                extensions.Add(17513, new byte[5] { 0, 0x3, 0x02, 0x68, 0x32 });
-
+            if (_fingerPrint != null) {
+                return ClientExtensionHelper.AdjustClientExtensions(extensions, _fingerPrint, _targetHost);
             }
-
-           // TlsExtensionsUtilities.AddAlpnExtensionClient();
-            //extensions.Add(ExtensionType.psk_key_exchange_modes,);
 
             return extensions;
         }
 
+        protected override IList<int> GetSupportedGroups(IList<int> namedGroupRoles)
+        {
+            if (_fingerPrint != null) {
+                return _fingerPrint.SupportGroups;
+            }
+
+            return base.GetSupportedGroups(namedGroupRoles);
+        }
+        
         public override TlsAuthentication GetAuthentication()
         {
             return _tlsAuthentication;

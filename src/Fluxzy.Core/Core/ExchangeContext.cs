@@ -103,10 +103,8 @@ namespace Fluxzy.Core
         /// </summary>
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
 
-        /// <summary>
-        ///   Available CIPHER configurations
-        /// </summary>
-        public SslConnectionBuilderOptionsCipherConfiguration? CipherConfiguration { get; set; } = null;
+
+        public AdvancedTlsSettings? AdvancedTlsSettings { get; set; }
 
         /// <summary>
         ///     Don't validate the remote certificate

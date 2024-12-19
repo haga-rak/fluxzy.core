@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Fluxzy.Clients.Ssl;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 
@@ -14,17 +13,17 @@ namespace Fluxzy.Rules.Actions
     /// Force usage of a specific cipher suite.
     /// </summary>
     [ActionMetadata("Force usage of a specific cipher suite")]
-    public class SetCiphersAction : Action
+    public class SetTlsCiphersAction : Action
     {
 
         [JsonConstructor]
-        public SetCiphersAction(List<string> ciphers)
+        public SetTlsCiphersAction(List<string> ciphers)
         {
             Ciphers = ciphers;
         }
 
         [JsonConstructor]
-        public SetCiphersAction(params string[] ciphers)
+        public SetTlsCiphersAction(params string[] ciphers)
          : this (ciphers.ToList())
         {
         }
@@ -40,9 +39,9 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            if (Ciphers != null) {
-                context.CipherConfiguration = new SslConnectionBuilderOptionsCipherConfiguration(Ciphers);
-            }
+            //if (Ciphers != null) {
+            //    context.CipherConfiguration = new SslConnectionBuilderOptionsCipherConfiguration(Ciphers);
+            //}
 
             return default;
         }
@@ -50,7 +49,7 @@ namespace Fluxzy.Rules.Actions
         public override IEnumerable<ActionExample> GetExamples()
         {
             yield return new ActionExample("Change ciphers from a predefined list.", 
-                new SetCiphersAction(new List<string> {
+                new SetTlsCiphersAction(new List<string> {
                     "TLS_AES_128_GCM_SHA256",
                     "TLS_AES_256_GCM_SHA384",
                 }));

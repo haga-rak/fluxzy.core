@@ -17,14 +17,14 @@ namespace Fluxzy.Clients.Ssl
         public SslConnectionBuilderOptions(string targetHost, 
             SslProtocols enabledSslProtocols, List<SslApplicationProtocol> applicationProtocols,
             RemoteCertificateValidationCallback? remoteCertificateValidationCallback,
-            Certificate? clientCertificate, SslConnectionBuilderOptionsCipherConfiguration? cipherConfiguration)
+            Certificate? clientCertificate, AdvancedTlsSettings? advancedTlsSettings)
         {
             TargetHost = targetHost;
             EnabledSslProtocols = enabledSslProtocols;
             ApplicationProtocols = applicationProtocols;
             RemoteCertificateValidationCallback = remoteCertificateValidationCallback;
             ClientCertificate = clientCertificate;
-            CipherConfiguration = cipherConfiguration;
+            AdvancedTlsSettings = advancedTlsSettings;
         }
 
         public string TargetHost { get; }
@@ -37,7 +37,7 @@ namespace Fluxzy.Clients.Ssl
 
         public Certificate ? ClientCertificate { get; set; }
 
-        public SslConnectionBuilderOptionsCipherConfiguration? CipherConfiguration { get; }
+        public AdvancedTlsSettings? AdvancedTlsSettings { get; }
 
         public SslClientAuthenticationOptions GetSslClientAuthenticationOptions()
         {
