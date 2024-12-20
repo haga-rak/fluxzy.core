@@ -44,36 +44,16 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public override IDictionary<int, byte[]> GetClientExtensions()
         {
-            //var extensions = base.GetClientExtensions();
-
-            //extensions.Add(0, ServerNameUtilities.CreateFromHost(_targetHost));
-
-            //extensions.Add(ExtensionType.renegotiation_info, new byte[1]);
-            //extensions.Add(ExtensionType.signed_certificate_timestamp, Array.Empty<byte>());
-            //extensions.Remove(ExtensionType.encrypt_then_mac);
-
-            //extensions.Add(ExtensionType.compress_certificate, TlsExtensionsUtilities.CreateCompressCertificateExtension(new int[] { 2 }));
-            //extensions.Add(ExtensionType.session_ticket, Array.Empty<byte>());
-
-            //TlsExtensionsUtilities.AddPskKeyExchangeModesExtension(extensions, new short[1] { 1 });
-
-            //if (_applicationProtocols.Any(p => p == SslApplicationProtocol.Http2))
-            //{
-            //    extensions.Add(17513, new byte[5] { 0, 0x3, 0x02, 0x68, 0x32 });
-
-            //}
-
-            //// TlsExtensionsUtilities.AddAlpnExtensionClient();
-            ////extensions.Add(ExtensionType.psk_key_exchange_modes,);
-
-            //return extensions;
-
             var baseExtensions = base.GetClientExtensions();
+
+            var pv = m_protocolVersions;
 
             if (_fingerPrint != null)
             {
-                return ClientExtensionHelper.AdjustClientExtensions(
-                    baseExtensions, _fingerPrint, _targetHost);
+                var result =  ClientExtensionHelper.AdjustClientExtensions(
+                    baseExtensions, _fingerPrint, _targetHost, m_protocolVersions);
+
+                return result;
             }
 
             return baseExtensions;
@@ -128,6 +108,17 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             // map ProtocolVersion with SslProcols 
 
+            if (_fingerPrint != null) 
+            {
+
+                var version = ProtocolVersionHelper.GetFromRawValue(_fingerPrint.ProtocolVersion);
+
+                if (version.IsEarlierVersionOf(ProtocolVersion.TLSv12))
+                    return version.Only();
+
+                return version.DownTo(ProtocolVersion.TLSv12);
+            }
+
             var listProtocolVersion = new List<ProtocolVersion>();
 
             if (SslProtocols.None == _sslProtocols) {
@@ -153,6 +144,29 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 #endif
 
             return listProtocolVersion.ToArray();
+        }
+    }
+
+    internal static class ProtocolVersionHelper
+    {
+        private static readonly ProtocolVersion[] _supportedVersions = new ProtocolVersion[]
+        {
+            ProtocolVersion.TLSv10,
+            ProtocolVersion.TLSv11,
+            ProtocolVersion.TLSv12,
+            ProtocolVersion.TLSv13
+        };
+
+        public static ProtocolVersion GetFromRawValue(int protocolVersion)
+        {
+            var result =  _supportedVersions.FirstOrDefault(v => (int)v.FullVersion == protocolVersion);
+
+            if (result == null)
+            {
+                throw new ArgumentException($"Invalid protocol version {protocolVersion}");
+            }
+
+            return result;
         }
     }
 }

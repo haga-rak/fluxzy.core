@@ -122,7 +122,7 @@ namespace Fluxzy.Clients.Ssl
 
             if (!int.TryParse(parts[0], out var protocolVersion)) 
             {
-                throw new ArgumentException("Invalid JA3 fingerprint format. TLS version non valid");
+                throw new ArgumentException($"Invalid JA3 fingerprint format. TLS version non valid `{parts[0]}`");
             }
 
             var ciphers = parts[1]

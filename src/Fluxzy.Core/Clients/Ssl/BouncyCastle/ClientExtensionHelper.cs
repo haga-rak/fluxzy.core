@@ -18,7 +18,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         internal static readonly HashSet<int> UnsupportedClientExtensions = new HashSet<int>() { 34 };
 
         public static IDictionary<int, byte[]> AdjustClientExtensions(IDictionary<int, byte[]> current,
-            Ja3FingerPrint fingerPrint, string targetHost)
+            Ja3FingerPrint fingerPrint, string targetHost, ProtocolVersion[] protocolVersions)
         {
             var clientExtensionTypes = fingerPrint.ClientExtensions;
 
@@ -40,7 +40,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                     continue; // No need to replace
                 }
 
-                var extensionData = GetDefaultClientValueExtension(type, targetHost);
+                var extensionData = GetDefaultClientValueExtension(type, targetHost, protocolVersions);
 
                 if (extensionData == null)
                     continue;
@@ -57,7 +57,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         internal static byte[]? GetDefaultClientValueExtension(
             int type,
-            string targetHost)
+            string targetHost, ProtocolVersion[] protocolVersions)
         {
             if (type == 0)
                 return ServerNameUtilities.CreateFromHost(targetHost);
@@ -80,8 +80,14 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (type == ExtensionType.record_size_limit)
                 return DefaultMaxSizeRecordLimit;
 
+            if (type == ExtensionType.padding)
+                return TlsExtensionsUtilities.CreatePaddingExtension(6);
+
             if (type == ExtensionType.psk_key_exchange_modes)
                 return TlsExtensionsUtilities.CreatePskKeyExchangeModesExtension(new short[] { 1 });
+
+            if (type == ExtensionType.supported_versions)
+                return TlsExtensionsUtilities.CreateSupportedVersionsExtensionClient(protocolVersions);
 
             if (type == 0x4469) // APPLICATION PROTOCOLS 17513 --> https://chromestatus.com/feature/5149147365900288
                 return Http2ApplicationProtocol;
