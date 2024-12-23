@@ -48,7 +48,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public void Write(string key, byte[] clientRandom, byte[] secret)
         {
-            var stringKey = $"{key} {Hex.ToHexString(clientRandom)} {Hex.ToHexString(secret)}";
+            var stringKey = $"{key} {Hex.ToHexString(clientRandom)} {Hex.ToHexString(secret)}\n";
 
             KeyHandler?.Invoke(stringKey);
 
