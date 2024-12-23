@@ -46,12 +46,17 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             var baseExtensions = base.GetClientExtensions();
 
-            var pv = m_protocolVersions;
-
+            
             if (_fingerPrint != null)
             {
                 var result =  ClientExtensionHelper.AdjustClientExtensions(
                     baseExtensions, _fingerPrint, _targetHost, m_protocolVersions);
+
+                //if (!baseExtensions.ContainsKey(ExtensionType.key_share) 
+                //    && _fingerPrint.ClientExtensions.Contains(ExtensionType.key_share))
+                //{
+                //    result[ExtensionType.MaxFragmentLength] = ClientExtensionHelper.DefaultMaxSizeRecordLimit;
+                //}
 
                 return result;
             }

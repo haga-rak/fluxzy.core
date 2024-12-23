@@ -34,7 +34,7 @@ namespace Fluxzy.Tests
 
         [Theory]
         [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataAsObject), MemberType = typeof(Ja3FingerPrintTestLoader))]
-        public async Task TestJa3FingerPrint_NoEch(string clientName, string expectedJa3)
+        public async Task Validate(string clientName, string expectedJa3)
         {
             var testUrl = "https://tools.scrapfly.io/api/tls";
             await using var proxy = new AddHocConfigurableProxy(1, 10, 
@@ -54,6 +54,22 @@ namespace Fluxzy.Tests
             
             Assert.NotNull(ja3Response);
             Assert.Equal(expectedJa3, ja3Response.Ja3n);
+        }
+
+        [Theory]
+        [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataAsObject), MemberType = typeof(Ja3FingerPrintTestLoader))]
+        public async Task ConnectOnly(string clientName, string expectedJa3)
+        {
+            var testUrl = "https://docs.fluxzy.io";
+            await using var proxy = new AddHocConfigurableProxy(1, 10, 
+                configureSetting : setting => {
+                setting.UseBouncyCastleSslEngine();
+                setting.AddAlterationRulesForAny(new SetJa3FingerPrintAction(expectedJa3));
+            });
+
+            using var httpClient = proxy.RunAndGetClient();
+            using var response = await httpClient.GetAsync(testUrl);
+            response.EnsureSuccessStatusCode();
         }
 
         private static void CleanupDirectory(string directory)

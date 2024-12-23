@@ -92,9 +92,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (type == 0x4469) // APPLICATION PROTOCOLS 17513 --> https://chromestatus.com/feature/5149147365900288
                 return Http2ApplicationProtocol;
 
+            if (type == ExtensionType.key_share)
+                return Array.Empty<byte>();
+
             if (UnsupportedClientExtensions.Contains(type))
                 throw new InvalidOperationException($"Unsupported TLS client extension {type}");
-
 
             return null; 
         }
