@@ -72,7 +72,10 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 return Array.Empty<byte>();
 
             if (type == ExtensionType.compress_certificate)
-                return TlsExtensionsUtilities.CreateCompressCertificateExtension(new[] { 2 });
+                return TlsExtensionsUtilities.CreateCompressCertificateExtension(new[] {
+                    CertificateCompressionAlgorithm.brotli,
+                    CertificateCompressionAlgorithm.zstd
+                });
 
             if (type == ExtensionType.session_ticket)
                 return Array.Empty<byte>();
@@ -92,8 +95,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (type == 0x4469) // APPLICATION PROTOCOLS 17513 --> https://chromestatus.com/feature/5149147365900288
                 return Http2ApplicationProtocol;
 
-            if (type == ExtensionType.key_share)
-                return Array.Empty<byte>();
+            //if (type == ExtensionType.key_share)
+            //    return Array.Empty<byte>(); NOT GOOD
 
             if (UnsupportedClientExtensions.Contains(type))
                 throw new InvalidOperationException($"Unsupported TLS client extension {type}");

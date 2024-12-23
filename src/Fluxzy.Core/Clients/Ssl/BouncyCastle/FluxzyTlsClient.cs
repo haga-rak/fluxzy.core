@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Text;
 using Org.BouncyCastle.Tls;
 
 #pragma warning disable SYSLIB0039
@@ -18,8 +19,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         private readonly SslProtocols _sslProtocols;
         private readonly string _targetHost;
         private readonly TlsAuthentication _tlsAuthentication;
-        private readonly int[]?  _cipherSuites;
         private readonly Ja3FingerPrint? _fingerPrint;
+        private readonly byte[] _hostNameBytes;
+        private readonly List<ServerName> _serverNames;
 
         public FluxzyTlsClient(
             SslConnectionBuilderOptions builderOptions,
@@ -32,41 +34,49 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             _applicationProtocols = builderOptions.ApplicationProtocols;
             _tlsAuthentication = tlsAuthentication;
             _crypto = crypto;
-            _fingerPrint = builderOptions.AdvancedTlsSettings?.Ja3FingerPrint; 
-            _cipherSuites = _fingerPrint?.Ciphers.ToArray(); // TODO: Uncessary allocation here
+            _fingerPrint = builderOptions.AdvancedTlsSettings?.Ja3FingerPrint;
+            _hostNameBytes = Encoding.UTF8.GetBytes(builderOptions.TargetHost);
+            _serverNames = new List<ServerName>() { new ServerName(0, _hostNameBytes) };
         }
 
         public override void Init(TlsClientContext context)
         {
             base.Init(context);
+
             _crypto.UpdateContext(context);
+
+            if (_fingerPrint != null)
+            {
+                m_cipherSuites = _fingerPrint.Ciphers;
+            }
+
+            m_protocolVersions = InternalGetProtocolVersions();
+        }
+
+        protected override IList<ServerName> GetSniServerNames()
+        {
+            return _serverNames;
         }
 
         public override IDictionary<int, byte[]> GetClientExtensions()
         {
             var baseExtensions = base.GetClientExtensions();
-
             
             if (_fingerPrint != null)
             {
                 var result =  ClientExtensionHelper.AdjustClientExtensions(
                     baseExtensions, _fingerPrint, _targetHost, m_protocolVersions);
 
-                //if (!baseExtensions.ContainsKey(ExtensionType.key_share) 
-                //    && _fingerPrint.ClientExtensions.Contains(ExtensionType.key_share))
-                //{
-                //    result[ExtensionType.MaxFragmentLength] = ClientExtensionHelper.DefaultMaxSizeRecordLimit;
-                //}
-
                 return result;
             }
-
+            
             return baseExtensions;
         }
 
         protected override IList<int> GetSupportedGroups(IList<int> namedGroupRoles)
         {
-            if (_fingerPrint != null) {
+            if (_fingerPrint != null)
+            {
                 return _fingerPrint.SupportGroups;
             }
 
@@ -77,17 +87,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             return _tlsAuthentication;
         }
-
-        public override int[] GetCipherSuites()
-        {
-            if (_cipherSuites != null)
-            {
-                return _cipherSuites;
-            }
-
-            return base.GetCipherSuites();
-        }
-
+        
         protected override IList<ProtocolName> GetProtocolNames()
         {
             var result = new List<ProtocolName>();
@@ -109,13 +109,17 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             return result;
         }
 
-        protected override ProtocolVersion[] GetSupportedVersions()
-        {
-            // map ProtocolVersion with SslProcols 
+        //protected override ProtocolVersion[] GetSupportedVersions()
+        //{
+        //    // map ProtocolVersion with SslProcols 
 
+        //    return InternalGetProtocolVersions();
+        //}
+
+        private ProtocolVersion[] InternalGetProtocolVersions()
+        {
             if (_fingerPrint != null) 
             {
-
                 var version = ProtocolVersionHelper.GetFromRawValue(_fingerPrint.ProtocolVersion);
 
                 if (version.IsEarlierVersionOf(ProtocolVersion.TLSv12))
@@ -154,7 +158,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
     internal static class ProtocolVersionHelper
     {
-        private static readonly ProtocolVersion[] _supportedVersions = new ProtocolVersion[]
+        private static readonly ProtocolVersion[] SupportedVersions = new ProtocolVersion[]
         {
             ProtocolVersion.TLSv10,
             ProtocolVersion.TLSv11,
@@ -164,7 +168,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public static ProtocolVersion GetFromRawValue(int protocolVersion)
         {
-            var result =  _supportedVersions.FirstOrDefault(v => (int)v.FullVersion == protocolVersion);
+            var result =  SupportedVersions.FirstOrDefault(v => (int)v.FullVersion == protocolVersion);
 
             if (result == null)
             {

@@ -1,20 +1,17 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Fluxzy.Tests._Fixtures;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Castle.Components.DictionaryAdapter.Xml;
 using Fluxzy.Clients.Ssl;
-using Fluxzy.Core;
-using Fluxzy.Core.Pcap;
 using Fluxzy.Rules.Actions;
 using Xunit;
-using Fluxzy.Core.Pcap.Cli.Clients;
+using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy.Tests
 {
@@ -34,9 +31,10 @@ namespace Fluxzy.Tests
 
         [Theory]
         [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataAsObject), MemberType = typeof(Ja3FingerPrintTestLoader))]
-        public async Task Validate(string clientName, string expectedJa3)
+        public async Task Validate(string _, string clientName, string expectedJa3)
         {
-            var testUrl = "https://tools.scrapfly.io/api/tls";
+            var testUrl = "https://check.ja3.zone/";
+
             await using var proxy = new AddHocConfigurableProxy(1, 10, 
                 configureSetting : setting => {
                 setting.UseBouncyCastleSslEngine();
@@ -53,23 +51,28 @@ namespace Fluxzy.Tests
             var ja3Response = JsonSerializer.Deserialize<Ja3FingerPrintResponse>(responseString);
             
             Assert.NotNull(ja3Response);
-            Assert.Equal(expectedJa3, ja3Response.Ja3n);
+            Assert.Equal(expectedJa3, ja3Response.NormalizedFingerPrint);
         }
 
         [Theory]
         [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataAsObject), MemberType = typeof(Ja3FingerPrintTestLoader))]
-        public async Task ConnectOnly(string clientName, string expectedJa3)
+        public async Task ConnectOnly(string host, string clientName, string expectedJa3)
         {
-            var testUrl = "https://docs.fluxzy.io";
+            var testUrl = host;
             await using var proxy = new AddHocConfigurableProxy(1, 10, 
                 configureSetting : setting => {
                 setting.UseBouncyCastleSslEngine();
                 setting.AddAlterationRulesForAny(new SetJa3FingerPrintAction(expectedJa3));
-            });
+
+                setting.AddAlterationRules(new SpoofDnsAction() {
+                    RemoteHostIp = "142.250.178.132"
+                }, new HostFilter("google.com", StringSelectorOperation.EndsWith)); 
+                });
 
             using var httpClient = proxy.RunAndGetClient();
             using var response = await httpClient.GetAsync(testUrl);
-            response.EnsureSuccessStatusCode();
+
+            Assert.NotEqual(528, (int) response.StatusCode);
         }
 
         private static void CleanupDirectory(string directory)
@@ -125,7 +128,20 @@ namespace Fluxzy.Tests
 
         public static IEnumerable<object[]> LoadTestDataAsObject()
         {
-            return LoadTestData().Select(t => new object[] { t.FriendlyName, t.FingerPrint.ToString() });
+            var testDatas = LoadTestData();
+            var testedHosts = new List<string> {
+                "https://check.ja3.zone/", "https://docs.fluxzy.io"
+                , "https://www.google.com/nothing",
+                 "https://extranet.2befficient.fr"
+            };
+
+            foreach (var testData in testDatas)
+            {
+                foreach (var host in testedHosts)
+                {
+                    yield return new object[] { host, testData.FriendlyName, testData.FingerPrint.ToString() };
+                }
+            }
         }
     }
 }
