@@ -20,8 +20,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         private readonly string _targetHost;
         private readonly TlsAuthentication _tlsAuthentication;
         private readonly Ja3FingerPrint? _fingerPrint;
-        private readonly byte[] _hostNameBytes;
         private readonly List<ServerName> _serverNames;
+        private readonly IList<ProtocolName> _protocolNames;
 
         public FluxzyTlsClient(
             SslConnectionBuilderOptions builderOptions,
@@ -35,8 +35,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             _tlsAuthentication = tlsAuthentication;
             _crypto = crypto;
             _fingerPrint = builderOptions.AdvancedTlsSettings?.Ja3FingerPrint;
-            _hostNameBytes = Encoding.UTF8.GetBytes(builderOptions.TargetHost);
-            _serverNames = new List<ServerName>() { new ServerName(0, _hostNameBytes) };
+            _serverNames = new List<ServerName>() { new ServerName(0, 
+                Encoding.UTF8.GetBytes(builderOptions.TargetHost))
+            };
+
+            _protocolNames = InternalGetProtocolNames();
         }
 
         public override void Init(TlsClientContext context)
@@ -61,24 +64,24 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public override IDictionary<int, byte[]> GetClientExtensions()
         {
             var baseExtensions = base.GetClientExtensions();
-            
+
             if (_fingerPrint != null)
             {
-                var result =  ClientExtensionHelper.AdjustClientExtensions(
+                var result = ClientExtensionHelper.AdjustClientExtensions(
                     baseExtensions, _fingerPrint, _targetHost, m_protocolVersions);
 
                 return result;
             }
-            
+
             return baseExtensions;
         }
 
         protected override IList<int> GetSupportedGroups(IList<int> namedGroupRoles)
         {
-            if (_fingerPrint != null)
-            {
-                return _fingerPrint.SupportGroups;
-            }
+            //if (_fingerPrint != null)
+            //{
+            //    return _fingerPrint.SupportGroups;
+            //}
 
             return base.GetSupportedGroups(namedGroupRoles);
         }
@@ -90,6 +93,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         
         protected override IList<ProtocolName> GetProtocolNames()
         {
+            return _protocolNames;
+        }
+
+        private IList<ProtocolName> InternalGetProtocolNames()
+        {
             var result = new List<ProtocolName>();
 
             if (!_applicationProtocols.Any()) {
@@ -97,11 +105,13 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             }
 
             foreach (var applicationProtocol in _applicationProtocols) {
-                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http11.Protocol)) {
+                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http11.Protocol))
+                {
                     result.Add(ProtocolName.Http_1_1);
                 }
 
-                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http2.Protocol)) {
+                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http2.Protocol))
+                {
                     result.Add(ProtocolName.Http_2_Tls);
                 }
             }

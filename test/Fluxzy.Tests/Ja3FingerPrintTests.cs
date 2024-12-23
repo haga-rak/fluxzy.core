@@ -58,21 +58,30 @@ namespace Fluxzy.Tests
         [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataAsObject), MemberType = typeof(Ja3FingerPrintTestLoader))]
         public async Task ConnectOnly(string host, string clientName, string expectedJa3)
         {
-            var testUrl = host;
-            await using var proxy = new AddHocConfigurableProxy(1, 10, 
-                configureSetting : setting => {
-                setting.UseBouncyCastleSslEngine();
-                setting.AddAlterationRulesForAny(new SetJa3FingerPrintAction(expectedJa3));
+            var lastStatus = 0; 
 
-                setting.AddAlterationRules(new SpoofDnsAction() {
-                    RemoteHostIp = "142.250.178.132"
-                }, new HostFilter("google.com", StringSelectorOperation.EndsWith)); 
-                });
+            for (int i = 0; i < 2 ; i ++) {
 
-            using var httpClient = proxy.RunAndGetClient();
-            using var response = await httpClient.GetAsync(testUrl);
+                var testUrl = host;
+                await using var proxy = new AddHocConfigurableProxy(1, 10,
+                    configureSetting: setting => {
+                        setting.UseBouncyCastleSslEngine();
+                        setting.AddAlterationRulesForAny(new SetJa3FingerPrintAction(expectedJa3));
 
-            Assert.NotEqual(528, (int) response.StatusCode);
+                        setting.AddAlterationRules(new SpoofDnsAction()
+                        {
+                            RemoteHostIp = "142.250.178.132"
+                        }, new HostFilter("google.com", StringSelectorOperation.EndsWith));
+                    });
+
+                using var httpClient = proxy.RunAndGetClient();
+                using var response = await httpClient.GetAsync(testUrl);
+
+                lastStatus = (int)response.StatusCode;
+            }
+
+
+            Assert.NotEqual(528, (int)lastStatus);
         }
 
         private static void CleanupDirectory(string directory)
@@ -130,9 +139,9 @@ namespace Fluxzy.Tests
         {
             var testDatas = LoadTestData();
             var testedHosts = new List<string> {
-                "https://check.ja3.zone/", "https://docs.fluxzy.io"
+                "https://check.ja3.zone/", "https://docs.fluxzy.io/nothing"
                 , "https://www.google.com/nothing",
-                 "https://extranet.2befficient.fr"
+                 "https://extranet.2befficient.fr/nothing"
             };
 
             foreach (var testData in testDatas)

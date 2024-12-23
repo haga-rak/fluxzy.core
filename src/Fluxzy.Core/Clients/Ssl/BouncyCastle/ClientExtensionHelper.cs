@@ -10,7 +10,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     public static class ClientExtensionHelper
     {
-        private static readonly byte[] Http2ApplicationProtocol = new byte[5] { 0, 0x3, 0x02, 0x68, 0x32 };
+        private static readonly byte[] Http2ApplicationProtocol = new byte[] { 0, 0x3, 0x02, 0x68, 0x32 };
         private static readonly byte[] EmptyOctet = new byte[1]; 
 
         private static readonly byte[] DefaultMaxSizeRecordLimit = BinaryUtilities.GetBytesBigEndian(16884);

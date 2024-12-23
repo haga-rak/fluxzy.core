@@ -445,7 +445,7 @@ namespace Fluxzy.Clients.H2
             try {
                 while (!token.IsCancellationRequested) {
                     _logger.TraceDeep(0, () => "1");
-
+                    
                     var frame =
                         await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
                             token).ConfigureAwait(false);

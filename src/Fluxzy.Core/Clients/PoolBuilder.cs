@@ -23,8 +23,8 @@ namespace Fluxzy.Clients
     internal class PoolBuilder : IDisposable
     {
         private static readonly List<SslApplicationProtocol> AllProtocols = new() {
-            SslApplicationProtocol.Http11,
-            SslApplicationProtocol.Http2
+            SslApplicationProtocol.Http2,
+            SslApplicationProtocol.Http11
         };
 
         static PoolBuilder()
