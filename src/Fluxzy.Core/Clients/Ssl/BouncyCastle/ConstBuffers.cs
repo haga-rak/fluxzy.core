@@ -15,7 +15,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public static byte[] ClientExtensionsCompressCertificate { get; } =
             TlsExtensionsUtilities.CreateCompressCertificateExtension(new[] {
-                CertificateCompressionAlgorithm.brotli
+                382
             });
 
         public static byte[] ClientExtensionsPskKeyExchangeModes { get; } = 

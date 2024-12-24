@@ -126,11 +126,6 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         protected override async Task Handle13HandshakeMessageAsync(short type, HandshakeMessageInput buf)
         {
-            if (type == 8)
-            {
-
-            }
-
             await base.Handle13HandshakeMessageAsync(type, buf).ConfigureAwait(false);
 
             // Here we shall extract the application keys    

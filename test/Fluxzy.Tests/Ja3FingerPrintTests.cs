@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Net.Http;
 using Fluxzy.Tests._Fixtures;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -30,7 +30,7 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataAsObject), MemberType = typeof(Ja3FingerPrintTestLoader))]
+        [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataWithHosts), MemberType = typeof(Ja3FingerPrintTestLoader))]
         public async Task Validate(string _, string clientName, string expectedJa3)
         {
             var testUrl = "https://check.ja3.zone/";
@@ -55,53 +55,28 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataAsObject), MemberType = typeof(Ja3FingerPrintTestLoader))]
+        [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataWithHosts), MemberType = typeof(Ja3FingerPrintTestLoader))]
         public async Task ConnectOnly(string host, string clientName, string expectedJa3)
         {
-            var lastStatus = 0; 
+            var testUrl = host;
+            await using var proxy = new AddHocConfigurableProxy(1, 10,
+                configureSetting: setting => {
+                    setting.UseBouncyCastleSslEngine();
+                    setting.AddAlterationRulesForAny(new SetJa3FingerPrintAction(expectedJa3));
+                    setting.AddAlterationRules(new SpoofDnsAction()
+                    {
+                        RemoteHostIp = "142.250.178.132"
+                    }, new HostFilter("google.com", StringSelectorOperation.EndsWith));
+                    setting.AddAlterationRules(new SpoofDnsAction()
+                    {
+                        RemoteHostIp = "104.16.123.96"
+                    }, new HostFilter("cloudflare.com", StringSelectorOperation.EndsWith));
+                });
 
-            for (int i = 0; i < 1 ; i ++) {
+            using var httpClient = proxy.RunAndGetClient();
+            using var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, testUrl ));
 
-                var testUrl = host;
-                await using var proxy = new AddHocConfigurableProxy(1, 10,
-                    configureSetting: setting => {
-                        setting.UseBouncyCastleSslEngine();
-                        setting.AddAlterationRulesForAny(new SetJa3FingerPrintAction(expectedJa3));
-
-                        setting.AddAlterationRules(new SpoofDnsAction()
-                        {
-                            RemoteHostIp = "142.250.178.132"
-                        }, new HostFilter("google.com", StringSelectorOperation.EndsWith));
-                    });
-
-                using var httpClient = proxy.RunAndGetClient();
-                using var response = await httpClient.GetAsync(testUrl);
-
-                lastStatus = (int)response.StatusCode;
-            }
-
-
-            Assert.NotEqual(528, (int)lastStatus);
-        }
-
-        private static void CleanupDirectory(string directory)
-        {
-            var directoryInfo = new DirectoryInfo(directory);
-
-            if (!directoryInfo.Exists)
-            {
-                return;
-            }
-
-            foreach (var f in directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).ToList()) 
-            {
-                try {
-                    f.Delete();
-                }
-                catch { 
-                    // Ignore
-                }
-            }
+            Assert.NotEqual(528, (int)response.StatusCode);
         }
     }
 
@@ -135,13 +110,15 @@ namespace Fluxzy.Tests
             }
         }
 
-        public static IEnumerable<object[]> LoadTestDataAsObject()
+        public static IEnumerable<object[]> LoadTestDataWithHosts()
         {
             var testDatas = LoadTestData();
             var testedHosts = new List<string> {
-                "https://check.ja3.zone/", "https://docs.fluxzy.io/nothing"
-                , "https://www.google.com/nothing",
-                 "https://extranet.2befficient.fr/nothing"
+                "https://check.ja3.zone/", 
+                "https://docs.fluxzy.io/nothing", // YARP
+                "https://www.google.com/nothing", // GOOGLE
+                "https://extranet.2befficient.fr/nothing", // IIS
+                "https://www.cloudflare.com/nothing", // BING
             };
 
             foreach (var testData in testDatas)
