@@ -4,26 +4,23 @@ using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
-    public static class ClientExtensionHelper
+    public class FingerPrintTlsExtensionsEnforcer
     {
-        private static readonly byte[] Http2ApplicationProtocol = new byte[] { 0, 0x3, 0x02, 0x68, 0x32 };
-        private static readonly byte[] EmptyOctet = new byte[1]; 
+        internal static readonly HashSet<int> UnsupportedClientExtensions
+            = new HashSet<int>() { 34 };
 
-        private static readonly byte[] DefaultMaxSizeRecordLimit = BinaryUtilities.GetBytesBigEndian(16884);
-
-        internal static readonly HashSet<int> UnsupportedClientExtensions = new HashSet<int>() { 34 };
-
-        public static IDictionary<int, byte[]> AdjustClientExtensions(IDictionary<int, byte[]> current,
+        public IDictionary<int, byte[]> PrepareExtensions(IDictionary<int, byte[]> current,
             Ja3FingerPrint fingerPrint, string targetHost, ProtocolVersion[] protocolVersions)
         {
             var clientExtensionTypes = fingerPrint.ClientExtensions;
 
             var missing = current.Where(c => !clientExtensionTypes.Contains(c.Key))
-                    .Select(s => s.Key).ToList();
+                                 .Select(s => s.Key).ToList();
 
             // Remove 
             foreach (var type in missing)
@@ -53,9 +50,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             return current;
         }
-
-
-        internal static byte[]? GetDefaultClientValueExtension(
+        
+        internal byte[]? GetDefaultClientValueExtension(
             int type,
             string targetHost, ProtocolVersion[] protocolVersions)
         {
@@ -63,7 +59,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 return ServerNameUtilities.CreateFromHost(targetHost);
 
             if (type == ExtensionType.renegotiation_info)
-                return EmptyOctet;
+                return ConstBuffers.EmptyOctet;
 
             if (type == ExtensionType.signed_certificate_timestamp)
                 return Array.Empty<byte>();
@@ -72,28 +68,25 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 return Array.Empty<byte>();
 
             if (type == ExtensionType.compress_certificate)
-                return TlsExtensionsUtilities.CreateCompressCertificateExtension(new[] {
-                    CertificateCompressionAlgorithm.brotli,
-                    CertificateCompressionAlgorithm.zstd
-                });
+                return ConstBuffers.ClientExtensionsCompressCertificate;
 
             if (type == ExtensionType.session_ticket)
                 return Array.Empty<byte>();
 
             if (type == ExtensionType.record_size_limit)
-                return DefaultMaxSizeRecordLimit;
+                return ConstBuffers.ClientExtensionsDefaultMaxSizeRecordLimit;
 
             if (type == ExtensionType.padding)
-                return TlsExtensionsUtilities.CreatePaddingExtension(6);
+                return ConstBuffers.ClientExtensionsDummyPadding;
 
             if (type == ExtensionType.psk_key_exchange_modes)
-                return TlsExtensionsUtilities.CreatePskKeyExchangeModesExtension(new short[] { 1 });
+                return ConstBuffers.ClientExtensionsPskKeyExchangeModes;
 
             if (type == ExtensionType.supported_versions)
                 return TlsExtensionsUtilities.CreateSupportedVersionsExtensionClient(protocolVersions);
 
-            if (type == 0x4469) // APPLICATION PROTOCOLS 17513 --> https://chromestatus.com/feature/5149147365900288
-                return Http2ApplicationProtocol;
+            if (type == ConstBuffers.ExtensionTypeAlps) // APPLICATION PROTOCOLS 17513 --> https://chromestatus.com/feature/5149147365900288
+                return ConstBuffers.Http2ApplicationProtocol;
 
             //if (type == ExtensionType.key_share)
             //    return Array.Empty<byte>(); NOT GOOD
@@ -102,6 +95,16 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 throw new InvalidOperationException($"Unsupported TLS client extension {type}");
 
             return null; 
+        }
+
+        public IEnumerable<(short HandshakeType, byte[] Data)> GetAdditionalExtensions(
+            IDictionary<int, byte[]> serverExtensions)
+        {
+            if (serverExtensions.ContainsKey(ConstBuffers.ExtensionTypeAlps))
+            {
+                yield return (HandshakeType.encrypted_extensions,
+                    ConstBuffers.EncryptedExtensionAlpsH2);
+            }
         }
     }
 

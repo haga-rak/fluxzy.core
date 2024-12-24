@@ -1,6 +1,8 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -14,12 +16,14 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     internal class FluxzyClientProtocol : TlsClientProtocol
     {
+        private readonly FingerPrintTlsExtensionsEnforcer _extensionEnforcer;
         private readonly NssLogWriter _logWriter;
         private TlsSecret? _localSecret;
 
-        public FluxzyClientProtocol(Stream stream, NssLogWriter logWriter)
+        public FluxzyClientProtocol(Stream stream, FingerPrintTlsExtensionsEnforcer _extensionEnforcer, NssLogWriter logWriter)
             : base(stream)
         {
+            this._extensionEnforcer = _extensionEnforcer;
             _logWriter = logWriter;
         }
 
@@ -46,7 +50,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             return SslApplicationProtocol.Http11;
         }
-
+        
         public SslProtocols GetSChannelProtocol()
         {
             var version = ProtocolVersion;
@@ -85,6 +89,18 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                     crypto.MasterSecret);
             }
         }
+        
+        protected override async ValueTask Send13FinishedMessageAsync()
+        {
+            var extensions = _extensionEnforcer.GetAdditionalExtensions(m_serverExtensions);
+
+            foreach (var (type, data) in extensions)
+            {
+                await HandshakeMessageOutput.SendAsync(this, type, data);
+            }
+
+            await base.Send13FinishedMessageAsync();
+        }
 
         protected override void Handle13HandshakeMessage(short type, HandshakeMessageInput buf)
         {
@@ -110,6 +126,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         protected override async Task Handle13HandshakeMessageAsync(short type, HandshakeMessageInput buf)
         {
+            if (type == 8)
+            {
+
+            }
+
             await base.Handle13HandshakeMessageAsync(type, buf).ConfigureAwait(false);
 
             // Here we shall extract the application keys    

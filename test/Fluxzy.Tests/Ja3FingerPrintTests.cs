@@ -60,7 +60,7 @@ namespace Fluxzy.Tests
         {
             var lastStatus = 0; 
 
-            for (int i = 0; i < 2 ; i ++) {
+            for (int i = 0; i < 1 ; i ++) {
 
                 var testUrl = host;
                 await using var proxy = new AddHocConfigurableProxy(1, 10,

@@ -16,6 +16,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
     {
         private readonly IReadOnlyCollection<SslApplicationProtocol>_applicationProtocols;
         private readonly FluxzyCrypto _crypto;
+        private readonly FingerPrintTlsExtensionsEnforcer _fingerPrintEnforcer;
         private readonly SslProtocols _sslProtocols;
         private readonly string _targetHost;
         private readonly TlsAuthentication _tlsAuthentication;
@@ -26,7 +27,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public FluxzyTlsClient(
             SslConnectionBuilderOptions builderOptions,
             TlsAuthentication tlsAuthentication,
-            FluxzyCrypto crypto)
+            FluxzyCrypto crypto, 
+            FingerPrintTlsExtensionsEnforcer fingerPrintEnforcer)
             : base(crypto)
         {
             _targetHost = builderOptions.TargetHost;
@@ -34,6 +36,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             _applicationProtocols = builderOptions.ApplicationProtocols;
             _tlsAuthentication = tlsAuthentication;
             _crypto = crypto;
+            _fingerPrintEnforcer = fingerPrintEnforcer;
             _fingerPrint = builderOptions.AdvancedTlsSettings?.Ja3FingerPrint;
             _serverNames = new List<ServerName>() { new ServerName(0, 
                 Encoding.UTF8.GetBytes(builderOptions.TargetHost))
@@ -60,6 +63,12 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             return _serverNames;
         }
+        
+        public override IList<SupplementalDataEntry> GetClientSupplementalData()
+        {
+            var entry = new SupplementalDataEntry(0, Encoding.UTF8.GetBytes("Ja3"));
+            return base.GetClientSupplementalData();
+        }
 
         public override IDictionary<int, byte[]> GetClientExtensions()
         {
@@ -67,8 +76,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             if (_fingerPrint != null)
             {
-                var result = ClientExtensionHelper.AdjustClientExtensions(
-                    baseExtensions, _fingerPrint, _targetHost, m_protocolVersions);
+                var result = _fingerPrintEnforcer.PrepareExtensions(baseExtensions,
+                    _fingerPrint, _targetHost, m_protocolVersions);
 
                 return result;
             }
@@ -76,16 +85,6 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             return baseExtensions;
         }
 
-        protected override IList<int> GetSupportedGroups(IList<int> namedGroupRoles)
-        {
-            //if (_fingerPrint != null)
-            //{
-            //    return _fingerPrint.SupportGroups;
-            //}
-
-            return base.GetSupportedGroups(namedGroupRoles);
-        }
-        
         public override TlsAuthentication GetAuthentication()
         {
             return _tlsAuthentication;

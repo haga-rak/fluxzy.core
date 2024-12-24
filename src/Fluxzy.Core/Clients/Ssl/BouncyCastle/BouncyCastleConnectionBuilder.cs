@@ -26,7 +26,10 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             var tlsAuthentication = 
                 new FluxzyTlsAuthentication(crypto, builderOptions.GetBouncyCastleClientCertificateInfo());
 
-            var client = new FluxzyTlsClient(builderOptions, tlsAuthentication, crypto);
+
+            var fingerPrintEnforcer = new FingerPrintTlsExtensionsEnforcer();
+
+            var client = new FluxzyTlsClient(builderOptions, tlsAuthentication, crypto, fingerPrintEnforcer);
 
             var memoryStream = new MemoryStream();
 
@@ -37,7 +40,6 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (Environment.GetEnvironmentVariable("SSLKEYLOGFILE") is { } str) {
                 nssWriter.KeyHandler = nss => {
                     onKeyReceived(nss);
-
                     lock (SslFileLocker) {
                         try
                         {
@@ -50,7 +52,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 };
             }
 
-            var protocol = new FluxzyClientProtocol(innerStream, nssWriter);
+            var protocol = new FluxzyClientProtocol(innerStream, fingerPrintEnforcer, nssWriter);
 
             try
             {

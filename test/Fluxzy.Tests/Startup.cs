@@ -31,7 +31,7 @@ namespace Fluxzy.Tests
         public Startup(IMessageSink messageSink)
             : base(messageSink)
         {
-            Environment.SetEnvironmentVariable("SSLKEYLOGFILE", @"d:\key.log");
+            Environment.SetEnvironmentVariable("SSLKEYLOGFILE", @"e:\poubelle\keylog2.txt");
 
             foreach (var fileSystemInfo in new DirectoryInfo(".").EnumerateFileSystemInfos().ToList())
             {
