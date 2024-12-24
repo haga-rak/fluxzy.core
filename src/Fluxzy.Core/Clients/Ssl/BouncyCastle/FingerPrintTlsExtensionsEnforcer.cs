@@ -68,7 +68,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 return Array.Empty<byte>();
 
             if (type == ExtensionType.compress_certificate)
-                return ConstBuffers.ClientExtensionsCompressCertificate;
+                return ConstBuffers.ClientExtensionsDefaultCompressCertificate;
 
             if (type == ExtensionType.session_ticket)
                 return Array.Empty<byte>();

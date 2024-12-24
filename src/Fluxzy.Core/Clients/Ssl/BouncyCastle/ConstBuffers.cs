@@ -13,7 +13,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public static byte[] EmptyOctet { get; } = new byte[1];
 
-        public static byte[] ClientExtensionsCompressCertificate { get; } =
+        public static byte[] ClientExtensionsDefaultCompressCertificate { get; } =
             TlsExtensionsUtilities.CreateCompressCertificateExtension(new[] {
                 382
             });

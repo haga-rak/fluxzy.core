@@ -30,8 +30,8 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataWithHosts), MemberType = typeof(Ja3FingerPrintTestLoader))]
-        public async Task Validate(string _, string clientName, string expectedJa3)
+        [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataWithoutHosts), MemberType = typeof(Ja3FingerPrintTestLoader))]
+        public async Task Validate(string clientName, string expectedJa3)
         {
             var testUrl = "https://check.ja3.zone/";
 
@@ -107,6 +107,15 @@ namespace Fluxzy.Tests
                 var normalizedFingerPrint = Ja3FingerPrint.Parse(fingerPrint.ToString(true));
 
                 yield return (clientName, normalizedFingerPrint);
+            }
+        }
+
+        public static IEnumerable<object[]> LoadTestDataWithoutHosts()
+        {
+            var testDatas = LoadTestData();
+            foreach (var testData in testDatas)
+            {
+                yield return new object[] { testData.FriendlyName, testData.FingerPrint.ToString() };
             }
         }
 

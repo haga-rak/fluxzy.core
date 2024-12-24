@@ -17,6 +17,11 @@ namespace Fluxzy.Tests
             Curves = curves;
             Protocol = protocol;
             UserAgent = userAgent;
+
+            if (Protocol == "TLSv1.3") {
+                // uh ja3.zone always return 771,772 for TLSv1.3
+                Fingerprint = Fingerprint.Replace("771,", "772,");
+            }
         }
 
         [JsonProperty("hash")]

@@ -117,14 +117,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             return result;
         }
-
-        //protected override ProtocolVersion[] GetSupportedVersions()
-        //{
-        //    // map ProtocolVersion with SslProcols 
-
-        //    return InternalGetProtocolVersions();
-        //}
-
+        
         private ProtocolVersion[] InternalGetProtocolVersions()
         {
             if (_fingerPrint != null) 
