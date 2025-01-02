@@ -70,7 +70,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fluxzy.BouncyCastle.Crypto.Async" Version="2.5.4" />
     <PackageReference Include="MessagePack" Version="2.5.192" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
@@ -101,6 +100,10 @@
 
   <ItemGroup>
     <None Include="icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\poubelle\bc-csharp-fork-async\bc-csharp-fork-async\crypto\src\Fluxzy.BouncyCastle.Crypto.Async.csproj" />
   </ItemGroup>
 
 

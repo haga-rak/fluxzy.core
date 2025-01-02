@@ -95,6 +95,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.No001.RecordAsHarOr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No015.ReadingArchive", "examples\Samples.No015.ReadingArchive\Samples.No015.ReadingArchive.csproj", "{8DEDB40D-1244-4A8A-A776-69971B219CBC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fluxzy.BouncyCastle.Crypto.Async", "..\..\poubelle\bc-csharp-fork-async\bc-csharp-fork-async\crypto\src\Fluxzy.BouncyCastle.Crypto.Async.csproj", "{0594A5BB-B826-4EE5-9214-1815CAEE7114}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -197,6 +199,10 @@ Global
 		{8DEDB40D-1244-4A8A-A776-69971B219CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DEDB40D-1244-4A8A-A776-69971B219CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8DEDB40D-1244-4A8A-A776-69971B219CBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0594A5BB-B826-4EE5-9214-1815CAEE7114}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0594A5BB-B826-4EE5-9214-1815CAEE7114}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0594A5BB-B826-4EE5-9214-1815CAEE7114}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0594A5BB-B826-4EE5-9214-1815CAEE7114}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

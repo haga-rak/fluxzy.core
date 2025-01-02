@@ -54,7 +54,7 @@ namespace Fluxzy.Tests
             Assert.Equal(expectedJa3, ja3Response.NormalizedFingerPrint);
         }
 
-        [Theory]
+        [Theory()]
         [MemberData(nameof(Ja3FingerPrintTestLoader.LoadTestDataWithHosts), MemberType = typeof(Ja3FingerPrintTestLoader))]
         public async Task ConnectOnly(string host, string clientName, string expectedJa3)
         {
@@ -128,6 +128,7 @@ namespace Fluxzy.Tests
                 "https://www.google.com/nothing", // GOOGLE
                 "https://extranet.2befficient.fr/nothing", // IIS
                 "https://www.cloudflare.com/nothing", // BING
+                "https://www.galerieslafayette.com/nothing", // BING
             };
 
             foreach (var testData in testDatas)

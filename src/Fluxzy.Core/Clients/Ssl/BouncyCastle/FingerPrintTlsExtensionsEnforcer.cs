@@ -88,8 +88,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (type == ConstBuffers.ExtensionTypeAlps) // APPLICATION PROTOCOLS 17513 --> https://chromestatus.com/feature/5149147365900288
                 return ConstBuffers.Http2ApplicationProtocol;
 
-            //if (type == ExtensionType.key_share)
-            //    return Array.Empty<byte>(); NOT GOOD
+            if (type == 51) // For TLS 1.2, key_share is not supported but some client may send it with an empty value
+                return Array.Empty<byte>();
 
             if (UnsupportedClientExtensions.Contains(type))
                 throw new InvalidOperationException($"Unsupported TLS client extension {type}");

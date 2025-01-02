@@ -41,6 +41,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             _serverNames = new List<ServerName>() { new ServerName(0, 
                 Encoding.UTF8.GetBytes(builderOptions.TargetHost))
             };
+            //this.GetKeyExchangeFactory()
 
             _protocolNames = InternalGetProtocolNames();
         }
@@ -57,6 +58,27 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             }
 
             m_protocolVersions = InternalGetProtocolVersions();
+            
+        }
+
+        public override IList<int> GetEarlyKeyShareGroups()
+        {
+            if (_fingerPrint != null) {
+                var allowedValues = new List<int>() { NamedGroup.X25519MLKEM768, NamedGroup.x25519 };
+                return _fingerPrint.SupportGroups.Where(r => allowedValues.Contains(r)).ToList();
+            }
+
+            return base.GetEarlyKeyShareGroups();
+        }
+
+        protected override IList<int> GetSupportedGroups(IList<int> namedGroupRoles)
+        {
+            if (_fingerPrint != null)
+            {
+                return _fingerPrint.SupportGroups;
+            }
+
+            return base.GetSupportedGroups(namedGroupRoles);
         }
 
         protected override IList<ServerName> GetSniServerNames()
