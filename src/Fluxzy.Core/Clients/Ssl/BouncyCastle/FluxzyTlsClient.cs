@@ -64,8 +64,12 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public override IList<int> GetEarlyKeyShareGroups()
         {
             if (_fingerPrint != null) {
-                var allowedValues = new List<int>() { NamedGroup.X25519MLKEM768, NamedGroup.x25519 };
-                return _fingerPrint.SupportGroups.Where(r => allowedValues.Contains(r)).ToList();
+                var allowedValues = new HashSet<int>() {
+                    NamedGroup.X25519MLKEM768, NamedGroup.x25519,
+                    NamedGroup.grease
+                };
+
+                return _fingerPrint.EffectiveSupportGroups.Where(r => allowedValues.Contains(r)).ToList();
             }
 
             return base.GetEarlyKeyShareGroups();
@@ -75,7 +79,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             if (_fingerPrint != null)
             {
-                return _fingerPrint.SupportGroups;
+                return _fingerPrint.EffectiveSupportGroups;
             }
 
             return base.GetSupportedGroups(namedGroupRoles);

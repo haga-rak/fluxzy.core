@@ -31,6 +31,19 @@ namespace Fluxzy.Clients.Ssl
             EllipticCurvesFormat = ellipticCurvesFormat;
             ClientExtensions = clientExtensions;
             Flat = ToString();
+
+            GreaseMode = ClientExtensions.Contains(0xFE0D); // 
+
+            if (GreaseMode)
+            {
+                // Grease enable 
+                EffectiveSupportGroups = new[] { 0x6A6A }.Concat(SupportGroups).ToArray();
+                EffectiveClientExtensions = new[] { 56026 }.Concat(clientExtensions).ToArray();
+            }
+            else {
+                EffectiveSupportGroups = SupportGroups;
+                EffectiveClientExtensions = ClientExtensions;
+            }
         }
 
         /// <summary>
@@ -44,9 +57,16 @@ namespace Fluxzy.Clients.Ssl
 
         public int[] SupportGroups { get;  }
 
+
         public int[] EllipticCurvesFormat { get; }
 
         public string Flat { get; }
+
+        public bool GreaseMode { get; set; } = true;
+
+        public int[] EffectiveSupportGroups { get; }
+
+        public int[] EffectiveClientExtensions { get; }
 
         public sealed override string ToString()
         {
