@@ -9,7 +9,7 @@ namespace Fluxzy.Clients.H2
     public class H2StreamSetting
     {
         public PeerSetting Local { get; set; } = new() {
-            WindowSize = 1024 * 1024 * 16, // 512Ko
+            WindowSize = 15728640, // 512Ko - 15663105 - 15 728 640
             SettingsMaxConcurrentStreams = 256
         };
 

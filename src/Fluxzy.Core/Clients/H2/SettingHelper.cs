@@ -43,6 +43,13 @@ namespace Fluxzy.Clients.H2
             written += preface.Length;
             written += WriteStartupSetting(settingBuffer.Slice(written), h2Setting, logger);
 
+            var windowSizeAnnounced = h2Setting.Local.WindowSize - 65535;
+
+            if (windowSizeAnnounced != 0) {
+                var windowFrame = new WindowUpdateFrame(windowSizeAnnounced, 0);
+                written += windowFrame.Write(settingBuffer.Slice(written));
+            }
+
             innerStream.Write(settingBuffer[..written]);
         }
 
