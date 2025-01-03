@@ -1,13 +1,16 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
+using Fluxzy.Clients.H2.Frames;
 
 namespace Fluxzy.Clients.H2
 {
     public class H2StreamSetting
     {
         public PeerSetting Local { get; set; } = new() {
-            WindowSize = 1024 * 1024 * 16 // 512Ko
+            WindowSize = 1024 * 1024 * 16, // 512Ko
+            SettingsMaxConcurrentStreams = 256
         };
 
         public PeerSetting Remote { get; set; } = new();
@@ -30,7 +33,38 @@ namespace Fluxzy.Clients.H2
         /// </summary>
         public int ReadBufferLength { get; set; } = 0x4000;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public TimeSpan WaitForSettingDelay { get; set; } = TimeSpan.FromSeconds(30);
+
+
+        public HashSet<SettingIdentifier> AdvertiseSettings { get; set; } = new HashSet<SettingIdentifier>() {
+            SettingIdentifier.SettingsMaxConcurrentStreams,
+            SettingIdentifier.SettingsEnablePush,
+        };
+
+        public IEnumerable<(SettingIdentifier SettingIdentifier, int Value)> GetAnnouncementSettings()
+        {
+            if (AdvertiseSettings.Contains(SettingIdentifier.SettingsHeaderTableSize))
+                yield return (SettingIdentifier.SettingsHeaderTableSize, SettingsHeaderTableSize);
+
+            if (AdvertiseSettings.Contains(SettingIdentifier.SettingsEnablePush))
+                yield return (SettingIdentifier.SettingsEnablePush, Local.EnablePush ? 1 : 0);
+
+            if (AdvertiseSettings.Contains(SettingIdentifier.SettingsMaxConcurrentStreams))
+                yield return (SettingIdentifier.SettingsMaxConcurrentStreams, Local.SettingsMaxConcurrentStreams);
+
+            if (AdvertiseSettings.Contains(SettingIdentifier.SettingsInitialWindowSize))
+                yield return (SettingIdentifier.SettingsInitialWindowSize, Local.WindowSize);
+
+            if (AdvertiseSettings.Contains(SettingIdentifier.SettingsMaxFrameSize))
+                yield return (SettingIdentifier.SettingsMaxFrameSize, Local.MaxFrameSize);
+
+            if (AdvertiseSettings.Contains(SettingIdentifier.SettingsMaxHeaderListSize))
+                yield return (SettingIdentifier.SettingsMaxHeaderListSize, Local.MaxHeaderListSize);
+
+        }
     }
 
     public class PeerSetting

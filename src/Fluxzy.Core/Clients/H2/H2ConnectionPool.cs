@@ -112,8 +112,8 @@ namespace Fluxzy.Clients.H2
 
             _initDone = false;
 
-            _baseStream.Write(Preface);
-            SettingHelper.WriteWelcomeSettings(_baseStream, Setting.Local, _logger);
+            //_baseStream.Write(Preface);
+            SettingHelper.WriteWelcomeSettings(Preface, _baseStream, Setting, _logger);
 
             _innerReadTask = Task.Run(() => InternalReadLoop(_connectionToken), _connectionToken);
             _innerWriteRun = Task.Run(() => InternalWriteLoop(_connectionToken), _connectionToken);
