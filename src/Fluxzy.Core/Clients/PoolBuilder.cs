@@ -252,7 +252,7 @@ namespace Fluxzy.Clients
 
                     exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
 
-                    if (_archiveWriter != null)
+                    if (_archiveWriter != null!)
                         _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
                     lock (_connectionPools) {

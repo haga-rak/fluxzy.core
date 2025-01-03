@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Fluxzy.Clients.Ssl
@@ -39,12 +38,17 @@ namespace Fluxzy.Clients.Ssl
                 // Grease enable 
                 EffectiveSupportGroups = new[] { 0x6A6A }.Concat(SupportGroups).ToArray();
                 EffectiveClientExtensions = new[] { 56026 }.Concat(clientExtensions).ToArray();
+                EffectiveClientExtensions = new[] { 56026 }.Concat(clientExtensions).ToArray();
+                EffectiveCiphers = new[] { 0x8A8A }.Concat(Ciphers).ToArray();
             }
             else {
                 EffectiveSupportGroups = SupportGroups;
                 EffectiveClientExtensions = ClientExtensions;
+                EffectiveCiphers = Ciphers;
             }
         }
+
+        public int[] EffectiveCiphers { get; set; }
 
         /// <summary>
         /// As in wire format

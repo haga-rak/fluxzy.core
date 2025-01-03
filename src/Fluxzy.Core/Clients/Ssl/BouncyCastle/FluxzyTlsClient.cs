@@ -54,7 +54,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             if (_fingerPrint != null)
             {
-                m_cipherSuites = _fingerPrint.Ciphers;
+                m_cipherSuites = _fingerPrint.EffectiveCiphers;
             }
 
             m_protocolVersions = InternalGetProtocolVersions();
@@ -152,6 +152,12 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
                 if (version.IsEarlierVersionOf(ProtocolVersion.TLSv12))
                     return version.Only();
+
+                if (_fingerPrint.GreaseMode) {
+                    // those allocation are shity
+                    return new[] { ProtocolVersion.Grease }.Concat(version.DownTo(ProtocolVersion.TLSv12))
+                                                           .ToArray();
+                }
 
                 return version.DownTo(ProtocolVersion.TLSv12);
             }
