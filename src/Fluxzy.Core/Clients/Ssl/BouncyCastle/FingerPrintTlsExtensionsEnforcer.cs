@@ -13,25 +13,34 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
     {
         internal static readonly HashSet<int> UnsupportedClientExtensions = new() { 34 };
 
+        internal static readonly HashSet<int> GreaseClientExtensionsValues = new() {
+            2570, 6682, 10794, 14906, 19018, 23130, 27242, 31354,
+            35466, 39578, 43690, 47802, 51914, 56026, 60138, 64250
+        };
+
+        internal int greaseCount = 0; 
+
         public IDictionary<int, byte[]> PrepareExtensions(IDictionary<int, byte[]> current,
             Ja3FingerPrint fingerPrint, string targetHost, ProtocolVersion[] protocolVersions)
         {
+            var sorted = current;
+
             var clientExtensionTypes = fingerPrint.EffectiveClientExtensions;
 
-            var missing = current.Where(c => !clientExtensionTypes.Contains(c.Key))
-                                 .Select(s => s.Key).ToList();
-
+            var missing = sorted.Where(c => !clientExtensionTypes.Contains(c.Key))
+                                .Select(s => s.Key).ToList();
+            
             // Remove 
             foreach (var type in missing)
             {
-                current.Remove(type);
+                sorted.Remove(type);
             }
 
             // Add or replace
 
             foreach (var type in clientExtensionTypes)
             {
-                if (current.ContainsKey(type))
+                if (sorted.ContainsKey(type))
                 {
                     continue; // No need to replace
                 }
@@ -41,7 +50,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 if (extensionData == null)
                     continue;
 
-                current.Add(type, extensionData);
+                sorted.Add(type, extensionData);
 
                 //current[type] = extensionData ??
                 //                throw new InvalidOperationException($"Unhandled extension {type}");
@@ -49,10 +58,10 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             if (fingerPrint.GreaseMode) {
                 // generate grease empty ECH
-                current[65037] = GreaseEchExtension.GetGreaseEncryptedClientHello();
+                sorted[65037] = GreaseEchExtension.GetGreaseEncryptedClientHello();
             }
 
-            return current;
+            return sorted;
         }
         
         internal byte[]? GetDefaultClientValueExtension(
@@ -68,8 +77,12 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (type == ExtensionType.signed_certificate_timestamp)
                 return Array.Empty<byte>();
 
-            if (type == 56026)
+            if (GreaseClientExtensionsValues.Contains(type)) {
+                if (greaseCount++ >= 1) {
+                    return ConstBuffers.EmptyOctet;
+                }
                 return Array.Empty<byte>();
+            }
 
             if (type == ExtensionType.extended_master_secret)
                 return Array.Empty<byte>();
@@ -117,7 +130,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             }
         }
     }
-
+    
     internal static class BinaryUtilities
     {
         public static byte[] GetBytesBigEndian(short value)
@@ -132,7 +145,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
     internal static class GreaseEchExtension
     {
         private static byte[] EncodedData = new byte[32]; 
-        private static byte[] EncodedPayload = new byte[176]; 
+        private static byte[] EncodedPayload = new byte[208]; 
 
         static GreaseEchExtension()
         {

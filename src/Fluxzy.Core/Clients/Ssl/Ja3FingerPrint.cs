@@ -17,6 +17,9 @@ namespace Fluxzy.Clients.Ssl
     
     public class Ja3FingerPrint
     {
+        internal static readonly int GreaseLeadValue = 60138;
+        internal static readonly int GreaseTrailValue = 64250;
+
         public Ja3FingerPrint(
             int protocolVersion,
             int[] ciphers,
@@ -37,8 +40,7 @@ namespace Fluxzy.Clients.Ssl
             {
                 // Grease enable 
                 EffectiveSupportGroups = new[] { 0x6A6A }.Concat(SupportGroups).ToArray();
-                EffectiveClientExtensions = new[] { 56026 }.Concat(clientExtensions).ToArray();
-                EffectiveClientExtensions = new[] { 56026 }.Concat(clientExtensions).ToArray();
+                EffectiveClientExtensions = new[] { GreaseLeadValue }.Concat(clientExtensions).Concat(new[] { GreaseTrailValue }).ToArray();
                 EffectiveCiphers = new[] { 0x8A8A }.Concat(Ciphers).ToArray();
             }
             else {

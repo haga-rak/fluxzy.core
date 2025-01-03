@@ -81,7 +81,7 @@ namespace Fluxzy.Tests
                 });
 
             using var httpClient = proxy.RunAndGetClient();
-            using var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, testUrl ));
+            using var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, testUrl ));
 
             Assert.NotEqual(528, (int)response.StatusCode);
             Assert.NotEqual(403, (int)response.StatusCode);
