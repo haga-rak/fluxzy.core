@@ -63,20 +63,28 @@ namespace Fluxzy.Tests
                 configureSetting: setting => {
                     setting.UseBouncyCastleSslEngine();
                     setting.AddAlterationRulesForAny(new SetJa3FingerPrintAction(expectedJa3));
-                    setting.AddAlterationRules(new SpoofDnsAction()
+
+                    if (string.Equals(Environment.GetEnvironmentVariable("DevSettings"), "true",
+                            StringComparison.OrdinalIgnoreCase))
                     {
-                        RemoteHostIp = "142.250.178.132"
-                    }, new HostFilter("google.com", StringSelectorOperation.EndsWith));
-                    setting.AddAlterationRules(new SpoofDnsAction()
-                    {
-                        RemoteHostIp = "104.16.123.96"
-                    }, new HostFilter("cloudflare.com", StringSelectorOperation.EndsWith));
+                        // for local testing
+
+                        setting.AddAlterationRules(new SpoofDnsAction()
+                        {
+                            RemoteHostIp = "142.250.178.132"
+                        }, new HostFilter("google.com", StringSelectorOperation.EndsWith));
+                        setting.AddAlterationRules(new SpoofDnsAction()
+                        {
+                            RemoteHostIp = "104.16.123.96"
+                        }, new HostFilter("cloudflare.com", StringSelectorOperation.EndsWith));
+                    }
                 });
 
             using var httpClient = proxy.RunAndGetClient();
             using var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, testUrl ));
 
             Assert.NotEqual(528, (int)response.StatusCode);
+            Assert.NotEqual(403, (int)response.StatusCode);
         }
     }
 
@@ -93,15 +101,15 @@ namespace Fluxzy.Tests
                 if (line.TrimStart(' ').StartsWith("//"))
                     continue; 
 
-                var splitted = line.Split(";", 2, StringSplitOptions.RemoveEmptyEntries);
+                var lineTab = line.Split(";", 2, StringSplitOptions.RemoveEmptyEntries);
 
-                if (splitted.Length != 2)
+                if (lineTab.Length != 2)
                 {
                     continue;
                 }
 
-                var clientName = splitted[0].Trim(' ', '\t');
-                var ja3 = splitted[1].Trim(' ', '\t'); ;
+                var clientName = lineTab[0].Trim(' ', '\t');
+                var ja3 = lineTab[1].Trim(' ', '\t'); ;
 
                 var fingerPrint = Ja3FingerPrint.Parse(ja3);
                 var normalizedFingerPrint = Ja3FingerPrint.Parse(fingerPrint.ToString(true));

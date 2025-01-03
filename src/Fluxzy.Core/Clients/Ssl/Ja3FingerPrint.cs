@@ -91,7 +91,7 @@ namespace Fluxzy.Clients.Ssl
             return $"{ProtocolVersion}," +
                    $"{string.Join("-", Ciphers.OrderBy(c => c))}," +
                    $"{string.Join("-", ClientExtensions.OrderBy(c => c))}," +
-                   $"{string.Join("-", SupportGroups.OrderBy(c => c))}," +
+                   $"{string.Join("-", SupportGroups)}," +
                    $"{string.Join("-", EllipticCurvesFormat.OrderBy(c => c))}";
         }
 

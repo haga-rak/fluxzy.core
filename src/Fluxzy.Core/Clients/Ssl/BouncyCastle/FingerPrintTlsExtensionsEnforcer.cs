@@ -165,7 +165,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public byte ClientHelloType { get; set; } = 0;
 
-        public int CipherSuite { get; set; } = 17; // TLS_AES_128_GCM_SHA256
+        public int CipherSuite { get; set; } = 0x10001; // TLS_AES_128_GCM_SHA256
 
         public byte ConfigId { get; set; } = 0x53;
 
