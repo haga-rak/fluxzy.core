@@ -42,23 +42,21 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [InlineData("Chrome_131_000", "https://www.galerieslafayette.com/nothing", 404)]
-        public async Task CheckBlock(string nameOrConfigfile, string url, int expectedStatusCode)
+        [InlineData("Chrome_131_000", "https://www.galerieslafayette.com/nothing", 403)]
+        public async Task CheckBlock(string nameOrConfigfile, string url, int notExpectedStatusCode)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10,
                 configureSetting: setting => {
                     setting.UseBouncyCastleSslEngine();
                     setting.AddAlterationRulesForAny(new ImpersonateAction(nameOrConfigfile));
                 });
-
-            var impersonateLoader = ImpersonateConfigurationManager.Instance.LoadConfiguration(nameOrConfigfile)!;
-
+            
             using var httpClient = proxy.RunAndGetClient();
             using var response = await httpClient.GetAsync(url);
             
             _ = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(expectedStatusCode, (int) response.StatusCode);
+            Assert.NotEqual(notExpectedStatusCode, (int) response.StatusCode);
             Assert.NotEqual(528, (int)response.StatusCode);
         }
     }

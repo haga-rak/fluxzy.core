@@ -1,8 +1,11 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2;
+using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Ssl;
 using Fluxzy.Core;
@@ -82,11 +85,26 @@ namespace Fluxzy.Rules.Actions
 
                 context.AdvancedTlsSettings.H2StreamSetting = streamSetting;
 
-                foreach (var header in _configuration.Headers)
-                {
-                    context.RequestHeaderAlterations.Add(new HeaderAlterationReplace(
-                        header.Name, header.Value, true));
+                var existingHeaders = exchange?.GetRequestHeaders().Select(s => s.Name)
+                                              .ToHashSet(SpanCharactersIgnoreCaseComparer.Default);
+
+                if (existingHeaders != null) {
+
+                    foreach (var header in _configuration.Headers)
+                    {
+                        if (header.SkipIfExists) {
+                            if (!existingHeaders.Contains(header.Name.AsMemory())) {
+                                context.RequestHeaderAlterations.Add(new HeaderAlterationAdd(
+                                    header.Name, header.Value));
+                            }
+                        }
+                        else {
+                            context.RequestHeaderAlterations.Add(new HeaderAlterationReplace(
+                                header.Name, header.Value, true));
+                        }
+                    }
                 }
+
             }
 
             return default; 

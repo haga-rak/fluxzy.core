@@ -68,14 +68,17 @@ namespace Fluxzy.Rules.Actions
     
     public class ImpersonateHeader
     {
-        public ImpersonateHeader(string name, string value)
+        public ImpersonateHeader(string name, string value, bool skipIfExists = false)
         {
             Name = name;
             Value = value;
+            SkipIfExists = skipIfExists;
         }
 
         public string Name { get; }
 
         public string Value { get; }
+
+        public bool SkipIfExists { get; }
     }
 }
