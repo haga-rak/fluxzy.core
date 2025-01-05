@@ -15,9 +15,9 @@ using YamlDotNet.Serialization;
 namespace Fluxzy.Rules.Actions
 {
     /// <summary>
-    /// Impersonate a browser or client
+    /// Impersonate a browser or client by changing the TLS fingerprint, HTTP/2 settings and headers.
     /// </summary>
-    [ActionMetadata("Impersonate a browser or client")]
+    [ActionMetadata("Impersonate a browser or client by changing the TLS fingerprint, HTTP/2 settings and headers.")]
     public class ImpersonateAction : Action
     {
         [JsonIgnore]

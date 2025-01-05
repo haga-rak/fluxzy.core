@@ -74,6 +74,11 @@ namespace Fluxzy.Rules.Actions
             return $"{Name}_{Platform}_{Version}";
         }
 
+        public override string ToString()
+        {
+            return ToFlatName();
+        }
+
         public static bool TryParse(string rawString, out ImpersonateAgent result)
         {
             result = null!;
