@@ -104,7 +104,7 @@ namespace Fluxzy.Core
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
 
 
-        public AdvancedTlsSettings? AdvancedTlsSettings { get; set; }
+        public AdvancedTlsSettings AdvancedTlsSettings { get; set; } = new AdvancedTlsSettings();
 
         /// <summary>
         ///     Don't validate the remote certificate

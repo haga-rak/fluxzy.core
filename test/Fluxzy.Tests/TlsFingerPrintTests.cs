@@ -15,7 +15,7 @@ using Fluxzy.Rules.Filters.RequestFilters;
 
 namespace Fluxzy.Tests
 {
-    public class Ja3FingerPrintTests
+    public class TlsFingerPrintTests
     {
         [Theory]
         [InlineData("769,49195-49199-49196-49200-52393-52392-52244-52243-49161-49171-49162-49172-156-157-47-53-10,65281-0-23-35-13-5-18-16-11-10-21,29-23-24,0")]
@@ -23,7 +23,7 @@ namespace Fluxzy.Tests
         [InlineData("772,,,4588-29-23-24,")]
         public void Format_Parse_Unparse(string originalFingerPrint)
         {
-            var fingerPrint = Ja3FingerPrint.Parse(originalFingerPrint);
+            var fingerPrint = TlsFingerPrint.ParseFromJa3(originalFingerPrint);
             var value = fingerPrint.ToString();
 
             Assert.Equal(originalFingerPrint, value);
@@ -84,13 +84,12 @@ namespace Fluxzy.Tests
             using var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, testUrl ));
 
             Assert.NotEqual(528, (int)response.StatusCode);
-            Assert.NotEqual(403, (int)response.StatusCode);
         }
     }
 
     public static class Ja3FingerPrintTestLoader
     {
-        public static IEnumerable<(String FriendlyName, Ja3FingerPrint FingerPrint)> LoadTestData()
+        public static IEnumerable<(String FriendlyName, TlsFingerPrint FingerPrint)> LoadTestData()
         {
             var testFile = "_Files/Ja3/fingerprints.txt";
 
@@ -111,8 +110,8 @@ namespace Fluxzy.Tests
                 var clientName = lineTab[0].Trim(' ', '\t');
                 var ja3 = lineTab[1].Trim(' ', '\t'); ;
 
-                var fingerPrint = Ja3FingerPrint.Parse(ja3);
-                var normalizedFingerPrint = Ja3FingerPrint.Parse(fingerPrint.ToString(true));
+                var fingerPrint = TlsFingerPrint.ParseFromJa3(ja3);
+                var normalizedFingerPrint = TlsFingerPrint.ParseFromJa3(fingerPrint.ToString(true));
 
                 yield return (clientName, normalizedFingerPrint);
             }

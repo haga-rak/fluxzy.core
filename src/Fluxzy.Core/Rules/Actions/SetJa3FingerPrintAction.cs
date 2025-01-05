@@ -17,7 +17,7 @@ namespace Fluxzy.Rules.Actions
     {
         [JsonIgnore]
         [YamlIgnore]
-        private AdvancedTlsSettings?  _advancedTlsSettings;
+        private TlsFingerPrint?  _fingerPrint;
 
         public SetJa3FingerPrintAction(string value)
         {
@@ -33,7 +33,7 @@ namespace Fluxzy.Rules.Actions
 
         public override void Init(StartupContext startupContext)
         {
-            _advancedTlsSettings = new AdvancedTlsSettings(Ja3FingerPrint.Parse(Value)); 
+            _fingerPrint = TlsFingerPrint.ParseFromJa3(Value); 
             base.Init(startupContext);
         }
 
@@ -42,7 +42,7 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             if (!string.IsNullOrWhiteSpace(Value)) {
-                context.AdvancedTlsSettings = _advancedTlsSettings; 
+                context.AdvancedTlsSettings.TlsFingerPrint = _fingerPrint;
             }
 
             return default;

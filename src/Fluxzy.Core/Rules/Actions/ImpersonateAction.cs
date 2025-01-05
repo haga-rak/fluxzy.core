@@ -1,8 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Fluxzy.Clients.H2;
+using Fluxzy.Clients.Headers;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -12,6 +17,18 @@ namespace Fluxzy.Rules.Actions
     [ActionMetadata("Impersonate a browser or client")]
     public class ImpersonateAction : Action
     {
+        [JsonIgnore]
+        [YamlIgnore]
+        private ImpersonateConfiguration? _configuration;
+
+        [JsonIgnore]
+        [YamlIgnore]
+        private TlsFingerPrint? _fingerPrint;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="nameOrConfigFile"></param>
         public ImpersonateAction(string nameOrConfigFile)
         {
             NameOrConfigFile = nameOrConfigFile;
@@ -21,7 +38,7 @@ namespace Fluxzy.Rules.Actions
         /// Name or config file
         /// </summary>
         [ActionDistinctive]
-        public string NameOrConfigFile { get; }
+        public string NameOrConfigFile { get; set;  }
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
@@ -30,13 +47,49 @@ namespace Fluxzy.Rules.Actions
         public override void Init(StartupContext startupContext)
         {
             base.Init(startupContext);
+
+            _configuration = ImpersonateConfigurationManager.Instance.LoadConfiguration(NameOrConfigFile);
+
+            if (_configuration == null)
+            {
+                throw new FluxzyException($"Impersonate configuration '{NameOrConfigFile}' not found.");
+            }
+
+            _fingerPrint = TlsFingerPrint.ParseFromJa3(
+                _configuration.NetworkSettings.Ja3FingerPrint, 
+                _configuration.NetworkSettings.GreaseMode);
         }
 
         public override ValueTask InternalAlter(
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            throw new System.NotImplementedException();
+            if (_configuration != null)
+            {
+                context.AdvancedTlsSettings.TlsFingerPrint = _fingerPrint;
+
+                var streamSetting = new H2StreamSetting();
+
+                if (_configuration.H2Settings.RemoveDefaultValues) {
+                    streamSetting.AdvertiseSettings.Clear();
+                }
+
+                foreach (var setting in _configuration.H2Settings.Settings)
+                {
+                    streamSetting.AdvertiseSettings.Add(setting.Identifier);
+                    streamSetting.SetSetting(setting.Identifier, setting.Value);
+                }
+
+                context.AdvancedTlsSettings.H2StreamSetting = streamSetting;
+
+                foreach (var header in _configuration.Headers)
+                {
+                    context.RequestHeaderAlterations.Add(new HeaderAlterationReplace(
+                        header.Name, header.Value, true));
+                }
+            }
+
+            return default; 
         }
     }
 }

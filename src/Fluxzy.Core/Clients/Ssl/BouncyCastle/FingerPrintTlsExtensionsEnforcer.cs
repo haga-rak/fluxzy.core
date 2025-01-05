@@ -21,7 +21,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         internal int greaseCount = 0; 
 
         public IDictionary<int, byte[]> PrepareExtensions(IDictionary<int, byte[]> current,
-            Ja3FingerPrint fingerPrint, string targetHost, ProtocolVersion[] protocolVersions)
+            TlsFingerPrint fingerPrint, string targetHost, ProtocolVersion[] protocolVersions)
         {
             var sorted = current;
 

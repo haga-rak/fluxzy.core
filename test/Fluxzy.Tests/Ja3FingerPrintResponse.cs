@@ -52,7 +52,7 @@ namespace Fluxzy.Tests
         public string NormalizedFingerPrint {
             get
             {
-                return Ja3FingerPrint.Parse(Fingerprint).ToString(true);
+                return TlsFingerPrint.ParseFromJa3(Fingerprint).ToString(true);
             }
         }
     }

@@ -20,7 +20,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         private readonly SslProtocols _sslProtocols;
         private readonly string _targetHost;
         private readonly TlsAuthentication _tlsAuthentication;
-        private readonly Ja3FingerPrint? _fingerPrint;
+        private readonly TlsFingerPrint? _fingerPrint;
         private readonly List<ServerName> _serverNames;
         private readonly IList<ProtocolName> _protocolNames;
 
@@ -37,7 +37,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             _tlsAuthentication = tlsAuthentication;
             _crypto = crypto;
             _fingerPrintEnforcer = fingerPrintEnforcer;
-            _fingerPrint = builderOptions.AdvancedTlsSettings?.Ja3FingerPrint;
+            _fingerPrint = builderOptions.AdvancedTlsSettings?.TlsFingerPrint;
             _serverNames = new List<ServerName>() { new ServerName(0, 
                 Encoding.UTF8.GetBytes(builderOptions.TargetHost))
             };

@@ -1,40 +1,49 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Fluxzy.Clients.H2;
 
 namespace Fluxzy.Clients.Ssl
 {
     public class AdvancedTlsSettings
     {
-        public AdvancedTlsSettings(Ja3FingerPrint? ja3FingerPrint)
+        public AdvancedTlsSettings()
         {
-            Ja3FingerPrint = ja3FingerPrint;
         }
 
-        public Ja3FingerPrint? Ja3FingerPrint { get;  }
+        public TlsFingerPrint? TlsFingerPrint { get; set; }
+
+        public H2StreamSetting ? H2StreamSetting { get; set; }
     }
     
-    public class Ja3FingerPrint
+    public class TlsFingerPrint
     {
         internal static readonly int GreaseLeadValue = 60138;
         internal static readonly int GreaseTrailValue = 64250;
 
-        public Ja3FingerPrint(
+        public TlsFingerPrint(
             int protocolVersion,
             int[] ciphers,
             int[] clientExtensions,
             int[] supportGroups,
-            int[] ellipticCurvesFormat)
+            int[] ellipticCurvesFormat, bool ? greaseMode, 
+            Dictionary<int, byte[]>? overrideClientExtensionsValues)
         {
             ProtocolVersion = protocolVersion;
             Ciphers = ciphers;
             SupportGroups = supportGroups;
             EllipticCurvesFormat = ellipticCurvesFormat;
+            OverrideClientExtensionsValues = overrideClientExtensionsValues;
             ClientExtensions = clientExtensions;
             Flat = ToString();
 
-            GreaseMode = ClientExtensions.Contains(0xFE0D); // 
+            GreaseMode = ClientExtensions.Contains(0xFE0D);
+
+            if (greaseMode != null) {
+                GreaseMode = greaseMode.Value;
+            }
 
             if (GreaseMode)
             {
@@ -74,6 +83,8 @@ namespace Fluxzy.Clients.Ssl
 
         public int[] EffectiveClientExtensions { get; }
 
+        public Dictionary<int, byte[]>? OverrideClientExtensionsValues { get; }
+
         public sealed override string ToString()
         {
             return $"{ProtocolVersion}," +
@@ -97,7 +108,7 @@ namespace Fluxzy.Clients.Ssl
                    $"{string.Join("-", EllipticCurvesFormat.OrderBy(c => c))}";
         }
 
-        protected bool Equals(Ja3FingerPrint other)
+        protected bool Equals(TlsFingerPrint other)
         {
             return Flat == other.Flat;
         }
@@ -119,7 +130,7 @@ namespace Fluxzy.Clients.Ssl
                 return false;
             }
 
-            return Equals((Ja3FingerPrint)obj);
+            return Equals((TlsFingerPrint)obj);
         }
 
         public override int GetHashCode()
@@ -127,17 +138,25 @@ namespace Fluxzy.Clients.Ssl
             return Flat.GetHashCode();
         }
 
-        public static bool operator ==(Ja3FingerPrint? left, Ja3FingerPrint? right)
+        public static bool operator ==(TlsFingerPrint? left, TlsFingerPrint? right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(Ja3FingerPrint? left, Ja3FingerPrint? right)
+        public static bool operator !=(TlsFingerPrint? left, TlsFingerPrint? right)
         {
             return !Equals(left, right);
         }
 
-        public static Ja3FingerPrint Parse(string ja3)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ja3"></param>
+        /// <param name="greaseMode">When null, greaseMode will be determined according to tls value.</param>
+        /// <param name="overrideClientExtensionsValues">Instead of using the default built-in values for extension..</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static TlsFingerPrint ParseFromJa3(string ja3, bool ? greaseMode = null, Dictionary<int, byte[]>? overrideClientExtensionsValues = null)
         {
             var parts = ja3.Split(new[] {","}, StringSplitOptions.None);
 
@@ -164,7 +183,8 @@ namespace Fluxzy.Clients.Ssl
             var ellipticCurvesFormat = parts[4].Split(new[] { "-" }, StringSplitOptions.RemoveEmptyEntries)
                                                .Select(int.Parse).ToArray();
 
-            return new Ja3FingerPrint(protocolVersion, ciphers, clientExtensions, ellipticCurves, ellipticCurvesFormat);
+            return new TlsFingerPrint(protocolVersion, ciphers, clientExtensions, ellipticCurves,
+                ellipticCurvesFormat, greaseMode, overrideClientExtensionsValues);
         }
     }
 }
