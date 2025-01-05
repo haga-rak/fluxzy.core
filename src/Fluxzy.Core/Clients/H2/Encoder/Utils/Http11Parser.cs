@@ -38,11 +38,12 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
                             yield return new HeaderField(Http11Constants.MethodVerb, arrayOfValue[0]);
 
+                            yield return new HeaderField(Http11Constants.SchemeVerb,
+                                isHttps ? Http11Constants.HttpsVerb : Http11Constants.HttpVerb);
+
                             yield return new HeaderField(Http11Constants.PathVerb,
                                 arrayOfValue[1].RemoveProtocolAndAuthority()); // Remove prefix on path
 
-                            yield return new HeaderField(Http11Constants.SchemeVerb,
-                                isHttps ? Http11Constants.HttpsVerb : Http11Constants.HttpVerb);
 
                             if (Http11Constants.SchemeVerb.Span.StartsWith(Http11Constants.HttpsVerb.Span))
                                 isHttps = true;
