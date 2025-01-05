@@ -10,6 +10,7 @@ using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Ssl;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
+using Org.BouncyCastle.Tls;
 using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules.Actions
@@ -60,7 +61,14 @@ namespace Fluxzy.Rules.Actions
 
             _fingerPrint = TlsFingerPrint.ParseFromJa3(
                 _configuration.NetworkSettings.Ja3FingerPrint, 
-                _configuration.NetworkSettings.GreaseMode);
+                _configuration.NetworkSettings.GreaseMode,
+                signatureAndHashAlgorithms: 
+                _configuration.NetworkSettings
+                              .SignatureAlgorithms?.Select(s => 
+                                  SignatureAndHashAlgorithm.GetInstance(SignatureScheme.GetHashAlgorithm(s),
+                                  SignatureScheme.GetSignatureAlgorithm(s))
+                                  ).ToList()
+                );
         }
 
         public override ValueTask InternalAlter(

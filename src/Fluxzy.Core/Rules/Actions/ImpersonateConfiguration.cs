@@ -25,11 +25,12 @@ namespace Fluxzy.Rules.Actions
 
     public class ImpersonateNetworkSettings
     {
-        public ImpersonateNetworkSettings(string ja3FingerPrint, bool? greaseMode, Dictionary<int, byte[]>? overrideClientExtensionsValues)
+        public ImpersonateNetworkSettings(string ja3FingerPrint, bool? greaseMode, Dictionary<int, byte[]>? overrideClientExtensionsValues, List<int>? signatureAlgorithms)
         {
             Ja3FingerPrint = ja3FingerPrint;
             GreaseMode = greaseMode;
             OverrideClientExtensionsValues = overrideClientExtensionsValues;
+            SignatureAlgorithms = signatureAlgorithms;
         }
 
         public string Ja3FingerPrint { get; }
@@ -37,6 +38,8 @@ namespace Fluxzy.Rules.Actions
         public bool? GreaseMode { get; }
         
         public Dictionary<int, byte[]>? OverrideClientExtensionsValues { get; }
+
+        public List<int>? SignatureAlgorithms { get; }
     }
 
     public class ImpersonateH2SettingItem

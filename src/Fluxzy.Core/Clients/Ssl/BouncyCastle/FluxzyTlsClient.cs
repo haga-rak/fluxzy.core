@@ -147,19 +147,10 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         protected override IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()
         {
-            if (_fingerPrint == null)
+            if (_fingerPrint?.SignatureAndHashAlgorithms == null)
                 return base.GetSupportedSignatureAlgorithms();
 
-            return new[] {
-                SignatureAndHashAlgorithm.ecdsa_secp256r1_sha256,
-                SignatureAndHashAlgorithm.rsa_pss_rsae_sha256,
-                SignatureAndHashAlgorithm.rsa_pkcs1_sha256,
-                SignatureAndHashAlgorithm.ecdsa_secp384r1_sha384,
-                SignatureAndHashAlgorithm.rsa_pss_rsae_sha384,
-                SignatureAndHashAlgorithm.rsa_pkcs1_sha384,
-                SignatureAndHashAlgorithm.rsa_pss_rsae_sha512,
-                SignatureAndHashAlgorithm.rsa_pkcs1_sha512,
-            };
+            return _fingerPrint.SignatureAndHashAlgorithms;
         }
 
         private ProtocolVersion[] InternalGetProtocolVersions()
