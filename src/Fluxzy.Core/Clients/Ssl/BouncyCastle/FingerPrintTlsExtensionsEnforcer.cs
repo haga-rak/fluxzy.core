@@ -51,16 +51,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                     continue;
 
                 sorted.Add(type, extensionData);
-
-                //current[type] = extensionData ??
-                //                throw new InvalidOperationException($"Unhandled extension {type}");
             }
-
-            if (fingerPrint.GreaseMode) {
-                // generate grease empty ECH
-                sorted[65037] = GreaseEchExtension.GetGreaseEncryptedClientHello();
-            }
-
+            
             return sorted;
         }
         
@@ -113,6 +105,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             if (type == 34) // For TLS 1.2, key_share is not supported but some client may send it with an empty value
                 return new byte[] { 0, 8, 04, 03, 05, 03, 06, 03, 02, 03 };
+
+            if (type == ExtensionType.encrypted_client_hello)
+                return GreaseEchExtension.GetGreaseEncryptedClientHello();
 
             if (UnsupportedClientExtensions.Contains(type))
                 throw new InvalidOperationException($"Unsupported TLS client extension {type}");
