@@ -4,9 +4,9 @@ using System;
 
 namespace Fluxzy.Clients.Ssl
 {
-    public class ImpersonateAgent
+    public class ImpersonateProfile
     {
-        public ImpersonateAgent(string name, string platform, string version)
+        public ImpersonateProfile(string name, string platform, string version)
         {
             Name = name;
             Version = version;
@@ -32,7 +32,7 @@ namespace Fluxzy.Clients.Ssl
         public bool Absolute => !Latest;
 
 
-        protected bool Equals(ImpersonateAgent other)
+        protected bool Equals(ImpersonateProfile other)
         {
             return string.Equals(Name, other.Name, StringComparison.OrdinalIgnoreCase)
                    && string.Equals(Version, other.Version, StringComparison.OrdinalIgnoreCase)
@@ -56,7 +56,7 @@ namespace Fluxzy.Clients.Ssl
                 return false;
             }
 
-            return Equals((ImpersonateAgent)obj);
+            return Equals((ImpersonateProfile)obj);
         }
 
         public override int GetHashCode()
@@ -80,7 +80,7 @@ namespace Fluxzy.Clients.Ssl
             return ToFlatName();
         }
 
-        public static bool TryParse(string rawString, out ImpersonateAgent result)
+        public static bool TryParse(string rawString, out ImpersonateProfile result)
         {
             result = null!;
 
@@ -92,12 +92,12 @@ namespace Fluxzy.Clients.Ssl
             if (parts.Length != 3)
                 return false;
 
-            result = new ImpersonateAgent(parts[0], parts[1], parts[2]);
+            result = new ImpersonateProfile(parts[0], parts[1], parts[2]);
 
             return true;
         }
 
-        public static ImpersonateAgent Parse(string rawString)
+        public static ImpersonateProfile Parse(string rawString)
         {
             if (!TryParse(rawString, out var result))
             {

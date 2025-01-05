@@ -29,8 +29,8 @@ namespace Fluxzy.Clients.Ssl
             }
         }
 
-        private readonly Dictionary<ImpersonateAgent, ImpersonateConfiguration> _configurations
-            = new Dictionary<ImpersonateAgent, ImpersonateConfiguration>();
+        private readonly Dictionary<ImpersonateProfile, ImpersonateConfiguration> _configurations
+            = new Dictionary<ImpersonateProfile, ImpersonateConfiguration>();
 
         private ImpersonateConfigurationManager()
         {
@@ -39,7 +39,7 @@ namespace Fluxzy.Clients.Ssl
 
         public ImpersonateConfiguration? LoadConfiguration(string nameOrConfigFile)
         {
-            if (!ImpersonateAgent.TryParse(nameOrConfigFile, out var agent))
+            if (!ImpersonateProfile.TryParse(nameOrConfigFile, out var agent))
             {
                 return null;
             }
@@ -76,17 +76,17 @@ namespace Fluxzy.Clients.Ssl
             return null;
         }
 
-        public void AddOrUpdateDefaultConfiguration(ImpersonateAgent agent, ImpersonateConfiguration configuration)
+        public void AddOrUpdateDefaultConfiguration(ImpersonateProfile profile, ImpersonateConfiguration configuration)
         {
-            if (!agent.Absolute)
+            if (!profile.Absolute)
             {
-                throw new ArgumentException("Agent must be a specific version", nameof(agent));
+                throw new ArgumentException("Agent must be a specific version", nameof(profile));
             }
 
-            _configurations[agent] = configuration;
+            _configurations[profile] = configuration;
         }
 
-        public IEnumerable<(ImpersonateAgent ConfigurationName, ImpersonateConfiguration)> GetConfigurations()
+        public IEnumerable<(ImpersonateProfile ConfigurationName, ImpersonateConfiguration)> GetConfigurations()
         {
             foreach (var (name, configuration) in _configurations)
             {

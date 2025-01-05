@@ -9,14 +9,14 @@ namespace Fluxzy.Rules.Actions
 {
     internal static class PredefinedImpersonateConfigurationLoader
     {
-        public static IEnumerable<(ImpersonateAgent Agent, ImpersonateConfiguration Configuration)> GetPredefined()
+        public static IEnumerable<(ImpersonateProfile Agent, ImpersonateConfiguration Configuration)> GetPredefined()
         {
-            yield return (ImpersonateAgent.Parse("Chrome_Windows_131"), Create_Chrome131_Windows());
-            yield return (ImpersonateAgent.Parse("Chrome_Android_131"), Create_Chrome131_Android());
+            yield return (ImpersonateProfile.Parse("Chrome_Windows_131"), Create_Chrome131_Windows());
+            yield return (ImpersonateProfile.Parse("Chrome_Android_131"), Create_Chrome131_Android());
 
-            yield return (ImpersonateAgent.Parse("Edge_Windows_131"), Create_Edge131_Windows());
+            yield return (ImpersonateProfile.Parse("Edge_Windows_131"), Create_Edge131_Windows());
 
-            yield return (ImpersonateAgent.Parse("Firefox_Windows_133"), Create_Firefox_133_Windows());
+            yield return (ImpersonateProfile.Parse("Firefox_Windows_133"), Create_Firefox_133_Windows());
         }
 
         public static ImpersonateConfiguration Create_Edge131_Windows()
