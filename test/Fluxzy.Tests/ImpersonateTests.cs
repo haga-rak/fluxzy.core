@@ -47,6 +47,8 @@ namespace Fluxzy.Tests
         [InlineData("Chrome_Windows_latest", "https://www.galerieslafayette.com/nothing", 403)]
         [InlineData("Chrome_Android_131", "https://www.galerieslafayette.com/nothing", 403)]
         [InlineData("Firefox_Windows_133", "https://www.galerieslafayette.com/nothing", 403)]
+        [InlineData("Firefox_Windows_133", "https://www.galerieslafayette.com/nothing", 403)]
+        [InlineData("Edge_Windows_131", "https://www.galerieslafayette.com/nothing", 403)]
         public async Task CheckBlock(string nameOrConfigfile, string url, int notExpectedStatusCode)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10,
