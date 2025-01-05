@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Fluxzy.Clients.H2.Frames;
 
 namespace Fluxzy.Rules.Actions
@@ -81,6 +82,7 @@ namespace Fluxzy.Rules.Actions
 
         public string Value { get; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool SkipIfExists { get; }
     }
 }
