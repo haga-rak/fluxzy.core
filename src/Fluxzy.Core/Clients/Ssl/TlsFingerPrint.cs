@@ -10,10 +10,9 @@ namespace Fluxzy.Clients.Ssl
 {
     public class AdvancedTlsSettings
     {
-        public AdvancedTlsSettings()
-        {
-        }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public TlsFingerPrint? TlsFingerPrint { get; set; }
 
         public H2StreamSetting ? H2StreamSetting { get; set; }

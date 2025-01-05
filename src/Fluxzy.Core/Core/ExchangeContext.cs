@@ -103,7 +103,9 @@ namespace Fluxzy.Core
         /// </summary>
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
 
-
+        /// <summary>
+        ///     Gets or sets advanced TLS settings 
+        /// </summary>
         public AdvancedTlsSettings AdvancedTlsSettings { get; set; } = new AdvancedTlsSettings();
 
         /// <summary>
