@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -116,6 +117,13 @@ namespace Fluxzy.Rules.Actions
             }
 
             return default; 
+        }
+
+        public override IEnumerable<ActionExample> GetExamples()
+        {
+            yield return new ActionExample("Impersonate CHROME 131 on Windows",
+                new ImpersonateAction("Chrome_Windows_131")
+                );
         }
     }
 }

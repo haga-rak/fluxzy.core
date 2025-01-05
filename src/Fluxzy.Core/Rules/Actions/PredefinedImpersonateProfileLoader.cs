@@ -7,7 +7,7 @@ using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Rules.Actions
 {
-    internal static class PredefinedImpersonateConfigurationLoader
+    internal static class PredefinedImpersonateProfileLoader
     {
         public static IEnumerable<(ImpersonateProfile Agent, ImpersonateConfiguration Configuration)> GetPredefined()
         {

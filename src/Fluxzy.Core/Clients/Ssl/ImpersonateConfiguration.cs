@@ -6,6 +6,9 @@ using Fluxzy.Clients.H2.Frames;
 
 namespace Fluxzy.Clients.Ssl
 {
+    /// <summary>
+    /// Configuration holder for an impersonation profile.
+    /// </summary>
     public class ImpersonateConfiguration
     {
         public ImpersonateConfiguration(
@@ -17,10 +20,19 @@ namespace Fluxzy.Clients.Ssl
             H2Settings = h2Settings;
         }
 
+        /// <summary>
+        /// Network settings.
+        /// </summary>
         public ImpersonateNetworkSettings NetworkSettings { get; }
 
+        /// <summary>
+        /// HTTP/2 settings.
+        /// </summary>
         public ImpersonateH2Setting H2Settings { get; }
 
+        /// <summary>
+        /// Header settings.
+        /// </summary>
         public List<ImpersonateHeader> Headers { get; }
     }
 
@@ -34,15 +46,30 @@ namespace Fluxzy.Clients.Ssl
             SignatureAlgorithms = signatureAlgorithms;
         }
 
+        /// <summary>
+        /// JA3 fingerprint.
+        /// </summary>
         public string Ja3FingerPrint { get; }
 
+        /// <summary>
+        /// When null, Grease mode will be inferred from the client extensions. 
+        /// </summary>
         public bool? GreaseMode { get; }
 
+        /// <summary>
+        /// Override client extensions values.
+        /// </summary>
         public Dictionary<int, byte[]>? OverrideClientExtensionsValues { get; }
 
+        /// <summary>
+        /// Signature algorithms. Order matters for JA4.
+        /// </summary>
         public List<int>? SignatureAlgorithms { get; }
     }
 
+    /// <summary>
+    ///  http2 announce settings.
+    /// </summary>
     public class ImpersonateH2SettingItem
     {
         public ImpersonateH2SettingItem(SettingIdentifier identifier, int value)
@@ -51,11 +78,20 @@ namespace Fluxzy.Clients.Ssl
             Value = value;
         }
 
+        /// <summary>
+        /// Setting identifier.
+        /// </summary>
         public SettingIdentifier Identifier { get; }
 
+        /// <summary>
+        /// Setting value.
+        /// </summary>
         public int Value { get; }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class ImpersonateH2Setting
     {
         public ImpersonateH2Setting(List<ImpersonateH2SettingItem> settings, bool removeDefaultValues)
@@ -66,6 +102,9 @@ namespace Fluxzy.Clients.Ssl
 
         public List<ImpersonateH2SettingItem> Settings { get; }
 
+        /// <summary>
+        /// Remove default values.
+        /// </summary>
         public bool RemoveDefaultValues { get; }
     }
 

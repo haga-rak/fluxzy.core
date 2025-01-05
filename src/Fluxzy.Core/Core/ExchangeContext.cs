@@ -199,8 +199,14 @@ namespace Fluxzy.Core
         /// </summary>
         public bool HasRequestBodySubstitution => _requestBodyStreamSubstitutions != null;
 
+        /// <summary>
+        /// Define if the exchange has a request body
+        /// </summary>
         public bool HasRequestBody { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool DnsOverHttpsCapture { get; set; }
 
         /// <summary>

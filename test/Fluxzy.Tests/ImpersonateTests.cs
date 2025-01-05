@@ -14,6 +14,7 @@ namespace Fluxzy.Tests
         [Theory]
         [InlineData("Chrome_Windows_131")]
         [InlineData("Firefox_Windows_133")]
+        [InlineData("Edge_Windows_131")]
         public async Task CheckSignature(string nameOrConfigfile)
         {
             var testUrl = "https://check.ja3.zone/";
