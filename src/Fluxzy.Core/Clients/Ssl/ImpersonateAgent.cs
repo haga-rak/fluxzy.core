@@ -2,11 +2,11 @@
 
 using System;
 
-namespace Fluxzy.Rules.Actions
+namespace Fluxzy.Clients.Ssl
 {
     public class ImpersonateAgent
     {
-        public ImpersonateAgent(string name,  string platform, string version)
+        public ImpersonateAgent(string name, string platform, string version)
         {
             Name = name;
             Version = version;
@@ -17,7 +17,8 @@ namespace Fluxzy.Rules.Actions
 
         public string Version { get; }
 
-        public Version? VersionAsVersion {
+        public Version? VersionAsVersion
+        {
             get
             {
                 return System.Version.TryParse(Version, out var version) ? version : null;
@@ -50,7 +51,7 @@ namespace Fluxzy.Rules.Actions
                 return true;
             }
 
-            if (obj.GetType() != this.GetType())
+            if (obj.GetType() != GetType())
             {
                 return false;
             }

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Fluxzy.Clients.H2.Frames;
+using Fluxzy.Clients.Ssl;
 using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Rules.Actions

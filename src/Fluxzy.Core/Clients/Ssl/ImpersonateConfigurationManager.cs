@@ -1,12 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using Fluxzy.Rules.Actions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace Fluxzy.Rules.Actions
+namespace Fluxzy.Clients.Ssl
 {
     public class ImpersonateConfigurationManager
     {
@@ -28,7 +29,7 @@ namespace Fluxzy.Rules.Actions
             }
         }
 
-        private readonly Dictionary<ImpersonateAgent, ImpersonateConfiguration> _configurations 
+        private readonly Dictionary<ImpersonateAgent, ImpersonateConfiguration> _configurations
             = new Dictionary<ImpersonateAgent, ImpersonateConfiguration>();
 
         private ImpersonateConfigurationManager()
@@ -43,14 +44,16 @@ namespace Fluxzy.Rules.Actions
                 return null;
             }
 
-            if (agent.Absolute) {
+            if (agent.Absolute)
+            {
                 if (_configurations.TryGetValue(agent, out var configuration))
                 {
                     return configuration;
                 }
             }
 
-            if (agent.Latest) {
+            if (agent.Latest)
+            {
                 var latest = _configurations.Keys
                                             .Where(a => string.Equals(a.Name, agent.Name,
                                                 StringComparison.OrdinalIgnoreCase))

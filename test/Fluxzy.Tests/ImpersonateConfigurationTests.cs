@@ -2,7 +2,7 @@
 
 using System.IO;
 using System.Text.Json;
-using Fluxzy.Rules.Actions;
+using Fluxzy.Clients.Ssl;
 using Xunit;
 
 namespace Fluxzy.Tests

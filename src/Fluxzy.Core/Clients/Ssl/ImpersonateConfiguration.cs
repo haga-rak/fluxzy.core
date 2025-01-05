@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients.H2.Frames;
 
-namespace Fluxzy.Rules.Actions
+namespace Fluxzy.Clients.Ssl
 {
     public class ImpersonateConfiguration
     {
@@ -16,7 +16,7 @@ namespace Fluxzy.Rules.Actions
             NetworkSettings = networkSettings;
             H2Settings = h2Settings;
         }
-        
+
         public ImpersonateNetworkSettings NetworkSettings { get; }
 
         public ImpersonateH2Setting H2Settings { get; }
@@ -37,7 +37,7 @@ namespace Fluxzy.Rules.Actions
         public string Ja3FingerPrint { get; }
 
         public bool? GreaseMode { get; }
-        
+
         public Dictionary<int, byte[]>? OverrideClientExtensionsValues { get; }
 
         public List<int>? SignatureAlgorithms { get; }
@@ -51,7 +51,7 @@ namespace Fluxzy.Rules.Actions
             Value = value;
         }
 
-        public SettingIdentifier Identifier { get;  }
+        public SettingIdentifier Identifier { get; }
 
         public int Value { get; }
     }
@@ -66,9 +66,9 @@ namespace Fluxzy.Rules.Actions
 
         public List<ImpersonateH2SettingItem> Settings { get; }
 
-        public bool RemoveDefaultValues { get;  }
+        public bool RemoveDefaultValues { get; }
     }
-    
+
     public class ImpersonateHeader
     {
         public ImpersonateHeader(string name, string value, bool skipIfExists = false)
