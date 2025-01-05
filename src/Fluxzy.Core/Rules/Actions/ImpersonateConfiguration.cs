@@ -21,7 +21,6 @@ namespace Fluxzy.Rules.Actions
         public ImpersonateH2Setting H2Settings { get; }
 
         public List<ImpersonateHeader> Headers { get; }
-
     }
 
     public class ImpersonateNetworkSettings

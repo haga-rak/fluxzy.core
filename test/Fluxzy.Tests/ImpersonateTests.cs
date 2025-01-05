@@ -12,7 +12,7 @@ namespace Fluxzy.Tests
     public class ImpersonateTests
     {
         [Theory]
-        [InlineData("Chrome_131_000")]
+        [InlineData("Chrome_Windows_131")]
         public async Task CheckSignature(string nameOrConfigfile)
         {
             var testUrl = "https://check.ja3.zone/";
@@ -42,7 +42,8 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [InlineData("Chrome_131_000", "https://www.galerieslafayette.com/nothing", 403)]
+        [InlineData("Chrome_Windows_131", "https://www.galerieslafayette.com/nothing", 403)]
+        [InlineData("Chrome_Windows_latest", "https://www.galerieslafayette.com/nothing", 403)]
         public async Task CheckBlock(string nameOrConfigfile, string url, int notExpectedStatusCode)
         {
             await using var proxy = new AddHocConfigurableProxy(1, 10,
