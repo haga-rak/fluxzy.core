@@ -38,11 +38,6 @@ namespace Fluxzy.Rules.Actions
 
         public ImpersonateConfiguration? LoadConfiguration(string nameOrConfigFile)
         {
-            if (File.Exists(nameOrConfigFile)) {
-                var json = File.ReadAllText(nameOrConfigFile);
-                return JsonSerializer.Deserialize<ImpersonateConfiguration>(json, JsonSerializerOptions);
-            }
-
             if (!ImpersonateAgent.TryParse(nameOrConfigFile, out var agent))
             {
                 return null;
@@ -57,15 +52,23 @@ namespace Fluxzy.Rules.Actions
 
             if (agent.Latest) {
                 var latest = _configurations.Keys
-                    .Where(a => string.Equals(a.Name, agent.Name, StringComparison.OrdinalIgnoreCase))
-                    .OrderByDescending(a => a.VersionAsVersion)
-                    .FirstOrDefault();
+                                            .Where(a => string.Equals(a.Name, agent.Name,
+                                                StringComparison.OrdinalIgnoreCase))
+                                            .OrderByDescending(r => r.VersionAsVersion)
+                                            .FirstOrDefault();
 
                 if (latest != null)
                 {
                     return _configurations[latest];
                 }
             }
+
+            if (File.Exists(nameOrConfigFile))
+            {
+                var json = File.ReadAllText(nameOrConfigFile);
+                return JsonSerializer.Deserialize<ImpersonateConfiguration>(json, JsonSerializerOptions);
+            }
+
 
             return null;
         }

@@ -66,7 +66,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (_fingerPrint != null) {
                 var allowedValues = new HashSet<int>() {
                     NamedGroup.X25519MLKEM768, NamedGroup.x25519,
-                    NamedGroup.grease
+                    NamedGroup.grease,
+                    NamedGroup.secp256r1,
                 };
 
                 return _fingerPrint.EffectiveSupportGroups.Where(r => allowedValues.Contains(r)).ToList();
