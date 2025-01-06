@@ -7,19 +7,24 @@ using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Rules.Actions
 {
-    internal static class PredefinedImpersonateProfileLoader
+    public static class ImpersonateProfileManager
     {
+        public static readonly string Chrome131Windows = "Chrome_Windows_131";
+        public static readonly string Chrome131Android = "Chrome_Android_131";
+        public static readonly string Edge131Windows = "Edge_Windows_131";
+        public static readonly string Firefox133Windows = "Firefox_Windows_133";
+
         public static IEnumerable<(ImpersonateProfile Agent, ImpersonateConfiguration Configuration)> GetPredefined()
         {
-            yield return (ImpersonateProfile.Parse("Chrome_Windows_131"), Create_Chrome131_Windows());
-            yield return (ImpersonateProfile.Parse("Chrome_Android_131"), Create_Chrome131_Android());
+            yield return (ImpersonateProfile.Parse(Chrome131Windows), Create_Chrome131_Windows());
+            yield return (ImpersonateProfile.Parse(Chrome131Android), Create_Chrome131_Android());
 
-            yield return (ImpersonateProfile.Parse("Edge_Windows_131"), Create_Edge131_Windows());
+            yield return (ImpersonateProfile.Parse(Edge131Windows), Create_Edge131_Windows());
 
-            yield return (ImpersonateProfile.Parse("Firefox_Windows_133"), Create_Firefox_133_Windows());
+            yield return (ImpersonateProfile.Parse(Firefox133Windows), Create_Firefox_133_Windows());
         }
 
-        public static ImpersonateConfiguration Create_Edge131_Windows()
+        internal static ImpersonateConfiguration Create_Edge131_Windows()
         {
             var networkSettings = new ImpersonateNetworkSettings(
                 "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,5-10-35-51-23-43-18-0-27-17513-11-16-65281-13-45-65037,4588-29-23-24,0",
@@ -68,7 +73,7 @@ namespace Fluxzy.Rules.Actions
 
         }
 
-        public static ImpersonateConfiguration Create_Chrome131_Windows()
+        internal static ImpersonateConfiguration Create_Chrome131_Windows()
         {
             var networkSettings = new ImpersonateNetworkSettings(
                 "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,45-0-65037-17513-35-10-13-65281-16-51-23-27-18-43-11-5,4588-29-23-24,0",
@@ -117,7 +122,7 @@ namespace Fluxzy.Rules.Actions
 
         }
 
-        public static ImpersonateConfiguration Create_Chrome131_Android()
+        internal static ImpersonateConfiguration Create_Chrome131_Android()
         {
             var networkSettings = new ImpersonateNetworkSettings(
                 "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,27-13-65281-18-43-0-35-10-5-51-11-16-17513-65037-23-45,4588-29-23-24,0",
@@ -166,7 +171,7 @@ namespace Fluxzy.Rules.Actions
 
         }
 
-        public static ImpersonateConfiguration Create_Firefox_133_Windows()
+        internal static ImpersonateConfiguration Create_Firefox_133_Windows()
         {
             var networkSettings = new ImpersonateNetworkSettings(
                 "772,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-34-51-43-13-45-28-27-65037,4588-29-23-24-25-256-257,0",

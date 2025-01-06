@@ -144,7 +144,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         static GreaseEchExtension()
         {
-            var random = new Random(9);
+            var random = new Random(9); // Send the same Grease
             random.NextBytes(EncodedData);
             random.NextBytes(EncodedPayload);
         }

@@ -171,11 +171,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 return version.DownTo(ProtocolVersion.TLSv12);
             }
 
-            var listProtocolVersion = new List<ProtocolVersion>();
-
             if (SslProtocols.None == _sslProtocols) {
                 return base.GetSupportedVersions();
             }
+
+            var listProtocolVersion = new List<ProtocolVersion>();
 
             if (_sslProtocols.HasFlag(SslProtocols.Tls)) {
                 listProtocolVersion.Add(ProtocolVersion.TLSv10);
@@ -220,5 +220,6 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             return result;
         }
+
     }
 }

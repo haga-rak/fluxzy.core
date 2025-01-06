@@ -89,7 +89,7 @@ namespace Fluxzy.Tests
 
     public static class Ja3FingerPrintTestLoader
     {
-        public static IEnumerable<(String FriendlyName, TlsFingerPrint FingerPrint)> LoadTestData()
+        public static IEnumerable<(string FriendlyName, TlsFingerPrint FingerPrint)> LoadTestData()
         {
             var testFile = "_Files/Ja3/fingerprints.txt";
 
