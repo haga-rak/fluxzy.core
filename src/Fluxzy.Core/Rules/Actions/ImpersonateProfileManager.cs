@@ -14,7 +14,7 @@ namespace Fluxzy.Rules.Actions
         public static readonly string Edge131Windows = "Edge_Windows_131";
         public static readonly string Firefox133Windows = "Firefox_Windows_133";
 
-        public static IEnumerable<(ImpersonateProfile Agent, ImpersonateConfiguration Configuration)> GetPredefined()
+        public static IEnumerable<(ImpersonateProfile Agent, ImpersonateConfiguration Configuration)> GetBuiltInProfiles()
         {
             yield return (ImpersonateProfile.Parse(Chrome131Windows), Create_Chrome131_Windows());
             yield return (ImpersonateProfile.Parse(Chrome131Android), Create_Chrome131_Android());

@@ -22,7 +22,7 @@ namespace Fluxzy.Clients.Ssl
 
         static ImpersonateConfigurationManager()
         {
-            foreach (var (name, configuration) in ImpersonateProfileManager.GetPredefined())
+            foreach (var (name, configuration) in ImpersonateProfileManager.GetBuiltInProfiles())
             {
                 Instance.AddOrUpdateDefaultConfiguration(name, configuration);
             }
