@@ -23,8 +23,8 @@ namespace Fluxzy.Clients
     internal class PoolBuilder : IDisposable
     {
         private static readonly List<SslApplicationProtocol> AllProtocols = new() {
-            SslApplicationProtocol.Http11,
-            SslApplicationProtocol.Http2
+            SslApplicationProtocol.Http2,
+            SslApplicationProtocol.Http11
         };
 
         static PoolBuilder()
@@ -252,7 +252,7 @@ namespace Fluxzy.Clients
 
                     exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
 
-                    if (_archiveWriter != null)
+                    if (_archiveWriter != null!)
                         _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
                     lock (_connectionPools) {

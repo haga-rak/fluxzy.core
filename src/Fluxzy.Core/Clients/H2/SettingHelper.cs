@@ -10,36 +10,46 @@ namespace Fluxzy.Clients.H2
 {
     internal static class SettingHelper
     {
-        private static int WriteStartupSetting(Span<byte> buffer, PeerSetting setting, H2Logger logger)
+        private static int WriteStartupSetting(Span<byte> buffer, H2StreamSetting h2Setting, H2Logger logger)
         {
             var written = 0;
+            var headerCount = 9; 
 
-            {
-                //var currentSetting = new SettingFrame(SettingIdentifier.SettingsEnablePush, 0);
-                //written += currentSetting.Write(buffer);
-                //logger.OutgoingSetting(ref currentSetting);
-            }
+            // 5 bytes header
 
-            {
-                //var currentSetting = new SettingFrame(SettingIdentifier.SettingsInitialWindowSize, 1073741824);
-                //written += currentSetting.Write(buffer);
-                //logger.OutgoingSetting(ref currentSetting);
-            }
+            var totalSettingCount = 0;
 
-            {
-                var currentSetting = new SettingFrame(SettingIdentifier.SettingsMaxConcurrentStreams, 256);
-                written += currentSetting.Write(buffer);
+            foreach (var (settingIdentifier, value) in h2Setting.GetAnnouncementSettings()) {
+
+                var currentSetting = new SettingFrame(settingIdentifier, value);
+                written += SettingFrame.WriteMultipleBody(buffer.Slice(written + headerCount), settingIdentifier, value);
+                totalSettingCount++;
                 logger.OutgoingSetting(ref currentSetting);
             }
 
+            // 5 bytes header
+
+            written += SettingFrame.WriteMultipleHeader(buffer, totalSettingCount);
             return written;
         }
 
-        public static void WriteWelcomeSettings(Stream innerStream, PeerSetting setting, H2Logger logger)
+        public static void WriteWelcomeSettings(byte [] preface, Stream innerStream, H2StreamSetting h2Setting, H2Logger logger)
         {
-            Span<byte> settingBuffer = stackalloc byte[128];
+            Span<byte> settingBuffer = stackalloc byte[512];
 
-            var written = WriteStartupSetting(settingBuffer, setting, logger);
+            var written = 0;
+
+            preface.AsSpan().CopyTo(settingBuffer);
+            written += preface.Length;
+            written += WriteStartupSetting(settingBuffer.Slice(written), h2Setting, logger);
+
+            var windowSizeAnnounced = h2Setting.Local.WindowSize - 65535;
+
+            if (windowSizeAnnounced != 0) {
+                var windowFrame = new WindowUpdateFrame(windowSizeAnnounced, 0);
+                written += windowFrame.Write(settingBuffer.Slice(written));
+            }
+
             innerStream.Write(settingBuffer[..written]);
         }
 

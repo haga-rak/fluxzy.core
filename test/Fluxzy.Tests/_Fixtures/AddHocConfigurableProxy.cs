@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
@@ -22,7 +24,10 @@ namespace Fluxzy.Tests._Fixtures
 
         private int _requestCount;
 
-        public AddHocConfigurableProxy(int expectedRequestCount = 1, int timeoutSeconds = 5)
+        public AddHocConfigurableProxy(
+            int expectedRequestCount = 1, int timeoutSeconds = 5,
+            Action<FluxzySetting> ? configureSetting = null, 
+            ITcpConnectionProvider ? connectionProvider = null)
         {
             _expectedRequestCount = expectedRequestCount;
 
@@ -30,11 +35,14 @@ namespace Fluxzy.Tests._Fixtures
 
             StartupSetting = FluxzySetting
                              .CreateDefault()
-                             .SetBoundAddress(BindHost, BindPort);
+                             .SetBoundAddress(BindHost, 0);
+
+            configureSetting?.Invoke(StartupSetting);
 
             InternalProxy = new Proxy(StartupSetting,
                 new CertificateProvider(StartupSetting.CaCertificate, new InMemoryCertificateCache()),
-                new DefaultCertificateAuthorityManager(), userAgentProvider: new UaParserUserAgentInfoProvider());
+                new DefaultCertificateAuthorityManager(), userAgentProvider: new UaParserUserAgentInfoProvider(),
+                tcpConnectionProvider: connectionProvider);
 
             InternalProxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 
@@ -50,12 +58,17 @@ namespace Fluxzy.Tests._Fixtures
         }
 
         public Proxy InternalProxy { get; }
-
-        public int BindPort { get; }
-
+        
         public string BindHost { get; }
 
-        public ImmutableList<Exchange> CapturedExchanges => _capturedExchanges.ToImmutableList();
+        public ImmutableList<Exchange> CapturedExchanges {
+            get
+            {
+                lock (_capturedExchanges) {
+                    return _capturedExchanges.ToImmutableList();
+                }
+            }
+        }
 
         public FluxzySetting StartupSetting { get; }
 
@@ -69,6 +82,16 @@ namespace Fluxzy.Tests._Fixtures
         {
             return InternalProxy.Run();
         }
+
+        public HttpClient RunAndGetClient()
+        {
+            var endPoint = Run().First();
+            var clientHandler = new HttpClientHandler();
+            clientHandler.Proxy = new WebProxy($"http://{endPoint}");
+
+            return new HttpClient(clientHandler);
+        }
+
 
         private void ProxyOnBeforeResponse(object? sender, ExchangeUpdateEventArgs exchangeUpdateEventArgs)
         {

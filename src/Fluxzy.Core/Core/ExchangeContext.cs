@@ -13,6 +13,7 @@ using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
@@ -101,6 +102,11 @@ namespace Fluxzy.Core
         ///     Available TLS protocols, leave null to use default
         /// </summary>
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
+
+        /// <summary>
+        ///     Gets or sets advanced TLS settings 
+        /// </summary>
+        public AdvancedTlsSettings AdvancedTlsSettings { get; set; } = new AdvancedTlsSettings();
 
         /// <summary>
         ///     Don't validate the remote certificate
@@ -193,8 +199,14 @@ namespace Fluxzy.Core
         /// </summary>
         public bool HasRequestBodySubstitution => _requestBodyStreamSubstitutions != null;
 
+        /// <summary>
+        /// Define if the exchange has a request body
+        /// </summary>
         public bool HasRequestBody { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool DnsOverHttpsCapture { get; set; }
 
         /// <summary>

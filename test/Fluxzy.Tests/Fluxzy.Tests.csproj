@@ -21,6 +21,9 @@
   <ItemGroup>
     <None Remove="_Files\Headers\Req001.txt.bin" />
     <None Remove="_Files\Headers\Resp001.txt.bin" />
+    <Content Include="_Files\Ja3\fingerprints.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Update="_Files\Archives\fail-merge.fxzy">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
