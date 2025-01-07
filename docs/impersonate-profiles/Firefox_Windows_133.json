@@ -1,0 +1,86 @@
+{
+  "networkSettings": {
+    "ja3FingerPrint": "772,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-34-51-43-13-45-28-27-65037,4588-29-23-24-25-256-257,0",
+    "greaseMode": false,
+    "overrideClientExtensionsValues": null,
+    "signatureAlgorithms": [
+      1027,
+      1283,
+      1539,
+      2052,
+      2053,
+      2054,
+      1025,
+      1281,
+      1537,
+      515,
+      513
+    ]
+  },
+  "h2Settings": {
+    "settings": [
+      {
+        "identifier": 1,
+        "value": 65536
+      },
+      {
+        "identifier": 2,
+        "value": 0
+      },
+      {
+        "identifier": 4,
+        "value": 6291456
+      },
+      {
+        "identifier": 6,
+        "value": 262144
+      }
+    ],
+    "removeDefaultValues": true
+  },
+  "headers": [
+    {
+      "name": "User-Agent",
+      "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0"
+    },
+    {
+      "name": "Accept",
+      "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "skipIfExists": true
+    },
+    {
+      "name": "Accept-Encoding",
+      "value": "gzip, deflate, br, zstd",
+      "skipIfExists": true
+    },
+    {
+      "name": "Upgrade-Insecure-Requests",
+      "value": "1"
+    },
+    {
+      "name": "Sec-Fetch-Dest",
+      "value": "document"
+    },
+    {
+      "name": "Sec-Fetch-Mode",
+      "value": "navigate"
+    },
+    {
+      "name": "Sec-Fetch-Site",
+      "value": "none"
+    },
+    {
+      "name": "Sec-Fetch-User",
+      "value": "?1"
+    },
+    {
+      "name": "Priority",
+      "value": "u=0, i"
+    },
+    {
+      "name": "Accept-language",
+      "value": "en-US,en;q=0.9",
+      "skipIfExists": true
+    }
+  ]
+}

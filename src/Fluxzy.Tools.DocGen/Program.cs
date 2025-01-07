@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 using Action = Fluxzy.Rules.Action;
@@ -26,6 +27,7 @@ namespace Fluxzy.Tools.DocGen
 
             BuildFilterDocs(docsBaseDirectory, docBuilder, items);
             BuildActionDocs(docsBaseDirectory, docBuilder, items);
+            BuildImpersonateProfileDocs(docsBaseDirectory);
 
             File.WriteAllText(Path.Combine(docsBaseDirectory.FullName, "searchable-items.json"), 
                 JsonSerializer.Serialize(items, new JsonSerializerOptions(JsonSerializerDefaults.Web) {}));
@@ -104,6 +106,26 @@ namespace Fluxzy.Tools.DocGen
 
             foreach (var target in targets) {
                 docBuilder.BuildAction(outDirectory, target, items);
+            }
+        }
+
+        private static void BuildImpersonateProfileDocs(DirectoryInfo docsBaseDirectory)
+        {
+            var actionDirectory = new DirectoryInfo(Path.Combine(docsBaseDirectory.FullName, "impersonate-profiles"));
+
+            if (actionDirectory.Exists)
+                actionDirectory.Delete(true);
+
+            actionDirectory.Create();
+
+            foreach (var (name, configuration) in ImpersonateConfigurationManager.Instance.GetConfigurations()) {
+                var fullPath = Path.Combine(actionDirectory.FullName, $"{name}.json");
+
+                using var stream = File.Create(fullPath);
+
+
+                JsonSerializer.Serialize(stream, configuration, ImpersonateConfigurationManager.JsonSerializerOptions);
+
             }
         }
     }
