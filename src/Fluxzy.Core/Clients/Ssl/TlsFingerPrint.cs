@@ -3,21 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fluxzy.Clients.H2;
 using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Clients.Ssl
 {
-    public class AdvancedTlsSettings
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        public TlsFingerPrint? TlsFingerPrint { get; set; }
-
-        public H2StreamSetting ? H2StreamSetting { get; set; }
-    }
-    
     public class TlsFingerPrint
     {
         internal static readonly int GreaseLeadValue = 60138;
@@ -39,7 +28,7 @@ namespace Fluxzy.Clients.Ssl
             OverrideClientExtensionsValues = overrideClientExtensionsValues;
             SignatureAndHashAlgorithms = signatureAndHashAlgorithms;
             ClientExtensions = clientExtensions;
-            Flat = ToString();
+            Ja3Flat = ToString();
 
             GreaseMode = ClientExtensions.Contains(0xFE0D);
 
@@ -61,32 +50,59 @@ namespace Fluxzy.Clients.Ssl
             }
         }
 
-        public int[] EffectiveCiphers { get; set; }
 
         /// <summary>
         /// As in wire format
         /// </summary>
         public int ProtocolVersion { get; }
 
+        /// <summary>
+        /// Ciphers to be used
+        /// </summary>
         public int[] Ciphers { get; }
 
+        /// <summary>
+        /// Client extensions to be used
+        /// </summary>
         public int[] ClientExtensions { get; }
 
+        /// <summary>
+        /// Supported groups
+        /// </summary>
         public int[] SupportGroups { get;  }
 
+        /// <summary>
+        /// Elliptic curves format
+        /// </summary>
         public int[] EllipticCurvesFormat { get; }
 
-        public string Flat { get; }
+        /// <summary>
+        /// Flat JA3 fingerprint
+        /// </summary>
+        public string Ja3Flat { get; }
 
-        public bool GreaseMode { get; set; } = true;
+        /// <summary>
+        /// Grease mode, true = ON
+        /// </summary>
+        public bool GreaseMode { get;  }
 
-        public int[] EffectiveSupportGroups { get; }
+        /// <summary>
+        /// Effective ciphers
+        /// </summary>
+        internal int[] EffectiveCiphers { get; set; }
 
-        public int[] EffectiveClientExtensions { get; }
+        internal int[] EffectiveSupportGroups { get; }
 
+        internal int[] EffectiveClientExtensions { get; }
+
+        /// <summary>
+        /// Override client extensions values (set manually)
+        /// </summary>
         public Dictionary<int, byte[]>? OverrideClientExtensionsValues { get; }
 
-
+        /// <summary>
+        /// Signature and hash algorithms
+        /// </summary>
         public List<SignatureAndHashAlgorithm>? SignatureAndHashAlgorithms { get; }
 
         public sealed override string ToString()
@@ -114,7 +130,7 @@ namespace Fluxzy.Clients.Ssl
 
         protected bool Equals(TlsFingerPrint other)
         {
-            return Flat == other.Flat;
+            return Ja3Flat == other.Ja3Flat;
         }
 
         public override bool Equals(object? obj)
@@ -139,7 +155,7 @@ namespace Fluxzy.Clients.Ssl
 
         public override int GetHashCode()
         {
-            return Flat.GetHashCode();
+            return Ja3Flat.GetHashCode();
         }
 
         public static bool operator ==(TlsFingerPrint? left, TlsFingerPrint? right)

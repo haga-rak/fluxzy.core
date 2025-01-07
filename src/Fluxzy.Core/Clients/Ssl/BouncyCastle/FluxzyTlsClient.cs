@@ -13,6 +13,13 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     internal class FluxzyTlsClient : DefaultTlsClient
     {
+        private static readonly HashSet<int> DeafultEarlyKeyShareNamedGroups = new() {
+            NamedGroup.X25519MLKEM768, NamedGroup.x25519,
+            NamedGroup.grease,
+            NamedGroup.secp256r1,
+        };
+
+
         private readonly IReadOnlyCollection<SslApplicationProtocol>_applicationProtocols;
         private readonly FluxzyCrypto _crypto;
         private readonly FingerPrintTlsExtensionsEnforcer _fingerPrintEnforcer;
@@ -23,7 +30,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         private readonly List<ServerName> _serverNames;
         private readonly IList<ProtocolName> _protocolNames;
 
-        public FluxzyTlsClient(
+
+    public FluxzyTlsClient(
             SslConnectionBuilderOptions builderOptions,
             TlsAuthentication tlsAuthentication,
             FluxzyCrypto crypto, 
@@ -62,13 +70,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public override IList<int> GetEarlyKeyShareGroups()
         {
             if (_fingerPrint != null) {
-                var allowedValues = new HashSet<int>() {
-                    NamedGroup.X25519MLKEM768, NamedGroup.x25519,
-                    NamedGroup.grease,
-                    NamedGroup.secp256r1,
-                };
-
-                return _fingerPrint.EffectiveSupportGroups.Where(r => allowedValues.Contains(r)).ToList();
+                return _fingerPrint.EffectiveSupportGroups.Where(r => DeafultEarlyKeyShareNamedGroups.Contains(r)).ToList();
             }
 
             return base.GetEarlyKeyShareGroups();
