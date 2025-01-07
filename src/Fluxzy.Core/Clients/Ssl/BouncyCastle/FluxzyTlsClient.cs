@@ -13,7 +13,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     internal class FluxzyTlsClient : DefaultTlsClient
     {
-        private static readonly HashSet<int> DeafultEarlyKeyShareNamedGroups = new() {
+        private static readonly HashSet<int> DefaultEarlyKeyShareNamedGroups = new() {
             NamedGroup.X25519MLKEM768, NamedGroup.x25519,
             NamedGroup.grease,
             NamedGroup.secp256r1,
@@ -69,11 +69,16 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public override IList<int> GetEarlyKeyShareGroups()
         {
-            if (_fingerPrint != null) {
-                return _fingerPrint.EffectiveSupportGroups.Where(r => DeafultEarlyKeyShareNamedGroups.Contains(r)).ToList();
+            if (_fingerPrint == null) {
+                return base.GetEarlyKeyShareGroups();
             }
 
-            return base.GetEarlyKeyShareGroups();
+            if (_fingerPrint.EarlySharedGroups != null)
+            {
+                return _fingerPrint.EarlySharedGroups;
+            }
+
+            return _fingerPrint.EffectiveSupportGroups.Where(r => DefaultEarlyKeyShareNamedGroups.Contains(r)).ToList();
         }
 
         protected override IList<int> GetSupportedGroups(IList<int> namedGroupRoles)

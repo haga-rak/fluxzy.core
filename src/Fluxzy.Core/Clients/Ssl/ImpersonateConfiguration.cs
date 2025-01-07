@@ -38,12 +38,14 @@ namespace Fluxzy.Clients.Ssl
 
     public class ImpersonateNetworkSettings
     {
-        public ImpersonateNetworkSettings(string ja3FingerPrint, bool? greaseMode, Dictionary<int, byte[]>? overrideClientExtensionsValues, List<int>? signatureAlgorithms)
+        public ImpersonateNetworkSettings(string ja3FingerPrint, bool? greaseMode, 
+            Dictionary<int, byte[]>? overrideClientExtensionsValues, int[]? signatureAlgorithms, int[]? earlySharedGroups)
         {
             Ja3FingerPrint = ja3FingerPrint;
             GreaseMode = greaseMode;
             OverrideClientExtensionsValues = overrideClientExtensionsValues;
             SignatureAlgorithms = signatureAlgorithms;
+            EarlySharedGroups = earlySharedGroups;
         }
 
         /// <summary>
@@ -64,7 +66,12 @@ namespace Fluxzy.Clients.Ssl
         /// <summary>
         /// Signature algorithms. Order matters for JA4.
         /// </summary>
-        public List<int>? SignatureAlgorithms { get; }
+        public int[]? SignatureAlgorithms { get; }
+
+        /// <summary>
+        /// When using TLS v1.3, the named group on this list will be used for early shared key (key_share extensions).
+        /// </summary>
+        public int[]? EarlySharedGroups { get; }
     }
 
     /// <summary>

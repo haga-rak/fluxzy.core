@@ -19,7 +19,8 @@ namespace Fluxzy.Clients.Ssl
             int[] supportGroups,
             int[] ellipticCurvesFormat, bool ? greaseMode, 
             Dictionary<int, byte[]>? overrideClientExtensionsValues, 
-            List<SignatureAndHashAlgorithm>? signatureAndHashAlgorithms)
+            List<SignatureAndHashAlgorithm>? signatureAndHashAlgorithms,
+            int[]? earlySharedGroups)
         {
             ProtocolVersion = protocolVersion;
             Ciphers = ciphers;
@@ -27,6 +28,7 @@ namespace Fluxzy.Clients.Ssl
             EllipticCurvesFormat = ellipticCurvesFormat;
             OverrideClientExtensionsValues = overrideClientExtensionsValues;
             SignatureAndHashAlgorithms = signatureAndHashAlgorithms;
+            EarlySharedGroups = earlySharedGroups;
             ClientExtensions = clientExtensions;
             Ja3Flat = ToString();
 
@@ -85,6 +87,11 @@ namespace Fluxzy.Clients.Ssl
         /// Grease mode, true = ON
         /// </summary>
         public bool GreaseMode { get;  }
+
+        /// <summary>
+        /// When using TLS v1.3, the named group on this list will be used for early shared key
+        /// </summary>
+        public int[]? EarlySharedGroups { get; }
 
         /// <summary>
         /// Effective ciphers
@@ -175,10 +182,13 @@ namespace Fluxzy.Clients.Ssl
         /// <param name="greaseMode">When null, greaseMode will be determined according to tls value.</param>
         /// <param name="overrideClientExtensionsValues">Instead of using the default built-in values for extension..</param>
         /// <param name="signatureAndHashAlgorithms"></param>
+        /// <param name="earlyShardGroups"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static TlsFingerPrint ParseFromJa3(string ja3, bool ? greaseMode = null, 
-            Dictionary<int, byte[]>? overrideClientExtensionsValues = null, List<SignatureAndHashAlgorithm>? signatureAndHashAlgorithms = null)
+            Dictionary<int, byte[]>? overrideClientExtensionsValues = null,
+            List<SignatureAndHashAlgorithm>? signatureAndHashAlgorithms = null,
+            int[]? earlyShardGroups = null)
         {
             var parts = ja3.Split(new[] {","}, StringSplitOptions.None);
 
@@ -205,8 +215,10 @@ namespace Fluxzy.Clients.Ssl
             var ellipticCurvesFormat = parts[4].Split(new[] { "-" }, StringSplitOptions.RemoveEmptyEntries)
                                                .Select(int.Parse).ToArray();
 
-            return new TlsFingerPrint(protocolVersion, ciphers, clientExtensions, ellipticCurves,
-                ellipticCurvesFormat, greaseMode, overrideClientExtensionsValues, signatureAndHashAlgorithms);
+            return new TlsFingerPrint(
+                protocolVersion, ciphers, clientExtensions, ellipticCurves,
+                ellipticCurvesFormat, greaseMode, overrideClientExtensionsValues, 
+                signatureAndHashAlgorithms, earlyShardGroups);
         }
     }
 }

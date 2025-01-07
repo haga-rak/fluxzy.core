@@ -68,7 +68,8 @@ namespace Fluxzy.Rules.Actions
                               .SignatureAlgorithms?.Select(s => 
                                   SignatureAndHashAlgorithm.GetInstance(SignatureScheme.GetHashAlgorithm(s),
                                   SignatureScheme.GetSignatureAlgorithm(s))
-                                  ).ToList()
+                                  ).ToList(),
+                earlyShardGroups: _configuration.NetworkSettings.EarlySharedGroups
                 );
         }
 

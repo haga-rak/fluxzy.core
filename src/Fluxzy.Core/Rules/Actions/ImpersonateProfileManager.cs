@@ -30,7 +30,7 @@ namespace Fluxzy.Rules.Actions
                 "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,5-10-35-51-23-43-18-0-27-17513-11-16-65281-13-45-65037,4588-29-23-24,0",
                 true,
                 null, 
-                new List<int> {
+                new int[] {
                     SignatureScheme.ecdsa_secp256r1_sha256,
                     SignatureScheme.rsa_pss_rsae_sha256,
                     SignatureScheme.rsa_pkcs1_sha256,
@@ -39,7 +39,8 @@ namespace Fluxzy.Rules.Actions
                     SignatureScheme.rsa_pkcs1_sha384,
                     SignatureScheme.rsa_pss_rsae_sha512,
                     SignatureScheme.rsa_pkcs1_sha512,
-                }
+                }, 
+                null
                 );
 
             var h2Settings = new ImpersonateH2Setting(new List<ImpersonateH2SettingItem>() {
@@ -79,7 +80,7 @@ namespace Fluxzy.Rules.Actions
                 "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,45-0-65037-17513-35-10-13-65281-16-51-23-27-18-43-11-5,4588-29-23-24,0",
                 true,
                 null, 
-                new List<int> {
+                new int[] {
                     SignatureScheme.ecdsa_secp256r1_sha256,
                     SignatureScheme.rsa_pss_rsae_sha256,
                     SignatureScheme.rsa_pkcs1_sha256,
@@ -88,7 +89,8 @@ namespace Fluxzy.Rules.Actions
                     SignatureScheme.rsa_pkcs1_sha384,
                     SignatureScheme.rsa_pss_rsae_sha512,
                     SignatureScheme.rsa_pkcs1_sha512,
-                }
+                },
+                null
                 );
 
             var h2Settings = new ImpersonateH2Setting(new List<ImpersonateH2SettingItem>() {
@@ -128,7 +130,7 @@ namespace Fluxzy.Rules.Actions
                 "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,27-13-65281-18-43-0-35-10-5-51-11-16-17513-65037-23-45,4588-29-23-24,0",
                 true,
                 null, 
-                new List<int> {
+                new int[] {
                     SignatureScheme.ecdsa_secp256r1_sha256,
                     SignatureScheme.rsa_pss_rsae_sha256,
                     SignatureScheme.rsa_pkcs1_sha256,
@@ -137,7 +139,8 @@ namespace Fluxzy.Rules.Actions
                     SignatureScheme.rsa_pkcs1_sha384,
                     SignatureScheme.rsa_pss_rsae_sha512,
                     SignatureScheme.rsa_pkcs1_sha512,
-                }
+                },
+                null
                 );
 
             var h2Settings = new ImpersonateH2Setting(new List<ImpersonateH2SettingItem>() {
@@ -177,7 +180,7 @@ namespace Fluxzy.Rules.Actions
                 "772,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-34-51-43-13-45-28-27-65037,4588-29-23-24-25-256-257,0",
                 false,
                 null,
-                new List<int> {
+                new int[] {
                     SignatureScheme.ecdsa_secp256r1_sha256,
                     SignatureScheme.ecdsa_secp384r1_sha384,
                     SignatureScheme.ecdsa_secp521r1_sha512,
@@ -189,7 +192,8 @@ namespace Fluxzy.Rules.Actions
                     SignatureScheme.rsa_pkcs1_sha512,
                     SignatureScheme.ecdsa_sha1,
                     SignatureScheme.rsa_pkcs1_sha1,
-                });
+                },
+                null);
 
             var h2Settings = new ImpersonateH2Setting(new List<ImpersonateH2SettingItem>() {
                 new ImpersonateH2SettingItem(SettingIdentifier.SettingsHeaderTableSize, 65536),
