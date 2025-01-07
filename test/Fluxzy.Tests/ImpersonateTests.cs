@@ -1,5 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Ssl;
@@ -44,14 +46,17 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [InlineData("Chrome_Windows_131", "https://www.galerieslafayette.com/nothing", 403)]
-        [InlineData("Chrome_Windows_latest", "https://www.galerieslafayette.com/nothing", 403)]
-        [InlineData("Chrome_Android_131", "https://www.galerieslafayette.com/nothing", 403)]
-        [InlineData("Firefox_Windows_133", "https://www.galerieslafayette.com/nothing", 403)]
-        [InlineData("Firefox_Windows_133", "https://www.galerieslafayette.com/nothing", 403)]
-        [InlineData("Edge_Windows_131", "https://www.galerieslafayette.com/nothing", 403)]
-        public async Task CheckBlock(string nameOrConfigfile, string url, int notExpectedStatusCode)
+        [InlineData("Chrome_Windows_131")]
+        [InlineData("Chrome_Windows_latest")]
+        [InlineData("Chrome_Android_131")]
+        [InlineData("Firefox_Windows_133")]
+        [InlineData("Firefox_Windows_133")]
+        [InlineData("Edge_Windows_131")]
+        public async Task CheckBlock(string nameOrConfigfile)
         {
+            string url = Encoding.UTF8.GetString(Convert.FromBase64String("aHR0cHM6Ly93d3cuZ2FsZXJpZXNsYWZheWV0dGUuY29tL25vdGhpbmc="));
+            int notExpectedStatusCode = 403; 
+
             await using var proxy = new AddHocConfigurableProxy(1, 10,
                 configureSetting: setting => {
                     setting.UseBouncyCastleSslEngine();
