@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Misc
 {
-    public class DefaultDnsSolverTests
+    public class DefaultDnsResolverTests
     {
         [Theory]
         [InlineData("fluxzy.io", "162.19.47.110")]
@@ -17,7 +17,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         [InlineData("badho_çà)", null)]
         public async Task Solve(string host, string ? rawIp)
         {
-            var solver = new DefaultDnsSolver();
+            var solver = new DefaultDnsResolver();
 
             if (rawIp != null) {
 
@@ -37,7 +37,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         [InlineData("badho_çà)", null)]
         public async Task SolveDnsQuietly(string host, string ? rawIp)
         {
-            var solver = new DefaultDnsSolver();
+            var solver = new DefaultDnsResolver();
 
             for (int i = 0; i < 2; i++) { // to hit cache
 
