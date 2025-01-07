@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,12 +26,10 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             var tlsAuthentication = 
                 new FluxzyTlsAuthentication(crypto, builderOptions.GetBouncyCastleClientCertificateInfo());
 
-            var client = new FluxzyTlsClient(
-                builderOptions.TargetHost!,
-                builderOptions.ClientCertificate != null ? 
-                    SslProtocols.Tls12 :
-                    builderOptions.EnabledSslProtocols,
-                builderOptions.ApplicationProtocols!.ToArray(), tlsAuthentication, crypto);
+
+            var fingerPrintEnforcer = new FingerPrintTlsExtensionsEnforcer();
+
+            var client = new FluxzyTlsClient(builderOptions, tlsAuthentication, crypto, fingerPrintEnforcer);
 
             var memoryStream = new MemoryStream();
 
@@ -43,7 +40,6 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             if (Environment.GetEnvironmentVariable("SSLKEYLOGFILE") is { } str) {
                 nssWriter.KeyHandler = nss => {
                     onKeyReceived(nss);
-
                     lock (SslFileLocker) {
                         try
                         {
@@ -56,7 +52,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 };
             }
 
-            var protocol = new FluxzyClientProtocol(innerStream, nssWriter);
+            var protocol = new FluxzyClientProtocol(innerStream, fingerPrintEnforcer, nssWriter);
 
             try
             {

@@ -95,7 +95,7 @@ namespace Fluxzy.Tools.DocGen
             ActionCategories.Add(
                 new() {
                     typeof(ForceHttp11Action), typeof(ForceHttp2Action), typeof(ForceTlsVersionAction), 
-                    typeof(SetClientCertificateAction), typeof(SkipSslTunnelingAction)
+                    typeof(SetClientCertificateAction), typeof(SkipSslTunnelingAction), typeof(UseDnsOverHttpsAction)
                 });
 
             ActionCategories.Add(

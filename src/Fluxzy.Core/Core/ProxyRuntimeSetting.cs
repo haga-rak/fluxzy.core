@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
+using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules;
@@ -81,6 +82,24 @@ namespace Fluxzy.Core
 
         public int ProxyListenPort { get; set; }
 
+        public ProxyConfiguration?  GetInternalProxyAuthentication()
+        {
+            var validEndPoint = EndPoints.FirstOrDefault(a => !Equals(a.Address, IPAddress.Any));
+
+            if (validEndPoint == null)
+                return null; // No bound endpoint 
+
+            var credentials = StartupSetting.ProxyAuthentication == null ? 
+                null : new NetworkCredential(
+                    StartupSetting.ProxyAuthentication.Username,
+                    StartupSetting.ProxyAuthentication.Password);
+
+            var proxyConfiguration = new ProxyConfiguration(
+                validEndPoint.Address.ToString(), validEndPoint.Port, credentials);
+
+            return proxyConfiguration;
+        }
+
         public void Init()
         {
             var activeRules = StartupSetting.FixedRules()
@@ -123,5 +142,18 @@ namespace Fluxzy.Core
 
             return context;
         }
+    }
+
+    internal class HostInfo
+    {
+        public HostInfo(string host)
+        {
+            Host = host;
+            EncodedHost = Encoding.UTF8.GetBytes(host);
+        }
+
+        public string Host { get; }
+
+        public byte[] EncodedHost { get; set; }
     }
 }

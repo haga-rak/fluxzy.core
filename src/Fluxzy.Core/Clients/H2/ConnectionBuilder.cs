@@ -63,7 +63,7 @@ namespace Fluxzy.Clients.H2
                 ? (ISslConnectionBuilder)new BouncyCastleConnectionBuilder()
                 : new SChannelConnectionBuilder();
 
-            var dnsSolver = new DefaultDnsSolver();
+            var dnsSolver = new DefaultDnsResolver();
             var timingProvider = new ITimingProvider.DefaultTimingProvider();
             var result = await DnsUtility.ComputeDns(authority, timingProvider, dnsSolver);
 

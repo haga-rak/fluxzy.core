@@ -17,6 +17,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
         public byte[]? MasterSecret { get; set; }
 
+
         public override TlsSecret AdoptSecret(TlsSecret secret)
         {
             var resultSecret = base.AdoptSecret(secret);

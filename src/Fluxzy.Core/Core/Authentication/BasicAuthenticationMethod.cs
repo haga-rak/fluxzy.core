@@ -8,7 +8,9 @@ namespace Fluxzy.Core
     public class BasicAuthenticationMethod : ProxyAuthenticationMethod
     {
         private static readonly byte[] ProxyAuthenticationRequiredRawData =
-            Encoding.UTF8.GetBytes("HTTP/1.1 407 Proxy Authentication Required\r\nProxy-Authenticate: Basic realm=\"Fluxzy\"\r\n\r\n");
+            Encoding.UTF8.GetBytes("HTTP/1.1 407 Proxy Authentication Required\r\n" +
+                                   "Proxy-Authenticate: Basic realm=\"Fluxzy\"\r\n" +
+                                   "\r\n");
 
         private readonly string _base64Header;
 

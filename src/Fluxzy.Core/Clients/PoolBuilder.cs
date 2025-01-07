@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Clients.Dns;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.Mock;
@@ -22,8 +23,8 @@ namespace Fluxzy.Clients
     internal class PoolBuilder : IDisposable
     {
         private static readonly List<SslApplicationProtocol> AllProtocols = new() {
-            SslApplicationProtocol.Http11,
-            SslApplicationProtocol.Http2
+            SslApplicationProtocol.Http2,
+            SslApplicationProtocol.Http11
         };
 
         static PoolBuilder()
@@ -44,6 +45,8 @@ namespace Fluxzy.Clients
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
+
+        private readonly ConcurrentDictionary<string, DefaultDnsResolver> _dnsSolversCache = new();
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
@@ -106,10 +109,13 @@ namespace Fluxzy.Clients
                     exchange.Context.PreMadeResponse);
             }
 
+            var dnsSolver = string.IsNullOrWhiteSpace(exchange.Context.DnsOverHttpsNameOrUrl) ? 
+                _dnsSolver : _dnsSolversCache.GetOrAdd(exchange.Context.DnsOverHttpsNameOrUrl,
+                    n => new DnsOverHttpsResolver(n, proxyRuntimeSetting.GetInternalProxyAuthentication()));
+
             // We should solve DNS here 
             var computeDnsPromise = 
-                DnsUtility.ComputeDnsUpdateExchange(exchange, _timingProvider, 
-                _dnsSolver, proxyRuntimeSetting);
+                DnsUtility.ComputeDnsUpdateExchange(exchange, _timingProvider, dnsSolver, proxyRuntimeSetting);
 
             IHttpConnectionPool? result = null;
 
@@ -246,7 +252,7 @@ namespace Fluxzy.Clients
 
                     exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
 
-                    if (_archiveWriter != null)
+                    if (_archiveWriter != null!)
                         _archiveWriter.Update(openingResult.Connection, cancellationToken);
 
                     lock (_connectionPools) {

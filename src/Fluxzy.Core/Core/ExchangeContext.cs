@@ -13,6 +13,7 @@ using Fluxzy.Certificates;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Mock;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
@@ -103,6 +104,11 @@ namespace Fluxzy.Core
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
 
         /// <summary>
+        ///     Gets or sets advanced TLS settings 
+        /// </summary>
+        public AdvancedTlsSettings AdvancedTlsSettings { get; set; } = new AdvancedTlsSettings();
+
+        /// <summary>
         ///     Don't validate the remote certificate
         /// </summary>
         public bool SkipRemoteCertificateValidation { get; set; } = false;
@@ -160,6 +166,13 @@ namespace Fluxzy.Core
         /// </value>
         public IPAddress DownStreamLocalAddressStruct { get; set; } = null!;
 
+
+        /// <summary>
+        /// Gets or sets the dns over https name or url.
+        /// </summary>
+        public string? DnsOverHttpsNameOrUrl { get; set; } = null; 
+
+
         /// <summary>
         ///  Information about the proxy port that has been used to retrieve the ongoing exchange
         /// </summary>
@@ -186,7 +199,15 @@ namespace Fluxzy.Core
         /// </summary>
         public bool HasRequestBodySubstitution => _requestBodyStreamSubstitutions != null;
 
+        /// <summary>
+        /// Define if the exchange has a request body
+        /// </summary>
         public bool HasRequestBody { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool DnsOverHttpsCapture { get; set; }
 
         /// <summary>
         /// Register a response body substitution
