@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Text;
 using Org.BouncyCastle.Tls;
 
 #pragma warning disable SYSLIB0039
@@ -12,46 +13,121 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 {
     internal class FluxzyTlsClient : DefaultTlsClient
     {
-        private readonly SslApplicationProtocol[] _applicationProtocols;
+        private static readonly HashSet<int> DefaultEarlyKeyShareNamedGroups = new() {
+            NamedGroup.X25519MLKEM768, NamedGroup.x25519,
+            NamedGroup.grease,
+            NamedGroup.secp256r1,
+        };
+
+
+        private readonly IReadOnlyCollection<SslApplicationProtocol>_applicationProtocols;
         private readonly FluxzyCrypto _crypto;
+        private readonly FingerPrintTlsExtensionsEnforcer _fingerPrintEnforcer;
         private readonly SslProtocols _sslProtocols;
         private readonly string _targetHost;
         private readonly TlsAuthentication _tlsAuthentication;
+        private readonly TlsFingerPrint? _fingerPrint;
+        private readonly List<ServerName> _serverNames;
+        private readonly IList<ProtocolName> _protocolNames;
 
-        public FluxzyTlsClient(
-            string targetHost, SslProtocols sslProtocols,
-            SslApplicationProtocol[] applicationProtocols, TlsAuthentication tlsAuthentication,
-            FluxzyCrypto crypto)
+
+    public FluxzyTlsClient(
+            SslConnectionBuilderOptions builderOptions,
+            TlsAuthentication tlsAuthentication,
+            FluxzyCrypto crypto, 
+            FingerPrintTlsExtensionsEnforcer fingerPrintEnforcer)
             : base(crypto)
         {
-            _targetHost = targetHost;
-            _sslProtocols = sslProtocols;
-            _applicationProtocols = applicationProtocols;
+            _targetHost = builderOptions.TargetHost;
+            _sslProtocols = builderOptions.EnabledSslProtocols;
+            _applicationProtocols = builderOptions.ApplicationProtocols;
             _tlsAuthentication = tlsAuthentication;
             _crypto = crypto;
+            _fingerPrintEnforcer = fingerPrintEnforcer;
+            _fingerPrint = builderOptions.AdvancedTlsSettings?.TlsFingerPrint;
+            _serverNames = new List<ServerName>() { new ServerName(0, Encoding.UTF8.GetBytes(builderOptions.TargetHost))
+            };
+
+            _protocolNames = InternalGetProtocolNames();
         }
 
         public override void Init(TlsClientContext context)
         {
             base.Init(context);
+
             _crypto.UpdateContext(context);
+
+            if (_fingerPrint != null)
+            {
+                m_cipherSuites = _fingerPrint.EffectiveCiphers;
+            }
+
+            m_protocolVersions = ProtocolVersionHelper.GetProtocolVersions(
+                _fingerPrint?.ProtocolVersion, 
+                _fingerPrint?.GreaseMode ?? false, _sslProtocols) ?? base.GetProtocolVersions();
+        }
+
+        public override IList<int> GetEarlyKeyShareGroups()
+        {
+            if (_fingerPrint == null) {
+                return base.GetEarlyKeyShareGroups();
+            }
+
+            if (_fingerPrint.EarlySharedGroups != null)
+            {
+                return _fingerPrint.EarlySharedGroups;
+            }
+
+            return _fingerPrint.EffectiveSupportGroups.Where(r => DefaultEarlyKeyShareNamedGroups.Contains(r)).ToList();
+        }
+
+        protected override IList<int> GetSupportedGroups(IList<int> namedGroupRoles)
+        {
+            if (_fingerPrint != null)
+            {
+                return _fingerPrint.EffectiveSupportGroups;
+            }
+
+            return base.GetSupportedGroups(namedGroupRoles);
+        }
+
+        protected override IList<ServerName> GetSniServerNames()
+        {
+            return _serverNames;
+        }
+        
+        public override IList<SupplementalDataEntry> GetClientSupplementalData()
+        {
+            var entry = new SupplementalDataEntry(0, Encoding.UTF8.GetBytes("Ja3"));
+            return base.GetClientSupplementalData();
         }
 
         public override IDictionary<int, byte[]> GetClientExtensions()
         {
-            var extensions = base.GetClientExtensions();
+            var baseExtensions = base.GetClientExtensions();
 
-            extensions.Add(0, ServerNameUtilities.CreateFromHost(_targetHost));
+            if (_fingerPrint != null)
+            {
+                var result = _fingerPrintEnforcer.PrepareExtensions(baseExtensions,
+                    _fingerPrint, _targetHost, m_protocolVersions);
 
-            return extensions;
+                return result;
+            }
+
+            return baseExtensions;
         }
 
         public override TlsAuthentication GetAuthentication()
         {
             return _tlsAuthentication;
         }
-
+        
         protected override IList<ProtocolName> GetProtocolNames()
+        {
+            return _protocolNames;
+        }
+
+        private IList<ProtocolName> InternalGetProtocolNames()
         {
             var result = new List<ProtocolName>();
 
@@ -60,11 +136,13 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             }
 
             foreach (var applicationProtocol in _applicationProtocols) {
-                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http11.Protocol)) {
+                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http11.Protocol))
+                {
                     result.Add(ProtocolName.Http_1_1);
                 }
 
-                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http2.Protocol)) {
+                if (applicationProtocol.Protocol.Equals(SslApplicationProtocol.Http2.Protocol))
+                {
                     result.Add(ProtocolName.Http_2_Tls);
                 }
             }
@@ -72,35 +150,12 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             return result;
         }
 
-        protected override ProtocolVersion[] GetSupportedVersions()
+        protected override IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms()
         {
-            // map ProtocolVersion with SslProcols 
+            if (_fingerPrint?.SignatureAndHashAlgorithms == null)
+                return base.GetSupportedSignatureAlgorithms();
 
-            var listProtocolVersion = new List<ProtocolVersion>();
-
-            if (SslProtocols.None == _sslProtocols) {
-                return base.GetSupportedVersions();
-            }
-
-            if (_sslProtocols.HasFlag(SslProtocols.Tls)) {
-                listProtocolVersion.Add(ProtocolVersion.TLSv10);
-            }
-
-            if (_sslProtocols.HasFlag(SslProtocols.Tls11)) {
-                listProtocolVersion.Add(ProtocolVersion.TLSv11);
-            }
-
-            if (_sslProtocols.HasFlag(SslProtocols.Tls12)) {
-                listProtocolVersion.Add(ProtocolVersion.TLSv12);
-            }
-
-#if NET6_0_OR_GREATER
-            if (_sslProtocols.HasFlag(SslProtocols.Tls13)) {
-                listProtocolVersion.Add(ProtocolVersion.TLSv13);
-            }
-#endif
-
-            return listProtocolVersion.ToArray();
+            return _fingerPrint.SignatureAndHashAlgorithms;
         }
-    }
+ }
 }

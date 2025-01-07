@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers.Binary;
@@ -56,6 +56,19 @@ namespace Fluxzy.Clients.H2.Frames
             }
 
             return 9;
+        }
+
+        internal static int WriteMultipleHeader(Span<byte> buffer, int settingCount)
+        {
+            return H2Frame.Write(buffer, settingCount * 6, H2FrameType.Settings, HeaderFlags.None, 0);
+        }
+
+        internal static int WriteMultipleBody(Span<byte> buffer, SettingIdentifier identifier, int value)
+        {
+            buffer = buffer.BuWrite_16((ushort)identifier);
+            buffer = buffer.BuWrite_32(value);
+
+            return 6;
         }
 
         public int BodyLength => Ack ? 0 : 6;
