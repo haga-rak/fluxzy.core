@@ -1,6 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Security;
@@ -38,10 +37,8 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             _crypto = crypto;
             _fingerPrintEnforcer = fingerPrintEnforcer;
             _fingerPrint = builderOptions.AdvancedTlsSettings?.TlsFingerPrint;
-            _serverNames = new List<ServerName>() { new ServerName(0, 
-                Encoding.UTF8.GetBytes(builderOptions.TargetHost))
+            _serverNames = new List<ServerName>() { new ServerName(0, Encoding.UTF8.GetBytes(builderOptions.TargetHost))
             };
-            //this.GetKeyExchangeFactory()
 
             _protocolNames = InternalGetProtocolNames();
         }
@@ -57,8 +54,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 m_cipherSuites = _fingerPrint.EffectiveCiphers;
             }
 
-            m_protocolVersions = InternalGetProtocolVersions();
-            
+            m_protocolVersions = ProtocolVersionHelper.GetProtocolVersions(
+                _fingerPrint?.ProtocolVersion, 
+                _fingerPrint?.GreaseMode ?? false, _sslProtocols) ?? base.GetProtocolVersions();
         }
 
         public override IList<int> GetEarlyKeyShareGroups()
@@ -152,74 +150,5 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             return _fingerPrint.SignatureAndHashAlgorithms;
         }
-
-        private ProtocolVersion[] InternalGetProtocolVersions()
-        {
-            if (_fingerPrint != null) 
-            {
-                var version = ProtocolVersionHelper.GetFromRawValue(_fingerPrint.ProtocolVersion);
-
-                if (version.IsEarlierVersionOf(ProtocolVersion.TLSv12))
-                    return version.Only();
-
-                if (_fingerPrint.GreaseMode) {
-                    // those allocation are shity
-                    return new[] { ProtocolVersion.Grease }.Concat(version.DownTo(ProtocolVersion.TLSv12))
-                                                           .ToArray();
-                }
-
-                return version.DownTo(ProtocolVersion.TLSv12);
-            }
-
-            if (SslProtocols.None == _sslProtocols) {
-                return base.GetSupportedVersions();
-            }
-
-            var listProtocolVersion = new List<ProtocolVersion>();
-
-            if (_sslProtocols.HasFlag(SslProtocols.Tls)) {
-                listProtocolVersion.Add(ProtocolVersion.TLSv10);
-            }
-
-            if (_sslProtocols.HasFlag(SslProtocols.Tls11)) {
-                listProtocolVersion.Add(ProtocolVersion.TLSv11);
-            }
-
-            if (_sslProtocols.HasFlag(SslProtocols.Tls12)) {
-                listProtocolVersion.Add(ProtocolVersion.TLSv12);
-            }
-
-#if NET6_0_OR_GREATER
-            if (_sslProtocols.HasFlag(SslProtocols.Tls13)) {
-                listProtocolVersion.Add(ProtocolVersion.TLSv13);
-            }
-#endif
-
-            return listProtocolVersion.ToArray();
-        }
-    }
-
-    internal static class ProtocolVersionHelper
-    {
-        private static readonly ProtocolVersion[] SupportedVersions = new ProtocolVersion[]
-        {
-            ProtocolVersion.TLSv10,
-            ProtocolVersion.TLSv11,
-            ProtocolVersion.TLSv12,
-            ProtocolVersion.TLSv13
-        };
-
-        public static ProtocolVersion GetFromRawValue(int protocolVersion)
-        {
-            var result =  SupportedVersions.FirstOrDefault(v => (int)v.FullVersion == protocolVersion);
-
-            if (result == null)
-            {
-                throw new ArgumentException($"Invalid protocol version {protocolVersion}");
-            }
-
-            return result;
-        }
-
-    }
+ }
 }

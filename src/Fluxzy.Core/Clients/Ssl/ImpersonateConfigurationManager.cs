@@ -16,7 +16,6 @@ namespace Fluxzy.Clients.Ssl
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-
         };
 
         public static ImpersonateConfigurationManager Instance { get; } = new ImpersonateConfigurationManager();
