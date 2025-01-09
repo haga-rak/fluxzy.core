@@ -210,7 +210,7 @@ By default, fluxzy will bind to `127.0.0.1:44344`.
 The CLI can be run from a [docker image](https://hub.docker.com/r/fluxzy/fluxzy).
 
 ```bash
-docker run -it -p 43444:43444 fluxzy/fluxzy:latest start
+docker run -it -p 44344:44344 fluxzy/fluxzy:latest start
 ```
 
 To test: 
