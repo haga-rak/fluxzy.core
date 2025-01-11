@@ -84,7 +84,7 @@ namespace Fluxzy.Clients.H2
                 }
             }
 
-            var onJobReady = new TaskCompletionSource<object>();
+            var onJobReady = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             // sleep until window updated 
 
