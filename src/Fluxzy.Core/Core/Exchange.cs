@@ -152,7 +152,7 @@ namespace Fluxzy.Core
         /// </summary>
         public List<Error> Errors { get; } = new();
 
-        internal TaskCompletionSource<bool> ExchangeCompletionSource { get; } = new();
+        internal TaskCompletionSource<bool> ExchangeCompletionSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public ExchangeContext Context { get; }
 

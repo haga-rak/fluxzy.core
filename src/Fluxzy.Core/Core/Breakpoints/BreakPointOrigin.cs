@@ -18,7 +18,7 @@ namespace Fluxzy.Core.Breakpoints
             _exchange = exchange;
             _updateReceiver = updateReceiver;
             Location = location;
-            _waitForValueCompletionSource = new TaskCompletionSource<T?>();
+            _waitForValueCompletionSource = new TaskCompletionSource<T?>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         public BreakPointLocation Location { get; }

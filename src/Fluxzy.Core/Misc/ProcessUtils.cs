@@ -253,7 +253,7 @@ namespace Fluxzy.Misc
             if (process.HasExited)
                 return Task.FromResult<int?>(process.ExitCode);
 
-            var tcs = new TaskCompletionSource<object?>();
+            var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
             process.EnableRaisingEvents = true;
             process.Exited += (_, _) => tcs.TrySetResult(null);
 
