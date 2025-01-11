@@ -266,7 +266,7 @@ namespace Fluxzy
             _runTimeSetting.EndPoints = endPoints.ToHashSet();
             _runTimeSetting.ProxyListenPort = endPoints.FirstOrDefault()?.Port ?? 0;
 
-            _loopTask = Task.Run(MainLoop);
+            _loopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
 
             EndPoints = endPoints;
             return endPoints;
