@@ -160,6 +160,22 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
+        public static Option CreateSkipRemoteCertificateValidation()
+        {
+            var option = new Option<bool>(
+                "--insecure",
+                "Skip remote certificate validation globally. Use `SkipRemoteCertificateValidationAction` for specific host only");
+
+            option.AddAlias("-k");
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
+
+
         public static Option<ProxyMode> CreateReverseProxyMode()
         {
             var possibleValues = string.Join(", ",

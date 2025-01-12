@@ -212,7 +212,12 @@ namespace Fluxzy
         /// </summary>
         [JsonInclude]
         public string? UserAgentActionConfigurationFile { get; internal set; }
-        
+
+        /// <summary>
+        ///     Skip remote certificate validation, default false
+        /// </summary>
+        [JsonInclude]
+        public bool SkipRemoteCertificateValidation { get; internal set; }
 
         internal IEnumerable<Rule> FixedRules()
         {

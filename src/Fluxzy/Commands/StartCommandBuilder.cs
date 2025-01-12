@@ -74,6 +74,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateEnableTracingOption());
 
             command.AddOption(StartCommandOptions.CreateSkipCertInstallOption());
+            command.AddOption(StartCommandOptions.CreateSkipRemoteCertificateValidation());
             command.AddOption(StartCommandOptions.CreateNoCertCacheOption());
             command.AddOption(StartCommandOptions.CreateCertificateFileOption());
             command.AddOption(StartCommandOptions.CreateCertificatePasswordOption());
@@ -104,6 +105,7 @@ namespace Fluxzy.Cli.Commands
             var registerAsSystemProxy = invocationContext.Value<bool>("system-proxy");
             var includeTcpDump = invocationContext.Value<bool>("include-dump");
             var skipDecryption = invocationContext.Value<bool>("skip-ssl-decryption");
+            var skipRemoteCertificateValidation = invocationContext.Value<bool>("insecure");
             var installCert = invocationContext.Value<bool>("install-cert");
             var noCertCache = invocationContext.Value<bool>("no-cert-cache");
             var certFile = invocationContext.Value<FileInfo?>("cert-file");
@@ -120,7 +122,7 @@ namespace Fluxzy.Cli.Commands
             var proxyMode = invocationContext.Value<ProxyMode>("mode");
             var modeReversePort = invocationContext.Value<int?>("mode-reverse-port");
             var proxyBasicAuthCredential = invocationContext.Value<NetworkCredential?>("proxy-auth-basic");
-
+            
             if (trace) {
                 D.EnableTracing = true;
             }
@@ -176,6 +178,10 @@ namespace Fluxzy.Cli.Commands
             if (proxyBasicAuthCredential != null) {
                 proxyStartUpSetting.SetProxyAuthentication(
                     ProxyAuthentication.Basic(proxyBasicAuthCredential.UserName, proxyBasicAuthCredential.Password));
+            }
+
+            if (skipRemoteCertificateValidation) {
+                proxyStartUpSetting.SetSkipRemoteCertificateValidation(true);
             }
 
             var finalListenInterfaces = listenInterfaces.ToList();
