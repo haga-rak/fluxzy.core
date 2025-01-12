@@ -117,6 +117,26 @@ namespace Fluxzy.Tests.Cli
             Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
         }
 
+        [Fact]
+        public async Task Run_Cli_Skip_Certificate_Validation() 
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0 -k";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                $"https://{TestConstants.HttpBinHost}/status/304");
+
+            var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+        }
+
         [Theory]
         [InlineData(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",

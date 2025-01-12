@@ -41,6 +41,7 @@ namespace Fluxzy.Core
             VariableContext = variableContext;
             FluxzySetting = fluxzySetting;
             SetUserAgentActionMapping = setUserAgentActionMapping;
+            SkipRemoteCertificateValidation = fluxzySetting?.SkipRemoteCertificateValidation ?? false;
         }
 
         /// <summary>

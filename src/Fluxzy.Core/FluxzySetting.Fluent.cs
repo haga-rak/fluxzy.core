@@ -60,6 +60,17 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///    Avoid certificate validation
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetSkipRemoteCertificateValidation(bool value)
+        {
+            SkipRemoteCertificateValidation = value;
+            return this;
+        }
+
+        /// <summary>
         ///     Add hosts that fluxzy should not decrypt
         /// </summary>
         /// <param name="hosts"></param>
