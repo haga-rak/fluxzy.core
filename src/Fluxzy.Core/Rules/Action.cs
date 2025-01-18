@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Misc.Converters;
+using Fluxzy.Rules.Filters;
 using YamlDotNet.Serialization;
 
 namespace Fluxzy.Rules
@@ -93,6 +94,45 @@ namespace Fluxzy.Rules
             var description = actionMetaDataAttribute.LongDescription;
 
             yield return new ActionExample(description, this);
+        }
+
+        /// <summary>
+        /// Check if the action is valid for the given setting and filter
+        /// </summary>
+        /// <param name="setting"></param>
+        /// <param name="filter"></param>
+        /// <returns>A list of validation result items</returns>
+        public virtual IEnumerable<ValidationResult> Validate(FluxzySetting setting, Filter filter)
+        {
+#if NET6_0_OR_GREATER
+            var targets = GetType().GetProperties()
+                                      .Select(s => new {
+                                          Property = s,
+                                          ActionDistinctiveAttribute = s.GetCustomAttribute<ActionDistinctiveAttribute>()
+                                      })
+                                      .Where(w => w.ActionDistinctiveAttribute != null)
+                                      .ToList();
+
+            foreach (var target in targets)
+            {
+                var isNullable = new NullabilityInfoContext().Create(target.Property
+                    ).WriteState is NullabilityState.Nullable;
+
+                var value = target.Property.GetValue(this);
+
+                if (value == null && !isNullable)
+                {
+                    yield return new ValidationResult(
+                        ValidationRuleLevel.Error,
+                        $"The property {target.Property.Name} is required for this action (`{FriendlyName}`).",
+                        GetType().Name
+                    );
+                }
+            }
+#else
+            yield break;
+#endif
+
         }
     }
 }

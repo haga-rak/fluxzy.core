@@ -27,7 +27,7 @@ namespace Fluxzy.Core.Breakpoints
 
         public long BodyLength { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
         {
             if (string.IsNullOrWhiteSpace(FlatHeader))
                 yield break;
@@ -35,9 +35,9 @@ namespace Fluxzy.Core.Breakpoints
             if (true) {
                 if (FromFile) {
                     if (string.IsNullOrWhiteSpace(FileName))
-                        yield return new ValidationResult("File name is required", new[] {nameof(FileName)});
+                        yield return new System.ComponentModel.DataAnnotations.ValidationResult("File name is required", new[] {nameof(FileName)});
                     else if (!File.Exists(FileName))
-                        yield return new ValidationResult("File does not exist", new[] {nameof(FileName)});
+                        yield return new System.ComponentModel.DataAnnotations.ValidationResult("File does not exist", new[] {nameof(FileName)});
                 }
             }
 
@@ -45,7 +45,7 @@ namespace Fluxzy.Core.Breakpoints
                 1, out var headerSet);
 
             if (!tryParseResult.Success)
-                yield return new ValidationResult(tryParseResult.Message, new[] {nameof(FlatHeader) });
+                yield return new System.ComponentModel.DataAnnotations.ValidationResult(tryParseResult.Message, new[] {nameof(FlatHeader) });
         }
 
         public async ValueTask Init(Exchange exchange)

@@ -11,6 +11,7 @@ using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Ssl;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Rules.Filters;
 using Org.BouncyCastle.Tls;
 using YamlDotNet.Serialization;
 
@@ -47,7 +48,7 @@ namespace Fluxzy.Rules.Actions
 
         public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
-        public override string DefaultDescription { get; } = "Impersonate";
+        public override string DefaultDescription => $"Impersonate {NameOrConfigFile}";
 
         public override void Init(StartupContext startupContext)
         {
@@ -125,6 +126,17 @@ namespace Fluxzy.Rules.Actions
             yield return new ActionExample("Impersonate CHROME 131 on Windows",
                 new ImpersonateAction("Chrome_Windows_131")
                 );
+        }
+
+        public override IEnumerable<ValidationResult> Validate(FluxzySetting setting, Filter filter)
+        {
+            if (setting.UseBouncyCastle)
+                yield break;
+
+            yield return new ValidationResult(
+                ValidationRuleLevel.Warning,
+                "Impersonate action requires BouncyCastle to be enabled.",
+                FriendlyName);
         }
     }
 }

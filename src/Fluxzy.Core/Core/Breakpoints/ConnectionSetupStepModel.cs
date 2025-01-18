@@ -73,7 +73,7 @@ namespace Fluxzy.Core.Breakpoints
 
         public bool Done { get; private set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext)
         {
             yield break;
         }
