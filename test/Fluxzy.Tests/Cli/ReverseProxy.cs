@@ -23,7 +23,7 @@ namespace Fluxzy.Tests.Cli
                 : "ReversePlain";
 
             // Arrange
-            var commandLine = $"start -l 127.0.0.1:0 --mode-reverse-port {uri.Port} --mode {mode} ";
+            var commandLine = $"start -l 127.0.0.1:0 --no-cert-cache  --mode-reverse-port {uri.Port} --mode {mode} ";
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 

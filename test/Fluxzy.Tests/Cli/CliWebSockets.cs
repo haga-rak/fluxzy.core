@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Security;
 using System.Net.WebSockets;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,7 +98,7 @@ namespace Fluxzy.Tests.Cli
             if (Directory.Exists(directoryName))
                 Directory.Delete(directoryName, true);
 
-            var commandLine = $"start -l 127.0.0.1/0 -d {directoryName}";
+            var commandLine = $"start -l 127.0.0.1/0 --no-cert-cache -d {directoryName}";
 
             var originalMessage = RandomString(length, random);
 
@@ -106,7 +108,9 @@ namespace Fluxzy.Tests.Cli
 
             await using (var fluxzyInstance = await commandLineHost.Run()) {
                 using var ws = new ClientWebSocket {
-                    Options = { Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}") }
+                    Options = {
+                        Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}")
+                    },
                 };
 
                 var uri = new Uri($"{TestConstants.WssHost}/websocket-req-res");

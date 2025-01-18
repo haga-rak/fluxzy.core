@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -31,6 +32,14 @@ namespace Fluxzy.Tests.Cli
 
             // Act 
             using var response = await Exec(yamlContent, requestMessage);
+
+            if ((int) response.StatusCode == 528) {
+
+                var fullStringResponse = await response.Content.ReadAsStringAsync();
+
+                throw new Exception($"Error: {fullStringResponse}");
+            }
+
 
             // Assert
             Assert.NotEqual(528, (int) response.StatusCode);
