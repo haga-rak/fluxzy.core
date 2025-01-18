@@ -109,32 +109,9 @@ namespace Fluxzy.Tests.Cli
             await using (var fluxzyInstance = await commandLineHost.Run()) {
                 using var ws = new ClientWebSocket {
                     Options = {
-                        Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}"),
-                        RemoteCertificateValidationCallback = RemoteCertificateValidationCallback
+                        Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}")
                     },
                 };
-
-                bool RemoteCertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslpolicyerrors)
-                {
-                    if (sslpolicyerrors != SslPolicyErrors.None && certificate is X509Certificate2 cert) {
-
-                        var stringBuilder = new StringBuilder();
-
-                        stringBuilder.AppendLine($"{certificate.Subject} {cert.NotBefore} {cert.NotAfter}");
-
-                        if (chain != null)
-                        {
-                            foreach (var element in chain.ChainElements)
-                            {
-                                stringBuilder.AppendLine($"{element.Certificate.Subject} {element.Certificate.NotBefore} {element.Certificate.NotAfter}");
-                            }
-                        }
-
-                        throw new Exception(stringBuilder.ToString());
-                    }
-
-                    return sslpolicyerrors == SslPolicyErrors.None; 
-                }
 
                 var uri = new Uri($"{TestConstants.WssHost}/websocket-req-res");
 
