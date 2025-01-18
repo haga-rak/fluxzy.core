@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,17 +19,23 @@ namespace Fluxzy.Core
             _client = new TcpClient();
             _client.NoDelay = true; 
         }
-        
-        public Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
-        {
-            return _client.ConnectAsync(address, port)
-                          .ContinueWith(t =>
-                          {
-                              if (t.Exception != null && t.Exception.InnerExceptions.Any())
-                                  throw t.Exception.InnerExceptions.First();
 
-                              return (IPEndPoint) _client.Client.LocalEndPoint!;
-                          });
+        public async Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
+        {
+            try
+            {
+                await _client.ConnectAsync(address, port).ConfigureAwait(false);
+                return (IPEndPoint) _client.Client.LocalEndPoint!;
+            }
+            catch (Exception ex)
+            {
+                if (ex is AggregateException aggregateException && aggregateException.InnerExceptions.Any())
+                {
+                    throw aggregateException.InnerExceptions.First();
+                }
+
+                throw;
+            }
         }
 
         public Stream GetStream()
