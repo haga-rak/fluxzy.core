@@ -98,7 +98,7 @@ namespace Fluxzy.Tests.Cli
             if (Directory.Exists(directoryName))
                 Directory.Delete(directoryName, true);
 
-            var commandLine = $"start -l 127.0.0.1/0 -d {directoryName}";
+            var commandLine = $"start -l 127.0.0.1/0 --no-cert-cache -d {directoryName}";
 
             var originalMessage = RandomString(length, random);
 
