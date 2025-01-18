@@ -19,6 +19,13 @@ namespace Fluxzy
                 OverallMaxConcurrentConnections = value;
 
             SkipCollectingEnvironmentInformation = Environment.GetEnvironmentVariable("SkipCollectingEnvironmentInformation") == "1";
+            
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("appdata"))) {
+                // for macOS and linux, this environment variable used in several temp file (certcache) is not 
+                // set leading unwanted folder creation
+
+                Environment.SetEnvironmentVariable("appdata", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+            }
         }
 
         /// <summary>
