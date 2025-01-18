@@ -6,7 +6,7 @@ namespace Fluxzy.Core
 {
     public class DefaultTcpConnectionProvider : ITcpConnectionProvider
     {
-        public ITcpConnection Create(string dumpFileName)
+        public ITcpConnection Create(string _)
         {
             return new DefaultTcpConnection();
         }

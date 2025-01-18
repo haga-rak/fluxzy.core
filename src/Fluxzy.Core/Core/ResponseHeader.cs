@@ -101,18 +101,31 @@ namespace Fluxzy.Core
 
         public bool ConnectionCloseRequest { get; }
 
-        public bool HasResponseBody(ReadOnlySpan<char> method)
+        public bool HasResponseBody(ReadOnlySpan<char> method, out bool shouldClose)
         {
+            shouldClose = true;
+
             if (ContentLength == 0)
+            {
+                shouldClose = false;
                 return false;
+            }
 
-            if (method.Equals("HEAD", StringComparison.OrdinalIgnoreCase))
+            if (method.Equals("HEAD", StringComparison.OrdinalIgnoreCase)) {
+                shouldClose = false;
                 return false;
+            }
 
-            if (ContentLength > 0)
+            if (ContentLength > 0) {
+                shouldClose = false; 
                 return true;
+            }
 
-            return StatusCode != 304 && StatusCode >= 200 && StatusCode != 204 && StatusCode != 205;
+            if (StatusCode < 200) {
+                return false;
+            }
+
+            return StatusCode != 304 && StatusCode != 204 && StatusCode != 205;
         }
 
         protected override bool CanHaveBody()

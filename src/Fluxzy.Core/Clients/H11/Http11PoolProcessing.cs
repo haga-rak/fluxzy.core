@@ -143,9 +143,9 @@ namespace Fluxzy.Clients.H11
 
             var shouldCloseConnection =
                     exchange.Response.Header.ConnectionCloseRequest
-                ; //|| exchange.Response.Header.ChunkedBody; // Chunked body response always en with connection close 
+                ; //|| exchange.Response.Header.ChunkedBody; 
 
-            if (!exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span)) {
+            if (!exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span, out var shouldClose)) {
 
                 // We close the connection because
                 // many web server still sends a content-body with a 304 response 
@@ -156,7 +156,7 @@ namespace Fluxzy.Clients.H11
 
                 exchange.Response.Body = Stream.Null;
 
-                exchange.ExchangeCompletionSource.TrySetResult(true);
+                exchange.ExchangeCompletionSource.TrySetResult(shouldClose);
 
                 _logger.Trace(exchange.Id, () => "No response body");
 
