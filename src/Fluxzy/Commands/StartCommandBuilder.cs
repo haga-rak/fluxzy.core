@@ -61,27 +61,26 @@ namespace Fluxzy.Cli.Commands
         {
             var command = new Command("start", "Start a capturing session");
             
-            command.AddOption(StartCommandOptions.CreateListenInterfaceOption());
             command.AddOption(StartCommandOptions.CreateListenLocalhost());
             command.AddOption(StartCommandOptions.CreateListToAllInterfaces());
+            command.AddOption(StartCommandOptions.CreateListenInterfaceOption());
             command.AddOption(StartCommandOptions.CreateOutputFileOption());
             command.AddOption(StartCommandOptions.CreateDumpToFolderOption());
             command.AddOption(StartCommandOptions.CreateRuleFileOption());
+            command.AddOption(StartCommandOptions.CreateRuleStdinOption());
             command.AddOption(StartCommandOptions.CreateSystemProxyOption());
+            command.AddOption(StartCommandOptions.CreateSkipRemoteCertificateValidation());
+            command.AddOption(StartCommandOptions.CreateSkipSslOption());
             command.AddOption(StartCommandOptions.CreateBouncyCastleOption());
             command.AddOption(StartCommandOptions.CreateTcpDumpOption());
-            command.AddOption(StartCommandOptions.CreateSkipSslOption());
+            command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
             command.AddOption(StartCommandOptions.CreateEnableTracingOption());
-
             command.AddOption(StartCommandOptions.CreateSkipCertInstallOption());
-            command.AddOption(StartCommandOptions.CreateSkipRemoteCertificateValidation());
             command.AddOption(StartCommandOptions.CreateNoCertCacheOption());
             command.AddOption(StartCommandOptions.CreateCertificateFileOption());
             command.AddOption(StartCommandOptions.CreateCertificatePasswordOption());
-            command.AddOption(StartCommandOptions.CreateRuleStdinOption());
             command.AddOption(StartCommandOptions.CreateUaParsingOption());
             command.AddOption(StartCommandOptions.CreateUser502Option());
-            command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
             command.AddOption(StartCommandOptions.CreateReverseProxyMode());
             command.AddOption(StartCommandOptions.CreateReverseProxyModePortOption());
             command.AddOption(StartCommandOptions.CreateProxyAuthenticationOption());
@@ -103,9 +102,9 @@ namespace Fluxzy.Cli.Commands
             var outFileInfo = invocationContext.Value<FileInfo?>("output-file");
             var dumpDirectory = invocationContext.Value<DirectoryInfo?>("dump-folder");
             var registerAsSystemProxy = invocationContext.Value<bool>("system-proxy");
-            var includeTcpDump = invocationContext.Value<bool>("include-dump");
-            var skipDecryption = invocationContext.Value<bool>("skip-ssl-decryption");
             var skipRemoteCertificateValidation = invocationContext.Value<bool>("insecure");
+            var skipDecryption = invocationContext.Value<bool>("skip-ssl-decryption");
+            var includeTcpDump = invocationContext.Value<bool>("include-dump");
             var installCert = invocationContext.Value<bool>("install-cert");
             var noCertCache = invocationContext.Value<bool>("no-cert-cache");
             var certFile = invocationContext.Value<FileInfo?>("cert-file");
