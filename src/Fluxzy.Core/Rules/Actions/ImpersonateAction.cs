@@ -137,6 +137,11 @@ namespace Fluxzy.Rules.Actions
                 ValidationRuleLevel.Warning,
                 "Impersonate action requires BouncyCastle to be enabled.",
                 FriendlyName);
+
+            foreach (var result in base.Validate(setting, filter))
+            {
+                yield return result;
+            }
         }
     }
 }
