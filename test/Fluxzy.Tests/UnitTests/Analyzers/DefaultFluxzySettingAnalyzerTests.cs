@@ -1,6 +1,7 @@
 using System.Linq;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
+using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters.ResponseFilters;
 using Fluxzy.Validators;
 using Xunit;
@@ -122,6 +123,22 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
 
             Assert.Single(results);
             Assert.Equal(ValidationRuleLevel.Error, results[0].Level);
+        }
+        [Fact]
+        public void Test_Action_Invalid_ServeDirectory()
+        {
+            var fluxzySetting = FluxzySetting.CreateDefault();
+
+            fluxzySetting.AddAlterationRulesForAny(new ServeDirectoryAction(null!));
+
+            var analyzer = new DefaultFluxzySettingAnalyzer();
+
+            var results = analyzer.Validate(fluxzySetting)
+                                  .Where(r => r.Level == ValidationRuleLevel.Fatal)
+                                  .ToList();
+
+            Assert.Single(results);
+            Assert.Equal(ValidationRuleLevel.Fatal, results[0].Level);
         }
     }
 }

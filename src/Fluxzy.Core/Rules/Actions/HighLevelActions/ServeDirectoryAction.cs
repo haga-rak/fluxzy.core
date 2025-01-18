@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Rules.Filters;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
@@ -114,6 +115,22 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         {
             yield return new ActionExample("Serve a directory", 
                 new ServeDirectoryAction("/path/to/my/static/website"));
+        }
+
+        public override IEnumerable<ValidationResult> Validate(FluxzySetting setting, Filter filter)
+        {
+            if (Directory == null! || !System.IO.Directory.Exists(Directory)) {
+                yield return new ValidationResult(
+                    ValidationRuleLevel.Fatal,
+                    $"Directory does not exist for `{FriendlyName}`",
+                    GetType().Name
+                );
+            }
+
+            foreach (var result in base.Validate(setting, filter))
+            {
+                yield return result;
+            }
         }
     }
 
