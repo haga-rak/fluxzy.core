@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
@@ -129,7 +130,7 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
         {
             var fluxzySetting = FluxzySetting.CreateDefault();
 
-            fluxzySetting.AddAlterationRulesForAny(new ServeDirectoryAction(null!));
+            fluxzySetting.AddAlterationRulesForAny(new ServeDirectoryAction(Guid.NewGuid().ToString()));
 
             var analyzer = new DefaultFluxzySettingAnalyzer();
 
