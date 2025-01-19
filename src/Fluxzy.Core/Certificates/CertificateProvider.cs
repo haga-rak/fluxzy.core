@@ -15,22 +15,6 @@ namespace Fluxzy.Certificates
     /// </summary>
     public class CertificateProvider : ICertificateProvider
     {
-        private static List<X509Extension> InvariantCaExtensions { get; } = new() {
-
-            new X509KeyUsageExtension(
-                X509KeyUsageFlags.DigitalSignature
-                | X509KeyUsageFlags.DataEncipherment
-                | X509KeyUsageFlags.KeyEncipherment
-                ,
-                true),
-
-            new X509EnhancedKeyUsageExtension(
-                new OidCollection {
-                    new("1.3.6.1.5.5.7.3.1")
-                },
-                true)
-        };
-
         private readonly ICertificateCache _certCache;
         private readonly ConcurrentDictionary<string, Lazy<byte[]>> _certificateRepository = new();
         private readonly ECDsa _defaultEcdsaKeyEngine = ECDsa.Create()!;
@@ -58,6 +42,21 @@ namespace Fluxzy.Certificates
             // Warming : pre uild certicate 
             BuildCertificateForRootDomain(_rootCertificate, _privateKey, "domain.com");
         }
+
+        private static List<X509Extension> InvariantCaExtensions { get; } = new() {
+            new X509KeyUsageExtension(
+                X509KeyUsageFlags.DigitalSignature
+                | X509KeyUsageFlags.DataEncipherment
+                | X509KeyUsageFlags.KeyEncipherment
+                ,
+                true),
+
+            new X509EnhancedKeyUsageExtension(
+                new OidCollection {
+                    new("1.3.6.1.5.5.7.3.1")
+                },
+                true)
+        };
 
         public X509Certificate2 GetCertificate(string hostName)
         {
@@ -88,20 +87,21 @@ namespace Fluxzy.Certificates
             }
         }
 
-        internal byte[] GetCertificateBytes(string hostName)
-        {
-            hostName = GetRootDomain(hostName);
-            return BuildCertificateForRootDomain(_rootCertificate, _privateKey, hostName); 
-        }
-
         public void Dispose()
         {
             _defaultRsaKeyEngine.Dispose();
             _defaultEcdsaKeyEngine.Dispose();
 
-            foreach (var (_ , certificate) in _solveCertificateRepository) {
+            foreach (var (_, certificate) in _solveCertificateRepository) {
                 certificate.Dispose();
             }
+        }
+
+        internal byte[] GetCertificateBytes(string hostName)
+        {
+            hostName = GetRootDomain(hostName);
+
+            return BuildCertificateForRootDomain(_rootCertificate, _privateKey, hostName);
         }
 
         private string GetRootDomain(string hostName)
@@ -130,7 +130,6 @@ namespace Fluxzy.Certificates
             throw new NotSupportedException($"The private key type {privateKey.GetType()} is not supported");
         }
 
-
         private static byte[] InternalBuildCertificateForRootDomain(
             X509Certificate2 rootCertificate,
             RSA privateKey, string rootDomain)
@@ -143,8 +142,7 @@ namespace Fluxzy.Certificates
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
 
-            foreach (var extension in InvariantCaExtensions)
-            {
+            foreach (var extension in InvariantCaExtensions) {
                 certificateRequest.CertificateExtensions.Add(extension);
             }
 
@@ -173,7 +171,7 @@ namespace Fluxzy.Certificates
 #if NET5_0_OR_GREATER
 
             Span<byte> buffer = stackalloc byte[16];
-#else 
+#else
             var buffer = new byte[16];
 #endif
 
@@ -204,8 +202,7 @@ namespace Fluxzy.Certificates
                 privateKey,
                 HashAlgorithmName.SHA256);
 
-            foreach (var extension in InvariantCaExtensions)
-            {
+            foreach (var extension in InvariantCaExtensions) {
                 certificateRequest.CertificateExtensions.Add(extension);
             }
 
@@ -218,7 +215,7 @@ namespace Fluxzy.Certificates
 
             certificateRequest.CertificateExtensions.Add(
                 new X509AuthorityKeyIdentifierExtension(rootCertificate, false));
-            
+
             certificateRequest.CertificateExtensions.Add(
                 new X509SubjectKeyIdentifierExtension(certificateRequest.PublicKey, false)
             );
@@ -233,16 +230,16 @@ namespace Fluxzy.Certificates
             }
 
 #if NET5_0_OR_GREATER
-            
+
             Span<byte> buffer = stackalloc byte[16];
-#else 
+#else
             var buffer = new byte[16];
 #endif
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
 
             var notBefore = rootCertificate.NotBefore.AddSeconds(1);
-            var now = DateTime.Today; 
+            var now = DateTime.Today;
             notBefore = now < notBefore ? notBefore : now;
 
             using var cert = certificateRequest.Create(rootCertificate,
@@ -251,6 +248,7 @@ namespace Fluxzy.Certificates
                 buffer);
 
             using var privateKeyCertificate = cert.CopyWithPrivateKey(privateKey);
+
             return privateKeyCertificate.Export(X509ContentType.Pkcs12);
         }
     }

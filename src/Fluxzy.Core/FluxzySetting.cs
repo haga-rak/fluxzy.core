@@ -18,19 +18,19 @@ using Fluxzy.Rules.Filters.RequestFilters;
 namespace Fluxzy
 {
     /// <summary>
-    /// The main configuration for starting a proxy instance
+    ///     The main configuration for starting a proxy instance
     /// </summary>
     public partial class FluxzySetting
     {
-        [JsonInclude()]
-        [Obsolete("Used only for serialization")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public List<Rule> InternalAlterationRules { get; internal set; } = new();
-
         [JsonConstructor]
         public FluxzySetting()
         {
         }
+
+        [JsonInclude]
+        [Obsolete("Used only for serialization")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public List<Rule> InternalAlterationRules { get; internal set; } = new();
 
         /// <summary>
         ///     Proxy listen address
@@ -41,15 +41,10 @@ namespace Fluxzy
         /// <summary>
         ///     Returns a friendly description of the bound points
         /// </summary>
-        public string BoundPointsDescription
-        {
-            get
-            {
-                return string.Join(", ", BoundPoints
-                                         .OrderByDescending(d => d.Default)
-                                         .Select(s => $"[{s.EndPoint}]"));
-            }
-        }
+        public string BoundPointsDescription =>
+            string.Join(", ", BoundPoints
+                              .OrderByDescending(d => d.Default)
+                              .Select(s => $"[{s.EndPoint}]"));
 
         /// <summary>
         ///     Verbose mode
@@ -63,15 +58,14 @@ namespace Fluxzy
         [JsonInclude]
         public int ConnectionPerHost { get; internal set; } = 16;
 
-
         /// <summary>
         ///     Ssl protocols for remote host connection
         /// </summary>
         [JsonInclude]
         public SslProtocols ServerProtocols { get; internal set; } =
 #pragma warning disable SYSLIB0039
-            SslProtocols.Tls 
-            | SslProtocols.Tls11 
+            SslProtocols.Tls
+            | SslProtocols.Tls11
             | SslProtocols.Tls12
 #if NETCOREAPP3_1_OR_GREATER
             | SslProtocols.Tls13
@@ -124,14 +118,9 @@ namespace Fluxzy
         /// <summary>
         ///     Hosts that by pass proxy
         /// </summary>
-        public IReadOnlyCollection<string> ByPassHost
-        {
-            get
-            {
-                return ByPassHostFlat.Split(new[] { ";", ",", "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries)
-                                     .Distinct().ToList();
-            }
-        }
+        public IReadOnlyCollection<string> ByPassHost =>
+            ByPassHostFlat.Split(new[] { ";", ",", "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries)
+                          .Distinct().ToList();
 
         [JsonInclude]
         public string ByPassHostFlat { get; internal set; } = "";
@@ -146,7 +135,7 @@ namespace Fluxzy
         ///     Global alteration rules
         /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete for JSON serialization
-        public ReadOnlyCollection<Rule> AlterationRules => new ReadOnlyCollection<Rule>(InternalAlterationRules);
+        public ReadOnlyCollection<Rule> AlterationRules => new(InternalAlterationRules);
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
@@ -160,7 +149,7 @@ namespace Fluxzy
         ///     Skip SSL decryption for any exchanges. This setting cannot be overriden by rules
         /// </summary>
         [JsonInclude]
-        public bool GlobalSkipSslDecryption { get; internal set; } = false;
+        public bool GlobalSkipSslDecryption { get; internal set; }
 
         /// <summary>
         ///     When set to true, the raw network capture will be done out of process.
@@ -172,7 +161,7 @@ namespace Fluxzy
         ///     Using bouncy castle for ssl streams instead of OsDefault (SChannel or OpenSSL)
         /// </summary>
         [JsonInclude]
-        public bool UseBouncyCastle { get; internal set; } = false;
+        public bool UseBouncyCastle { get; internal set; }
 
         /// <summary>
         ///     Fluxzy will exit when the number of exchanges reaches this value.
@@ -188,13 +177,14 @@ namespace Fluxzy
         public bool ReverseMode { get; internal set; }
 
         /// <summary>
-        ///     When reverse mode forced port is set, fluxzy will use the specified port to connect to the remote instead of client connected port
+        ///     When reverse mode forced port is set, fluxzy will use the specified port to connect to the remote instead of client
+        ///     connected port
         /// </summary>
         [JsonInclude]
         public int? ReverseModeForcedPort { get; internal set; }
 
         /// <summary>
-        ///    When set to true, fluxzy will expect plain http for reverse mode
+        ///     When set to true, fluxzy will expect plain http for reverse mode
         /// </summary>
         [JsonInclude]
         public bool ReverseModePlainHttp { get; internal set; }
@@ -204,7 +194,6 @@ namespace Fluxzy
         /// </summary>
         [JsonInclude]
         public ProxyAuthentication? ProxyAuthentication { get; internal set; }
-
 
         /// <summary>
         ///     Use a provided configuration file instead of default
@@ -221,13 +210,13 @@ namespace Fluxzy
 
         internal IEnumerable<Rule> FixedRules()
         {
-            if (GlobalSkipSslDecryption)
+            if (GlobalSkipSslDecryption) {
                 yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
+            }
 
             yield return new Rule(
                 new MountCertificateAuthorityAction(), new FilterCollection(new IsSelfFilter(),
-                    new PathFilter("/ca", StringSelectorOperation.StartsWith))
-                {
+                    new PathFilter("/ca", StringSelectorOperation.StartsWith)) {
                     Operation = SelectorCollectionOperation.And
                 });
 
@@ -248,36 +237,35 @@ namespace Fluxzy
         }
 
         /// <summary>
-        ///    Create a default setting for a fluxzy capture session with provided address and port
+        ///     Create a default setting for a fluxzy capture session with provided address and port
         /// </summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <returns></returns>
         public static FluxzySetting CreateDefault(IPAddress address, int port)
         {
-            return new FluxzySetting
-            {
+            return new FluxzySetting {
                 ConnectionPerHost = 16
             }.SetBoundAddress(address, port);
         }
 
         /// <summary>
-        ///  Create a default instance and listen on IPv4 loopback address
+        ///     Create a default instance and listen on IPv4 loopback address
         /// </summary>
         /// <param name="port"></param>
         /// <returns></returns>
         public static FluxzySetting CreateLocal(int port = 44344)
         {
-            return CreateDefault(IPAddress.Loopback, port); 
+            return CreateDefault(IPAddress.Loopback, port);
         }
 
         /// <summary>
-        /// Creates a FluxzySetting with a randomly generated local port number and bound to the IPv4 loopback address.
+        ///     Creates a FluxzySetting with a randomly generated local port number and bound to the IPv4 loopback address.
         /// </summary>
         /// <returns>A FluxzySetting object with the local port number set to a random value.</returns>
         public static FluxzySetting CreateLocalRandomPort()
         {
-            return CreateLocal(0); 
+            return CreateLocal(0);
         }
     }
 }

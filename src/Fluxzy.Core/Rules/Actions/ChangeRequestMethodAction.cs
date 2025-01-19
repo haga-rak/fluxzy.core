@@ -33,8 +33,9 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            if (exchange == null)
+            if (exchange == null) {
                 return default;
+            }
 
             exchange.Request.Header.Method = NewMethod.EvaluateVariable(context).AsMemory();
 

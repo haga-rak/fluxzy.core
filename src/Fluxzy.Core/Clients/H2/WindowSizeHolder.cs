@@ -45,10 +45,12 @@ namespace Fluxzy.Clients.H2
             _logger.Trace(this, windowSizeIncrement);
 
             lock (this) {
-                if (WindowSize + (long) windowSizeIncrement > int.MaxValue)
+                if (WindowSize + (long) windowSizeIncrement > int.MaxValue) {
                     WindowSize = int.MaxValue;
-                else
+                }
+                else {
                     WindowSize += windowSizeIncrement;
+                }
             }
 
             // This is not behaving as expected
@@ -69,8 +71,9 @@ namespace Fluxzy.Clients.H2
 
         public async ValueTask<int> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested || requestedLength == 0)
+            if (cancellationToken.IsCancellationRequested || requestedLength == 0) {
                 return 0;
+            }
 
             lock (this) {
                 var maxAvailable = Math.Min(requestedLength, WindowSize);

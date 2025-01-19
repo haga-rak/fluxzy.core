@@ -18,7 +18,9 @@ namespace Fluxzy.Core.Breakpoints
             _exchange = exchange;
             _updateReceiver = updateReceiver;
             Location = location;
-            _waitForValueCompletionSource = new TaskCompletionSource<T?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _waitForValueCompletionSource =
+                new TaskCompletionSource<T?>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         public BreakPointLocation Location { get; }
@@ -50,7 +52,7 @@ namespace Fluxzy.Core.Breakpoints
 
                 if (updatedValue != null) {
                     originalValue = updatedValue;
-                    
+
                     await updatedValue.Alter(_exchange).ConfigureAwait(false);
                 }
                 else {

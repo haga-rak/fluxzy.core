@@ -13,10 +13,8 @@ namespace Fluxzy.Core.Breakpoints
 {
     public class ResponseSetupStepModel : IBreakPointAlterationModel
     {
-        public bool Done { get; private set; }
-
         public string? FlatHeader { get; set; } = string.Empty;
-        
+
         public bool FromFile { get; set; }
 
         public string? FileName { get; set; }
@@ -26,27 +24,36 @@ namespace Fluxzy.Core.Breakpoints
         public string? ContentType { get; set; }
 
         public long BodyLength { get; set; }
-        
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public bool Done { get; private set; }
+
+        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(
+            ValidationContext validationContext)
         {
-            if (string.IsNullOrWhiteSpace(FlatHeader))
+            if (string.IsNullOrWhiteSpace(FlatHeader)) {
                 yield break;
+            }
 
             if (true) {
                 if (FromFile) {
-                    if (string.IsNullOrWhiteSpace(FileName))
-                        yield return new ValidationResult("File name is required", new[] {nameof(FileName)});
-                    else if (!File.Exists(FileName))
-                        yield return new ValidationResult("File does not exist", new[] {nameof(FileName)});
+                    if (string.IsNullOrWhiteSpace(FileName)) {
+                        yield return new System.ComponentModel.DataAnnotations.ValidationResult("File name is required",
+                            new[] { nameof(FileName) });
+                    }
+                    else if (!File.Exists(FileName)) {
+                        yield return new System.ComponentModel.DataAnnotations.ValidationResult("File does not exist",
+                            new[] { nameof(FileName) });
+                    }
                 }
             }
 
             var tryParseResult = EditableResponseHeaderSet.TryParse(FlatHeader,
                 1, out var headerSet);
 
-            if (!tryParseResult.Success)
-                yield return new ValidationResult(tryParseResult.Message, new[] {nameof(ContentBody) });
+            if (!tryParseResult.Success) {
+                yield return new System.ComponentModel.DataAnnotations.ValidationResult(tryParseResult.Message,
+                    new[] { nameof(ContentBody) });
+            }
         }
 
         public async ValueTask Init(Exchange exchange)
@@ -59,11 +66,10 @@ namespace Fluxzy.Core.Breakpoints
                 var tempFileName = ExtendedPathHelper.GetTempFileName();
 
                 await using (var fileStream = File.Create(tempFileName)) {
-
                     // TODO : we need to decode here 
-                    
-                    await CompressionHelper.GetDecodedResponseBodyStream(new ExchangeInfo(exchange),
-                        exchange.Response.Body, out _).CopyToAsync(fileStream).ConfigureAwait(false);
+
+                    await new ExchangeInfo(exchange).GetDecodedResponseBodyStream(exchange.Response.Body, out _)
+                                                    .CopyToAsync(fileStream).ConfigureAwait(false);
                 }
 
                 var tempFileInfo = new FileInfo(tempFileName);
@@ -92,8 +98,9 @@ namespace Fluxzy.Core.Breakpoints
         {
             Stream? body;
 
-            if (FromFile)
+            if (FromFile) {
                 body = FileName != null && File.Exists(FileName) ? File.OpenRead(FileName) : Stream.Null;
+            }
             else {
                 body = string.IsNullOrEmpty(ContentBody)
                     ? Stream.Null
@@ -103,12 +110,14 @@ namespace Fluxzy.Core.Breakpoints
             var tryParseResult =
                 EditableResponseHeaderSet.TryParse(FlatHeader!, (int) (body?.Length ?? 0), out var headerSet);
 
-            if (!tryParseResult.Success)
+            if (!tryParseResult.Success) {
                 throw new ClientErrorException(0, "User provided header was invalid");
+            }
 
 
-            if (ContentType != null)
+            if (ContentType != null) {
                 headerSet!.Headers.Add(new EditableHeader("Content-Type", ContentType));
+            }
 
             var response = headerSet!.ToResponse(body);
 
@@ -118,7 +127,7 @@ namespace Fluxzy.Core.Breakpoints
 
             Done = true;
 
-            return default; 
+            return default;
         }
     }
 }

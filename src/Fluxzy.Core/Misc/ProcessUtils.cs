@@ -23,8 +23,9 @@ namespace Fluxzy.Misc
 
             var process = Process.Start(processStartInfo);
 
-            if (process == null)
+            if (process == null) {
                 return null;
+            }
 
             Span<char> charBuffer = stackalloc char[1024];
             var stringBuilder = new StringBuilder();
@@ -55,8 +56,9 @@ namespace Fluxzy.Misc
 
             var process = Process.Start(processStartInfo);
 
-            if (process == null)
+            if (process == null) {
                 throw new InvalidOperationException("Unable to start process " + commandName + " " + args);
+            }
 
             Task? copyTask = null;
 
@@ -71,18 +73,20 @@ namespace Fluxzy.Misc
             var standardOutputReading = process.StandardOutput.ReadToEndAsync();
             var standardErrorReading = process.StandardError.ReadToEndAsync();
 
-            if (copyTask != null)
+            if (copyTask != null) {
                 await copyTask.ConfigureAwait(false);
+            }
 
             var standardOutput = await standardOutputReading.ConfigureAwait(false);
             var standardError = await standardErrorReading.ConfigureAwait(false);
 
             await process.WaitForExitAsync().ConfigureAwait(false);
 
-            if (process.ExitCode != 0 && throwOnFail)
+            if (process.ExitCode != 0 && throwOnFail) {
                 throw new InvalidOperationException(
                     $"Process {commandName} {args} exited" +
                     $" with code {process.ExitCode} {standardOutput} {standardError}");
+            }
 
             return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
         }
@@ -102,8 +106,9 @@ namespace Fluxzy.Misc
 
             var process = Process.Start(processStartInfo);
 
-            if (process == null)
+            if (process == null) {
                 throw new InvalidOperationException("Unable to start process " + commandName + " " + args);
+            }
 
             if (stdInStream != null) {
                 // Copy stdinstream to process stdin
@@ -116,20 +121,23 @@ namespace Fluxzy.Misc
 
             process.WaitForExit();
 
-            if (process.ExitCode != 0 && throwOnFail)
+            if (process.ExitCode != 0 && throwOnFail) {
                 throw new InvalidOperationException(
                     $"Process {commandName} {args} exited" +
-                    $" with code {process.ExitCode} {standardOutput} {standardError}"); 
+                    $" with code {process.ExitCode} {standardOutput} {standardError}");
+            }
 
             return new ProcessRunResult(standardError, standardOutput, process.ExitCode);
         }
 
-        public static Task<ProcessRunResult> QuickRunAsync(string fullCommand, Stream? stdInStream = null, bool throwOnFail = false)
+        public static Task<ProcessRunResult> QuickRunAsync(
+            string fullCommand, Stream? stdInStream = null, bool throwOnFail = false)
         {
             var commandTab = fullCommand.Split(' ');
 
-            if (commandTab.Length == 1)
+            if (commandTab.Length == 1) {
                 return QuickRunAsync(fullCommand, string.Empty, throwOnFail: throwOnFail);
+            }
 
             var commandName = fullCommand.Split(' ')[0];
             var args = fullCommand.Substring(commandName.Length + 1);
@@ -137,17 +145,19 @@ namespace Fluxzy.Misc
             return QuickRunAsync(commandName, args, stdInStream, throwOnFail);
         }
 
-        public static ProcessRunResult QuickRun(string fullCommand, Stream? stdInStream = null, bool throwOnFail = false)
+        public static ProcessRunResult QuickRun(
+            string fullCommand, Stream? stdInStream = null, bool throwOnFail = false)
         {
             var commandTab = fullCommand.Split(' ');
 
-            if (commandTab.Length == 1)
+            if (commandTab.Length == 1) {
                 return QuickRun(fullCommand, string.Empty, throwOnFail: throwOnFail);
+            }
 
             var commandName = fullCommand.Split(' ')[0];
             var args = fullCommand.Substring(commandName.Length + 1);
 
-            return QuickRun(commandName, args, stdInStream, throwOnFail: throwOnFail);
+            return QuickRun(commandName, args, stdInStream, throwOnFail);
         }
 
         public static bool IsCommandAvailable(string commandName)
@@ -175,7 +185,8 @@ namespace Fluxzy.Misc
             return true;
         }
 
-        public static async Task<Process?> RunElevatedAsync(string commandName, string[] args, bool redirectStdOut,
+        public static async Task<Process?> RunElevatedAsync(
+            string commandName, string[] args, bool redirectStdOut,
             string askPasswordPrompt, bool redirectStandardError = false)
         {
             var fullArgs = string.Join(" ", args.Select(s => s.EscapeSegment()));
@@ -194,17 +205,17 @@ namespace Fluxzy.Misc
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                
-                if (Environment.GetEnvironmentVariable("FluxzyDesktopVersion") != null 
+                if (Environment.GetEnvironmentVariable("FluxzyDesktopVersion") != null
                     || string.Equals(Environment.GetEnvironmentVariable("FluxzyGraphicalPrivilegePrompt"), "TRUE",
                         StringComparison.OrdinalIgnoreCase)) {
-                    
-                    var acquired = await ProcessUtilsOsx.OsxTryAcquireElevation(askPasswordPrompt).ConfigureAwait(false);
+                    var acquired = await ProcessUtilsOsx.OsxTryAcquireElevation(askPasswordPrompt)
+                                                        .ConfigureAwait(false);
 
-                    if (!acquired)
-                        return null; 
+                    if (!acquired) {
+                        return null;
+                    }
                 }
-                
+
                 var osXProcess = Process.Start(new ProcessStartInfo("sudo", $"-n \"{commandName}\" {fullArgs}") {
                     UseShellExecute = false,
                     Verb = "runas",
@@ -239,9 +250,8 @@ namespace Fluxzy.Misc
         {
             return
                 Task.Run(() => RunElevatedAsync(commandName, args, redirectStdOut, askPasswordPrompt)).GetAwaiter()
-                    .GetResult(); 
+                    .GetResult();
         }
-
     }
 
     internal static class ProcessExtensions
@@ -250,15 +260,17 @@ namespace Fluxzy.Misc
             this Process process,
             CancellationToken cancellationToken = default)
         {
-            if (process.HasExited)
+            if (process.HasExited) {
                 return Task.FromResult<int?>(process.ExitCode);
+            }
 
             var tcs = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
             process.EnableRaisingEvents = true;
             process.Exited += (_, _) => tcs.TrySetResult(null);
 
-            if (cancellationToken != default)
+            if (cancellationToken != default) {
                 cancellationToken.Register(() => tcs.SetCanceled());
+            }
 
             return Task.FromResult<int?>(process.HasExited ? process.ExitCode : null);
         }
@@ -269,16 +281,18 @@ namespace Fluxzy.Misc
 
             var mustBeEscapedAndQuoted = commandLineSegment.Intersect(mustMeEscapedChars).Any();
 
-            if (mustBeEscapedAndQuoted)
+            if (mustBeEscapedAndQuoted) {
                 commandLineSegment = "\"" + commandLineSegment.SanitizeQuote() + "\"";
+            }
 
             return commandLineSegment;
         }
 
         internal static string SanitizeQuote(this string str)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 return str.Replace("\"", "\"\"");
+            }
 
             return str.Replace("'", "'\\''");
         }

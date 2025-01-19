@@ -1,3 +1,6 @@
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+
+using System.Net;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Dns;
 using Xunit;
@@ -13,7 +16,7 @@ namespace Fluxzy.Tests.UnitTests.Dns
         {
             // Arrange
             var resolver = new DnsOverHttpsResolver(nameOfUri, null);
-            var ip = System.Net.IPAddress.Parse(ipAddress);
+            var ip = IPAddress.Parse(ipAddress);
 
             // Act
             var result = await resolver.SolveDnsAll(hostname);

@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Security;
 using System.Net.WebSockets;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,11 +80,12 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(expectedMessage, originalMessage);
             }
 
-            if (Directory.Exists(directoryName))
+            if (Directory.Exists(directoryName)) {
                 Directory.Delete(directoryName, true);
+            }
         }
 
-        [Theory()]
+        [Theory]
         [MemberData(nameof(GetCliWebSocketTestRepetitionArgs))]
         public async Task Run_Cli_For_Web_Socket_Req_Res(int length, int _)
         {
@@ -95,8 +94,9 @@ namespace Fluxzy.Tests.Cli
             // Arrange 
             var directoryName = $"test-artifacts/ws_{length}";
 
-            if (Directory.Exists(directoryName))
+            if (Directory.Exists(directoryName)) {
                 Directory.Delete(directoryName, true);
+            }
 
             var commandLine = $"start -l 127.0.0.1/0 --no-cert-cache -d {directoryName}";
 
@@ -110,7 +110,7 @@ namespace Fluxzy.Tests.Cli
                 using var ws = new ClientWebSocket {
                     Options = {
                         Proxy = new WebProxy($"http://127.0.0.1:{fluxzyInstance.ListenPort}")
-                    },
+                    }
                 };
 
                 var uri = new Uri($"{TestConstants.WssHost}/websocket-req-res");
@@ -165,8 +165,9 @@ namespace Fluxzy.Tests.Cli
                 Assert.Equal(originalMessage.Length, resultMessage.Length);
             }
 
-            if (Directory.Exists(directoryName))
+            if (Directory.Exists(directoryName)) {
                 Directory.Delete(directoryName, true);
+            }
         }
 
         public static string RandomString(int length, Random random)
@@ -179,12 +180,12 @@ namespace Fluxzy.Tests.Cli
 
         public static List<object[]> GetCliWebSocketTestRepetitionArgs()
         {
-            int repetitionCount = 10; 
+            var repetitionCount = 10;
             var definitiveValue = new[] { 5, 125 * 1024 + 5, 1024 * 64 * 16 };
 
             var result = new List<object[]>();
 
-            for (int i = 0; i < repetitionCount; i++) {
+            for (var i = 0; i < repetitionCount; i++) {
                 foreach (var value in definitiveValue) {
                     result.Add(new object[] { value, i });
                 }

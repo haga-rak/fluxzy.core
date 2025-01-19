@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
-using Fluxzy.Misc.Streams;
 using Fluxzy.Rules;
 
 namespace Fluxzy.Core
@@ -33,13 +32,11 @@ namespace Fluxzy.Core
             Authority = authority;
             HttpVersion = httpVersion;
 
-            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure))
-            {
+            Request = new Request(new RequestHeader(requestHeaderPlain, isSecure)) {
                 Body = requestBody ?? Stream.Null
             };
 
-            Response = new Response
-            {
+            Response = new Response {
                 Header = new ResponseHeader(responseHeader, isSecure, false),
                 Body = responseBody ?? Stream.Null
             };
@@ -75,8 +72,7 @@ namespace Fluxzy.Core
             Authority = authority;
             HttpVersion = httpVersion;
 
-            Request = new Request(requestHeader)
-            {
+            Request = new Request(requestHeader) {
                 Body = bodyStream
             };
 
@@ -117,7 +113,6 @@ namespace Fluxzy.Core
         internal Task<bool> Complete => ExchangeCompletionSource.Task;
 
         /// <summary>
-        ///  
         /// </summary>
         internal bool Unprocessed { get; set; }
 
@@ -152,7 +147,8 @@ namespace Fluxzy.Core
         /// </summary>
         public List<Error> Errors { get; } = new();
 
-        internal TaskCompletionSource<bool> ExchangeCompletionSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource<bool> ExchangeCompletionSource { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public ExchangeContext Context { get; }
 
@@ -186,12 +182,12 @@ namespace Fluxzy.Core
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
-            return Request.Header.Headers.Select(t => (HeaderFieldInfo)t);
+            return Request.Header.Headers.Select(t => (HeaderFieldInfo) t);
         }
 
         public IEnumerable<HeaderFieldInfo>? GetResponseHeaders()
         {
-            return Response.Header?.Headers.Select(t => (HeaderFieldInfo)t);
+            return Response.Header?.Headers.Select(t => (HeaderFieldInfo) t);
         }
 
         public Agent? Agent { get; set; }
@@ -218,40 +214,35 @@ namespace Fluxzy.Core
         {
             var collection = new NameValueCollection();
 
-            if (Metrics.CreateCertEnd != default)
-            {
+            if (Metrics.CreateCertEnd != default) {
                 collection.Add("create-cert",
                     ((int)
                         (Metrics.CreateCertEnd - Metrics.CreateCertStart).TotalMilliseconds)
                     .ToString());
             }
 
-            if (Connection != null && Connection.SslNegotiationEnd != default)
-            {
+            if (Connection != null && Connection.SslNegotiationEnd != default) {
                 collection.Add("SSL",
                     ((int)
                         (Connection.SslNegotiationEnd - Connection.SslNegotiationStart).TotalMilliseconds)
                     .ToString());
             }
 
-            if (Metrics.RetrievingPool != default)
-            {
+            if (Metrics.RetrievingPool != default) {
                 collection.Add("time-to-get-a-pool",
                     ((int)
                         (Metrics.RetrievingPool - Metrics.ReceivedFromProxy).TotalMilliseconds)
                     .ToString());
             }
 
-            if (Metrics.RequestHeaderSent != default)
-            {
+            if (Metrics.RequestHeaderSent != default) {
                 collection.Add("Time-to-send",
                     ((int)
                         (Metrics.RequestHeaderSent - Metrics.ReceivedFromProxy).TotalMilliseconds)
                     .ToString());
             }
 
-            if (Metrics.ResponseHeaderEnd != default)
-            {
+            if (Metrics.ResponseHeaderEnd != default) {
                 collection.Add("TTFB",
                     ((int)
                         (Metrics.ResponseHeaderEnd - Metrics.RequestBodySent).TotalMilliseconds)
