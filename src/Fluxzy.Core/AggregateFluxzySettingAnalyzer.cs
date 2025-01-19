@@ -5,8 +5,10 @@ using System.Collections.Generic;
 
 namespace Fluxzy
 {
-    public class DefaultFluxzySettingAnalyzer
+    public class AggregateFluxzySettingAnalyzer : ISettingAnalyzer
     {
+        public static ISettingAnalyzer Instance { get; } = new AggregateFluxzySettingAnalyzer();
+
         private static readonly ISettingAnalyzer[] Validators = new ISettingAnalyzer[]
         {
             new RuleCountValidator(),

@@ -60,7 +60,7 @@ namespace Fluxzy.Cli.Commands
         public Command Build(CancellationToken cancellationToken)
         {
             var command = new Command("start", "Start a capturing session");
-            
+
             command.AddOption(StartCommandOptions.CreateListenLocalhost());
             command.AddOption(StartCommandOptions.CreateListToAllInterfaces());
             command.AddOption(StartCommandOptions.CreateListenInterfaceOption());
@@ -121,7 +121,7 @@ namespace Fluxzy.Cli.Commands
             var proxyMode = invocationContext.Value<ProxyMode>("mode");
             var modeReversePort = invocationContext.Value<int?>("mode-reverse-port");
             var proxyBasicAuthCredential = invocationContext.Value<NetworkCredential?>("proxy-auth-basic");
-            
+
             if (trace) {
                 D.EnableTracing = true;
             }
@@ -146,8 +146,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.MaxExchangeCount = count;
             proxyStartUpSetting.ClearBoundAddresses();
 
-            if (proxyMode == ProxyMode.ReverseSecure)
-            {
+            if (proxyMode == ProxyMode.ReverseSecure) {
                 if (registerAsSystemProxy) {
                     throw new ArgumentException("Cannot register as system proxy when using reverse mode");
                 }
@@ -159,8 +158,7 @@ namespace Fluxzy.Cli.Commands
                 }
             }
 
-            if (proxyMode == ProxyMode.ReversePlain)
-            {
+            if (proxyMode == ProxyMode.ReversePlain) {
                 if (registerAsSystemProxy) {
                     throw new ArgumentException("Cannot register as system proxy when using reverse mode");
                 }
@@ -168,8 +166,7 @@ namespace Fluxzy.Cli.Commands
                 proxyStartUpSetting.SetReverseMode(true);
                 proxyStartUpSetting.SetReverseModePlainHttp(true);
 
-                if (modeReversePort != null)
-                {
+                if (modeReversePort != null) {
                     proxyStartUpSetting.SetReverseModeForcedPort(modeReversePort.Value);
                 }
             }
@@ -285,10 +282,15 @@ namespace Fluxzy.Cli.Commands
             await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
+            if (!ValidateSetting(invocationContext, proxyStartUpSetting)) {
+                invocationContext.ExitCode = 1;
+
+                return;
+            }
+
             await using (var tcpConnectionProvider = proxyStartUpSetting.CaptureRawPacket
                              ? await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting.OutOfProcCapture)
-                             : ITcpConnectionProvider.Default) 
-            {
+                             : ITcpConnectionProvider.Default) {
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider,
                                  new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider,
                                  externalCancellationSource: linkedTokenSource)) {
@@ -340,6 +342,23 @@ namespace Fluxzy.Cli.Commands
 
                 invocationContext.Console.WriteLine("Packing output done.");
             }
+        }
+
+        private static bool ValidateSetting(InvocationContext invocationContext, FluxzySetting proxyStartUpSetting)
+        {
+            var validationResults = AggregateFluxzySettingAnalyzer.Instance.Validate(proxyStartUpSetting).ToList();
+
+            if (validationResults.Any()) {
+                foreach (var validationResult in validationResults) {
+                    invocationContext.Console.WriteValidationResult(validationResult);
+                }
+
+                if (validationResults.Any(v => v.Level == ValidationRuleLevel.Fatal)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)

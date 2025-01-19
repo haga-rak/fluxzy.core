@@ -17,20 +17,18 @@ namespace Fluxzy.Core
         public DefaultTcpConnection()
         {
             _client = new TcpClient();
-            _client.NoDelay = true; 
+            _client.NoDelay = true;
         }
 
         public async Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
         {
-            try
-            {
+            try {
                 await _client.ConnectAsync(address, port).ConfigureAwait(false);
+
                 return (IPEndPoint) _client.Client.LocalEndPoint!;
             }
-            catch (Exception ex)
-            {
-                if (ex is AggregateException aggregateException && aggregateException.InnerExceptions.Any())
-                {
+            catch (Exception ex) {
+                if (ex is AggregateException aggregateException && aggregateException.InnerExceptions.Any()) {
                     throw aggregateException.InnerExceptions.First();
                 }
 
@@ -56,6 +54,7 @@ namespace Fluxzy.Core
         public ValueTask DisposeAsync()
         {
             _client?.Dispose();
+
             return default;
         }
 
@@ -63,6 +62,7 @@ namespace Fluxzy.Core
         {
             var stream = (DisposeEventNotifierStream) sender;
             stream.OnStreamDisposed -= ResultStreamOnOnStreamDisposed;
+
             return DisposeAsync();
         }
     }

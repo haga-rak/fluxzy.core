@@ -30,13 +30,11 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         }
     }
 
-
     public class FluxzyBadExitCodeException : Exception
     {
         public FluxzyBadExitCodeException(string message)
             : base(message)
         {
-            
         }
     }
 }

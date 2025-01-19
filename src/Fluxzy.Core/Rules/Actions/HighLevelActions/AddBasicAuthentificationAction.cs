@@ -1,6 +1,8 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Headers;
 using Fluxzy.Core;
@@ -35,7 +37,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             var password = Password.EvaluateVariable(context);
 
             var auth = $"{userName}:{password}";
-            var base64 = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(auth));
+            var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(auth));
 
             context.RequestHeaderAlterations.Add(new HeaderAlterationAdd("Authorization",
                 $"Basic {base64}"));

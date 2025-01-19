@@ -32,9 +32,7 @@ namespace Fluxzy.Clients.H11
         public async ValueTask<bool> Process(Exchange exchange, RsBuffer buffer, CancellationToken cancellationToken)
         {
             if (exchange.Context.EventNotifierStream != null) {
-
-                if (exchange.Context.EventNotifierStream.Faulted)
-                {
+                if (exchange.Context.EventNotifierStream.Faulted) {
                     throw new ConnectionCloseException("Abandoned stream");
                 }
             }
@@ -44,12 +42,13 @@ namespace Fluxzy.Clients.H11
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
             _logger.Trace(exchange.Id, () => "Begin writing header");
+
             var headerLength = exchange.Request.Header.WriteHttp11(
                 !exchange.Authority.Secure,
-                buffer.Buffer, true, true, writeKeepAlive:true);
+                buffer.Buffer, true, true, true);
 
             // Sending request header 
-            
+
             await exchange.Connection.WriteStream!
                           .WriteAsync(buffer.Memory.Slice(0, headerLength), cancellationToken)
                           .ConfigureAwait(false);
@@ -66,8 +65,9 @@ namespace Fluxzy.Clients.H11
                 var writeStream = exchange.Connection.WriteStream;
                 ChunkedTransferWriteStream? chunkedStream = null;
 
-                if (exchange.Request.Header.ChunkedBody)
+                if (exchange.Request.Header.ChunkedBody) {
                     writeStream = chunkedStream = new ChunkedTransferWriteStream(writeStream);
+                }
 
                 var totalBodySize = await
                     exchange.Request.Body.CopyDetailed(writeStream, 1024 * 16,
@@ -75,8 +75,9 @@ namespace Fluxzy.Clients.H11
 
                 exchange.Metrics.TotalSent += totalBodySize;
 
-                if (chunkedStream != null)
+                if (chunkedStream != null) {
                     await chunkedStream.WriteEof().ConfigureAwait(false);
+                }
             }
 
             exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
@@ -88,46 +89,40 @@ namespace Fluxzy.Clients.H11
             HeaderBlockReadResult headerBlockDetectResult = default;
 
             try {
-
                 while (true) {
-
-                    headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!, buffer,
+                    headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!,
+                        buffer,
                         () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
                         () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
-                        throwOnError: true,
+                        true,
                         cancellationToken,
-                        dontThrowIfEarlyClosed: true).ConfigureAwait(false);
-                   
+                        true).ConfigureAwait(false);
+
                     var is100Continue = HttpHelper.Is100Continue(
                         buffer.Buffer);
 
                     if (is100Continue) {
-
                         // Even if fluxzy is not sending expect 100-continue,
                         // we still need to handle it as many apache based server
                         // will send it anyway
 
-                        continue; 
+                        continue;
                     }
 
-                    break; 
+                    break;
                 }
-
             }
             catch (Exception ex) {
-
-                if (ex is TlsFatalAlert || (exchange.Context.EventNotifierStream?.Faulted ?? false))
-                {
+                if (ex is TlsFatalAlert || (exchange.Context.EventNotifierStream?.Faulted ?? false)) {
                     throw new ConnectionCloseException("Relaunch");
                 }
-                
-                throw new ClientErrorException(0, 
-                    $"The connection was closed while trying to read the response header",
-                    ex.Message, innerException: ex) {};
+
+                throw new ClientErrorException(0,
+                    "The connection was closed while trying to read the response header",
+                    ex.Message, ex);
             }
 
-            if (headerBlockDetectResult.CloseNotify)
-            {
+            if (headerBlockDetectResult.CloseNotify) {
                 throw new ConnectionCloseException("Relaunch");
             }
 
@@ -146,11 +141,10 @@ namespace Fluxzy.Clients.H11
                 ; //|| exchange.Response.Header.ChunkedBody; 
 
             if (!exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span, out var shouldClose)) {
-
                 // We close the connection because
                 // many web server still sends a content-body with a 304 response 
                 // https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html 10.3.5
-                
+
                 exchange.Metrics.ResponseBodyStart =
                     exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
@@ -183,11 +177,13 @@ namespace Fluxzy.Clients.H11
             exchange.Metrics.TotalReceived += headerBlockDetectResult.HeaderLength;
             exchange.Metrics.ResponseHeaderLength = headerBlockDetectResult.HeaderLength;
 
-            if (exchange.Response.Header.ChunkedBody)
+            if (exchange.Response.Header.ChunkedBody) {
                 bodyStream = new ChunkedTransferReadStream(bodyStream, shouldCloseConnection);
+            }
 
-            if (exchange.Response.Header.ContentLength > 0)
+            if (exchange.Response.Header.ContentLength > 0) {
                 bodyStream = new ContentBoundStream(bodyStream, exchange.Response.Header.ContentLength);
+            }
 
             exchange.Response.Body =
                 new MetricsStream(bodyStream,

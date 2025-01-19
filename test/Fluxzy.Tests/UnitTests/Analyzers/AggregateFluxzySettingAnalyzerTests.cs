@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
@@ -9,13 +9,13 @@ using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Analyzers
 {
-    public class DefaultFluxzySettingAnalyzerTests
+    public class AggregateFluxzySettingAnalyzerTests
     {
         [Fact]
         public void Test_Empty()
         {
             var fluxzySetting = FluxzySetting.CreateDefault(); 
-            var analyzer = new DefaultFluxzySettingAnalyzer();
+            var analyzer = new AggregateFluxzySettingAnalyzer();
 
             var results = analyzer.Validate(fluxzySetting).ToList();
 
@@ -29,7 +29,7 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
 
             fluxzySetting.AddAlterationRulesForAny(new DelayAction(100));
 
-            var analyzer = new DefaultFluxzySettingAnalyzer();
+            var analyzer = new AggregateFluxzySettingAnalyzer();
 
             var results = analyzer.Validate(fluxzySetting).ToList();
 
@@ -45,7 +45,7 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
             fluxzySetting.SetSkipGlobalSslDecryption(true);
             fluxzySetting.AddAlterationRulesForAny(new DelayAction(100));
 
-            var analyzer = new DefaultFluxzySettingAnalyzer();
+            var analyzer = new AggregateFluxzySettingAnalyzer();
 
             var results = analyzer.Validate(fluxzySetting)
                                   .Where(r => r.Level == ValidationRuleLevel.Warning)
@@ -63,7 +63,7 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
 
             fluxzySetting.AddAlterationRules(new Rule(new AddRequestHeaderAction("A", "B"), new StatusCodeSuccessFilter()));
 
-            var analyzer = new DefaultFluxzySettingAnalyzer();
+            var analyzer = new AggregateFluxzySettingAnalyzer();
 
             var results = analyzer.Validate(fluxzySetting)
                                   .Where(r => r.Level == ValidationRuleLevel.Warning)
@@ -81,7 +81,7 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
 
             fluxzySetting.AddAlterationRules(new Rule(new AddRequestHeaderAction("A", "B"), new StatusCodeSuccessFilter()));
 
-            var analyzer = new DefaultFluxzySettingAnalyzer();
+            var analyzer = new AggregateFluxzySettingAnalyzer();
 
             var results = analyzer.Validate(fluxzySetting)
                                   .Where(r => r.Level == ValidationRuleLevel.Warning)
@@ -98,7 +98,7 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
 
             fluxzySetting.AddAlterationRulesForAny(new ImpersonateAction(ImpersonateProfileManager.Chrome131Android));
 
-            var analyzer = new DefaultFluxzySettingAnalyzer();
+            var analyzer = new AggregateFluxzySettingAnalyzer();
 
             var results = analyzer.Validate(fluxzySetting)
                                   .Where(r => r.Level == ValidationRuleLevel.Warning)
@@ -116,7 +116,7 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
 
             fluxzySetting.AddAlterationRulesForAny(new AddRequestHeaderAction(null!, "Value"));
 
-            var analyzer = new DefaultFluxzySettingAnalyzer();
+            var analyzer = new AggregateFluxzySettingAnalyzer();
 
             var results = analyzer.Validate(fluxzySetting)
                                   .Where(r => r.Level == ValidationRuleLevel.Error)
@@ -132,7 +132,7 @@ namespace Fluxzy.Tests.UnitTests.Analyzers
 
             fluxzySetting.AddAlterationRulesForAny(new ServeDirectoryAction(Guid.NewGuid().ToString()));
 
-            var analyzer = new DefaultFluxzySettingAnalyzer();
+            var analyzer = new AggregateFluxzySettingAnalyzer();
 
             var results = analyzer.Validate(fluxzySetting)
                                   .Where(r => r.Level == ValidationRuleLevel.Fatal)

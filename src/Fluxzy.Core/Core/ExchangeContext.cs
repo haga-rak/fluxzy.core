@@ -23,18 +23,17 @@ using Fluxzy.Rules.Filters;
 namespace Fluxzy.Core
 {
     /// <summary>
-    /// Holds the mutable state of the ongoing exchange
+    ///     Holds the mutable state of the ongoing exchange
     /// </summary>
     public class ExchangeContext
     {
-
-        private List<IStreamSubstitution>? _responseBodySubstitutions;
         private List<IStreamSubstitution>? _requestBodyStreamSubstitutions;
 
+        private List<IStreamSubstitution>? _responseBodySubstitutions;
 
         public ExchangeContext(
             IAuthority authority,
-            VariableContext variableContext, FluxzySetting? fluxzySetting, 
+            VariableContext variableContext, FluxzySetting? fluxzySetting,
             SetUserAgentActionMapping setUserAgentActionMapping)
         {
             Authority = authority;
@@ -45,13 +44,13 @@ namespace Fluxzy.Core
         }
 
         /// <summary>
-        /// Remote authority, this value is used to build the host header on H11/request and
-        /// :authority pseudo header on H2/request
+        ///     Remote authority, this value is used to build the host header on H11/request and
+        ///     :authority pseudo header on H2/request
         /// </summary>
         public IAuthority Authority { get; set; }
-        
+
         /// <summary>
-        ///  If the ongoing connection to Authority should use TLS
+        ///     If the ongoing connection to Authority should use TLS
         /// </summary>
         public bool Secure { get; set; }
 
@@ -105,84 +104,83 @@ namespace Fluxzy.Core
         public SslProtocols ProxyTlsProtocols { get; set; } = SslProtocols.None;
 
         /// <summary>
-        ///     Gets or sets advanced TLS settings 
+        ///     Gets or sets advanced TLS settings
         /// </summary>
-        public AdvancedTlsSettings AdvancedTlsSettings { get; set; } = new AdvancedTlsSettings();
+        public AdvancedTlsSettings AdvancedTlsSettings { get; set; } = new();
 
         /// <summary>
         ///     Don't validate the remote certificate
         /// </summary>
-        public bool SkipRemoteCertificateValidation { get; set; } = false;
+        public bool SkipRemoteCertificateValidation { get; set; }
 
         /// <summary>
-        /// Gets or sets the list of header alterations for the request.
+        ///     Gets or sets the list of header alterations for the request.
         /// </summary>
         /// <value>
-        /// The list of <see cref="HeaderAlteration"/> objects representing the header alterations for the request.
+        ///     The list of <see cref="HeaderAlteration" /> objects representing the header alterations for the request.
         /// </value>
         public List<HeaderAlteration> RequestHeaderAlterations { get; } = new();
 
         /// <summary>
-        /// Gets or sets the list of response header alterations.
+        ///     Gets or sets the list of response header alterations.
         /// </summary>
         /// <value>
-        /// The list of response header alterations.
+        ///     The list of response header alterations.
         /// </value>
         public List<HeaderAlteration> ResponseHeaderAlterations { get; } = new();
 
         /// <summary>
-        /// Holds information about a breakpoint context.
+        ///     Holds information about a breakpoint context.
         /// </summary>
         public BreakPointContext? BreakPointContext { get; set; }
 
         /// <summary>
-        /// Gets the variable context associated with the current object.
+        ///     Gets the variable context associated with the current object.
         /// </summary>
         /// <remarks>
-        /// The VariableContext property provides access to the variable context, which represents the scope and lifetime of variables used within the current object. The variable context stores
-        /// variables as key-value pairs and allows access to their values.
+        ///     The VariableContext property provides access to the variable context, which represents the scope and lifetime of
+        ///     variables used within the current object. The variable context stores
+        ///     variables as key-value pairs and allows access to their values.
         /// </remarks>
         /// <returns>
-        /// The variable context associated with the current object.
+        ///     The variable context associated with the current object.
         /// </returns>
         public VariableContext VariableContext { get; }
 
         /// <summary>
-        ///   Information about the ongoing exchange and connection
+        ///     Information about the ongoing exchange and connection
         /// </summary>
         public VariableBuildingContext? VariableBuildingContext { get; internal set; } = null;
 
         /// <summary>
-        ///  The proxy setting
+        ///     The proxy setting
         /// </summary>
         public FluxzySetting? FluxzySetting { get; }
 
         public SetUserAgentActionMapping SetUserAgentActionMapping { get; }
 
         /// <summary>
-        /// Gets or sets the down stream local IP address of the struct.
+        ///     Gets or sets the down stream local IP address of the struct.
         /// </summary>
         /// <value>
-        /// The down stream local IP address.
+        ///     The down stream local IP address.
         /// </value>
         public IPAddress DownStreamLocalAddressStruct { get; set; } = null!;
 
-
         /// <summary>
-        /// Gets or sets the dns over https name or url.
+        ///     Gets or sets the dns over https name or url.
         /// </summary>
-        public string? DnsOverHttpsNameOrUrl { get; set; } = null; 
-
+        public string? DnsOverHttpsNameOrUrl { get; set; } = null;
 
         /// <summary>
-        ///  Information about the proxy port that has been used to retrieve the ongoing exchange
+        ///     Information about the proxy port that has been used to retrieve the ongoing exchange
         /// </summary>
         public int ProxyListenPort { get; internal set; }
 
         /// <summary>
-        ///  Upstream proxy configuration
+        ///     Upstream proxy configuration
         /// </summary>
-        public ProxyConfiguration ? ProxyConfiguration { get; set; }
+        public ProxyConfiguration? ProxyConfiguration { get; set; }
 
         internal NetworkStream? UnderlyingBcStream { get; set; }
 
@@ -191,45 +189,46 @@ namespace Fluxzy.Core
         internal Dictionary<Filter, bool> FilterEvaluationResult { get; } = new();
 
         /// <summary>
-        /// True if the current exchange has at least one response body substitution
+        ///     True if the current exchange has at least one response body substitution
         /// </summary>
         public bool HasResponseBodySubstitution => _responseBodySubstitutions != null;
 
         /// <summary>
-        /// True if the current exchange has at least one request body substitution
+        ///     True if the current exchange has at least one request body substitution
         /// </summary>
         public bool HasRequestBodySubstitution => _requestBodyStreamSubstitutions != null;
 
         /// <summary>
-        /// Define if the exchange has a request body
+        ///     Define if the exchange has a request body
         /// </summary>
         public bool HasRequestBody { get; set; }
 
         /// <summary>
-        /// 
         /// </summary>
         public bool DnsOverHttpsCapture { get; set; }
 
         /// <summary>
-        /// Register a response body substitution
+        ///     Register a response body substitution
         /// </summary>
         /// <param name="substitution"></param>
         public void RegisterResponseBodySubstitution(IStreamSubstitution substitution)
         {
-            if (_responseBodySubstitutions == null)
+            if (_responseBodySubstitutions == null) {
                 _responseBodySubstitutions = new List<IStreamSubstitution>();
+            }
 
             _responseBodySubstitutions.Add(substitution);
         }
 
         /// <summary>
-        /// Register a request body substitution
+        ///     Register a request body substitution
         /// </summary>
         /// <param name="substitution"></param>
         public void RegisterRequestBodySubstitution(IStreamSubstitution substitution)
         {
-            if (_requestBodyStreamSubstitutions == null)
+            if (_requestBodyStreamSubstitutions == null) {
                 _requestBodyStreamSubstitutions = new List<IStreamSubstitution>();
+            }
 
             _requestBodyStreamSubstitutions.Add(substitution);
         }
@@ -238,11 +237,11 @@ namespace Fluxzy.Core
             Stream original, bool chunkedTransfer, CompressionType compressionType)
         {
             // remove compression from exchange 
-            
+
             var decoded = original;
 
             if (chunkedTransfer) {
-                decoded = CompressionHelper.GetUnChunkedStream(decoded); 
+                decoded = CompressionHelper.GetUnChunkedStream(decoded);
             }
 
             if (compressionType != CompressionType.None) {
@@ -257,8 +256,7 @@ namespace Fluxzy.Core
         {
             var decoded = exchange.GetDecodedRequestBodyStream(original, out var compressionType);
 
-            if (compressionType != CompressionType.None)
-            {
+            if (compressionType != CompressionType.None) {
                 exchange.Request.Header.RemoveHeader("content-encoding");
             }
 
@@ -268,7 +266,6 @@ namespace Fluxzy.Core
                                                                     throw new InvalidOperationException());
         }
     }
-
 
     internal static class SubstitutionHelper
     {
