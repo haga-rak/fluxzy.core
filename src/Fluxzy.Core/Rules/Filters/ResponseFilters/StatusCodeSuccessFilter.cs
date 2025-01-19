@@ -29,8 +29,9 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
-            if (exchange == null)
+            if (exchange == null) {
                 return false;
+            }
 
             var statusCode = exchange.StatusCode;
 
@@ -41,8 +42,9 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         {
             var defaultSample = GetDefaultSample();
 
-            if (defaultSample != null)
+            if (defaultSample != null) {
                 yield return defaultSample;
+            }
         }
     }
 }

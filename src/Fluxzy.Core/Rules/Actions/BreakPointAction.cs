@@ -24,8 +24,9 @@ namespace Fluxzy.Rules.Actions
             FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            if (exchange == null || exchange.Id == 0)
+            if (exchange == null || exchange.Id == 0) {
                 return default;
+            }
 
             if (context.BreakPointContext == null) {
                 ExchangeContext = context;

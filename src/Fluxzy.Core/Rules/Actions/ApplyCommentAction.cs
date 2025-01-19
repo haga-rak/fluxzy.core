@@ -32,8 +32,9 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            if (exchange != null)
+            if (exchange != null) {
                 exchange.Comment = Comment.EvaluateVariable(context);
+            }
 
             return default;
         }

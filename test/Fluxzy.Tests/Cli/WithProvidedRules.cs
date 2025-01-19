@@ -40,8 +40,9 @@ namespace Fluxzy.Tests.Cli
             // Arrange 
             var commandLine = "start -l 127.0.0.1/0";
 
-            if (noDecryption)
+            if (noDecryption) {
                 commandLine += " --skip-ssl-decryption";
+            }
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
@@ -71,8 +72,9 @@ namespace Fluxzy.Tests.Cli
             // Arrange 
             var commandLine = "start -l 127.0.0.1/0";
 
-            if (noDecryption)
+            if (noDecryption) {
                 commandLine += " --skip-ssl-decryption";
+            }
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
@@ -80,7 +82,8 @@ namespace Fluxzy.Tests.Cli
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
             var requestMessage =
-                new HttpRequestMessage(HttpMethod.Head, $"{TestConstants.GetHost(protocol)}/swagger/swagger-ui-bundle.js");
+                new HttpRequestMessage(HttpMethod.Head,
+                    $"{TestConstants.GetHost(protocol)}/swagger/swagger-ui-bundle.js");
 
             await using var randomStream = new RandomDataStream(48, 23632, true);
             await using var hashedStream = new HashedStream(randomStream);
@@ -96,12 +99,32 @@ namespace Fluxzy.Tests.Cli
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal(string.Empty, content);
         }
-        
+
         [Fact]
         public async Task Run_Cli_Wait_For_Complete_When_304()
         {
             // Arrange 
             var commandLine = "start -l 127.0.0.1/0";
+
+            var commandLineHost = new FluxzyCommandLineHost(commandLine);
+
+            await using var fluxzyInstance = await commandLineHost.Run();
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post,
+                $"https://{TestConstants.HttpBinHost}/status/304");
+
+            var response = await proxiedHttpClient.Client.SendAsync(requestMessage);
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Run_Cli_Skip_Certificate_Validation()
+        {
+            // Arrange 
+            var commandLine = "start -l 127.0.0.1/0 -k";
 
             var commandLineHost = new FluxzyCommandLineHost(commandLine);
 
@@ -153,8 +176,9 @@ namespace Fluxzy.Tests.Cli
                 Assert.StartsWith(expectedFriendlyName, exchange.Agent!.FriendlyName);
             }
 
-            if (Directory.Exists(directory))
+            if (Directory.Exists(directory)) {
                 Directory.Delete(directory, true);
+            }
         }
 
         [Fact]
@@ -189,10 +213,10 @@ namespace Fluxzy.Tests.Cli
                 Assert.Null(exchange.Agent);
             }
 
-            if (Directory.Exists(directory))
+            if (Directory.Exists(directory)) {
                 Directory.Delete(directory, true);
+            }
         }
-
 
         [Fact(Skip = "Not supported by test server")]
         public async Task Run_Cli_Aggressive_Request_Response()
@@ -254,8 +278,9 @@ namespace Fluxzy.Tests.Cli
                 Assert.Null(exchange.Agent);
             }
 
-            if (Directory.Exists(directory))
+            if (Directory.Exists(directory)) {
                 Directory.Delete(directory, true);
+            }
         }
 
         [Theory]
@@ -309,7 +334,9 @@ namespace Fluxzy.Tests.Cli
             if (abort)
 
                 // await Task.Delay(50);
+            {
                 cancellationTokenSource.Cancel();
+            }
 
             try {
                 var responseMessage = await responseMessageTask;
@@ -321,8 +348,9 @@ namespace Fluxzy.Tests.Cli
                 return;
             }
 
-            if (!abort)
+            if (!abort) {
                 Assert.Equal(bodyLength, contentLength);
+            }
         }
     }
 }

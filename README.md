@@ -34,8 +34,9 @@ This repository contains the source code of [Fluxzy CLI](https://www.fluxzy.io/d
 - [Choice between default .NET SSL provider and BouncyCastle](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
 - [Raw packet capture](https://docs.fluxzy.io/documentation/core/04-capture-raw-packets.html) (with the extension `Fluxzy.Core.Pcap`)
 - [NSS Key log extraction (when using Bouncy Castle)](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
--  [Optional configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) 
-
+- [Optional configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) 
+- [Impersonation on JA4 fingerprint, H2 settings and Headers](https://www.fluxzy.io/rule/item/impersonateAction)
+  
 ### 1.2 Alteration and traffic management features 
 
 Alteration and traffic management features are available as [fluxzy actions](https://www.fluxzy.io/resources/documentation/core-concepts). You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to see built-in actions on the latest stable version. Here are a few examples:
@@ -140,8 +141,74 @@ More examples are available at [docs.fluxzy.io](https://docs.fluxzy.io/documenta
 
 ### Sample usage
 
-The following highlights the basic way to use fluxzy with a simple rule file.
+<details>
+    <summary><code>fluxzy</code> root commands</summary>
+    
+```bash
+Usage:
+  fluxzy [command] [options]
 
+Options:
+  -v, --version   Show version information
+  -?, -h, --help  Show help and usage information
+
+Commands:
+  start                                   Start a capturing session
+  cert, certificate                       Manage root certificates used by the fluxzy
+  pack <input-directory> <output-file>    Export a fluxzy result directory to a specific archive format
+  dis, dissect <input-file-or-directory>  Read content of a previously captured archive file or directory.
+```  
+</details>
+
+<details>
+    <summary><code>fluxzy start</code> options </summary>
+    
+```bash
+Usage:
+  fluxzy start [options]
+
+Options:
+  -l, --listen-interface <listen-interface>    Set up the binding addresses. Default value is "127.0.0.1:44344" which
+                                               will listen to localhost on port 44344. 0.0.0.0 to listen on all
+                                               interface with the default port. Use port 0 to let OS assign a random
+                                               available port. Accepts multiple values. [default: 127.0.0.1:44344]
+  --llo                                        Listen on localhost address with default port. Same as -l
+                                               127.0.0.1/44344 [default: False]
+  --lany                                       Listen on all interfaces with default port (44344) [default: False]
+  -o, --output-file <output-file>              Output the captured traffic to an archive file []
+  -d, --dump-folder <dump-folder>              Output the captured traffic to folder
+  -r, --rule-file <rule-file>                  Use a fluxzy rule file. See more at :
+                                               https://www.fluxzy.io/resources/documentation/the-rule-file
+  -sp, --system-proxy                          Try to register fluxzy as system proxy when started [default: False]
+  -b, --bouncy-castle                          Use Bouncy Castle as SSL/TLS provider [default: False]
+  -c, --include-dump                           Include tcp dumps on captured output [default: False]
+  -ss, --skip-ssl-decryption                   Disable ssl traffic decryption [default: False]
+  -t, --trace                                  Output trace on stdout [default: False]
+  -i, --install-cert                           Install root CA in current cert store if absent (require higher
+                                               privilege) [default: False]
+  --no-cert-cache                              Don't cache generated certificate on file system [default: False]
+  --cert-file <cert-file>                      Substitute the default CA certificate with a compatible PKCS#12 (p12,
+                                               pfx) root CA certificate for SSL decryption
+  --cert-password <cert-password>              Set the password of certfile if any
+  -R, --rule-stdin                             Read rule from stdin
+  --parse-ua                                   Parse user agent [default: False]
+  --use-502                                    Use 502 status code for upstream error instead of 528. [default: False]
+  --external-capture                           Indicates that the raw capture will be done by an external process
+                                               [default: False]
+  --mode <Regular|ReversePlain|ReverseSecure>  Set proxy mode [default: Regular]
+  --mode-reverse-port <mode-reverse-port>      Set the remote authority port when --mode ReverseSecure or --mode
+                                               ReversePlain is set []
+  --proxy-auth-basic <proxy-auth-basic>        Require a basic authentication. Username and password shall be provided
+                                               in this format: username:password. Values can be provided in a percent
+                                               encoded format. []
+  --request-buffer <request-buffer>            Set the default request buffer []
+  -n, --max-capture-count <max-capture-count>  Exit after a specified count of exchanges []
+  -?, -h, --help                               Show help and usage information
+```  
+</details>
+
+
+The following highlights the basic way to use fluxzy with an optional rule file.
 The ["rule file"](https://www.fluxzy.io/resources/documentation/the-rule-file) is a straightforward YAML file containing a list of directives that fluxzy will evaluate during proxying.
 
 For more detailed documentation, visit [fluxzy.io](https://www.fluxzy.io/resources/cli/overview) or use the `--help` option available for each command.
@@ -209,7 +276,7 @@ By default, fluxzy will bind to `127.0.0.1:44344`.
 The CLI can be run from a [docker image](https://hub.docker.com/r/fluxzy/fluxzy).
 
 ```bash
-docker run -it -p 43444:43444 fluxzy/fluxzy:latest start
+docker run -it -p 44344:44344 fluxzy/fluxzy:latest start
 ```
 
 To test: 

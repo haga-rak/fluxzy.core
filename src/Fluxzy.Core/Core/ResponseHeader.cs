@@ -33,8 +33,9 @@ namespace Fluxzy.Core
                              r.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase)
                          ));
 
-                if (!ConnectionCloseRequest)
+                if (!ConnectionCloseRequest) {
                     ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
+                }
             }
         }
 
@@ -50,13 +51,22 @@ namespace Fluxzy.Core
             ConnectionCloseRequest = HeaderFields.Any(
                 r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
                      && (
-                         r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase) || 
-                         r.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase) 
-                         ));
+                         r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase) ||
+                         r.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase)
+                     ));
 
-            if (!ConnectionCloseRequest)
+            if (!ConnectionCloseRequest) {
                 ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
+            }
         }
+
+        public int TimeoutIdleSeconds { get; set; } = 1;
+
+        public int MaxConnection { get; set; } = -1;
+
+        public int StatusCode { get; }
+
+        public bool ConnectionCloseRequest { get; }
 
         private bool ReadKeepAliveSettings()
         {
@@ -64,22 +74,18 @@ namespace Fluxzy.Core
 
             if (HeaderFields.Any(
                     r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
-                         && r.Value.Span.Equals("keep-alive", StringComparison.OrdinalIgnoreCase)))
-            {
+                         && r.Value.Span.Equals("keep-alive", StringComparison.OrdinalIgnoreCase))) {
                 var keepHeaderValue = HeaderFields.LastOrDefault(
                     h => h.Name.Span.Equals(Http11Constants.KeepAliveVerb.Span, StringComparison.OrdinalIgnoreCase)
                 );
 
-                if (!keepHeaderValue.Value.IsEmpty)
-                {
-                    if (HeaderUtility.TryParseKeepAlive(keepHeaderValue.Value.Span, out var max, out var timeout))
-                    {
-                        if (max >= 0)
-                        {
+                if (!keepHeaderValue.Value.IsEmpty) {
+                    if (HeaderUtility.TryParseKeepAlive(keepHeaderValue.Value.Span, out var max, out var timeout)) {
+                        if (max >= 0) {
                             MaxConnection = max;
 
                             if (max == 1) {
-                                immediateClose = true; 
+                                immediateClose = true;
                             }
                         }
 
@@ -93,34 +99,42 @@ namespace Fluxzy.Core
             return immediateClose;
         }
 
-        public int TimeoutIdleSeconds { get; set; } = 1;
-
-        public int MaxConnection { get; set; } = -1;
-
-        public int StatusCode { get; }
-
-        public bool ConnectionCloseRequest { get; }
-
-        public bool HasResponseBody(ReadOnlySpan<char> method)
+        public bool HasResponseBody(ReadOnlySpan<char> method, out bool shouldClose)
         {
-            if (ContentLength == 0)
-                return false;
+            shouldClose = true;
 
-            if (method.Equals("HEAD", StringComparison.OrdinalIgnoreCase))
-                return false;
+            if (ContentLength == 0) {
+                shouldClose = false;
 
-            if (ContentLength > 0)
+                return false;
+            }
+
+            if (method.Equals("HEAD", StringComparison.OrdinalIgnoreCase)) {
+                shouldClose = false;
+
+                return false;
+            }
+
+            if (ContentLength > 0) {
+                shouldClose = false;
+
                 return true;
+            }
 
-            return StatusCode != 304 && StatusCode >= 200 && StatusCode != 204 && StatusCode != 205;
+            if (StatusCode < 200) {
+                return false;
+            }
+
+            return StatusCode != 304 && StatusCode != 204 && StatusCode != 205;
         }
 
         protected override bool CanHaveBody()
         {
-            if (StatusCode == 204 || StatusCode == 205 || StatusCode == 304)
+            if (StatusCode == 204 || StatusCode == 205 || StatusCode == 304) {
                 return false;
+            }
 
-            return true; 
+            return true;
         }
 
         protected override int WriteHeaderLine(Span<byte> buffer, bool _)

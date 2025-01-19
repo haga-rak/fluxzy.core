@@ -390,7 +390,7 @@ namespace Fluxzy.Core
                                     var localConnectionWriteStream = exchangeSourceInitResult.WriteStream;
 
                                     if (exchange.Response.Header.ChunkedBody && 
-                                        exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span)) {
+                                        exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span, out _)) {
                                         localConnectionWriteStream =
                                             new ChunkedTransferWriteStream(localConnectionWriteStream);
                                     }

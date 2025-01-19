@@ -60,27 +60,27 @@ namespace Fluxzy.Cli.Commands
         public Command Build(CancellationToken cancellationToken)
         {
             var command = new Command("start", "Start a capturing session");
-            
-            command.AddOption(StartCommandOptions.CreateListenInterfaceOption());
+
             command.AddOption(StartCommandOptions.CreateListenLocalhost());
             command.AddOption(StartCommandOptions.CreateListToAllInterfaces());
+            command.AddOption(StartCommandOptions.CreateListenInterfaceOption());
             command.AddOption(StartCommandOptions.CreateOutputFileOption());
             command.AddOption(StartCommandOptions.CreateDumpToFolderOption());
             command.AddOption(StartCommandOptions.CreateRuleFileOption());
+            command.AddOption(StartCommandOptions.CreateRuleStdinOption());
             command.AddOption(StartCommandOptions.CreateSystemProxyOption());
+            command.AddOption(StartCommandOptions.CreateSkipRemoteCertificateValidation());
+            command.AddOption(StartCommandOptions.CreateSkipSslOption());
             command.AddOption(StartCommandOptions.CreateBouncyCastleOption());
             command.AddOption(StartCommandOptions.CreateTcpDumpOption());
-            command.AddOption(StartCommandOptions.CreateSkipSslOption());
+            command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
             command.AddOption(StartCommandOptions.CreateEnableTracingOption());
-
             command.AddOption(StartCommandOptions.CreateSkipCertInstallOption());
             command.AddOption(StartCommandOptions.CreateNoCertCacheOption());
             command.AddOption(StartCommandOptions.CreateCertificateFileOption());
             command.AddOption(StartCommandOptions.CreateCertificatePasswordOption());
-            command.AddOption(StartCommandOptions.CreateRuleStdinOption());
             command.AddOption(StartCommandOptions.CreateUaParsingOption());
             command.AddOption(StartCommandOptions.CreateUser502Option());
-            command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
             command.AddOption(StartCommandOptions.CreateReverseProxyMode());
             command.AddOption(StartCommandOptions.CreateReverseProxyModePortOption());
             command.AddOption(StartCommandOptions.CreateProxyAuthenticationOption());
@@ -102,8 +102,9 @@ namespace Fluxzy.Cli.Commands
             var outFileInfo = invocationContext.Value<FileInfo?>("output-file");
             var dumpDirectory = invocationContext.Value<DirectoryInfo?>("dump-folder");
             var registerAsSystemProxy = invocationContext.Value<bool>("system-proxy");
-            var includeTcpDump = invocationContext.Value<bool>("include-dump");
+            var skipRemoteCertificateValidation = invocationContext.Value<bool>("insecure");
             var skipDecryption = invocationContext.Value<bool>("skip-ssl-decryption");
+            var includeTcpDump = invocationContext.Value<bool>("include-dump");
             var installCert = invocationContext.Value<bool>("install-cert");
             var noCertCache = invocationContext.Value<bool>("no-cert-cache");
             var certFile = invocationContext.Value<FileInfo?>("cert-file");
@@ -145,8 +146,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.MaxExchangeCount = count;
             proxyStartUpSetting.ClearBoundAddresses();
 
-            if (proxyMode == ProxyMode.ReverseSecure)
-            {
+            if (proxyMode == ProxyMode.ReverseSecure) {
                 if (registerAsSystemProxy) {
                     throw new ArgumentException("Cannot register as system proxy when using reverse mode");
                 }
@@ -158,8 +158,7 @@ namespace Fluxzy.Cli.Commands
                 }
             }
 
-            if (proxyMode == ProxyMode.ReversePlain)
-            {
+            if (proxyMode == ProxyMode.ReversePlain) {
                 if (registerAsSystemProxy) {
                     throw new ArgumentException("Cannot register as system proxy when using reverse mode");
                 }
@@ -167,8 +166,7 @@ namespace Fluxzy.Cli.Commands
                 proxyStartUpSetting.SetReverseMode(true);
                 proxyStartUpSetting.SetReverseModePlainHttp(true);
 
-                if (modeReversePort != null)
-                {
+                if (modeReversePort != null) {
                     proxyStartUpSetting.SetReverseModeForcedPort(modeReversePort.Value);
                 }
             }
@@ -176,6 +174,10 @@ namespace Fluxzy.Cli.Commands
             if (proxyBasicAuthCredential != null) {
                 proxyStartUpSetting.SetProxyAuthentication(
                     ProxyAuthentication.Basic(proxyBasicAuthCredential.UserName, proxyBasicAuthCredential.Password));
+            }
+
+            if (skipRemoteCertificateValidation) {
+                proxyStartUpSetting.SetSkipRemoteCertificateValidation(true);
             }
 
             var finalListenInterfaces = listenInterfaces.ToList();
@@ -280,10 +282,15 @@ namespace Fluxzy.Cli.Commands
             await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
+            if (!ValidateSetting(invocationContext, proxyStartUpSetting)) {
+                invocationContext.ExitCode = 1;
+
+                return;
+            }
+
             await using (var tcpConnectionProvider = proxyStartUpSetting.CaptureRawPacket
                              ? await CapturedTcpConnectionProvider.Create(scope, proxyStartUpSetting.OutOfProcCapture)
-                             : ITcpConnectionProvider.Default) 
-            {
+                             : ITcpConnectionProvider.Default) {
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider,
                                  new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider,
                                  externalCancellationSource: linkedTokenSource)) {
@@ -335,6 +342,23 @@ namespace Fluxzy.Cli.Commands
 
                 invocationContext.Console.WriteLine("Packing output done.");
             }
+        }
+
+        private static bool ValidateSetting(InvocationContext invocationContext, FluxzySetting proxyStartUpSetting)
+        {
+            var validationResults = AggregateFluxzySettingAnalyzer.Instance.Validate(proxyStartUpSetting).ToList();
+
+            if (validationResults.Any()) {
+                foreach (var validationResult in validationResults) {
+                    invocationContext.Console.WriteValidationResult(validationResult);
+                }
+
+                if (validationResults.Any(v => v.Level == ValidationRuleLevel.Fatal)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private async Task PackDirectoryToFile(DirectoryInfo dInfo, string outFileName)

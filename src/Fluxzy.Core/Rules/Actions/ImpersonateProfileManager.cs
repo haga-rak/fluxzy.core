@@ -40,7 +40,11 @@ namespace Fluxzy.Rules.Actions
                     SignatureScheme.rsa_pss_rsae_sha512,
                     SignatureScheme.rsa_pkcs1_sha512,
                 }, 
-                null
+                earlySharedGroups: new int[] {
+                    NamedGroup.grease,
+                    NamedGroup.X25519MLKEM768,
+                    NamedGroup.x25519,
+                }
                 );
 
             var h2Settings = new ImpersonateH2Setting(new List<ImpersonateH2SettingItem>() {
@@ -90,7 +94,11 @@ namespace Fluxzy.Rules.Actions
                     SignatureScheme.rsa_pss_rsae_sha512,
                     SignatureScheme.rsa_pkcs1_sha512,
                 },
-                null
+                earlySharedGroups: new int[] {
+                    NamedGroup.grease,
+                    NamedGroup.X25519MLKEM768,
+                    NamedGroup.x25519,
+                }
                 );
 
             var h2Settings = new ImpersonateH2Setting(new List<ImpersonateH2SettingItem>() {
@@ -140,7 +148,11 @@ namespace Fluxzy.Rules.Actions
                     SignatureScheme.rsa_pss_rsae_sha512,
                     SignatureScheme.rsa_pkcs1_sha512,
                 },
-                null
+                earlySharedGroups: new int[] {
+                    NamedGroup.grease,
+                    NamedGroup.X25519MLKEM768,
+                    NamedGroup.x25519,
+                }
                 );
 
             var h2Settings = new ImpersonateH2Setting(new List<ImpersonateH2SettingItem>() {

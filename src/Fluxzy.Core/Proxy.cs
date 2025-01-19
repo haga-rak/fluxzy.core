@@ -24,12 +24,12 @@ using Fluxzy.Writers;
 namespace Fluxzy
 {
     /// <summary>
-    ///  A proxy capture instance that can be started and disposed.
+    ///     A proxy capture instance that can be started and disposed.
     /// </summary>
     public class Proxy : IAsyncDisposable
     {
-        private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
         private readonly ICertificateProvider _certificateProvider;
+        private readonly IDownStreamConnectionProvider _downStreamConnectionProvider;
         private readonly CancellationTokenSource? _externalCancellationSource;
         private readonly CancellationTokenSource _proxyHaltTokenSource = new();
 
@@ -42,23 +42,26 @@ namespace Fluxzy
         private bool _started;
 
         /// <summary>
-        /// Create a new instance of Proxy with the provided setting.
-        /// An InMemoryCertificateCache will be used as the certificate cache.
+        ///     Create a new instance of Proxy with the provided setting.
+        ///     An InMemoryCertificateCache will be used as the certificate cache.
         /// </summary>
         /// <param name="startupSetting">The startup Setting</param>
         /// <param name="tcpConnectionProvider">The tcp connection provider, if null the default is used</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         public Proxy(
             FluxzySetting startupSetting,
-            ITcpConnectionProvider?  tcpConnectionProvider = null, ProxyAuthenticationMethod? proxyAuthenticationMethod = null)
-			: this (startupSetting, new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()), 
-				new DefaultCertificateAuthorityManager(), tcpConnectionProvider: tcpConnectionProvider, proxyAuthenticationMethod: proxyAuthenticationMethod)
+            ITcpConnectionProvider? tcpConnectionProvider = null,
+            ProxyAuthenticationMethod? proxyAuthenticationMethod = null)
+            : this(startupSetting,
+                new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()),
+                new DefaultCertificateAuthorityManager(), tcpConnectionProvider,
+                proxyAuthenticationMethod: proxyAuthenticationMethod)
         {
         }
 
         /// <summary>
-        ///  Create a new instance with specific providers.
-        /// If a provider is not provided the default will be used.
+        ///     Create a new instance with specific providers.
+        ///     If a provider is not provided the default will be used.
         /// </summary>
         /// <param name="startupSetting">The startup Setting</param>
         /// <param name="certificateProvider">A certificate provider</param>
@@ -78,7 +81,7 @@ namespace Fluxzy
             IUserAgentInfoProvider? userAgentProvider = null,
             FromIndexIdProvider? idProvider = null,
             IDnsSolver? dnsSolver = null,
-            CancellationTokenSource? externalCancellationSource = null, 
+            CancellationTokenSource? externalCancellationSource = null,
             ProxyAuthenticationMethod? proxyAuthenticationMethod = null)
         {
             _certificateProvider = certificateProvider;
@@ -100,8 +103,9 @@ namespace Fluxzy
                     StartupSetting.SaveFilter);
             }
 
-            if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None)
+            if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None) {
                 tcpConnectionProvider1 = ITcpConnectionProvider.Default;
+            }
 
             var sslConnectionBuilder = startupSetting.UseBouncyCastle
                 ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
@@ -117,46 +121,54 @@ namespace Fluxzy
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
                 Writer, IdProvider, userAgentProvider);
 
-            proxyAuthenticationMethod ??= (ProxyAuthenticationMethodBuilder.Create(startupSetting.ProxyAuthentication));
+            proxyAuthenticationMethod ??= ProxyAuthenticationMethodBuilder.Create(startupSetting.ProxyAuthentication);
 
             _proxyOrchestrator = new ProxyOrchestrator(
                 _runTimeSetting,
                 ExchangeSourceProviderHelper.GetSourceProvider(
-                    startupSetting, secureConnectionManager, 
+                    startupSetting, secureConnectionManager,
                     IdProvider, certificateProvider, proxyAuthenticationMethod),
                 poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
                                                          t.Filter is AnyFilter)
-                && StartupSetting.AutoInstallCertificate)
-                certificateAuthorityManager.CheckAndInstallCertificate(startupSetting.CaCertificate.GetX509Certificate());
+                && StartupSetting.AutoInstallCertificate) {
+                certificateAuthorityManager.CheckAndInstallCertificate(
+                    startupSetting.CaCertificate.GetX509Certificate());
+            }
 
             ThreadPoolUtility.AutoAdjustThreadPoolSize(StartupSetting.ConnectionPerHost);
-
         }
-
 
         internal ProxyExecutionContext ExecutionContext { get; }
 
         /// <summary>
-        ///  Get the writer that is used by this proxy.
+        ///     Get the writer that is used by this proxy.
         /// </summary>
         public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
 
         internal FromIndexIdProvider IdProvider { get; }
 
         /// <summary>
-        /// Get the setting that was used to start this proxy. Altering this setting will not affect the proxy.
+        ///     Get the setting that was used to start this proxy. Altering this setting will not affect the proxy.
         /// </summary>
         public FluxzySetting StartupSetting { get; }
 
         /// <summary>
-        ///  Get the unique identifier of this proxy instance.
+        ///     Get the unique identifier of this proxy instance.
         /// </summary>
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
 
         /// <summary>
-        ///  Release all resources used by this proxy.
+        ///     Gets the collection of IP endpoints associated with this proxy. Returns null if the proxy is not started.
+        /// </summary>
+        /// <remarks>
+        ///     The IP endpoints represent the network addresses that the property can be accessed on.
+        /// </remarks>
+        public IReadOnlyCollection<IPEndPoint>? EndPoints { get; private set; }
+
+        /// <summary>
+        ///     Release all resources used by this proxy.
         /// </summary>
         /// <returns></returns>
         public async ValueTask DisposeAsync()
@@ -164,8 +176,9 @@ namespace Fluxzy
             InternalDispose();
 
             try {
-                if (_loopTask != null)
+                if (_loopTask != null) {
                     await _loopTask.ConfigureAwait(false); // Wait for main loop to end
+                }
 
                 var n = 100;
 
@@ -185,8 +198,10 @@ namespace Fluxzy
             if (StartupSetting.MaxExchangeCount > 0) {
                 Writer.RegisterExchangeLimit(StartupSetting.MaxExchangeCount,
                     () => {
-                        if (_externalCancellationSource != null && !_externalCancellationSource.IsCancellationRequested)
+                        if (_externalCancellationSource != null &&
+                            !_externalCancellationSource.IsCancellationRequested) {
                             _externalCancellationSource.Cancel();
+                        }
                     });
             }
 
@@ -194,8 +209,9 @@ namespace Fluxzy
                 var client =
                     await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
 
-                if (client == null)
+                if (client == null) {
                     break;
+                }
 
                 _ = Task.Run(() => ProcessingConnection(client));
             }
@@ -213,11 +229,12 @@ namespace Fluxzy
 
                     try {
                         // already disposed
-                        if (_proxyHaltTokenSource.IsCancellationRequested)
+                        if (_proxyHaltTokenSource.IsCancellationRequested) {
                             return;
+                        }
 
                         var closeImmediately = FluxzySharedSetting.OverallMaxConcurrentConnections <
-                                              currentCount;
+                                               currentCount;
 
                         await _proxyOrchestrator!.Operate(client, buffer, closeImmediately, _proxyHaltTokenSource.Token)
                                                  .ConfigureAwait(false);
@@ -231,8 +248,7 @@ namespace Fluxzy
                 // We ignore any parsing errors that may block the proxy
                 // TODO : escalate from Serilog To Here
 
-                if (D.EnableTracing)
-                {
+                if (D.EnableTracing) {
                     var message = $"Processing error {client.Client.RemoteEndPoint}";
                     D.TraceException(ex, message);
                 }
@@ -243,17 +259,19 @@ namespace Fluxzy
         }
 
         /// <summary>
-        ///  Start the proxy and return the end points that the proxy is listening to.
+        ///     Start the proxy and return the end points that the proxy is listening to.
         /// </summary>
         /// <returns>Returns an exhaustive list of endpoints that the proxy is listen to</returns>
         /// <exception cref="InvalidOperationException"></exception>
         public IReadOnlyCollection<IPEndPoint> Run()
         {
-            if (_disposed)
+            if (_disposed) {
                 throw new InvalidOperationException("This proxy was already disposed");
+            }
 
-            if (_started)
+            if (_started) {
                 throw new InvalidOperationException("Proxy was already started");
+            }
 
             // Init rules 
 
@@ -266,24 +284,18 @@ namespace Fluxzy
             _runTimeSetting.EndPoints = endPoints.ToHashSet();
             _runTimeSetting.ProxyListenPort = endPoints.FirstOrDefault()?.Port ?? 0;
 
-            _loopTask = Task.Run(MainLoop);
+            _loopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
 
             EndPoints = endPoints;
+
             return endPoints;
         }
 
-        /// <summary>
-        /// Gets the collection of IP endpoints associated with this proxy. Returns null if the proxy is not started.
-        /// </summary>
-        /// <remarks>
-        /// The IP endpoints represent the network addresses that the property can be accessed on.
-        /// </remarks>
-        public IReadOnlyCollection<IPEndPoint>? EndPoints { get; private set; }
-
         private void InternalDispose()
         {
-            if (_halted)
+            if (_halted) {
                 return;
+            }
 
             _halted = true;
 

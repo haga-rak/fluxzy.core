@@ -25,11 +25,10 @@ namespace Fluxzy.Cli.Commands
                 parseArgument: result => {
                     var listResult = new List<IPEndPoint>();
 
-                    foreach (var token in result.Tokens)
-                    {
-                        if (!AuthorityUtility.TryParseIp(token.Value, out var ipAddress, out var port))
-                        {
+                    foreach (var token in result.Tokens) {
+                        if (!AuthorityUtility.TryParseIp(token.Value, out var ipAddress, out var port)) {
                             result.ErrorMessage = $"Invalid listen value address {token.Value}";
+
                             return null!;
                         }
 
@@ -140,7 +139,7 @@ namespace Fluxzy.Cli.Commands
             var option = new Option<bool>(
                 "--bouncy-castle",
                 "Use Bouncy Castle as SSL/TLS provider");
-            
+
             option.AddAlias("-b");
             option.SetDefaultValue(false);
             option.Arity = ArgumentArity.Zero;
@@ -160,6 +159,20 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
+        public static Option CreateSkipRemoteCertificateValidation()
+        {
+            var option = new Option<bool>(
+                "--insecure",
+                "Skip remote certificate validation globally. Use `SkipRemoteCertificateValidationAction` for specific host only");
+
+            option.AddAlias("-k");
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
         public static Option<ProxyMode> CreateReverseProxyMode()
         {
             var possibleValues = string.Join(", ",
@@ -167,27 +180,28 @@ namespace Fluxzy.Cli.Commands
 
             var option = new Option<ProxyMode>(
                 "--mode",
-                 parseArgument : result => {
-                     var value = result.Tokens.FirstOrDefault()?.Value;
+                result => {
+                    var value = result.Tokens.FirstOrDefault()?.Value;
 
-                     if (value == null) {
+                    if (value == null) {
                         result.ErrorMessage = "Invalid proxy mode value";
+
                         return default;
-                     }
+                    }
 
-                     if (!Enum.TryParse<ProxyMode>(value, true, out var finalResult) 
-                         || (int) finalResult == 0) {
-                         
-                         result.ErrorMessage = $"Invalid proxy mode value. Possible values are: {possibleValues}";
-                         return default;
-                     }
+                    if (!Enum.TryParse<ProxyMode>(value, true, out var finalResult)
+                        || (int) finalResult == 0) {
+                        result.ErrorMessage = $"Invalid proxy mode value. Possible values are: {possibleValues}";
 
-                     return finalResult;
-                 }
-                );
+                        return default;
+                    }
+
+                    return finalResult;
+                }
+            );
 
             option.Description =
-                $"Set proxy mode";
+                "Set proxy mode";
 
             option.SetDefaultValue(ProxyMode.Regular);
             option.Arity = ArgumentArity.ExactlyOne;
@@ -207,6 +221,7 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
         public static Option CreateNoCertCacheOption()
         {
             var option = new Option<bool>(
@@ -294,12 +309,12 @@ namespace Fluxzy.Cli.Commands
         {
             var option = new Option<NetworkCredential?>(
                 "--proxy-auth-basic",
-                parseArgument: result => {
+                result => {
                     var value = result.Tokens.FirstOrDefault()?.Value;
 
-                    if (value == null)
-                    {
+                    if (value == null) {
                         result.ErrorMessage = "Credentials must be provided.";
+
                         return default;
                     }
 
@@ -307,11 +322,14 @@ namespace Fluxzy.Cli.Commands
 
                     if (arrayCredentials.Length == 1) {
                         result.ErrorMessage = "Username and password must be separated by with column.";
+
                         return default;
                     }
 
                     if (arrayCredentials.Length > 2) {
-                        result.ErrorMessage = "Provided credentials contains multiple columns. Use %3A for column in username or password.";
+                        result.ErrorMessage =
+                            "Provided credentials contains multiple columns. Use %3A for column in username or password.";
+
                         return default;
                     }
 
@@ -381,6 +399,5 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
-
     }
 }

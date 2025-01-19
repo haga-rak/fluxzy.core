@@ -16,7 +16,7 @@
             "commandName": "Project",
             "environmentVariables": {
             },
-            "commandLineArgs": "start --no-cert-cache --trace"
+            "commandLineArgs": "start -k"
         },
         "launch (debug rule)": {
             "commandName": "Project",

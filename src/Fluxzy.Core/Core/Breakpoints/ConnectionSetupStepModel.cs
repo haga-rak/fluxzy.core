@@ -15,7 +15,7 @@ namespace Fluxzy.Core.Breakpoints
         ///     If this setting is false, the following properties may not being set as the connection is picked
         ///     from the connection pool.
         /// </summary>
-        public bool ForceNewConnection { get; set; } = true; 
+        public bool ForceNewConnection { get; set; } = true;
 
         /// <summary>
         ///     Whether we should skip certificate validation
@@ -40,10 +40,10 @@ namespace Fluxzy.Core.Breakpoints
         public ValueTask Init(Exchange exchange)
         {
             // We do nothing to init 
-            
+
             IpAddress = exchange.EgressIp ?? exchange.Context.RemoteHostIp?.ToString() ?? "-/-";
             Port = exchange.Context.RemoteHostPort ?? exchange.Authority.Port;
-            
+
             ForceNewConnection = true;
             SkipRemoteCertificateValidation = exchange.Context.SkipRemoteCertificateValidation;
 
@@ -52,18 +52,21 @@ namespace Fluxzy.Core.Breakpoints
 
         public async ValueTask Alter(Exchange exchange)
         {
-            if (!string.IsNullOrWhiteSpace(IpAddress) && IPAddress.TryParse(IpAddress, out var ip))
+            if (!string.IsNullOrWhiteSpace(IpAddress) && IPAddress.TryParse(IpAddress, out var ip)) {
                 exchange.Context.RemoteHostIp = ip;
+            }
             else {
                 exchange.Context.RemoteHostIp =
-                    (await new DefaultDnsResolver().SolveDnsQuietly(exchange.Authority.HostName).ConfigureAwait(false));
+                    await new DefaultDnsResolver().SolveDnsQuietly(exchange.Authority.HostName).ConfigureAwait(false);
 
-                if (exchange.Context.RemoteHostIp != null)
+                if (exchange.Context.RemoteHostIp != null) {
                     IpAddress = exchange.Context.RemoteHostIp.ToString();
+                }
             }
 
-            if (Port != null && Port > 0 && Port < ushort.MaxValue)
+            if (Port != null && Port > 0 && Port < ushort.MaxValue) {
                 exchange.Context.RemoteHostPort = Port.Value;
+            }
 
             exchange.Context.ForceNewConnection = ForceNewConnection;
             exchange.Context.SkipRemoteCertificateValidation = SkipRemoteCertificateValidation;
@@ -73,7 +76,8 @@ namespace Fluxzy.Core.Breakpoints
 
         public bool Done { get; private set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(
+            ValidationContext validationContext)
         {
             yield break;
         }

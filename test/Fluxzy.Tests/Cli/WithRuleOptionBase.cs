@@ -12,35 +12,56 @@ namespace Fluxzy.Tests.Cli
 {
     public class WithRuleOptionBase : IAsyncDisposable
     {
+        private readonly List<FileInfo> _tempFiles = new();
         private ProxyInstance? _fluxzyInstance;
-
-        protected ProxiedHttpClient? Client { get; private set; }
 
         private string? _ruleFile;
 
+        protected ProxiedHttpClient? Client { get; private set; }
+
         public CookieContainer CookieContainer { get; } = new();
 
-        private readonly List<FileInfo> _tempFiles = new();
+        public async ValueTask DisposeAsync()
+        {
+            if (_ruleFile != null && File.Exists(_ruleFile)) {
+                File.Delete(_ruleFile);
+            }
+
+
+            Client?.Dispose();
+
+            if (_fluxzyInstance != null) {
+                await _fluxzyInstance.DisposeAsync();
+            }
+
+            foreach (var tempFile in _tempFiles) {
+                if (tempFile.Exists) {
+                    tempFile.Delete();
+                }
+            }
+        }
 
         protected FileInfo GetTempFile()
         {
             var uniqueIdentifier = Guid.NewGuid().ToString();
             var tempFile = new FileInfo($"{uniqueIdentifier}.yml");
             _tempFiles.Add(tempFile);
+
             return tempFile;
         }
 
-        protected async Task<HttpResponseMessage> Exec(string yamlContent, 
+        protected async Task<HttpResponseMessage> Exec(
+            string yamlContent,
             HttpRequestMessage requestMessage,
             bool allowAutoRedirect = true, bool automaticDecompression = false, bool useBouncyCastle = false,
-             string? extraCommandLineArgs = null)
+            string? extraCommandLineArgs = null)
         {
             // Arrange 
-            var commandLine = "start -l 127.0.0.1:0";
+            var commandLine = "start -l 127.0.0.1:0  --no-cert-cache ";
             var uniqueIdentifier = Guid.NewGuid().ToString();
 
             _ruleFile = $"{uniqueIdentifier}.yml";
-            
+
             await File.WriteAllTextAsync(_ruleFile, yamlContent);
 
             commandLine += $" -r {_ruleFile}";
@@ -49,8 +70,7 @@ namespace Fluxzy.Tests.Cli
                 commandLine += " --bouncy-castle";
             }
 
-            if (extraCommandLineArgs != null)
-            {
+            if (extraCommandLineArgs != null) {
                 commandLine += $" {extraCommandLineArgs}";
             }
 
@@ -59,26 +79,10 @@ namespace Fluxzy.Tests.Cli
             _fluxzyInstance = await commandLineHost.Run();
 
             Client = new ProxiedHttpClient(_fluxzyInstance.ListenPort,
-                cookieContainer: CookieContainer, allowAutoRedirect: allowAutoRedirect, automaticDecompression: automaticDecompression);
+                cookieContainer: CookieContainer, allowAutoRedirect: allowAutoRedirect,
+                automaticDecompression: automaticDecompression);
 
-            return  await Client.Client.SendAsync(requestMessage);
-        }
-        
-        public async ValueTask DisposeAsync()
-        { 
-            if (_ruleFile != null && File.Exists(_ruleFile))
-                File.Delete(_ruleFile);
-
-
-            Client?.Dispose();
-
-            if (_fluxzyInstance != null)
-                await _fluxzyInstance.DisposeAsync();
-
-            foreach (var tempFile in _tempFiles) {
-                if (tempFile.Exists)
-                    tempFile.Delete();
-            }
+            return await Client.Client.SendAsync(requestMessage);
         }
     }
 }
