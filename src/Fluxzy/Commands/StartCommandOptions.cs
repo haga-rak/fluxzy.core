@@ -305,6 +305,19 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
+        public static Option CreateMaxConnectionPerHost()
+        {
+            var option = new Option<int>(
+                "--max-upstream-connection",
+                "Maximum connection per upstream host"
+            );
+
+            option.Arity = ArgumentArity.ExactlyOne;
+            option.SetDefaultValue(FluxzySharedSetting.MaxConnectionPerHost);
+
+            return option;
+        }
+
         public static Option CreateProxyAuthenticationOption()
         {
             var option = new Option<NetworkCredential?>(

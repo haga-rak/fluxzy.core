@@ -1,6 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -27,10 +26,10 @@ namespace Fluxzy.Tests.Cli
 
             await using var fluxzyInstance = await commandLineHost.Run();
 
-            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort, proxyCredential: 
+            using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort, proxyCredential:
                 new NetworkCredential(user, password));
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://www.example.com");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, "https://www.example.com");
 
             requestMessage.Headers.Add("User-Agent", "Unit test");
 
@@ -39,7 +38,6 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
         }
 
         [Theory]
