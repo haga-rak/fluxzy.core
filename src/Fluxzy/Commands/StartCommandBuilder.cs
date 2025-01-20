@@ -85,6 +85,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateReverseProxyModePortOption());
             command.AddOption(StartCommandOptions.CreateProxyAuthenticationOption());
             command.AddOption(StartCommandOptions.CreateProxyBuffer());
+            command.AddOption(StartCommandOptions.CreateMaxConnectionPerHost());
             command.AddOption(StartCommandOptions.CreateCounterOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
@@ -115,6 +116,7 @@ namespace Fluxzy.Cli.Commands
             var outOfProcCapture = invocationContext.Value<bool>("external-capture");
             var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
             var requestBuffer = invocationContext.Value<int?>("request-buffer");
+            var maxConnectionPerHost = invocationContext.Value<int>("max-upstream-connection");
             var count = invocationContext.Value<int?>("max-capture-count");
             var trace = invocationContext.Value<bool>("trace");
             var use502 = invocationContext.Value<bool>("use-502");
@@ -140,6 +142,8 @@ namespace Fluxzy.Cli.Commands
             if (requestBuffer.HasValue && requestBuffer >= 16) {
                 FluxzySharedSetting.RequestProcessingBuffer = requestBuffer.Value;
             }
+
+            FluxzySharedSetting.MaxConnectionPerHost = maxConnectionPerHost;
 
             var cancellationToken = linkedTokenSource.Token;
 

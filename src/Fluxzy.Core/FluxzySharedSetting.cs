@@ -58,6 +58,12 @@ namespace Fluxzy
             EnvironmentUtility.GetInt32("FLUXZY_DOWNSTREAM_CONNECTION_RECEIVE_TIMEOUT_MILLISECONDS", -1);
 
         /// <summary>
+        ///     Maximum number of connection per remote host
+        /// </summary>
+        public static int MaxConnectionPerHost { get; set; } =
+            EnvironmentUtility.GetInt32("FLUXZY_MAX_CONNECTION_PER_HOST", 16);
+
+        /// <summary>
         ///     Fluxzy will use stackalloc for buffer allocation if the buffer size is less than this value.
         ///     Can bet set by environment variable FLUXZY_STACK_ALLOC_THRESHOLD
         /// </summary>

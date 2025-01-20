@@ -56,7 +56,7 @@ namespace Fluxzy
         ///     value is 16.
         /// </summary>
         [JsonInclude]
-        public int ConnectionPerHost { get; internal set; } = 16;
+        public int ConnectionPerHost { get; internal set; } = FluxzySharedSetting.MaxConnectionPerHost;
 
         /// <summary>
         ///     Ssl protocols for remote host connection
@@ -232,7 +232,7 @@ namespace Fluxzy
         public static FluxzySetting CreateDefault()
         {
             return new FluxzySetting {
-                ConnectionPerHost = 16
+                ConnectionPerHost = FluxzySharedSetting.MaxConnectionPerHost
             }.SetBoundAddress(IPAddress.Loopback, 44344);
         }
 
@@ -245,7 +245,7 @@ namespace Fluxzy
         public static FluxzySetting CreateDefault(IPAddress address, int port)
         {
             return new FluxzySetting {
-                ConnectionPerHost = 16
+                ConnectionPerHost = FluxzySharedSetting.MaxConnectionPerHost
             }.SetBoundAddress(address, port);
         }
 
