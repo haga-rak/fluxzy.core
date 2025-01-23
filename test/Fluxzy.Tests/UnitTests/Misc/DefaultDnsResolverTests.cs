@@ -11,7 +11,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
     public class DefaultDnsResolverTests
     {
         [Theory]
-        [InlineData("fluxzy.io", "162.19.47.110")]
+        [InlineData("fluxzy.io", "92.222.9.112")]
         [InlineData("localhost", "127.0.0.1")]
         //[InlineData("no.domain.here.yes.fluxzy.io", null)]
         [InlineData("badho_çà)", null)]
@@ -31,7 +31,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         }
 
         [Theory]
-        [InlineData("fluxzy.io", "162.19.47.110")]
+        [InlineData("fluxzy.io", "92.222.9.112")]
         [InlineData("localhost", "127.0.0.1")]
         // [InlineData("no.domain.here.yes.fluxzy.io", null)]
         [InlineData("badho_çà)", null)]
