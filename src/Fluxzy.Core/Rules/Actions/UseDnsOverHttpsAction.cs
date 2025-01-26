@@ -25,7 +25,7 @@ namespace Fluxzy.Rules.Actions
         /// </summary>
 
         [ActionDistinctive]
-        public string? NameOrUrl { get; }
+        public string? NameOrUrl { get; set; }
 
         /// <summary>
         ///  If false, the DNS over HTTPS requests will pass through the proxy.
