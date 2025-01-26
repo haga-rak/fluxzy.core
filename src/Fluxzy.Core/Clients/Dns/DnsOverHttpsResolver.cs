@@ -22,7 +22,8 @@ namespace Fluxzy.Clients.Dns
         private static readonly HashSet<string> ByPassList = new(new[] { "localhost" }, StringComparer.OrdinalIgnoreCase);
 
         private static readonly HttpMessageHandler DefaultHandler = new HttpClientHandler() {
-            UseProxy = false
+            UseProxy = false,
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
         };
 
         private readonly string _finalUrl;
