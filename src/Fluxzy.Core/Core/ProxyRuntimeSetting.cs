@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -84,10 +85,20 @@ namespace Fluxzy.Core
 
         public ProxyConfiguration?  GetInternalProxyAuthentication()
         {
-            var validEndPoint = EndPoints.FirstOrDefault(a => !Equals(a.Address, IPAddress.Any));
+            var preferredEndPoint = EndPoints
+                .OrderByDescending(r => r.Address.AddressFamily == AddressFamily.InterNetwork)
+                .ThenByDescending(r => Equals(r.Address, IPAddress.Any) || Equals(r.Address, IPAddress.IPv6Any))
+                .FirstOrDefault();
 
-            if (validEndPoint == null)
-                return null; // No bound endpoint 
+            if (preferredEndPoint == null)
+                return null; 
+
+            var preferredAddress = preferredEndPoint.Address.Equals(IPAddress.Any)
+                ? IPAddress.Loopback
+                : (preferredEndPoint.Address.Equals(IPAddress.IPv6Any) ? IPAddress.IPv6Loopback
+                    : preferredEndPoint.Address);
+            
+            var validEndPoint = new IPEndPoint(preferredAddress, preferredEndPoint.Port);
 
             var credentials = StartupSetting.ProxyAuthentication == null ? 
                 null : new NetworkCredential(

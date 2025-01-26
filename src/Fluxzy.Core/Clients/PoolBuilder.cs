@@ -111,7 +111,8 @@ namespace Fluxzy.Clients
 
             var dnsSolver = string.IsNullOrWhiteSpace(exchange.Context.DnsOverHttpsNameOrUrl) ? 
                 _dnsSolver : _dnsSolversCache.GetOrAdd(exchange.Context.DnsOverHttpsNameOrUrl,
-                    n => new DnsOverHttpsResolver(n, proxyRuntimeSetting.GetInternalProxyAuthentication()));
+                    n => new DnsOverHttpsResolver(n, exchange.Context.DnsOverHttpsCapture ?
+                        proxyRuntimeSetting.GetInternalProxyAuthentication() : null));
 
             // We should solve DNS here 
             var computeDnsPromise = 

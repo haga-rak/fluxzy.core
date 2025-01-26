@@ -32,7 +32,7 @@ namespace Fluxzy.Clients.Dns
 
                 try
                 {
-                    var result = (await InternalSolveDns(hostName));
+                    var result = await InternalSolveDns(hostName).ConfigureAwait(false);
                     return _cache[hostName] = result.ToList();
                 }
                 catch (Exception ex)
