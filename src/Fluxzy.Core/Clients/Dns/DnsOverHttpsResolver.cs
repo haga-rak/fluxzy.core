@@ -8,20 +8,24 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Fluxzy.Core;
 
 namespace Fluxzy.Clients.Dns
 {
     internal class DnsOverHttpsResolver : DefaultDnsResolver
     {
         private static readonly Dictionary<string, string> DnsOverHttpsDefaultUrl = new(StringComparer.OrdinalIgnoreCase) {
-            ["GOOGLE"] = Environment.GetEnvironmentVariable("FLUXZY_DEFAULT_GOOGLE_DNS_URL") ?? "https://dns.google/resolve",
-            ["CLOUDFLARE"] = Environment.GetEnvironmentVariable("FLUXZY_DEFAULT_CLOUDFLARE_DNS_URL") ?? "https://cloudflare-dns.com/dns-query",
+            ["GOOGLE"] = Environment.GetEnvironmentVariable("FLUXZY_DEFAULT_GOOGLE_DNS_URL") ?? "https://8.8.8.8/resolve",
+            ["CLOUDFLARE"] = Environment.GetEnvironmentVariable("FLUXZY_DEFAULT_CLOUDFLARE_DNS_URL") ?? "https://1.1.1.1/dns-query",
         };
 
-        private static readonly HashSet<string> _ByPassList = new(new[] { "localhost" }, StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> ByPassList = new(new[] { "localhost" }, StringComparer.OrdinalIgnoreCase);
+
+        private static readonly HttpMessageHandler DefaultHandler = new HttpClientHandler() {
+            UseProxy = false
+        };
 
         private readonly string _finalUrl;
-        private readonly HttpClientHandler _clientHandler;
         private readonly HttpClient _client;
         private readonly string _host;
 
@@ -47,26 +51,7 @@ namespace Fluxzy.Clients.Dns
 
             _host = finalUrl.Host;
 
-            _clientHandler = new HttpClientHandler();
-
-            if (proxyConfiguration != null)
-            {
-                var webProxy = new WebProxy(proxyConfiguration.Host, proxyConfiguration.Port);
-
-                if (proxyConfiguration.Credentials != null)
-                {
-                    webProxy.Credentials = proxyConfiguration.Credentials;
-                }
-
-                _clientHandler.Proxy = webProxy;
-                _clientHandler.UseProxy = true;
-            }
-            else
-            {
-                _clientHandler.UseProxy = false;
-            }
-
-            _client = new HttpClient(_clientHandler);
+            _client = new HttpClient(proxyConfiguration?.GetDefaultHandler() ?? DefaultHandler);
         }
 
         protected async Task<IReadOnlyCollection<string?>> GetDnsData(string type, string hostName)
@@ -75,39 +60,48 @@ namespace Fluxzy.Clients.Dns
 
             requestMessage.Headers.Add("Accept", "application/dns-json");
 
-            var response = await _client.SendAsync(requestMessage).ConfigureAwait(false);
+            try {
 
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new FluxzyException("Failed to resolve DNS over HTTPS");
+                using var response = await _client.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new FluxzyException("Failed to resolve DNS over HTTPS");
+                }
+
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                var dnsResponse = JsonSerializer.Deserialize<DnsOverHttpsResponse>(content);
+
+                if (dnsResponse == null)
+                {
+                    throw new ClientErrorException(0, "Invalid DNS response (null)");
+                }
+
+                if (dnsResponse.Status != 0)
+                {
+                    throw new ClientErrorException(0,
+                        $"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
+                }
+
+                return dnsResponse.Answers
+                                  .Where(a => a.Type == 1)
+                                  .Select(a => a.Data)
+                                  .ToList();
             }
-
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            
-            var dnsResponse = JsonSerializer.Deserialize<DnsOverHttpsResponse>(content);
-
-            if (dnsResponse == null)
-            {
-                throw new FluxzyException("Invalid DNS response (null)");
+            catch (Exception ex) {
+                throw;
             }
-            
-            if (dnsResponse.Status != 0)
-            {
-                throw new FluxzyException($"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
-            }
-
-            return dnsResponse.Answers
-                              .Where(a => a.Type == 1)
-                              .Select(a => a.Data)
-                              .ToList();
         }
 
         protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
         {
-            if (string.Equals(hostName, _host, StringComparison.OrdinalIgnoreCase) ||
-                _ByPassList.Contains(hostName) || IPAddress.TryParse(hostName, out _)) {
+            if (string.Equals(hostName, _host, StringComparison.OrdinalIgnoreCase) 
+                || ByPassList.Contains(hostName) 
+                || IPAddress.TryParse(hostName, out _)
+                ) {
                 // fallback to default resolver to avoid resolving loop
-                return await base.InternalSolveDns(hostName); 
+                return await base.InternalSolveDns(hostName).ConfigureAwait(false); 
             }
 
             // application/dns-json
@@ -123,7 +117,7 @@ namespace Fluxzy.Clients.Dns
 
             if (!result.Any())
             {
-                return await base.InternalSolveDns(hostName);
+                return await base.InternalSolveDns(hostName).ConfigureAwait(false);
             }
 
             return result;

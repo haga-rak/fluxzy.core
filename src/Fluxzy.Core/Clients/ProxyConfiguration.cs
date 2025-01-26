@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Net;
+using System.Net.Http;
 
 namespace Fluxzy.Clients
 {
@@ -9,6 +10,8 @@ namespace Fluxzy.Clients
     /// </summary>
     public class ProxyConfiguration
     {
+        private HttpMessageHandler? _clientHandler;
+
         public ProxyConfiguration(string host, int port, NetworkCredential? credentials)
         {
             Host = host;
@@ -49,5 +52,38 @@ namespace Fluxzy.Clients
         /// The Proxy Authorization header value.
         /// </value>
         public string? ProxyAuthorizationHeader { get; set; }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal HttpMessageHandler GetDefaultHandler()
+        {
+            if (_clientHandler != null) {
+                return _clientHandler;
+            }
+
+            lock (this) {
+
+                var clientHandler = new HttpClientHandler()
+                {
+                    ServerCertificateCustomValidationCallback = (_, certificate2, arg3, arg4) => true,
+                };
+
+                var webProxy = new WebProxy(Host, Port);
+
+                if (Credentials != null)
+                {
+                    webProxy.Credentials = Credentials;
+                }
+
+                clientHandler.Proxy = webProxy;
+                clientHandler.UseProxy = true;
+
+                _clientHandler = clientHandler;
+
+                return clientHandler;
+            }
+        }
     }
 }
