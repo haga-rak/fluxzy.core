@@ -56,7 +56,7 @@ namespace Fluxzy.Tests.Cli
             string? extraCommandLineArgs = null)
         {
             // Arrange 
-            var commandLine = "start -l 127.0.0.1:0 --no-cert-cache ";
+            var commandLine = "start -l 127.0.0.1:0 --no-cert-cache --max-upstream-connection 64";
             var uniqueIdentifier = Guid.NewGuid().ToString();
 
             _ruleFile = $"{uniqueIdentifier}.yml";
