@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Clients.Dns
 {
@@ -25,6 +26,8 @@ namespace Fluxzy.Clients.Dns
             UseProxy = false,
             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
         };
+
+        private readonly Dictionary<DnsCacheKey, IReadOnlyCollection<string?>> _cache = new();
 
         private readonly string _finalUrl;
         private readonly HttpClient _client;
@@ -57,42 +60,58 @@ namespace Fluxzy.Clients.Dns
 
         protected async Task<IReadOnlyCollection<string?>> GetDnsData(string type, string hostName)
         {
+            var key = new DnsCacheKey(type, hostName);
+
+            using var _ = await Synchronizer<DnsCacheKey>.Instance.LockAsync(key).ConfigureAwait(false);
+
+            if (_cache.TryGetValue(key, out var cached))
+            {
+                return cached;
+            }
+
+            var result = await InternalGetDnsData(type, hostName);
+
+            _cache[key] = result;
+
+
+            return result;
+        }
+
+        private async Task<List<string?>> InternalGetDnsData(string type, string hostName)
+        {
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_finalUrl}?name={hostName}&type={type}");
 
             requestMessage.Headers.Add("Accept", "application/dns-json");
 
-            try {
+            using var response = await _client.SendAsync(requestMessage, HttpCompletionOption.ResponseContentRead)
+                                              .ConfigureAwait(false);
 
-                using var response = await _client.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new FluxzyException("Failed to resolve DNS over HTTPS");
-                }
-
-                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                var dnsResponse = JsonSerializer.Deserialize<DnsOverHttpsResponse>(content);
-
-                if (dnsResponse == null)
-                {
-                    throw new ClientErrorException(0, "Invalid DNS response (null)");
-                }
-
-                if (dnsResponse.Status != 0)
-                {
-                    throw new ClientErrorException(0,
-                        $"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
-                }
-
-                return dnsResponse.Answers
-                                  .Where(a => a.Type == 1)
-                                  .Select(a => a.Data)
-                                  .ToList();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new FluxzyException("Failed to resolve DNS over HTTPS");
             }
-            catch (Exception ex) {
-                throw;
+
+            await using var content = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+            var dnsResponse = await JsonSerializer.DeserializeAsync<DnsOverHttpsResponse>(content).ConfigureAwait(false);
+
+            if (dnsResponse == null)
+            {
+                throw new ClientErrorException(0, "Invalid DNS response (null)");
             }
+
+            if (dnsResponse.Status != 0)
+            {
+                throw new ClientErrorException(0,
+                    $"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
+            }
+
+            var result = dnsResponse.Answers
+                                    .Where(a => a.Type == 1)
+                                    .Select(a => a.Data)
+                                    .ToList();
+
+            return result;
         }
 
         protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
@@ -123,6 +142,19 @@ namespace Fluxzy.Clients.Dns
 
             return result;
         }
+    }
+
+    internal record struct DnsCacheKey
+    {
+        public DnsCacheKey(string type, string host)
+        {
+            Type = type;
+            Host = host;
+        }
+
+        public string Type { get; } 
+
+        public string Host { get; }
     }
 
     public class DnsOverHttpsAnswer
