@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Misc.ResizableBuffers;
-using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
