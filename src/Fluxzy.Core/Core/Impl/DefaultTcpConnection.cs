@@ -12,7 +12,7 @@ namespace Fluxzy.Core
 {
     internal class DefaultTcpConnection : ITcpConnection
     {
-        private readonly TcpClient _client;
+        private TcpClient? _client;
 
         public DefaultTcpConnection()
         {
@@ -38,11 +38,13 @@ namespace Fluxzy.Core
 
         public Stream GetStream()
         {
-            var resultStream =
-                new DisposeEventNotifierStream(_client.GetStream());
+            if (_client == null)
+            {
+                throw new InvalidOperationException("Connection is not established");
+            }
 
-            resultStream.OnStreamDisposed += ResultStreamOnOnStreamDisposed;
-
+            var resultStream = new DisposeEventNotifierStream(_client);
+            _client = null;
             return resultStream;
         }
 
@@ -54,16 +56,7 @@ namespace Fluxzy.Core
         public ValueTask DisposeAsync()
         {
             _client?.Dispose();
-
             return default;
-        }
-
-        private ValueTask ResultStreamOnOnStreamDisposed(object sender, StreamDisposeEventArgs args)
-        {
-            var stream = (DisposeEventNotifierStream) sender;
-            stream.OnStreamDisposed -= ResultStreamOnOnStreamDisposed;
-
-            return DisposeAsync();
         }
     }
 }

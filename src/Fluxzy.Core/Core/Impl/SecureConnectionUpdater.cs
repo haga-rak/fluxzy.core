@@ -44,8 +44,7 @@ namespace Fluxzy.Core
 
             if (!DetectTlsClientHello(buffer)) {
                 // This is a regular CONNECT request without SSL
-                return new SecureConnectionUpdateResult(false, new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
-                    stream);
+                return new SecureConnectionUpdateResult(false, new CombinedReadonlyStream(false, new MemoryStream(buffer), stream), stream);
             }
 
             stream = new CombinedReadonlyStream(false, new MemoryStream(buffer), stream);
@@ -92,8 +91,7 @@ namespace Fluxzy.Core
         }
     }
 
-    internal record SecureConnectionUpdateResult(
-        bool IsSsl, Stream InStream, Stream OutStream)
+    internal record SecureConnectionUpdateResult(bool IsSsl, Stream InStream, Stream OutStream)
     {
         public bool IsSsl { get; } = IsSsl;
         

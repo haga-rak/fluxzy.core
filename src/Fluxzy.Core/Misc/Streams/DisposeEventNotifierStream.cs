@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,13 +12,15 @@ namespace Fluxzy.Misc.Streams
 
     public class DisposeEventNotifierStream : Stream
     {
+        private readonly TcpClient _sourceClient;
         private bool _fromAsyncDispose;
 
         private int _totalRead;
 
-        public DisposeEventNotifierStream(Stream innerStream)
+        public DisposeEventNotifierStream(TcpClient sourceClient)
         {
-            InnerStream = innerStream;
+            _sourceClient = sourceClient;
+            InnerStream = sourceClient.GetStream();
         }
 
         public Stream InnerStream { get; }
@@ -114,11 +117,6 @@ namespace Fluxzy.Misc.Streams
         protected override void Dispose(bool disposing)
         {
             Faulted = true;
-
-            //if (!_fromAsyncDispose) {
-            //    DisposeAsync();
-            //}
-
             base.Dispose(disposing);
         }
 
@@ -126,6 +124,7 @@ namespace Fluxzy.Misc.Streams
         {
             _fromAsyncDispose = true;
             Faulted = true;
+            _sourceClient.Dispose();
 
             await InnerStream.DisposeAsync().ConfigureAwait(false);
 

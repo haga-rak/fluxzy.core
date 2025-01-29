@@ -60,7 +60,7 @@ namespace Fluxzy.Core.Pcap
                     await Task.Delay(1000).ConfigureAwait(false);
             }
 
-            _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());
+            _stream = new DisposeEventNotifierStream(_innerTcpClient);
 
             _stream.OnStreamDisposed += async (_, _) => {
                 // TODO when stream disposed 
@@ -95,7 +95,6 @@ namespace Fluxzy.Core.Pcap
                 return;
 
             _disposed = true;
-
             _innerTcpClient.Dispose();
 
             if (_subscription != 0) {
