@@ -4,15 +4,20 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    public interface ITcpConnection : IAsyncDisposable
+    public interface ITcpConnection : IAsyncDisposable 
     {
-        Task<IPEndPoint> ConnectAsync(IPAddress address, int port);
-
-        Stream GetStream();
-
-        void OnKeyReceived(string nssKey);
+        Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress address, int port);
     }
+
+    public interface ITcpConnectionConnectResult
+    {
+        DisposeEventNotifierStream Stream { get; }
+
+        void ProcessNssKey(string nssKey);
+    }
+
 }

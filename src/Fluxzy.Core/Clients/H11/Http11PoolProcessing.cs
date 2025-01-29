@@ -31,10 +31,8 @@ namespace Fluxzy.Clients.H11
         /// <returns>True if remote server close connection</returns>
         public async ValueTask<bool> Process(Exchange exchange, RsBuffer buffer, CancellationToken cancellationToken)
         {
-            if (exchange.Context.EventNotifierStream != null) {
-                if (exchange.Context.EventNotifierStream.Faulted) {
-                    throw new ConnectionCloseException("Abandoned stream");
-                }
+            if (exchange.Context.EventNotifierStream?.Faulted == true) {
+                throw new ConnectionCloseException("Abandoned stream");
             }
 
             exchange.Connection!.AddNewRequestProcessed();

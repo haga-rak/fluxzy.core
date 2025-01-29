@@ -16,7 +16,7 @@ namespace Fluxzy.Core.Pcap
 
         public ITcpConnection Create(string dumpFileName)
         {
-            return new CapturableTcpConnection(_scope, dumpFileName);
+            return new CapturableTcpConnection(_scope.CaptureContext!, dumpFileName);
         }
 
         public async ValueTask DisposeAsync()

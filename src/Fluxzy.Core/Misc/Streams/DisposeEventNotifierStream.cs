@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,15 +14,23 @@ namespace Fluxzy.Misc.Streams
     public class DisposeEventNotifierStream : Stream
     {
         private readonly TcpClient _sourceClient;
+        private readonly Func<ValueTask>? _cleanupProcedure;
         private bool _fromAsyncDispose;
 
         private int _totalRead;
 
-        public DisposeEventNotifierStream(TcpClient sourceClient)
+        public DisposeEventNotifierStream(TcpClient sourceClient, Func<ValueTask>?  cleanupProcedure)
         {
             _sourceClient = sourceClient;
+            _cleanupProcedure = cleanupProcedure;
             InnerStream = sourceClient.GetStream();
+            LocalEndPoint = (IPEndPoint) sourceClient.Client.LocalEndPoint;
+            RemoteEndPoint = (IPEndPoint) sourceClient.Client.RemoteEndPoint;
         }
+
+        public IPEndPoint RemoteEndPoint { get; }
+
+        public IPEndPoint LocalEndPoint { get;  }
 
         public Stream InnerStream { get; }
 
@@ -51,7 +60,6 @@ namespace Fluxzy.Misc.Streams
         {
             try {
                 var res = InnerStream.Read(buffer, offset, count);
-
                 _totalRead += res;
 
                 return res;
@@ -94,8 +102,7 @@ namespace Fluxzy.Misc.Streams
             InnerStream.Write(buffer, offset, count);
         }
 
-        public override ValueTask WriteAsync(
-            ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
             return InnerStream.WriteAsync(buffer, cancellationToken);
         }
@@ -127,6 +134,11 @@ namespace Fluxzy.Misc.Streams
             _sourceClient.Dispose();
 
             await InnerStream.DisposeAsync().ConfigureAwait(false);
+
+            if (_cleanupProcedure != null)
+            {
+                await _cleanupProcedure().ConfigureAwait(false);
+            }
 
             if (OnStreamDisposed != null) {
                 await OnStreamDisposed(this, new StreamDisposeEventArgs()).ConfigureAwait(false);
