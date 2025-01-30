@@ -349,7 +349,7 @@ namespace Fluxzy.Tests
 
             var httpClient = new HttpClient(messageHandler);
 
-            var response = await httpClient.GetAsync("http://example.com/", cancellationTokenSource.Token);
+            var response = await httpClient.GetAsync("http://eu.httpbin.org/", cancellationTokenSource.Token);
 
             _ = await response.Content.ReadAsStringAsync(
                 cancellationTokenSource.Token);
