@@ -19,6 +19,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             NamedGroup.secp256r1,
         };
 
+        private static readonly int[] DefaultKeyShares = new int[] {
+            NamedGroup.x25519
+        };
 
         private readonly IReadOnlyCollection<SslApplicationProtocol>_applicationProtocols;
         private readonly FluxzyCrypto _crypto;
@@ -70,7 +73,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         public override IList<int> GetEarlyKeyShareGroups()
         {
             if (_fingerPrint == null) {
-                return base.GetEarlyKeyShareGroups();
+                return DefaultKeyShares;
             }
 
             if (_fingerPrint.EarlySharedGroups != null)
