@@ -17,6 +17,21 @@ namespace Fluxzy.Tests.UnitTests.Rules
         }
 
         [Fact]
+        public void CreateFromEmptyByteArray()
+        {
+            var result = MockedResponseContent.CreateFromByteArray(Array.Empty<byte>(), 200, "text/plain");
+
+            Assert.Equal(200, result.StatusCode);
+            ;
+            ValidateBody(result);
+            Assert.NotNull(result.Body!.Content);
+            Assert.Equal(0, result.Body.Content.Length);
+
+            Assert.Contains("text", result.GetHeaderValueOrDefault("content-type"),
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
         public void CreateFromByteArray()
         {
             var result = MockedResponseContent.CreateFromByteArray(new byte[4], 200, "text/plain");
@@ -120,6 +135,18 @@ namespace Fluxzy.Tests.UnitTests.Rules
         public void CreateFromString()
         {
             var result = MockedResponseContent.CreateFromString("_Files/Archives/test.json", 202, "text/plain");
+
+            Assert.Equal(202, result.StatusCode);
+            ValidateBody(result);
+
+            Assert.Contains("text", result.GetHeaderValueOrDefault("content-type"),
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void CreateFromEmptyString()
+        {
+            var result = MockedResponseContent.CreateFromString("", 202, "text/plain");
 
             Assert.Equal(202, result.StatusCode);
             ValidateBody(result);
