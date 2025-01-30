@@ -16,6 +16,10 @@ namespace Fluxzy.Misc.Streams
             Stream destination,
             int bufferSize, Action<int> onContentCopied, CancellationToken cancellationToken)
         {
+            if (source.CanSeek && source.Length == 0) {
+                return 0;
+            }
+
             var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
             try {
@@ -30,6 +34,12 @@ namespace Fluxzy.Misc.Streams
         public static int Drain(this Stream stream, int bufferSize = 16 * 1024, bool disposeStream = false)
         {
             // TODO improve perf with stackalloc when bufferSize is small than an arbitrary threshold
+            if (stream.CanSeek && stream.Length == 0) {
+                var remaining = stream.Length - stream.Position;
+                stream.Seek(0, SeekOrigin.End);
+
+                return (int) remaining;
+            }
 
             var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
@@ -89,6 +99,13 @@ namespace Fluxzy.Misc.Streams
             this Stream stream, int bufferSize = 16 * 1024,
             bool disposeStream = false)
         {
+            if (stream.CanSeek && stream.Length == 0) {
+                var remaining = stream.Length - stream.Position;
+                stream.Seek(0, SeekOrigin.End);
+
+                return (int) remaining;
+            }
+
             var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
             try {
@@ -159,10 +176,16 @@ namespace Fluxzy.Misc.Streams
             Stream destination,
             byte[] buffer, Action<int> onContentCopied, CancellationToken cancellationToken)
         {
+            if (source.CanSeek && source.Length == 0)
+            {
+                return 0;
+            }
+
             long totalCopied = 0;
             int read;
 
-            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) > 0) {
+            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) >
+                   0) {
                 await destination.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
                 onContentCopied(read);
 
