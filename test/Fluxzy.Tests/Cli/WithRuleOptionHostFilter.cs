@@ -20,7 +20,7 @@ namespace Fluxzy.Tests.Cli
 
         protected override void ConfigureBlock(HttpRequestMessage requestMessage)
         {
-            requestMessage.RequestUri = new System.Uri("http://example.com");
+            requestMessage.RequestUri = new System.Uri("http://eu.httpbin.org/");
         }
     }
 }

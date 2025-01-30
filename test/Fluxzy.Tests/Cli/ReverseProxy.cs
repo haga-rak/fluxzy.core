@@ -47,7 +47,7 @@ namespace Fluxzy.Tests.Cli
                 $"{TestConstants.PlainHttp11}/global-health-check",
                 $"{TestConstants.Http11Host}/global-health-check",
                 $"{TestConstants.Http2Host}/global-health-check",
-                "http://example.com",
+                "http://eu.httpbin.org/",
                 "https://www.example.com"
             };
 

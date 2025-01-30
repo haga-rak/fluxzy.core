@@ -9,8 +9,8 @@ namespace Fluxzy.Tests.UnitTests.Misc
     public class PathAndQueryUtilityTests
     {
         [Theory]
-        [InlineData("http://example.com", "/")]
-        [InlineData("http://example.com/", "/")]
+        [InlineData("http://eu.httpbin.org", "/")]
+        [InlineData("http://eu.httpbin.org/", "/")]
         [InlineData("https://example.com", "/")]
         [InlineData("https://example.com/", "/")]
         [InlineData("https://www.fluxzy.io/download", "/download")]
