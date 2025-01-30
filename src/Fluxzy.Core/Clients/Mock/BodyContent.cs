@@ -15,7 +15,7 @@ namespace Fluxzy.Clients.Mock
         public BodyContent(BodyContentLoadingType origin, BodyType type = default)
         {
             if (origin == 0) {
-                origin = BodyContentLoadingType.FromString; 
+                origin = BodyContentLoadingType.FromString;
             }
 
             Origin = origin;
@@ -32,10 +32,10 @@ namespace Fluxzy.Clients.Mock
                                            "Use this property to avoid defining manually `content-type` header." +
                                            "This property is ignored if `Content-Type` is defined explicitly.")]
         public BodyType Type { get; set; }
-        
 
         [JsonInclude]
-        [PropertyDistinctive(Description = "When Origin = fromString, the content text to be used as response body. Supports variable.")]
+        [PropertyDistinctive(Description =
+            "When Origin = fromString, the content text to be used as response body. Supports variable.")]
         public string? Text { get; set; }
 
         [JsonInclude]
@@ -48,7 +48,7 @@ namespace Fluxzy.Clients.Mock
 
         [JsonInclude]
         [PropertyDistinctive(Description = "When Origin = fromImmediateArray, base64 encoded content of the response")]
-        public string ? ContentBase64 {
+        public string? ContentBase64 {
             get
             {
                 if (Content == null) {
@@ -67,7 +67,7 @@ namespace Fluxzy.Clients.Mock
                 }
             }
         }
-        
+
         public static BodyContent CreateFromFile(string fileName)
         {
             var result = new BodyContent(BodyContentLoadingType.FromFile) {
@@ -127,7 +127,7 @@ namespace Fluxzy.Clients.Mock
                     return File.OpenRead(FileName!);
 
                 case BodyContentLoadingType.FromString:
-                    return new MemoryStream(Encoding.UTF8.GetBytes(Text!));
+                    return string.IsNullOrEmpty(Text) ? Stream.Null : new MemoryStream(Encoding.UTF8.GetBytes(Text!));
 
                 default:
                     throw new ArgumentOutOfRangeException();
