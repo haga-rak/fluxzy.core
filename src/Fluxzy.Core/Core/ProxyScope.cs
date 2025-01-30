@@ -35,7 +35,7 @@ namespace Fluxzy.Core
 
             return default;
         }
-
+        
         /// <summary>
         ///     No thread safe  : validate that there's no risk in thread safety
         /// </summary>

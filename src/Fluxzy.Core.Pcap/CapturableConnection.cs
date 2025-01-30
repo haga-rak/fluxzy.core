@@ -76,7 +76,6 @@ namespace Fluxzy.Core.Pcap
                     await Task.Delay(1000).ConfigureAwait(false);
             }
 
-            var remoteEndPoint = (IPEndPoint) _innerTcpClient.Client.RemoteEndPoint;
             _stream = new DisposeEventNotifierStream(_innerTcpClient, DisposeAsync);
             return new CapturableConnectionConnectResult(_captureContext, _stream);
         }

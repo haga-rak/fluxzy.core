@@ -25,6 +25,11 @@ namespace Fluxzy.Core.Pcap
             return new CapturableTcpConnection(_activeContext, dumpFileName);
         }
 
+        public void TryFlush()
+        {
+            _activeContext.Flush();
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (_ownedCaptureContext != null)

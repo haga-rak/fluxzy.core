@@ -9,5 +9,7 @@ namespace Fluxzy.Core
         public static ITcpConnectionProvider Default { get; } = new DefaultTcpConnectionProvider();
 
         ITcpConnection Create(string dumpFileName);
+
+        void TryFlush(); 
     }
 }
