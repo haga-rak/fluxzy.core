@@ -31,7 +31,6 @@ namespace Fluxzy.Cli.System
                     $" cert uninstall {thumbPrint}");
                 
                 // We are using pkexec for linux 
-
                 var result = await ProcessUtils.QuickRunAsync("pkexec",
                     $"{_currentBinaryFullPath.RemoveFileExtension()} cert uninstall {thumbPrint}");
 
