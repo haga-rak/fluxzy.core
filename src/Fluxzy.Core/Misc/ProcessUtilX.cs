@@ -11,7 +11,7 @@ namespace Fluxzy.Misc
 {
     internal static class ProcessUtilX
     {
-        private static readonly string[] AskPassBinaries = new[] { "ksshaskpass", "ssh-askpass", "lxqt-sudo" };
+        private static readonly string[] AskPassBinaries = new[] { "ssh-askpass", "ksshaskpass", "lxqt-sudo" };
         
         
         private static readonly HashSet<string> RequiredCapabilities = new HashSet<string>(
