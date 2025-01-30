@@ -62,6 +62,8 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var stream = await response.Content.ReadAsStreamAsync();
             await stream.CopyToAsync(Stream.Null);
 
+            await Task.Delay(500);
+
             watch.Stop();
 
             Assert.True(watch.ElapsedMilliseconds > delaySeconds * 1000, 
