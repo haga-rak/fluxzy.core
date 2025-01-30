@@ -4,56 +4,53 @@ namespace Fluxzy.Core.Pcap
 {
     public class CapturedTcpConnectionProvider : ITcpConnectionProvider
     {
-        private readonly ProxyScope _scope;
-        private readonly bool _disposeProxyScope;
-        private DirectCaptureContext? _createdContext;
+        private readonly IAsyncDisposable? _dependentReference;
+        private readonly DirectCaptureContext? _ownedCaptureContext;
+        private readonly ICaptureContext _activeContext;
 
-        private CapturedTcpConnectionProvider(ProxyScope scope, bool disposeProxyScope = false)
+        private CapturedTcpConnectionProvider(ICaptureContext? providedContext, IAsyncDisposable? dependentReference)
         {
-            _scope = scope;
-            _disposeProxyScope = disposeProxyScope;
+            _dependentReference = dependentReference;
+            _activeContext = providedContext ?? (_ownedCaptureContext = new DirectCaptureContext());
+        }
+
+        private async ValueTask Init()
+        {
+            if (_ownedCaptureContext != null)
+                await _ownedCaptureContext.Start().ConfigureAwait(false);
         }
 
         public ITcpConnection Create(string dumpFileName)
         {
-            return new CapturableTcpConnection(_scope.CaptureContext!, dumpFileName);
+            return new CapturableTcpConnection(_activeContext, dumpFileName);
         }
 
         public async ValueTask DisposeAsync()
         {
-            if (_createdContext != null)
-                await _createdContext.DisposeAsync().ConfigureAwait(false);
+            if (_ownedCaptureContext != null)
+                await _ownedCaptureContext.DisposeAsync().ConfigureAwait(false);
 
-            if (_disposeProxyScope)
-                await _scope.DisposeAsync().ConfigureAwait(false);
+            if (_dependentReference != null)
+                await _dependentReference.DisposeAsync().ConfigureAwait(false);
         }
 
         public static async Task<ITcpConnectionProvider> Create(ProxyScope scope, bool outOfProcCapture)
         {
-            var connectionProvider = new CapturedTcpConnectionProvider(scope);
+            if (!outOfProcCapture) {
+                return await CreateInProcessCapture();
+            }
 
-            scope.CaptureContext =
-                outOfProcCapture
-                    ? await scope.GetOrCreateHostedCaptureContext().ConfigureAwait(false)
-                    : connectionProvider._createdContext = new DirectCaptureContext();
-
-            if (connectionProvider._createdContext != null)
-                await connectionProvider._createdContext.Start().ConfigureAwait(false);
-
+            var captureContext = await scope.GetOrCreateHostedCaptureContext().ConfigureAwait(false);
+            var connectionProvider = new CapturedTcpConnectionProvider(captureContext, null);
+            await connectionProvider.Init();
             return connectionProvider;
         }
 
         public static async Task<ITcpConnectionProvider> CreateInProcessCapture()
         {
             var scope = new ProxyScope(a => new DirectCaptureContext());
-
-            var connectionProvider = new CapturedTcpConnectionProvider(scope, true);
-
-            scope.CaptureContext = connectionProvider._createdContext = new DirectCaptureContext();
-
-            if (connectionProvider._createdContext != null)
-                await connectionProvider._createdContext.Start().ConfigureAwait(false);
-
+            var connectionProvider = new CapturedTcpConnectionProvider(null, scope);
+            await connectionProvider.Init();
             return connectionProvider;
         }
     }

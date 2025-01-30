@@ -283,8 +283,7 @@ namespace Fluxzy.Cli.Commands
             var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
             var systemProxyManager = new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
-            await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
-                a => new OutOfProcessCaptureContext(a));
+            await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(), a => new OutOfProcessCaptureContext(a));
 
             if (!ValidateSetting(invocationContext, proxyStartUpSetting)) {
                 invocationContext.ExitCode = 1;

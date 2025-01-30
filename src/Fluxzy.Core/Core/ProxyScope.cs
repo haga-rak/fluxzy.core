@@ -14,24 +14,19 @@ namespace Fluxzy.Core
         private readonly Func<IOutOfProcessHost>? _captureHostBuilder;
         private IOutOfProcessHost? _currentCaptureHost;
 
-        public ProxyScope(
-            Func<IOutOfProcessHost, ICaptureContext> captureContextBuilder)
+        public ProxyScope(Func<IOutOfProcessHost, ICaptureContext> captureContextBuilder)
         {
             _captureHostBuilder = null;
             _captureContextBuilder = captureContextBuilder;
         }
 
-        public ProxyScope(
-            Func<IOutOfProcessHost> captureHostBuilder,
-            Func<IOutOfProcessHost, ICaptureContext> captureContextBuilder)
+        public ProxyScope(Func<IOutOfProcessHost> captureHostBuilder, Func<IOutOfProcessHost, ICaptureContext> captureContextBuilder)
         {
             _captureHostBuilder = captureHostBuilder;
             _captureContextBuilder = captureContextBuilder;
         }
 
         public Guid Identifier { get; } = Guid.NewGuid();
-
-        public ICaptureContext? CaptureContext { get; set; }
 
         public ValueTask DisposeAsync()
         {
@@ -45,7 +40,7 @@ namespace Fluxzy.Core
         ///     No thread safe  : validate that there's no risk in thread safety
         /// </summary>
         /// <returns></returns>
-        public async Task<IOutOfProcessHost?> GetOrCreateHostedCaptureHost()
+        private async Task<IOutOfProcessHost?> GetOrCreateHostedCaptureHost()
         {
             if (_currentCaptureHost == null || _currentCaptureHost.FaultedOrDisposed) {
                 _currentCaptureHost = null;
