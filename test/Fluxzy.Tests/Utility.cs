@@ -24,7 +24,11 @@ namespace Fluxzy.Tests
                 return true; // Already root  - no need to set capabilities
             
             if (!ProcessUtils.IsCommandAvailable("setcap"))
-                return false; 
+                return false;
+
+            if (await ProcessUtilX.HasCaptureCapabilities()) {
+                return true;
+            }
             
             var process = await ProcessUtilX.RunElevatedSudoALinux("setcap", 
                 new []{ "cap_net_raw,cap_net_admin=eip", executablePath},
