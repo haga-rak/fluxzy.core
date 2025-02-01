@@ -1,6 +1,8 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Linq;
 using System.Threading.Tasks;
+using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
@@ -26,10 +28,12 @@ namespace Fluxzy.Tests.Cases
             
             var response = await client.GetAsync(TestConstants.Http2Host);
 
-            var statusCode = response.StatusCode;
-            var responseBodyString = await response.Content.ReadAsStringAsync();
+            _ = await response.Content.ReadAsStringAsync();
+            var hasHeader = response.Headers.TryGetValues("x-fluxzy-error-type", out var values);
 
-            Assert.Equal(528, (int)statusCode);
+            Assert.True(hasHeader);
+            Assert.NotNull(values);
+            Assert.Equal(nameof(RuleExecutionFailureException), values.First());
         }
     }
 }

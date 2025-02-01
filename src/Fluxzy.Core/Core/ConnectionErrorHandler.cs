@@ -129,9 +129,6 @@ namespace Fluxzy.Core
                         header.AsMemory(),
                         exchange.Authority.Secure, true);
 
-                    //if (DebugContext.EnableDumpStackTraceOn502)
-                    //    Console.WriteLine(message);
-
                     exchange.Response.Body = new MemoryStream(messageBinary);
 
                     if (!exchange.ExchangeCompletionSource.Task.IsCompleted) {
@@ -174,7 +171,6 @@ namespace Fluxzy.Core
 
             var message = "An unknown error has occured.";
 
-
             if (ex is RuleExecutionFailureException ruleException) {
                 message = 
                     "A rule execution failure has occured.\r\n\r\n" + ruleException.Message;
@@ -183,20 +179,18 @@ namespace Fluxzy.Core
             if (DebugContext.EnableDumpStackTraceOn502)
             {
                 message += $"\r\n" +
-                           $"Stacktrace\r\n{ex}";
+                           $"Stacktrace:\r\n{ex}";
             }
 
             var (header, body) = ConnectionErrorPageHelper.GetSimplePlainTextResponse(
                 exchange.Authority,
-                message);
-
+                message, ex.GetType().Name);
 
             exchange.Response.Header = new ResponseHeader(
                 header.AsMemory(),
                 exchange.Authority.Secure, true);
 
             exchange.Response.Body = new MemoryStream(body);
-
 
             var responseHeaderLength = exchange.Response.Header!
                                                .WriteHttp11(false, buffer, true, true,
