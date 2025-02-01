@@ -7,8 +7,10 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
+using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules;
 
 namespace Fluxzy.Core
@@ -160,6 +162,66 @@ namespace Fluxzy.Core
 
             return false;
         }
-        
+
+        public static async Task<bool> HandleGenericException(Exception ex,
+            ExchangeSourceInitResult? exchangeInitResult,
+            Exchange? exchange,
+            RsBuffer buffer,
+            ITimingProvider timingProvider)
+        {
+            if (exchange?.Connection == null || exchangeInitResult?.WriteStream == null)
+                return false;
+
+            var instant = timingProvider.Instant();
+
+            var message = "An unknown error has occured.";
+
+
+            if (ex is RuleExecutionFailureException ruleException) {
+                message = 
+                    "A rule execution failure has occured.\r\n\r\n" + ruleException.Message;
+            }
+
+            if (DebugContext.EnableDumpStackTraceOn502)
+            {
+                message += $"\r\n" +
+                           $"Stacktrace\r\n{ex}";
+            }
+
+            var (header, body) = ConnectionErrorPageHelper.GetSimplePlainTextResponse(
+                exchange.Authority,
+                message);
+
+
+            exchange.Response.Header = new ResponseHeader(
+                header.AsMemory(),
+                exchange.Authority.Secure, true);
+
+            exchange.Response.Body = new MemoryStream(body);
+
+
+            var responseHeaderLength = exchange.Response.Header!
+                                               .WriteHttp11(false, buffer, true, true,
+                                                   true);
+
+            await exchangeInitResult.WriteStream
+                                    .WriteAsync(buffer.Buffer, 0, responseHeaderLength)
+                                    .ConfigureAwait(false);
+
+            await exchange.Response.Body.CopyToAsync(exchangeInitResult.WriteStream)
+                          .ConfigureAwait(false);
+
+            if (exchange.Metrics.ResponseBodyEnd == default)
+            {
+                exchange.Metrics.ResponseBodyEnd = instant;
+            }
+
+            if (!exchange.ExchangeCompletionSource.Task.IsCompleted)
+            {
+                exchange.ExchangeCompletionSource.TrySetResult(true);
+            }
+
+            return true;
+        }
     }
 }

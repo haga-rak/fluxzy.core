@@ -47,7 +47,8 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             await AssertionHelper.ValidateCheck(requestMessage, null, response, token);
         }
 
-        [Fact]
+
+        [Fact(Timeout = 1000 * 60)]
         public async Task Post_Random_Data_And_Validate_Content()
         {
             using var handler = new FluxzyHttp2Handler();
@@ -95,7 +96,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         ///     The goal of this test is to challenge the dynamic table content
         /// </summary>
         /// <returns></returns>
-        [Theory]
+        [Theory(Timeout = 1000 * 60)]
         [InlineData(1024)]
         [InlineData(16394)]
         public async Task Post_Dynamic_Table_Evict_Simple_Large_Object(int bufferSize)
@@ -128,7 +129,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             await Task.WhenAll(tasks);
         }
 
-        [Fact]
+        [Fact(Timeout = 1000 * 60)]
         public async Task Headers_Multiple_Reception()
         {
             using var handler = new FluxzyHttp2Handler();
