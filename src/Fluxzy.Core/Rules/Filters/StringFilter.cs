@@ -115,7 +115,7 @@ namespace Fluxzy.Rules.Filters
                         continue;
 
                     default:
-                        throw new RuleExecutionFailureException($"Unimplemented string operation {Operation}");
+                        throw new RuleExecutionFailureException($"Unimplemented string operation {Operation}", this);
                 }
             }
 

@@ -79,7 +79,6 @@ namespace Fluxzy.Core
             var header = string.Format(ErrorHeaderText, statusLine, messageText.Length, errorTypeText);
             var body = Encoding.UTF8.GetBytes(messageText);
             return (header, body);
-
         }
     }
 }

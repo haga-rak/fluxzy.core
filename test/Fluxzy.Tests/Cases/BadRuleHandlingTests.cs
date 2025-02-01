@@ -28,7 +28,7 @@ namespace Fluxzy.Tests.Cases
             
             var response = await client.GetAsync(TestConstants.Http2Host);
 
-            _ = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
             var hasHeader = response.Headers.TryGetValues("x-fluxzy-error-type", out var values);
 
             Assert.True(hasHeader);

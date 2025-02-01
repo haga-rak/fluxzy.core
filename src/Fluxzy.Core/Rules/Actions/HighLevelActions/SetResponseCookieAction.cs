@@ -61,11 +61,11 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         {
             if (Name == null!)
                 throw new RuleExecutionFailureException(
-                    $"{nameof(Name)} is mandatory for {nameof(SetResponseCookieAction)}");
+                    $"{nameof(Name)} is mandatory for {nameof(SetResponseCookieAction)}", this);
 
             if (Value == null!)
                 throw new RuleExecutionFailureException(
-                    $"{nameof(Value)} is mandatory for {nameof(SetResponseCookieAction)}");
+                    $"{nameof(Value)} is mandatory for {nameof(SetResponseCookieAction)}", this);
 
             if (exchange == null)
                 return default;
