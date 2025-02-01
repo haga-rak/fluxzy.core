@@ -172,8 +172,6 @@ namespace Fluxzy.Core
             if (exchange?.Connection == null || exchangeInitResult?.WriteStream == null)
                 return false;
 
-            var instant = timingProvider.Instant();
-
             var message = "An unknown error has occured.";
 
 
@@ -204,16 +202,21 @@ namespace Fluxzy.Core
                                                .WriteHttp11(false, buffer, true, true,
                                                    true);
 
+            exchange.Metrics.ResponseHeaderStart = timingProvider.Instant();
+
             await exchangeInitResult.WriteStream
                                     .WriteAsync(buffer.Buffer, 0, responseHeaderLength)
                                     .ConfigureAwait(false);
+
+            exchange.Metrics.ResponseHeaderEnd = timingProvider.Instant();
+            exchange.Metrics.ResponseBodyStart = timingProvider.Instant();
 
             await exchange.Response.Body.CopyToAsync(exchangeInitResult.WriteStream)
                           .ConfigureAwait(false);
 
             if (exchange.Metrics.ResponseBodyEnd == default)
             {
-                exchange.Metrics.ResponseBodyEnd = instant;
+                exchange.Metrics.ResponseBodyEnd = timingProvider.Instant();
             }
 
             if (!exchange.ExchangeCompletionSource.Task.IsCompleted)
