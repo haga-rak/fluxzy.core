@@ -9,11 +9,14 @@ using System.Text;
 using System.Text.Json;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
+using Fluxzy.Rules;
 
 namespace Fluxzy.Core
 {
     internal static class ConnectionErrorHandler
     {
+        private static readonly JsonSerializerOptions PrettyJsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        
         public static bool RequalifyOnResponseSendError(
             Exception ex,
             Exchange exchange, ITimingProvider timingProvider)
@@ -82,6 +85,10 @@ namespace Fluxzy.Core
             if (ex.TryGetException<ClientErrorException>(out var clientErrorException)) {
                 exchange.ClientErrors.Add(clientErrorException.ClientError);
             }
+            
+            if (ex.TryGetException<RuleExecutionFailureException>(out var ruleExecutionFailureException)) {
+                exchange.ClientErrors.Add(new ClientError(999, ruleExecutionFailureException.Message));
+            }
 
             if (!exchange.ClientErrors.Any()) {
                 exchange.ClientErrors.Add(new ClientError(0, "A generic error has occured") {
@@ -93,6 +100,7 @@ namespace Fluxzy.Core
                 ex is IOException ||
                 ex is H2Exception ||
                 ex is ClientErrorException ||
+                ex is RuleExecutionFailureException ||
                 ex is AuthenticationException) {
                 if (DebugContext.EnableDumpStackTraceOn502) {
                     var message = "Fluxzy close connection due to server connection errors.\r\n\r\n";
@@ -107,11 +115,7 @@ namespace Fluxzy.Core
 
                     if (DebugContext.EnableDumpStackTraceOn502) {
                         exchange.Metrics.ErrorInstant = DateTime.Now;
-
-                        message += "\r\n" + "\r\n" + JsonSerializer.Serialize(exchange.Metrics,
-                            new JsonSerializerOptions {
-                                WriteIndented = true
-                            });
+                        message += "\r\n" + "\r\n" + JsonSerializer.Serialize(exchange.Metrics,PrettyJsonOptions);
                     }
 
                     var messageBinary = Encoding.UTF8.GetBytes(message);
@@ -156,5 +160,6 @@ namespace Fluxzy.Core
 
             return false;
         }
+        
     }
 }

@@ -43,6 +43,8 @@ namespace Fluxzy.Core
 
         public async ValueTask Operate(TcpClient client, RsBuffer buffer, bool closeImmediately, CancellationToken token)
         {
+            Exchange? exchange = null;
+            
             try {
 
                 if (D.EnableTracing)
@@ -87,7 +89,7 @@ namespace Fluxzy.Core
                     if (exchangeSourceInitResult == null)
                         return;
 
-                    var exchange =
+                    exchange =
                         exchangeSourceInitResult.ProvisionalExchange;
 
                     var endPoint = (IPEndPoint) client.Client.RemoteEndPoint!;
@@ -115,42 +117,42 @@ namespace Fluxzy.Core
 
                             shouldClose = exchange.ShouldClose() || closeImmediately;
 
-                            if (_proxyRuntimeSetting.UserAgentProvider != null) {
-                                var userAgentValue = exchange.GetRequestHeaderValue("User-Agent");
-
-                                // Solve user agent 
-
-                                exchange.Agent = Agent.Create(userAgentValue ?? string.Empty,
-                                    ((IPEndPoint) client.Client.LocalEndPoint!).Address,
-                                    _proxyRuntimeSetting.UserAgentProvider);
-                            }
-
-                            exchange.Step = ExchangeStep.Request;
-
-                            await _proxyRuntimeSetting.EnforceRules(exchange.Context,
-                                FilterScope.RequestHeaderReceivedFromClient,
-                                exchange.Connection, exchange).ConfigureAwait(false);
-
-                            if (exchange.Context.Abort) {
-                                return;
-                            }
-
-                            if (exchange.Context.BreakPointContext != null) {
-                                await exchange.Context.BreakPointContext.ConnectionSetupCompletion
-                                              .WaitForEdit().ConfigureAwait(false);
-                            }
-
-                            // Run header alteration 
-
-                            foreach (var requestHeaderAlteration in exchange.Context.RequestHeaderAlterations) {
-                                requestHeaderAlteration.Apply(exchange.Request.Header);
-                            }
-
                             IHttpConnectionPool connectionPool;
                             Stream? originalRequestBodyStream = null; 
                             Stream? originalResponseBodyStream = null;
 
                             try {
+                                if (_proxyRuntimeSetting.UserAgentProvider != null) {
+                                    var userAgentValue = exchange.GetRequestHeaderValue("User-Agent");
+
+                                    // Solve user agent 
+
+                                    exchange.Agent = Agent.Create(userAgentValue ?? string.Empty,
+                                        ((IPEndPoint) client.Client.LocalEndPoint!).Address,
+                                        _proxyRuntimeSetting.UserAgentProvider);
+                                }
+
+                                exchange.Step = ExchangeStep.Request;
+                            
+                                await _proxyRuntimeSetting.EnforceRules(exchange.Context,
+                                    FilterScope.RequestHeaderReceivedFromClient,
+                                    exchange.Connection, exchange).ConfigureAwait(false);
+
+                                if (exchange.Context.Abort) {
+                                    return;
+                                }
+
+                                if (exchange.Context.BreakPointContext != null) {
+                                    await exchange.Context.BreakPointContext.ConnectionSetupCompletion
+                                                  .WaitForEdit().ConfigureAwait(false);
+                                }
+
+                                // Run header alteration 
+
+                                foreach (var requestHeaderAlteration in exchange.Context.RequestHeaderAlterations) {
+                                    requestHeaderAlteration.Apply(exchange.Request.Header);
+                                }
+                                
                                 if (exchange.Context.BreakPointContext != null) {
                                     await exchange.Context.BreakPointContext.RequestHeaderCompletion
                                                   .WaitForEdit().ConfigureAwait(false);
@@ -311,11 +313,9 @@ namespace Fluxzy.Core
                                 }
 
                                 
-                                var responseHeaderLength = exchange.Response.Header!.WriteHttp11(false,buffer, true, true, shouldClose);
+                                var responseHeaderLength = exchange.Response.Header!.WriteHttp11(false, buffer, true, true, shouldClose);
 
                                 if (_archiveWriter != null) {
-                                    // Update the state of the exchange
-                                    // 
                                     _archiveWriter.Update(exchange, ArchiveUpdateType.AfterResponseHeader,
                                         CancellationToken.None
                                     );
@@ -495,6 +495,7 @@ namespace Fluxzy.Core
                 }
 
                 // FATAL exception only happens here 
+                
                 throw;
             }
         }
