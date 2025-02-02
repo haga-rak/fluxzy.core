@@ -42,7 +42,7 @@ namespace Fluxzy.Rules.Filters
             var fileName = Filename.EvaluateVariable(exchangeContext);
 
             if (string.IsNullOrWhiteSpace(fileName)) {
-                throw new RuleExecutionFailureException($"{nameof(Filename)} cannot be null or empty"); 
+                throw new RuleExecutionFailureException($"{nameof(Filename)} cannot be null or empty", this); 
             }
 
             var arguments = Arguments.EvaluateVariable(exchangeContext);
@@ -75,7 +75,7 @@ namespace Fluxzy.Rules.Filters
             catch (Exception e) {
                 Console.WriteLine(e);
                 throw new RuleExecutionFailureException($"An error occurs while running process:" +
-                                                        $"{nameof(Filename)}", e);
+                                                        $"{nameof(Filename)}", this, e);
             }
         }
 

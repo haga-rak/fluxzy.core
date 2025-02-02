@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -130,25 +131,34 @@ namespace Fluxzy.Core
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
-            foreach (var rule in _effectiveRules!.Where(a =>
-                         a.Action.ActionScope == filterScope
-                         || a.Action.ActionScope == FilterScope.OutOfScope
-                         || (a.Action.ActionScope == FilterScope.CopySibling
-                             && a.Action is MultipleScopeAction multipleScopeAction
-                             && multipleScopeAction.RunScope == filterScope
-                         )
-                     )) {
-                await rule.Enforce(
-                    context, exchange, connection, filterScope,
-                    ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
+            try {
+                foreach (var rule in _effectiveRules!.Where(a =>
+                             a.Action.ActionScope == filterScope
+                             || a.Action.ActionScope == FilterScope.OutOfScope
+                             || (a.Action.ActionScope == FilterScope.CopySibling
+                                 && a.Action is MultipleScopeAction multipleScopeAction
+                                 && multipleScopeAction.RunScope == filterScope
+                             )
+                         )) {
+                    await rule.Enforce(
+                        context, exchange, connection, filterScope,
+                        ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
+                }
+
+                if (exchange?.RunInLiveEdit ?? false) {
+                    var breakPointAction = new BreakPointAction();
+                    var rule = new Rule(breakPointAction, AnyFilter.Default);
+
+                    await rule.Enforce(context, exchange, connection, filterScope,
+                        ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
+                }
             }
-
-            if (exchange?.RunInLiveEdit ?? false) {
-                var breakPointAction = new BreakPointAction();
-                var rule = new Rule(breakPointAction, AnyFilter.Default);
-
-                await rule.Enforce(context, exchange, connection, filterScope,
-                    ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
+            catch (Exception e) {
+                if (e is RuleExecutionFailureException) {
+                    throw;
+                }
+                
+                throw new RuleExecutionFailureException("Error while evaluating rules: " + e.Message, e);
             }
 
             return context;

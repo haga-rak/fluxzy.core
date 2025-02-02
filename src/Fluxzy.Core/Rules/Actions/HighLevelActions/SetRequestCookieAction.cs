@@ -42,7 +42,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
             if (Name == null!)
                 throw new RuleExecutionFailureException(
-                    $"{nameof(Name)} is mandatory for {nameof(SetRequestCookieAction)}");
+                    $"{nameof(Name)} is mandatory for {nameof(SetRequestCookieAction)}", this);
 
             var cookieHeaders = exchange.GetRequestHeaders().Where(
                 c => c.Name.Span.Equals("cookie", StringComparison.OrdinalIgnoreCase))

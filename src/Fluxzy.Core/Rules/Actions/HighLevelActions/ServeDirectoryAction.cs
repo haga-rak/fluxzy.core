@@ -32,7 +32,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             BreakPointManager breakPointManager)
         {
             if (!System.IO.Directory.Exists(Directory)) {
-                throw new RuleExecutionFailureException($"Directory {Directory} does not exist");
+                throw new RuleExecutionFailureException($"Directory {Directory} does not exist", this);
             }
 
             if (exchange == null) {

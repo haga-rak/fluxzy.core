@@ -42,12 +42,27 @@ namespace Fluxzy.Rules
 
             if (!context.FilterEvaluationResult.TryGetValue(Filter, out var result))
             {
-                result = Filter.Apply(context, context.Authority, exchange, null);
-                context.FilterEvaluationResult[Filter] = result;
+                try {
+                    result = Filter.Apply(context, context.Authority, exchange, null);
+                    context.FilterEvaluationResult[Filter] = result;
+                }
+                catch (Exception e) {
+                    if (e is RuleExecutionFailureException)
+                        throw;
+                    throw new RuleExecutionFailureException(e.Message, Filter, e);
+                }
             }
 
-            if (result)
-                return Action.Alter(context, exchange, connection, filterScope, breakPointManager);
+            try {
+                if (result)
+                    return Action.Alter(context, exchange, connection, filterScope, breakPointManager);
+            }
+            catch (Exception e) {
+                if (e is RuleExecutionFailureException)
+                    throw;
+
+                throw new RuleExecutionFailureException(e.Message, Action, e);
+            }
 
             return default;
         }

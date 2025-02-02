@@ -45,7 +45,7 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             if (string.IsNullOrWhiteSpace(HeaderName))
-                throw new RuleExecutionFailureException("Header name cannot be empty");
+                throw new RuleExecutionFailureException("Header name cannot be empty", this);
 
             context.ResponseHeaderAlterations.Add(new HeaderAlterationAdd(HeaderName.EvaluateVariable(context) ?? string.Empty,
                 HeaderValue.EvaluateVariable(context) ?? string.Empty));

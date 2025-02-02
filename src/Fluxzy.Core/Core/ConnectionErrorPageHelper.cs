@@ -10,11 +10,19 @@ namespace Fluxzy.Core
 {
     internal static class ConnectionErrorPageHelper
     {
-        private static readonly string ErrorHeader =
+        private static readonly string ErrorHeaderHtml =
             "HTTP/1.1 {0}\r\n" +
             "x-fluxzy: Fluxzy error\r\n" +
             "Content-length: {1}\r\n" +
-            "Content-type: text/html\r\n" +
+            "Content-type: text/html; charset: utf-8\r\n" +
+            "Connection : close\r\n\r\n";
+
+        private static readonly string ErrorHeaderText =
+            "HTTP/1.1 {0}\r\n" +
+            "x-fluxzy: Fluxzy error\r\n" +
+            "x-fluxzy-error-type: {2}\r\n" +
+            "Content-length: {1}\r\n" +
+            "Content-type: text/plain; charset: utf-8\r\n" +
             "Connection : close\r\n\r\n";
 
         private static string BodyTemplate { get;  }
@@ -60,7 +68,16 @@ namespace Fluxzy.Core
             bodyTemplate = bodyTemplate.Replace("@@error-message@@", errorMessage);
 
             var body = Encoding.UTF8.GetBytes(bodyTemplate);
-            var header = string.Format(ErrorHeader, headerStatus, body.Length);
+            var header = string.Format(ErrorHeaderHtml, headerStatus, body.Length);
+            return (header, body);
+        }
+
+        public static (string FlatHeader, byte[] BodyContent) GetSimplePlainTextResponse(
+            Authority authority, string messageText, string errorTypeText)
+        {
+            var statusLine = "502 Fluxzy Configuration Error";
+            var header = string.Format(ErrorHeaderText, statusLine, messageText.Length, errorTypeText);
+            var body = Encoding.UTF8.GetBytes(messageText);
             return (header, body);
         }
     }
