@@ -23,16 +23,13 @@ namespace Fluxzy.Build
         
         public static void CreateCompressed(string inputDirectory, string outputFile)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                CreateZip(inputDirectory, outputFile);
-            }
-            else
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 CreateTarGz(inputDirectory, outputFile);
             }
+            
+            CreateZip(inputDirectory, outputFile);
         }
-        
         
         internal static void CreateTarGz(string inputDirectory, string outputFile)
         {
