@@ -137,7 +137,7 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
                 {
                     using var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(HashHelper.GetWinGetHash(fileInfo)));
 
-                    var hashPayload = new ReleaseAssetUpload(Path.GetFileNameWithoutExtension(fileInfo.Name) + ".sha256",
+                    var hashPayload = new ReleaseAssetUpload($"{fileInfo.Name}.sha256",
                         "text/plain", memoryStream, null);
 
                     await client.Repository.Release.UploadAsset(release, hashPayload);
