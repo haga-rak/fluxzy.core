@@ -32,7 +32,6 @@ namespace Fluxzy.Core
             }
 
             var remoteIpAddress = exchange.Connection?.RemoteAddress?.ToString();
-            var remotePort = exchange.Connection?.Authority.Port.ToString();
 
             if (ex.TryGetException<SocketException>(out var socketException)) {
                 switch (socketException.SocketErrorCode) {
@@ -64,7 +63,7 @@ namespace Fluxzy.Core
                     case SocketError.ConnectionRefused: {
                         var clientError = new ClientError(
                             (int) socketException.SocketErrorCode,
-                            $"The remote peer ({remoteIpAddress}) responded but refused actively to establish a connection on port {remotePort}.") {
+                            $"The remote peer ({remoteIpAddress}) responded but refused actively to establish a connection.") {
                             ExceptionMessage = socketException.Message
                         };
 
