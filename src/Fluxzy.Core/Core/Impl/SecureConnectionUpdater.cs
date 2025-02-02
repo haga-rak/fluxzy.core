@@ -44,9 +44,7 @@ namespace Fluxzy.Core
 
             if (!DetectTlsClientHello(buffer)) {
                 // This is a regular CONNECT request without SSL
-                
-                return new SecureConnectionUpdateResult(false, new CombinedReadonlyStream(false, new MemoryStream(buffer), stream),
-                    stream);
+                return new SecureConnectionUpdateResult(false, new CombinedReadonlyStream(false, new MemoryStream(buffer), stream), stream);
             }
 
             stream = new CombinedReadonlyStream(false, new MemoryStream(buffer), stream);
@@ -67,8 +65,19 @@ namespace Fluxzy.Core
             }
 
             try {
+                var sslServerAuthenticationOptions = new SslServerAuthenticationOptions
+                {
+                    ApplicationProtocols = new() { SslApplicationProtocol.Http11 },
+                    ClientCertificateRequired = false,
+                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                    EncryptionPolicy = EncryptionPolicy.RequireEncryption,
+                    EnabledSslProtocols = SslProtocols.None,
+                    ServerCertificateSelectionCallback = (sender, name) => certificate
+                };
+
                 await secureStream
-                    .AuthenticateAsServerAsync(certificate, false, SslProtocols.None, false).ConfigureAwait(false);
+                    .AuthenticateAsServerAsync(sslServerAuthenticationOptions, token)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex) {
                 throw new FluxzyException(
@@ -82,8 +91,7 @@ namespace Fluxzy.Core
         }
     }
 
-    internal record SecureConnectionUpdateResult(
-        bool IsSsl, Stream InStream, Stream OutStream)
+    internal record SecureConnectionUpdateResult(bool IsSsl, Stream InStream, Stream OutStream)
     {
         public bool IsSsl { get; } = IsSsl;
         

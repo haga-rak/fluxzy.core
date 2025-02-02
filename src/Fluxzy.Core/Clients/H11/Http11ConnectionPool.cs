@@ -80,7 +80,6 @@ namespace Fluxzy.Clients.H11
 
             try {
                 _logger.Trace(exchange, "Begin wait for authority slot");
-                
                 _logger.Trace(exchange.Id, "Acquiring slot");
 
                 var requestDate = _timingProvider.Instant();
