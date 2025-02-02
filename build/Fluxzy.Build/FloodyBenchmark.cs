@@ -50,7 +50,9 @@ namespace Fluxzy.Build
             var listenPort = GetAFreePort();
 
             var fluxzyRunPromise = Command.RunAsync(
-                Path.Combine(setting.FluxzyOutDirectory, "fluxzy"), $"start -k -l 127.0.0.1:{listenPort}",
+                Path.Combine(setting.FluxzyOutDirectory, "fluxzy"), $"start -k -l " +
+                                                                    $"127.0.0.1:{listenPort} " +
+                                                                    $"{setting.FluxzyExtraSettings}",
                 workingDirectory: setting.FluxzyOutDirectory,
                 echoPrefix: "FLUXZY RUN", cancellationToken: token);
 
@@ -85,6 +87,9 @@ namespace Fluxzy.Build
         public int Duration { get; set; } = 15; 
 
         public int WarmupDuration { get; set; } = 5;
+
+        public string FluxzyExtraSettings { get; set; } 
+          = Environment.GetEnvironmentVariable("FLUXZY_EXTRA_SETTINGS") ?? string.Empty;
 
         public bool Plain { get; set; }
 
