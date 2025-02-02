@@ -1,6 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using SimpleExec;
@@ -401,6 +400,12 @@ namespace Fluxzy.Build
                     var shortVersion = await GetRunningVersionShort();
                     await DockerHelper.BuildDockerImage(".", shortVersion);
                     await DockerHelper.PushDockerImage(".", shortVersion);
+                });
+
+            Target(Targets.FluxzyStressTest,
+                DependsOn(),
+                async () => {
+                    await FloodyBenchmark.Run(new FloodyBenchmarkSetting());
                 });
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
