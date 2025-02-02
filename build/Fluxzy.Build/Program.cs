@@ -45,6 +45,12 @@ namespace Fluxzy.Build
 
         private static async Task Upload(FileInfo fullFile)
         {
+            if (!string.Equals(Environment.GetEnvironmentVariable("ENABLE_UPLOAD"), 
+                    "1", StringComparison.OrdinalIgnoreCase)) {
+                Console.WriteLine("Skipping upload");
+                return;
+            }
+            
             var uploadReleaseToken = EnvironmentHelper.GetEvOrFail("UPLOAD_RELEASE_TOKEN");
 
             var hashValue = HashHelper.GetSha512Hash(fullFile);
