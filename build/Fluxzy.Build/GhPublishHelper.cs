@@ -113,12 +113,20 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
             return true;
         }
 
+        internal static string GetUntilReleaseVersionName(string version)
+        {
+            var parts = version.Split('.');
+            return string.Join('.', parts.Take(3));
+        }
+        
+        
         public async Task<bool> AddAssets(string tagName, IEnumerable<FileInfo> fileInfos, bool addHash = true)
         {
             var client = _clientBuilder();
 
             var existingReleases = await client.Repository.Release.GetAll(_repositoryId);
-            var release = existingReleases.FirstOrDefault(r => r.TagName == tagName);
+            var release = existingReleases.FirstOrDefault(r => string.Equals(GetUntilReleaseVersionName(r.TagName),
+                GetUntilReleaseVersionName(tagName), StringComparison.OrdinalIgnoreCase));
 
             if (release == null)
                 throw new InvalidOperationException($"Tag {tagName} does not exists." +
