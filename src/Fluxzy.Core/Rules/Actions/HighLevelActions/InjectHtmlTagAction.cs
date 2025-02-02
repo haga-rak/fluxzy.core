@@ -73,11 +73,11 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             }
 
             if (!FromFile && string.IsNullOrEmpty(HtmlContent)) {
-                throw new RuleExecutionFailureException("Text is null or empty");
+                throw new RuleExecutionFailureException("Text is null or empty", this);
             }
 
             if (FromFile && string.IsNullOrEmpty(FileName)) {
-                throw new RuleExecutionFailureException("FileName is null or empty");
+                throw new RuleExecutionFailureException("FileName is null or empty", this);
             }
 
             if (RestrictToHtml) {

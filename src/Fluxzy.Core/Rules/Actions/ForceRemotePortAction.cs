@@ -33,7 +33,7 @@ namespace Fluxzy.Rules.Actions
             BreakPointManager breakPointManager)
         {
             if (Port <= 0 || Port > 65535) 
-                throw new RuleExecutionFailureException("Port must be between 1 and 65535");
+                throw new RuleExecutionFailureException("Port must be between 1 and 65535", this);
 
             context.RemoteHostPort = Port;
 

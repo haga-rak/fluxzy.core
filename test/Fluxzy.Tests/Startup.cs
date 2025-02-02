@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
@@ -50,8 +51,8 @@ namespace Fluxzy.Tests
             CertificateContext.InstallDefaultCertificate();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                _ = Task.Run(async () =>
-                            await Utility.AcquireCapabilities(new FileInfo("fluxzynetcap").FullName))
+                Task.Run(async () => { await Utility.AcquireCapabilitiesLinux(new FileInfo("fluxzynetcap").FullName);
+                        })
                         .GetAwaiter().GetResult();
             }
         }
