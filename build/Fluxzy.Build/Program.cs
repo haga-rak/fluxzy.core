@@ -40,7 +40,7 @@ namespace Fluxzy.Build
 
         private static string GetFileName(string runtimeIdentifier, string version)
         {
-            return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
+            return $"fluxzy-cli-{version}-{runtimeIdentifier}";
         }
 
         private static async Task Upload(FileInfo fullFile)
@@ -269,12 +269,8 @@ namespace Fluxzy.Build
                     foreach (var runtimeIdentifier in TargetRuntimeIdentifiers[current]) {
                         var outDirectory = $".artefacts/{runtimeIdentifier}";
 
-                        ZipFile.CreateFromDirectory(
-                            outDirectory,
-                            $".artefacts/final/{GetFileName(runtimeIdentifier, runningVersion)}",
-                            CompressionLevel.Optimal,
-                            false
-                        );
+                        CompressionHelper.CreateCompressed(outDirectory,
+                            $".artefacts/final/{GetFileName(runtimeIdentifier, runningVersion)}");
                     }
                 });
 
