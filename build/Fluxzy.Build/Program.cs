@@ -40,11 +40,17 @@ namespace Fluxzy.Build
 
         private static string GetFileName(string runtimeIdentifier, string version)
         {
-            return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
+            return $"fluxzy-cli-{version}-{runtimeIdentifier}";
         }
 
         private static async Task Upload(FileInfo fullFile)
         {
+            if (!string.Equals(Environment.GetEnvironmentVariable("ENABLE_UPLOAD"), 
+                    "1", StringComparison.OrdinalIgnoreCase)) {
+                Console.WriteLine("Skipping upload");
+                return;
+            }
+            
             var uploadReleaseToken = EnvironmentHelper.GetEvOrFail("UPLOAD_RELEASE_TOKEN");
 
             var hashValue = HashHelper.GetSha512Hash(fullFile);
@@ -263,12 +269,8 @@ namespace Fluxzy.Build
                     foreach (var runtimeIdentifier in TargetRuntimeIdentifiers[current]) {
                         var outDirectory = $".artefacts/{runtimeIdentifier}";
 
-                        ZipFile.CreateFromDirectory(
-                            outDirectory,
-                            $".artefacts/final/{GetFileName(runtimeIdentifier, runningVersion)}",
-                            CompressionLevel.Optimal,
-                            false
-                        );
+                        CompressionHelper.CreateCompressed(outDirectory,
+                            $".artefacts/final/{GetFileName(runtimeIdentifier, runningVersion)}");
                     }
                 });
 
