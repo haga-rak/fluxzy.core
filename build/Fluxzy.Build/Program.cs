@@ -408,6 +408,14 @@ namespace Fluxzy.Build
                     await FloodyBenchmark.Run(new FloodyBenchmarkSetting());
                 });
 
+            Target(Targets.FluxzyStressTestPlain,
+                DependsOn(),
+                async () => {
+                    await FloodyBenchmark.Run(new FloodyBenchmarkSetting() {
+                        Plain = true
+                    });
+                });
+
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);
         }
     }

@@ -37,5 +37,7 @@ namespace Fluxzy.Build
         public static string FluxzyCliPublishDocker => "fluxzy-cli-publish-docker";
 
         public static string FluxzyStressTest => "stress-test";
+
+        public static string FluxzyStressTestPlain => "stress-test-plain";
     }
 }

@@ -8,7 +8,7 @@ namespace Fluxzy.Build
 {
     internal static class FloodyBenchmark
     {
-        public static int GetAFreePort()
+        internal static int GetAFreePort()
         {
             using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -56,9 +56,11 @@ namespace Fluxzy.Build
 
             await Task.Delay(500, token);
 
+            var testTarget = setting.Plain ? "test-http" : "test-https";
+
             try {
                 await Command.RunAsync("dotnet", 
-                    $"run --project build/build.csproj -- test-https " +
+                    $"run --project build/build.csproj -- {testTarget} " +
                     $"\"floody-options:-d {setting.Duration} -w {setting.WarmupDuration} -x 127.0.0.1:{listenPort}\"",
                     workingDirectory: setting.FloodyCloneDirectory,
                     echoPrefix: "FLUXZY RUN", cancellationToken: token);
@@ -75,12 +77,6 @@ namespace Fluxzy.Build
             catch (Exception e) {
                 // Ignore operation cancelleted 
             }
-
-            // start fluxzy 
-            // run floody 
-
-            // release fluxzy
-            // release floody 
         }
     }
 
@@ -89,6 +85,8 @@ namespace Fluxzy.Build
         public int Duration { get; set; } = 15; 
 
         public int WarmupDuration { get; set; } = 5;
+
+        public bool Plain { get; set; }
 
         public string FloodyCloneDirectory { get; set; }
           = Environment.GetEnvironmentVariable("FLOODY_CLONE_DIRECTORY") ?? GetDefaultFloodyCloneDirectory();
