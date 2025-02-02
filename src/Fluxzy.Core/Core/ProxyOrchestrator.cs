@@ -542,7 +542,7 @@ namespace Fluxzy.Core
 
                 var handleResult = await
                     ConnectionErrorHandler.HandleGenericException(ex, exchangeSourceInitResult,
-                        exchange, buffer, ITimingProvider.Default);
+                        exchange, buffer, _archiveWriter, ITimingProvider.Default, token);
 
                 if (!handleResult)
                     // 

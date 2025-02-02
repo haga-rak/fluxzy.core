@@ -75,7 +75,7 @@ namespace Fluxzy.Core
         public static (string FlatHeader, byte[] BodyContent) GetSimplePlainTextResponse(
             Authority authority, string messageText, string errorTypeText)
         {
-            var statusLine = FluxzySharedSetting.Use528 ? "528 Fluxzy error" : "502 Bad Gateway";
+            var statusLine = "502 Fluxzy Configuration Error";
             var header = string.Format(ErrorHeaderText, statusLine, messageText.Length, errorTypeText);
             var body = Encoding.UTF8.GetBytes(messageText);
             return (header, body);

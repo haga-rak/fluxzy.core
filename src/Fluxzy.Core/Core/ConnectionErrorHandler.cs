@@ -7,11 +7,13 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules;
+using Fluxzy.Writers;
 
 namespace Fluxzy.Core
 {
@@ -30,6 +32,7 @@ namespace Fluxzy.Core
             }
 
             var remoteIpAddress = exchange.Connection?.RemoteAddress?.ToString();
+            var remotePort = exchange.Connection?.Authority.Port.ToString();
 
             if (ex.TryGetException<SocketException>(out var socketException)) {
                 switch (socketException.SocketErrorCode) {
@@ -61,7 +64,7 @@ namespace Fluxzy.Core
                     case SocketError.ConnectionRefused: {
                         var clientError = new ClientError(
                             (int) socketException.SocketErrorCode,
-                            $"The remote peer ({remoteIpAddress}) responded but refused actively to establish a connection.") {
+                            $"The remote peer ({remoteIpAddress}) responded but refused actively to establish a connection on port {remotePort}.") {
                             ExceptionMessage = socketException.Message
                         };
 
@@ -164,12 +167,13 @@ namespace Fluxzy.Core
             ExchangeSourceInitResult? exchangeInitResult,
             Exchange? exchange,
             RsBuffer buffer,
-            ITimingProvider timingProvider)
+            RealtimeArchiveWriter? archiveWriter,
+            ITimingProvider timingProvider, CancellationToken token)
         {
             if (exchange?.Connection == null || exchangeInitResult?.WriteStream == null)
                 return false;
 
-            var message = "An unknown error has occured.";
+            var message = "A configuration error has occured.\r\n";
 
             if (ex is RuleExecutionFailureException ruleException) {
                 message = 
@@ -186,6 +190,8 @@ namespace Fluxzy.Core
                 exchange.Authority,
                 message, ex.GetType().Name);
 
+            exchange.ClientErrors.Add(new ClientError(9999, message));
+
             exchange.Response.Header = new ResponseHeader(
                 header.AsMemory(),
                 exchange.Authority.Secure, true);
@@ -199,13 +205,13 @@ namespace Fluxzy.Core
             exchange.Metrics.ResponseHeaderStart = timingProvider.Instant();
 
             await exchangeInitResult.WriteStream
-                                    .WriteAsync(buffer.Buffer, 0, responseHeaderLength)
+                                    .WriteAsync(buffer.Buffer, 0, responseHeaderLength, token)
                                     .ConfigureAwait(false);
 
             exchange.Metrics.ResponseHeaderEnd = timingProvider.Instant();
             exchange.Metrics.ResponseBodyStart = timingProvider.Instant();
 
-            await exchange.Response.Body.CopyToAsync(exchangeInitResult.WriteStream)
+            await exchange.Response.Body.CopyToAsync(exchangeInitResult.WriteStream, token)
                           .ConfigureAwait(false);
 
             if (exchange.Metrics.ResponseBodyEnd == default)
@@ -217,6 +223,9 @@ namespace Fluxzy.Core
             {
                 exchange.ExchangeCompletionSource.TrySetResult(true);
             }
+
+            archiveWriter?.Update(exchange, ArchiveUpdateType.AfterResponse, token);
+
 
             return true;
         }
