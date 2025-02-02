@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules;
@@ -114,8 +113,9 @@ namespace Fluxzy.Core
 
         public void Init()
         {
-            var activeRules = StartupSetting.FixedRules()
-                                            .Concat(StartupSetting.AlterationRules).ToList();
+            var activeRules = StartupSetting.AlterationRules
+                                            .Concat(StartupSetting.FixedRules())
+                                            .ToList();
 
             var startupContext = new StartupContext(StartupSetting, VariableContext, ArchiveWriter);
 
@@ -163,18 +163,5 @@ namespace Fluxzy.Core
 
             return context;
         }
-    }
-
-    internal class HostInfo
-    {
-        public HostInfo(string host)
-        {
-            Host = host;
-            EncodedHost = Encoding.UTF8.GetBytes(host);
-        }
-
-        public string Host { get; }
-
-        public byte[] EncodedHost { get; set; }
     }
 }
