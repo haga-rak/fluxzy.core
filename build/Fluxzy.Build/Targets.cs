@@ -35,5 +35,9 @@ namespace Fluxzy.Build
         public static string FluxzyPublishNugetPublicPreRelease => "fluxzy-publish-nuget-public-pre-release";
         public static string FluxzyCliPublishWithNote => "fluxzy-cli-publish-with-note";
         public static string FluxzyCliPublishDocker => "fluxzy-cli-publish-docker";
+
+        public static string FluxzyStressTest => "stress-test";
+
+        public static string FluxzyStressTestPlain => "stress-test-plain";
     }
 }
