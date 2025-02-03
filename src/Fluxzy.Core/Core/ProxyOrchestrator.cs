@@ -99,17 +99,20 @@ namespace Fluxzy.Core
                     var endPoint = (IPEndPoint)client.Client.RemoteEndPoint!;
                     var localEndPoint = (IPEndPoint)client.Client.LocalEndPoint!;
 
-                    exchange.Metrics.DownStreamClientPort = endPoint.Port;
-                    exchange.Metrics.DownStreamClientAddress = endPoint.Address.ToString();
-                    exchange.Metrics.DownStreamLocalPort = localEndPoint.Port;
-                    exchange.Metrics.DownStreamLocalAddress = localEndPoint.Address.ToString();
-                    exchange.Context.DownStreamLocalAddressStruct = localEndPoint.Address;
-                    exchange.Context.ProxyListenPort = _proxyRuntimeSetting.ProxyListenPort;
-
                     var shouldClose = false;
+
+                    var downStreamClientAddress = endPoint.Address.ToString();
+                    var localEndPointsAddress = localEndPoint.Address.ToString();
 
                     do
                     {
+                        exchange.Metrics.DownStreamClientPort = endPoint.Port;
+                        exchange.Metrics.DownStreamClientAddress = downStreamClientAddress;
+                        exchange.Metrics.DownStreamLocalPort = localEndPoint.Port;
+                        exchange.Metrics.DownStreamLocalAddress = localEndPointsAddress;
+                        exchange.Context.DownStreamLocalAddressStruct = localEndPoint.Address;
+                        exchange.Context.ProxyListenPort = _proxyRuntimeSetting.ProxyListenPort;
+
                         var processMessage = !exchange.Unprocessed;
 
                         if (processMessage)
