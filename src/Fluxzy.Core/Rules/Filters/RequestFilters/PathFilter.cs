@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
@@ -42,8 +43,16 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         protected override IEnumerable<string> GetMatchInputs(
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
-            if (exchange != null)
-                yield return exchange.Path;
+            if (exchange != null) {
+
+                if (authority.Secure || !Uri.TryCreate(exchange.Path, UriKind.Absolute, out var uri))
+                {
+                    yield return exchange.Path;
+                    yield break;
+                }
+                
+                yield return uri.PathAndQuery;
+            }
         }
     }
 
