@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Core.Pcap;
+using Fluxzy.Rules.Actions.HighLevelActions;
+using Fluxzy.Rules.Filters;
+using Fluxzy.Rules.Filters.RequestFilters;
 using Xunit;
 
 namespace Fluxzy.Tests.Cases
@@ -75,6 +78,30 @@ namespace Fluxzy.Tests.Cases
             }
         }
 
+        [Theory]
+        [MemberData(nameof(AllValidHosts))]
+        public async Task MakeCustomHookFilter(string host)
+        {
+            var setting = FluxzySetting.CreateLocalRandomPort();
+
+            setting.ConfigureRule()
+                   .When(new FilterCollection(new IsSelfFilter(), new PathFilter("/hello")))
+                   .ReplyText("Hello");
+
+            await using var proxy = new Proxy(setting);
+
+            var endPoints = proxy.Run();
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
+
+            for (int i = 0; i < 4; i++)
+            {
+                var response = await client.GetAsync($"http://{host}:{endPoints.First().Port}/hello");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+
+                Assert.Equal("Hello", content);
+            }
+        }
 
         public static IEnumerable<object[]> AllValidHosts()
         {
