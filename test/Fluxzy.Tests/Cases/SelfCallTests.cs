@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
@@ -110,7 +111,9 @@ namespace Fluxzy.Tests.Cases
                                    : s.ToString())
                                .ToList();
 
-            allIps.Add(Dns.GetHostName());
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                allIps.Add(Dns.GetHostName());
+
             allIps.Add("local.fluxzy.io");
 
             return allIps.Select(s => new object[] { s });
