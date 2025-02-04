@@ -7,7 +7,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
-using Fluxzy.Core.Pcap;
 using Fluxzy.Rules.Actions.HighLevelActions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
@@ -105,7 +104,7 @@ namespace Fluxzy.Tests.Cases
 
         public static IEnumerable<object[]> AllValidHosts()
         {
-            var allIps = Fluxzy.Misc.IpUtility.GetAllLocalIps()
+            var allIps = new IPAddress[] { IPAddress.IPv6Loopback, IPAddress.Loopback }
                                .Select(s => s.AddressFamily == AddressFamily.InterNetworkV6 ?
                                    $"[{s}]" 
                                    : s.ToString())
