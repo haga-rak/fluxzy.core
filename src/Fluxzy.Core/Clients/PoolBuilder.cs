@@ -14,6 +14,7 @@ using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
 using Fluxzy.Misc;
 using Fluxzy.Rules;
+using Fluxzy.Utils;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Clients
@@ -40,14 +41,14 @@ namespace Fluxzy.Clients
 
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
             new Dictionary<Authority, IHttpConnectionPool>();
-
-        private readonly ConcurrentDictionary<Authority, SemaphoreSlim> _lock = new();
         private readonly CancellationTokenSource _poolCheckHaltSource = new();
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
 
         private readonly ConcurrentDictionary<string, DefaultDnsResolver> _dnsSolversCache = new();
+
+        private Synchronizer<Authority> _synchronizer = new(true);
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
@@ -123,13 +124,9 @@ namespace Fluxzy.Clients
 
             IHttpConnectionPool? result = null;
 
-            var semaphorePerAuthority = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
-            var released = false;
-
             try
             {
-                if (!semaphorePerAuthority.Wait(0))
-                    await semaphorePerAuthority.WaitAsync(cancellationToken).ConfigureAwait(false);
+                using var _ = await _synchronizer.LockAsync(exchange.Authority);
 
                 var forceNewConnection = exchange.Context.ForceNewConnection;
 
@@ -139,20 +136,21 @@ namespace Fluxzy.Clients
                 // Looking for existing HttpPool
 
                 if (!forceNewConnection) {
-                    lock (_connectionPools) {
-                        while (_connectionPools.TryGetValue(exchange.Authority, out var pool)) {
+                    lock (_connectionPools) 
+                    {
+                        if (_connectionPools.TryGetValue(exchange.Authority, out var pool)) 
+                        {
                             if (pool.Complete) {
                                 _connectionPools.Remove(pool.Authority);
-
-                                continue;
                             }
+                            else {
+                                if (exchange.Metrics.RetrievingPool == default)
+                                    exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
-                            if (exchange.Metrics.RetrievingPool == default)
-                                exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+                                exchange.Metrics.ReusingConnection = true;
 
-                            exchange.Metrics.ReusingConnection = true;
-
-                            return pool;
+                                return pool;
+                            }
                         }
                     }
                 }
@@ -224,7 +222,6 @@ namespace Fluxzy.Clients
                     throw;
                 }
 
-                // exchange.Connection = openingResult.Connection;
 
                 if (openingResult.Type == RemoteConnectionResultType.Http11) {
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
@@ -260,21 +257,15 @@ namespace Fluxzy.Clients
                 throw new NotSupportedException($"Unhandled protocol type {openingResult.Type}");
             }
             finally {
-                try {
-                    if (result != null) {
-                        released = true;
-                        semaphorePerAuthority.Release();
-
+                if (result != null) {
+                    try
+                    {
                         result.Init();
                     }
-                }
-                catch {
-                    if (result != null)
+                    catch
+                    {
                         OnConnectionFaulted(result);
-                }
-                finally {
-                    if (!released)
-                        semaphorePerAuthority.Release();
+                    }
                 }
             }
         }
