@@ -13,19 +13,23 @@ namespace Fluxzy.Utils
     /// <typeparam name="T"></typeparam>
     internal class Synchronizer<T> where T : IEquatable<T>
     {
+        private readonly bool _preserve;
         private readonly ConcurrentDictionary<T, SemaphoreSlim> _locks = new();
 
-        public static Synchronizer<T> Instance { get; } = new();
+        public static Synchronizer<T> Shared { get; } = new();
 
-        private Synchronizer()
+        public Synchronizer(bool preserve = false)
         {
-
+            _preserve = preserve;
         }
 
-        public async Task<IDisposable> LockAsync(T key)
+        public async ValueTask<IDisposable> LockAsync(T key)
         {
             var semaphore = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
-            await semaphore.WaitAsync();
+
+            if (!semaphore.Wait(0))
+                await semaphore.WaitAsync();
+
             return new Releaser(this, key);
         }
 
@@ -36,7 +40,7 @@ namespace Fluxzy.Utils
                 semaphore.Release();
 
                 // Clean up if no one is waiting
-                if (semaphore.CurrentCount == 1)
+                if (!_preserve && semaphore.CurrentCount == 1)
                 {
                     _locks.TryRemove(key, out _);
                 }

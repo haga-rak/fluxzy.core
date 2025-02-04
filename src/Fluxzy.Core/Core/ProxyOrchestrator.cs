@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Clients.Mock;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
@@ -24,6 +25,8 @@ namespace Fluxzy.Core
         private readonly PoolBuilder _poolBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
         private readonly ExchangeContextBuilder _exchangeContextBuilder;
+
+        public static int loopCount; 
 
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
@@ -45,6 +48,12 @@ namespace Fluxzy.Core
         {
             Exchange? exchange = null;
             ExchangeSourceInitResult? exchangeSourceInitResult = null;
+
+            Interlocked.Increment(ref loopCount);
+
+            if (loopCount > 3) {
+
+            }
 
             try
             {
@@ -208,11 +217,19 @@ namespace Fluxzy.Core
                                     }
                                 }
 
+               
+                              
                                 while (true)
                                 {
-                                    // get a connection pool for the current exchange 
-
-                                    connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token).ConfigureAwait(false);
+                                    if (exchange.Context.PreMadeResponse != null)
+                                    {
+                                        connectionPool = new MockedConnectionPool(exchange.Authority, exchange.Context.PreMadeResponse);
+                                        connectionPool.Init();
+                                    }
+                                    else {
+                                        // get a connection pool for the current exchange 
+                                        connectionPool = await _poolBuilder.GetPool(exchange, _proxyRuntimeSetting, token).ConfigureAwait(false);
+                                    }
 
                                     if (D.EnableTracing)
                                     {
@@ -257,6 +274,7 @@ namespace Fluxzy.Core
 
                                     break;
                                 }
+                                
                             }
                             catch (Exception exception)
                             {

@@ -3,15 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using Fluxzy.Clients.Headers;
 using Fluxzy.Clients.Ssl;
 using Fluxzy.Core;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Rules;
 
 namespace Fluxzy.Clients
 {
@@ -69,7 +66,6 @@ namespace Fluxzy.Clients
                                            setting.ArchiveWriter != null!
                                            ? setting.ArchiveWriter.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
-
             
             var localEndpoint = await tcpConnection.ConnectAsync(
                 resolutionResult.EndPoint.Address,
@@ -145,7 +141,6 @@ namespace Fluxzy.Clients
                 : RemoteConnectionResultType.Http11;
 
             exchange.Connection.ReadStream = exchange.Connection.WriteStream = resultStream;
-            
 
             return new RemoteConnectionResult(protoType, exchange.Connection);
         }
