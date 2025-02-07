@@ -62,7 +62,7 @@ namespace Fluxzy.Clients.Dns
         {
             var key = new DnsCacheKey(type, hostName);
 
-            using var _ = await Synchronizer<DnsCacheKey>.Instance.LockAsync(key).ConfigureAwait(false);
+            using var _ = await Synchronizer<DnsCacheKey>.Shared.LockAsync(key).ConfigureAwait(false);
 
             if (_cache.TryGetValue(key, out var cached))
             {
