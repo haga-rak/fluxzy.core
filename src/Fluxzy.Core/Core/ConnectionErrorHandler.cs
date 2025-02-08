@@ -163,13 +163,13 @@ namespace Fluxzy.Core
         }
 
         public static async Task<bool> HandleGenericException(Exception ex,
-            ExchangeSourceInitResult? exchangeInitResult,
+            IDownStreamPipe? downStreamPipe,
             Exchange? exchange,
             RsBuffer buffer,
             RealtimeArchiveWriter? archiveWriter,
             ITimingProvider timingProvider, CancellationToken token)
         {
-            if (exchange?.Connection == null || exchangeInitResult?.WriteStream == null)
+            if (exchange?.Connection == null || downStreamPipe == null || downStreamPipe.CanWrite)
                 return false;
 
             var message = "A configuration error has occured.\r\n";
@@ -197,21 +197,14 @@ namespace Fluxzy.Core
 
             exchange.Response.Body = new MemoryStream(body);
 
-            var responseHeaderLength = exchange.Response.Header!
-                                               .WriteHttp11(false, buffer, true, true,
-                                                   true);
-
             exchange.Metrics.ResponseHeaderStart = timingProvider.Instant();
 
-            await exchangeInitResult.WriteStream
-                                    .WriteAsync(buffer.Buffer, 0, responseHeaderLength, token)
-                                    .ConfigureAwait(false);
+            await downStreamPipe.WriteResponseHeader(exchange.Response.Header, buffer, token);
 
             exchange.Metrics.ResponseHeaderEnd = timingProvider.Instant();
             exchange.Metrics.ResponseBodyStart = timingProvider.Instant();
 
-            await exchange.Response.Body.CopyToAsync(exchangeInitResult.WriteStream, token)
-                          .ConfigureAwait(false);
+            await downStreamPipe.WriteResponseBody(exchange.Response.Body, buffer, false, token);
 
             if (exchange.Metrics.ResponseBodyEnd == default)
             {

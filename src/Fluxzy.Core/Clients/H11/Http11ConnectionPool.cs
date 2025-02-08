@@ -71,7 +71,7 @@ namespace Fluxzy.Clients.H11
         }
 
         public async ValueTask Send(
-            Exchange exchange, ILocalLink _, RsBuffer buffer,
+            Exchange exchange, IDownStreamPipe downstreamPipe, RsBuffer buffer,
             CancellationToken cancellationToken)
         {
             ITimingProvider.Default.Instant();

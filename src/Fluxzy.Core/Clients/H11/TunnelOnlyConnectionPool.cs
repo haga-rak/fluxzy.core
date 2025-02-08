@@ -52,7 +52,7 @@ namespace Fluxzy.Clients.H11
         }
 
         public async ValueTask Send(
-            Exchange exchange, ILocalLink localLink, RsBuffer buffer,
+            Exchange exchange, IDownStreamPipe downStreamPipe, RsBuffer buffer,
             CancellationToken cancellationToken = default)
         {
             try {
@@ -63,7 +63,7 @@ namespace Fluxzy.Clients.H11
                     _connectionBuilder,
                     _proxyRuntimeSetting, null, _resolutionResult);
 
-                await ex.Process(exchange, localLink, buffer.Buffer, CancellationToken.None).ConfigureAwait(false);
+                await ex.Process(exchange, downStreamPipe, buffer.Buffer, CancellationToken.None).ConfigureAwait(false);
             }
             finally {
                 _semaphoreSlim.Release();
@@ -114,12 +114,9 @@ namespace Fluxzy.Clients.H11
         }
 
         public async Task Process(
-            Exchange exchange, ILocalLink localLink, byte[] buffer,
+            Exchange exchange, IDownStreamPipe downStreamPipe, byte[] buffer,
             CancellationToken cancellationToken)
         {
-            if (localLink == null)
-                throw new ArgumentNullException(nameof(localLink));
-
             var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(
                 exchange, _dnsResolutionResult,
                 new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 },
@@ -142,11 +139,16 @@ namespace Fluxzy.Clients.H11
                     haltTokenSource.Token,
                     cancellationToken);
 
+                var (readStream, writeStream) = downStreamPipe.AbandonPipe();
+
+                await using var _ = readStream;
+                await using var __ = writeStream;
+
                 var tasks = new Task[] {
-                    localLink.ReadStream!.CopyDetailed(remoteStream!, buffer, copied =>
+                    readStream.CopyDetailed(remoteStream!, buffer, copied =>
                             exchange.Metrics.TotalSent += copied
                         , copyTokenSource.Token).AsTask(),
-                    remoteStream!.CopyDetailed(localLink.WriteStream!, 1024 * 16, copied =>
+                    remoteStream!.CopyDetailed(writeStream, 1024 * 16, copied =>
                             exchange.Metrics.TotalReceived += copied
                         , copyTokenSource.Token).AsTask()
                 };

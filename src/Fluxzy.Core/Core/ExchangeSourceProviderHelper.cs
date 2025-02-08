@@ -9,17 +9,17 @@ namespace Fluxzy.Core
         public static ExchangeSourceProvider GetSourceProvider(FluxzySetting setting,
             SecureConnectionUpdater secureConnectionUpdater, 
             IIdProvider idProvider, ICertificateProvider certificateProvider, 
-            ProxyAuthenticationMethod proxyAuthenticationMethod)
+            ProxyAuthenticationMethod proxyAuthenticationMethod, IExchangeContextBuilder contextBuilder)
         {
             if (!setting.ReverseMode)
                 return new FromProxyConnectSourceProvider(
                     secureConnectionUpdater, idProvider,
-                    proxyAuthenticationMethod);
+                    proxyAuthenticationMethod, contextBuilder);
             
             if (setting.ReverseModePlainHttp)
-                return new ReverseProxyPlainExchangeSourceProvider(idProvider, setting.ReverseModeForcedPort);
+                return new ReverseProxyPlainExchangeSourceProvider(idProvider, setting.ReverseModeForcedPort, contextBuilder);
 
-            return new ReverseProxyExchangeSourceProvider(certificateProvider, idProvider, setting.ReverseModeForcedPort);
+            return new ReverseProxyExchangeSourceProvider(certificateProvider, idProvider, setting.ReverseModeForcedPort, contextBuilder);
         }
     }
 }

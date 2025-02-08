@@ -39,7 +39,7 @@ namespace Fluxzy.Clients.Mock
 
         public async ValueTask Send(
             Exchange exchange,
-            ILocalLink localLink, RsBuffer buffer,
+            IDownStreamPipe downStreamPipe, RsBuffer buffer,
             CancellationToken cancellationToken = default)
         {
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();

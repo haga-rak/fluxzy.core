@@ -24,10 +24,7 @@ namespace Fluxzy.Core
         private readonly ExchangeSourceProvider _exchangeSourceProvider;
         private readonly PoolBuilder _poolBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
-        private readonly ExchangeContextBuilder _exchangeContextBuilder;
-
-        public static int loopCount; 
-
+        
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
             ExchangeSourceProvider exchangeSourceProvider,
@@ -37,7 +34,6 @@ namespace Fluxzy.Core
             _exchangeSourceProvider = exchangeSourceProvider;
             _poolBuilder = poolBuilder;
             _archiveWriter = proxyRuntimeSetting.ArchiveWriter;
-            _exchangeContextBuilder = new ExchangeContextBuilder(proxyRuntimeSetting);
         }
 
         public void Dispose()
@@ -48,12 +44,6 @@ namespace Fluxzy.Core
         {
             Exchange? exchange = null;
             ExchangeSourceInitResult? exchangeSourceInitResult = null;
-
-            Interlocked.Increment(ref loopCount);
-
-            if (loopCount > 3) {
-
-            }
 
             try
             {
@@ -67,7 +57,7 @@ namespace Fluxzy.Core
                 using var callerTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
 
                 token = callerTokenSource.Token;
-
+                
                 if (!token.IsCancellationRequested)
                 {
                     // READ initial state of connection, 
@@ -75,8 +65,8 @@ namespace Fluxzy.Core
                     try
                     {
                         exchangeSourceInitResult = await _exchangeSourceProvider.InitClientConnection(
-                            client.GetStream(), buffer,
-                            _exchangeContextBuilder, (IPEndPoint)client.Client.LocalEndPoint!, (IPEndPoint)client.Client.RemoteEndPoint!, token)
+                            client.GetStream(), buffer, (IPEndPoint)client.Client.LocalEndPoint!, 
+                            (IPEndPoint)client.Client.RemoteEndPoint!, token)
                             .ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -241,7 +231,11 @@ namespace Fluxzy.Core
 
                                     try
                                     {
-                                        await connectionPool.Send(exchange, exchangeSourceInitResult, buffer, token).ConfigureAwait(false);
+                                        var downStreamPipe = exchangeSourceInitResult.DownStreamPipe;
+
+                                        await connectionPool.Send(exchange, 
+                                            downStreamPipe,
+                                            buffer, token).ConfigureAwait(false);
 
                                         if (D.EnableTracing)
                                         {
@@ -357,7 +351,6 @@ namespace Fluxzy.Core
                                 }
 
 
-                                var responseHeaderLength = exchange.Response.Header!.WriteHttp11(false, buffer, true, true, shouldClose);
 
                                 if (_archiveWriter != null)
                                 {
@@ -418,10 +411,9 @@ namespace Fluxzy.Core
 
                                 try
                                 {
-                                    // Start sending response to browser
-                                    await exchangeSourceInitResult.WriteStream.WriteAsync(
-                                        new ReadOnlyMemory<byte>(buffer.Buffer, 0, responseHeaderLength),
-                                        token).ConfigureAwait(false);
+                                    var downStreamPipe = exchangeSourceInitResult.DownStreamPipe;
+                                    await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, token)
+                                                        .ConfigureAwait(false);
                                 }
                                 catch (Exception ex)
                                 {
@@ -436,26 +428,18 @@ namespace Fluxzy.Core
                                     throw;
                                 }
 
-                                if (exchange.Response.Header.ContentLength != 0 &&
+                                if (exchange.Response.Header!.ContentLength != 0 &&
                                     responseBodyStream != null)
                                 {
-                                    var localConnectionWriteStream = exchangeSourceInitResult.WriteStream;
-
-                                    if (exchange.Response.Header.ChunkedBody &&
-                                        exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span, out _))
-                                    {
-                                        localConnectionWriteStream =
-                                            new ChunkedTransferWriteStream(localConnectionWriteStream);
-                                    }
 
                                     try
                                     {
-                                        await responseBodyStream.CopyDetailed(
-                                            localConnectionWriteStream, buffer.Buffer, _ => { }, token).ConfigureAwait(false);
+                                        var chunked = exchange.Response.Header.ChunkedBody &&
+                                                      exchange.Response.Header.HasResponseBody(
+                                                          exchange.Request.Header.Method.Span, out _);
 
-                                        (localConnectionWriteStream as ChunkedTransferWriteStream)?.WriteEof();
-
-                                        await exchangeSourceInitResult.WriteStream.FlushAsync(CancellationToken.None).ConfigureAwait(false);
+                                        await exchangeSourceInitResult.DownStreamPipe.WriteResponseBody(responseBodyStream,
+                                            buffer, chunked, token).ConfigureAwait(false);
                                     }
                                     catch (Exception ex)
                                     {
@@ -513,14 +497,12 @@ namespace Fluxzy.Core
                         if (shouldClose)
                             break;
 
-                        try
-                        {
+                        try {
+
+                            var downStreamPipe = exchangeSourceInitResult.DownStreamPipe;
+
                             // Read the next HTTP message 
-                            exchange = await _exchangeSourceProvider.ReadNextExchange(
-                                exchangeSourceInitResult.ReadStream,
-                                exchangeSourceInitResult.Authority,
-                                buffer, _exchangeContextBuilder, token
-                            ).ConfigureAwait(false);
+                            exchange = await downStreamPipe.ReadNextExchange(buffer, token).ConfigureAwait(false);
 
                             if (exchange != null)
                             {
@@ -562,7 +544,7 @@ namespace Fluxzy.Core
                 }
 
                 var handleResult = await
-                    ConnectionErrorHandler.HandleGenericException(ex, exchangeSourceInitResult,
+                    ConnectionErrorHandler.HandleGenericException(ex, exchangeSourceInitResult?.DownStreamPipe,
                         exchange, buffer, _archiveWriter, ITimingProvider.Default, token);
 
                 if (!handleResult)

@@ -123,11 +123,13 @@ namespace Fluxzy
 
             proxyAuthenticationMethod ??= ProxyAuthenticationMethodBuilder.Create(startupSetting.ProxyAuthentication);
 
+            var exchangeContextBuilder = new ExchangeContextBuilder(_runTimeSetting);
+
             _proxyOrchestrator = new ProxyOrchestrator(
                 _runTimeSetting,
                 ExchangeSourceProviderHelper.GetSourceProvider(
                     startupSetting, secureConnectionManager,
-                    IdProvider, certificateProvider, proxyAuthenticationMethod),
+                    IdProvider, certificateProvider, proxyAuthenticationMethod, exchangeContextBuilder),
                 poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
