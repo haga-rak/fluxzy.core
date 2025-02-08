@@ -226,24 +226,24 @@ namespace Fluxzy
             try {
                 await Task.Yield();
 
-                using (client) {
-                    using var buffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
+                using var _ =  client;
 
-                    try {
-                        // already disposed
-                        if (_proxyHaltTokenSource.IsCancellationRequested) {
-                            return;
-                        }
+                using var buffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
 
-                        var closeImmediately = FluxzySharedSetting.OverallMaxConcurrentConnections <
-                                               currentCount;
-
-                        await _proxyOrchestrator!.Operate(client, buffer, closeImmediately, _proxyHaltTokenSource.Token)
-                                                 .ConfigureAwait(false);
+                try {
+                    // already disposed
+                    if (_proxyHaltTokenSource.IsCancellationRequested) {
+                        return;
                     }
-                    finally {
-                        client.Close();
-                    }
+
+                    var closeImmediately = FluxzySharedSetting.OverallMaxConcurrentConnections <
+                                           currentCount;
+
+                    await _proxyOrchestrator!.Operate(client, buffer, closeImmediately, _proxyHaltTokenSource.Token)
+                                             .ConfigureAwait(false);
+                }
+                finally {
+                    client.Close();
                 }
             }
             catch (Exception ex) {

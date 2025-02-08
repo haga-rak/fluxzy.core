@@ -199,7 +199,7 @@ namespace Fluxzy.Core
 
             exchange.Metrics.ResponseHeaderStart = timingProvider.Instant();
 
-            await downStreamPipe.WriteResponseHeader(exchange.Response.Header, buffer, token);
+            await downStreamPipe.WriteResponseHeader(exchange.Response.Header, buffer, true, token);
 
             exchange.Metrics.ResponseHeaderEnd = timingProvider.Instant();
             exchange.Metrics.ResponseBodyStart = timingProvider.Instant();

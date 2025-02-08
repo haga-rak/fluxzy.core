@@ -12,7 +12,7 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    public interface IDownStreamPipe
+    public interface IDownStreamPipe : IDisposable
     {
         Authority RequestedAuthority { get; }
 
@@ -20,7 +20,7 @@ namespace Fluxzy.Core
 
         ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, CancellationToken token);
 
-        ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, CancellationToken token);
+        ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, CancellationToken token);
 
         ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, CancellationToken token);
 
@@ -67,7 +67,11 @@ namespace Fluxzy.Core
         public bool TunnelOnly { get; }
 
         public virtual async ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, CancellationToken token)
-        { // Every next request after the first one is read from the stream
+        { 
+            if (ReadStream == null)
+                throw new FluxzyException("Down stream has already been abandoned");
+
+            // Every next request after the first one is read from the stream
 
             var blockReadResult = await
                 Http11HeaderBlockReader.GetNext(ReadStream, buffer, () => { }, () => { }, throwOnError: false, token)
@@ -101,14 +105,14 @@ namespace Fluxzy.Core
             return new Exchange(_idProvider, exchangeContext, RequestedAuthority, secureHeader, bodyStream, null!, receivedFromProxy);
         }
 
-        public async ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, CancellationToken token)
+        public async ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, CancellationToken token)
         {
             if (WriteStream == null)
                 throw new FluxzyException("Down stream has already been closed");
 
             if (WriteStream != null)
             {
-                var responseHeaderLength = responseHeader!.WriteHttp11(false, buffer, true, true, true);
+                var responseHeaderLength = responseHeader!.WriteHttp11(false, buffer, true, true, shouldClose);
                 await WriteStream.WriteAsync(buffer.Buffer, 0, responseHeaderLength, token).ConfigureAwait(false);
             }
         }
@@ -162,5 +166,10 @@ namespace Fluxzy.Core
             return bodyStream;
         }
 
+        public void Dispose()
+        {
+            ReadStream?.Dispose();
+            WriteStream?.Dispose();
+        }
     }
 }
