@@ -18,7 +18,7 @@ namespace Fluxzy.Core
 
         bool TunnelOnly { get; }
 
-        ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, CancellationToken token);
+        ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token);
 
         ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, CancellationToken token);
 
@@ -66,7 +66,7 @@ namespace Fluxzy.Core
 
         public bool TunnelOnly { get; }
 
-        public virtual async ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, CancellationToken token)
+        public virtual async ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token)
         { 
             if (ReadStream == null)
                 throw new FluxzyException("Down stream has already been abandoned");
@@ -82,10 +82,11 @@ namespace Fluxzy.Core
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
 
-            var secureHeaderChars = new char[blockReadResult.HeaderLength];
+            //var secureHeaderChars = new char[blockReadResult.HeaderLength];
 
-            Encoding.ASCII.GetChars(new Memory<byte>(buffer.Buffer, 0, blockReadResult.HeaderLength).Span,
-                secureHeaderChars);
+            var secureHeaderChars = exchangeScope.RegisterForReturn(blockReadResult.HeaderLength);
+            Encoding.ASCII.GetChars(buffer.Buffer.AsSpan(0, blockReadResult.HeaderLength),
+                secureHeaderChars.Span);
 
             var secureHeader = new RequestHeader(secureHeaderChars, true);
 

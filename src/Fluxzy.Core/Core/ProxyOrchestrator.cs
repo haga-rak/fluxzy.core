@@ -45,6 +45,8 @@ namespace Fluxzy.Core
 
             IDownStreamPipe? downStreamPipe = null;
 
+            ExchangeScope ? exchangeScope = null;
+
             try {
 
                 if (D.EnableTracing) {
@@ -57,7 +59,6 @@ namespace Fluxzy.Core
                 token = callerTokenSource.Token;
 
                 if (!token.IsCancellationRequested) {
-                    // READ initial state of connection, 
 
                     ExchangeSourceInitResult? exchangeSourceInitResult = null;
 
@@ -66,7 +67,6 @@ namespace Fluxzy.Core
                                 client.GetStream(), buffer, (IPEndPoint) client.Client.LocalEndPoint!,
                                 (IPEndPoint) client.Client.RemoteEndPoint!, token)
                             .ConfigureAwait(false);
-
                     }
                     catch (Exception ex) {
                         // Failure from the local connection
@@ -89,20 +89,19 @@ namespace Fluxzy.Core
                     if (exchangeSourceInitResult == null)
                         return;
 
-                    downStreamPipe = exchangeSourceInitResult.DownStreamPipe;
-
-                    exchange = exchangeSourceInitResult.ProvisionalExchange;
-
-                    var endPoint = (IPEndPoint) client.Client.RemoteEndPoint!;
-                    var localEndPoint = (IPEndPoint) client.Client.LocalEndPoint!;
-
-                    var shouldClose = false;
-
-                    var downStreamClientAddress = endPoint.Address.ToString();
+                    var remoteEndPoint = (IPEndPoint)client.Client.RemoteEndPoint!;
+                    var localEndPoint = (IPEndPoint)client.Client.LocalEndPoint!;
+                    var downStreamClientAddress = remoteEndPoint.Address.ToString();
                     var localEndPointsAddress = localEndPoint.Address.ToString();
 
+                    downStreamPipe = exchangeSourceInitResult.DownStreamPipe;
+                    exchange = exchangeSourceInitResult.ProvisionalExchange;
+                    var shouldClose = false;
+
                     do {
-                        exchange.Metrics.DownStreamClientPort = endPoint.Port;
+                        exchangeScope = new();
+
+                        exchange.Metrics.DownStreamClientPort = remoteEndPoint.Port;
                         exchange.Metrics.DownStreamClientAddress = downStreamClientAddress;
                         exchange.Metrics.DownStreamLocalPort = localEndPoint.Port;
                         exchange.Metrics.DownStreamLocalAddress = localEndPointsAddress;
@@ -194,9 +193,7 @@ namespace Fluxzy.Core
                                             _archiveWriter.CreateRequestBodyStream(exchange.Id));
                                     }
                                 }
-
-
-
+                                
                                 while (true) {
                                     if (exchange.Context.PreMadeResponse != null) {
                                         connectionPool = new MockedConnectionPool(exchange.Authority,
@@ -260,7 +257,7 @@ namespace Fluxzy.Core
                                 await SafeCloseResponseBody(exchange, originalResponseBodyStream).ConfigureAwait(false);
 
                                 if (exception is OperationCanceledException)
-                                    break;
+                                    return;
 
                                 if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange,
                                         ITimingProvider.Default))
@@ -301,7 +298,6 @@ namespace Fluxzy.Core
                                         exchange.Response.Header.RemoveHeader("content-length");
                                         exchange.Response.Header.ContentLength = -1;
                                     }
-
                                 }
 
                                 if (exchange.Response.Header.ContentLength == -1 &&
@@ -392,7 +388,7 @@ namespace Fluxzy.Core
                                     if (ex is OperationCanceledException || ex is IOException)
 
                                         // local browser interrupt connection 
-                                        break;
+                                        return;
 
                                     throw;
                                 }
@@ -405,7 +401,7 @@ namespace Fluxzy.Core
                                                       exchange.Response.Header.HasResponseBody(
                                                           exchange.Request.Header.Method.Span, out _);
 
-                                        await exchangeSourceInitResult.DownStreamPipe.WriteResponseBody(
+                                        await downStreamPipe.WriteResponseBody(
                                             responseBodyStream,
                                             buffer, chunked, token).ConfigureAwait(false);
                                     }
@@ -426,7 +422,7 @@ namespace Fluxzy.Core
                                                 }
                                             }
 
-                                            break;
+                                            return;
                                         }
 
                                         throw;
@@ -466,18 +462,13 @@ namespace Fluxzy.Core
                         }
 
                         if (shouldClose)
-                            break;
+                            return;
 
                         try {
-                            // Read the next HTTP message 
-                            var oldExchange = exchange;
+                            exchangeScope.Dispose();
+                            exchangeScope = new ExchangeScope();
 
-                            exchange = await downStreamPipe.ReadNextExchange(buffer, token).ConfigureAwait(false);
-
-                            if (exchange != null) {
-                                exchange.Metrics.DownStreamClientPort = oldExchange.Metrics.DownStreamClientPort;
-                                exchange.Metrics.DownStreamClientAddress = oldExchange.Metrics.DownStreamClientAddress;
-                            }
+                            exchange = await downStreamPipe.ReadNextExchange(buffer, exchangeScope, token).ConfigureAwait(false);
                         }
                         catch (IOException ex) {
                             // Downstream close the underlying connection
@@ -487,7 +478,7 @@ namespace Fluxzy.Core
                                 D.TraceException(ex, message);
                             }
 
-                            break;
+                            return;
                         }
                     }
                     while (exchange != null);
@@ -516,6 +507,7 @@ namespace Fluxzy.Core
             }
             finally {
                 downStreamPipe?.Dispose();
+                exchangeScope?.Dispose();
             }
         }
 
