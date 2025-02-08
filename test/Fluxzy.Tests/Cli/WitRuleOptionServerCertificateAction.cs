@@ -51,7 +51,7 @@ namespace Fluxzy.Tests.Cli
             Assert.True(response.IsSuccessStatusCode);
             Assert.NotNull(Client);
             Assert.NotNull(Client.ServerCertificate);
-            Assert.Equal("CN=TEST_FR", Client!.ServerCertificate.Issuer);
+            Assert.Equal("CN=TEST_FR", Client!.ServerCertificateIssuer);
         }
     }
 }
