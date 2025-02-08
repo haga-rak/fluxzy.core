@@ -169,7 +169,7 @@ namespace Fluxzy.Core
             RealtimeArchiveWriter? archiveWriter,
             ITimingProvider timingProvider, CancellationToken token)
         {
-            if (exchange?.Connection == null || downStreamPipe == null || downStreamPipe.CanWrite)
+            if (exchange?.Connection == null || downStreamPipe == null || !downStreamPipe.CanWrite)
                 return false;
 
             var message = "A configuration error has occured.\r\n";
