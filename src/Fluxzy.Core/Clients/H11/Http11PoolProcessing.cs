@@ -158,16 +158,13 @@ namespace Fluxzy.Clients.H11
             var bodyStream = exchange.Connection.ReadStream!;
 
             if (headerBlockDetectResult.HeaderLength < headerBlockDetectResult.TotalReadLength) {
-                var remainder = new byte[headerBlockDetectResult.TotalReadLength -
-                                         headerBlockDetectResult.HeaderLength];
-
-                Buffer.BlockCopy(buffer.Buffer, headerBlockDetectResult.HeaderLength,
-                    remainder, 0, remainder.Length);
+                var length = headerBlockDetectResult.TotalReadLength -
+                             headerBlockDetectResult.HeaderLength;
 
                 // Concat the extra body bytes read while retrieving header
                 bodyStream = new CombinedReadonlyStream(
                     shouldCloseConnection,
-                    new MemoryStream(remainder),
+                    buffer.Buffer.AsSpan(headerBlockDetectResult.HeaderLength, length),
                     exchange.Connection.ReadStream!
                 );
             }

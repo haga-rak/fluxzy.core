@@ -74,7 +74,7 @@ namespace Fluxzy.Core
             // Every next request after the first one is read from the stream
 
             var blockReadResult = await
-                Http11HeaderBlockReader.GetNext(ReadStream, buffer, () => { }, () => { }, throwOnError: false, token)
+                Http11HeaderBlockReader.GetNext(ReadStream, buffer, null, null, throwOnError: false, token)
                                        .ConfigureAwait(false);
 
             if (blockReadResult.TotalReadLength == 0)
@@ -89,13 +89,11 @@ namespace Fluxzy.Core
 
             var secureHeader = new RequestHeader(secureHeaderChars, true);
 
-            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength)
+            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength) 
             {
-                var copyBuffer = new byte[blockReadResult.TotalReadLength - blockReadResult.HeaderLength];
-
-                Buffer.BlockCopy(buffer.Buffer, blockReadResult.HeaderLength, copyBuffer, 0, copyBuffer.Length);
-
-                ReadStream = new CombinedReadonlyStream(false, new MemoryStream(copyBuffer), ReadStream);
+                var length = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
+                ReadStream = new CombinedReadonlyStream(false,
+                    buffer.Buffer.AsSpan(blockReadResult.HeaderLength, length), ReadStream);
             }
 
             var exchangeContext = await _contextBuilder.Create(RequestedAuthority, RequestedAuthority.Secure).ConfigureAwait(false);
@@ -112,7 +110,7 @@ namespace Fluxzy.Core
 
             if (WriteStream != null)
             {
-                var responseHeaderLength = responseHeader!.WriteHttp11(false, buffer, true, true, shouldClose);
+                var responseHeaderLength = responseHeader.WriteHttp11(false, buffer, true, true, shouldClose);
                 await WriteStream.WriteAsync(buffer.Buffer, 0, responseHeaderLength, token).ConfigureAwait(false);
             }
         }

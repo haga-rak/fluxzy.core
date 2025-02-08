@@ -55,13 +55,8 @@ namespace Fluxzy.Core
 
             if (remainder > 0)
             {
-                var extraBlock = new byte[remainder];
-
-                buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder)
-                      .CopyTo(extraBlock);
-
                 plainStream = new RecomposedStream(
-                    new CombinedReadonlyStream(true, new MemoryStream(extraBlock), plainStream),
+                    new CombinedReadonlyStream(true, buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder), plainStream),
                     plainStream);
             }
 
