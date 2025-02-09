@@ -51,7 +51,7 @@ namespace Fluxzy.Clients.H11
         }
 
         public async ValueTask Send(
-            Exchange exchange, IDownStreamPipe downStreamPipe, RsBuffer buffer,
+            Exchange exchange, IDownStreamPipe downStreamPipe, RsBuffer buffer, ExchangeScope __,
             CancellationToken cancellationToken = default)
         {
             try {

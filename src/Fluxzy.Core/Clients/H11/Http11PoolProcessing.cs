@@ -27,9 +27,10 @@ namespace Fluxzy.Clients.H11
         /// </summary>
         /// <param name="exchange"></param>
         /// <param name="buffer"></param>
+        /// <param name="exchangeScope"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if remote server close connection</returns>
-        public async ValueTask<bool> Process(Exchange exchange, RsBuffer buffer, CancellationToken cancellationToken)
+        public async ValueTask<bool> Process(Exchange exchange, RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken cancellationToken)
         {
             if (exchange.Context.EventNotifierStream?.Faulted == true) {
                 throw new ConnectionCloseException("Abandoned stream");
@@ -124,7 +125,7 @@ namespace Fluxzy.Clients.H11
                 throw new ConnectionCloseException("Relaunch");
             }
 
-            Memory<char> headerContent = new char[headerBlockDetectResult.HeaderLength];
+            Memory<char> headerContent = exchangeScope.RegisterForReturn(headerBlockDetectResult.HeaderLength);
 
             Encoding.ASCII
                     .GetChars(buffer.Memory.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);

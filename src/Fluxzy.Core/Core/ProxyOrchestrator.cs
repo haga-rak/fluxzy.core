@@ -218,7 +218,7 @@ namespace Fluxzy.Core
                                     try {
                                         await connectionPool.Send(exchange,
                                             downStreamPipe,
-                                            buffer, token).ConfigureAwait(false);
+                                            buffer, exchangeScope, token).ConfigureAwait(false);
 
                                         if (D.EnableTracing) {
                                             var message = $"[#{exchange.Id}] Response received";

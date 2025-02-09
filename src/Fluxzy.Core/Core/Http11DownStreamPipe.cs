@@ -85,8 +85,8 @@ namespace Fluxzy.Core
             //var secureHeaderChars = new char[blockReadResult.HeaderLength];
 
             var secureHeaderChars = exchangeScope.RegisterForReturn(blockReadResult.HeaderLength);
-            Encoding.ASCII.GetChars(buffer.Buffer.AsSpan(0, blockReadResult.HeaderLength),
-                secureHeaderChars.Span);
+
+            Encoding.ASCII.GetChars(buffer.Buffer.AsSpan(0, blockReadResult.HeaderLength), secureHeaderChars.Span);
 
             var secureHeader = new RequestHeader(secureHeaderChars, true);
 

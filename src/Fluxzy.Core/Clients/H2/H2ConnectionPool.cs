@@ -145,7 +145,7 @@ namespace Fluxzy.Clients.H2
         }
 
         public async ValueTask Send(
-            Exchange exchange, IDownStreamPipe _, RsBuffer buffer,
+            Exchange exchange, IDownStreamPipe _, RsBuffer buffer, ExchangeScope __,
             CancellationToken cancellationToken = default)
         {
             Interlocked.Increment(ref TotalRequest);

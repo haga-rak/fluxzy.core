@@ -21,6 +21,6 @@ namespace Fluxzy.Clients
 
         ValueTask<bool> CheckAlive();
 
-        ValueTask Send(Exchange exchange, IDownStreamPipe downstreamPipe, RsBuffer buffer, CancellationToken cancellationToken = default);
+        ValueTask Send(Exchange exchange, IDownStreamPipe downstreamPipe, RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken cancellationToken = default);
     }
 }

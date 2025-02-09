@@ -2,31 +2,38 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Fluxzy.Core
 {
     public class ExchangeScope : IDisposable
     {
-        private readonly ConcurrentBag<char[]> _charArrayPool = new();
+        private readonly List<IDisposable> _memoryPools = new();
+
+        private bool _disposed;
 
         public Memory<char> RegisterForReturn(int length)
         {
-            var array = ArrayPool<char>.Shared.Rent(length);
-            _charArrayPool.Add(array);
-            return new Memory<char>(array, 0, length);
-        }
+            var memoryOwner = MemoryPool<char>.Shared.Rent(length);
 
-        public void RegisterForReturn(char[] array)
-        {
-            _charArrayPool.Add(array);
-        }
+            lock (this)
+                _memoryPools.Add(memoryOwner);
 
+            return memoryOwner.Memory.Slice(0, length);
+        }
+        
         public void Dispose()
         {
-            foreach (var array in _charArrayPool)
+            if (_disposed)
             {
-                ArrayPool<char>.Shared.Return(array);
+                return;
+            }
+
+            _disposed = true;
+
+            foreach (var memoryOwner in _memoryPools)
+            {
+                memoryOwner.Dispose();
             }
         }
     }
