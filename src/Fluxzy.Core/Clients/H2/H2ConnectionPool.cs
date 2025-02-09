@@ -115,8 +115,8 @@ namespace Fluxzy.Clients.H2
             //_baseStream.Write(Preface);
             SettingHelper.WriteWelcomeSettings(Preface, _baseStream, Setting, _logger);
 
-            _innerReadTask = Task.Run(() => InternalReadLoop(_connectionToken), _connectionToken);
-            _innerWriteRun = Task.Run(() => InternalWriteLoop(_connectionToken), _connectionToken);
+            _innerReadTask = InternalReadLoop(_connectionToken);
+            _innerWriteRun = InternalWriteLoop(_connectionToken);
         }
 
         public ValueTask<bool> CheckAlive()
@@ -438,7 +438,7 @@ namespace Fluxzy.Clients.H2
         /// <returns></returns>
         private async Task InternalReadLoop(CancellationToken token)
         {
-            var readBuffer = ArrayPool<byte>.Shared.Rent(Setting.Remote.MaxFrameSize);
+            using var readBuffer = MemoryPool<byte>.Shared.Rent(Setting.Remote.MaxFrameSize);
 
             Exception? outException = null;
 
@@ -447,7 +447,7 @@ namespace Fluxzy.Clients.H2
                     _logger.TraceDeep(0, () => "1");
                     
                     var frame =
-                        await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer,
+                        await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer.Memory,
                             token).ConfigureAwait(false);
 
                     if (ProcessNewFrame(frame))
@@ -464,7 +464,6 @@ namespace Fluxzy.Clients.H2
                     outException = ex;
             }
             finally {
-                ArrayPool<byte>.Shared.Return(readBuffer);
                 OnLoopEnd(outException, false);
             }
         }
