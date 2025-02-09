@@ -90,11 +90,12 @@ namespace Fluxzy.Core
 
             var secureHeader = new RequestHeader(secureHeaderChars, true);
 
-            if (blockReadResult.TotalReadLength > blockReadResult.HeaderLength) 
+            var remainingLength = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
+
+            if (remainingLength > 0) 
             {
-                var length = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
                 ReadStream = new CombinedReadonlyStream(false,
-                    buffer.Buffer.AsSpan(blockReadResult.HeaderLength, length), ReadStream);
+                    buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainingLength), ReadStream);
             }
 
             var exchangeContext = await _contextBuilder.Create(RequestedAuthority, RequestedAuthority.Secure).ConfigureAwait(false);
