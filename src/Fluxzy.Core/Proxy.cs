@@ -215,11 +215,11 @@ namespace Fluxzy
                     break;
                 }
 
-                _ = Task.Run(() => ProcessingConnection(client));
+                _ = Task.Factory.StartNew(() => ProcessingConnection(client), TaskCreationOptions.LongRunning);
             }
         }
 
-        private async ValueTask ProcessingConnection(TcpClient client)
+        private async void ProcessingConnection(TcpClient client)
         {
             var currentCount = Interlocked.Increment(ref _currentConcurrentCount);
 
