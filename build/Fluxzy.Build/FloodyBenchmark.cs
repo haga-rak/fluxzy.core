@@ -31,7 +31,7 @@ namespace Fluxzy.Build
 
             if (!Directory.Exists(Path.Combine(cloneDirectory, ".git")))
             {
-                await Command.RunAsync("git", $"clone https://github.com/haga-rak/floody.git {cloneDirectory}",
+                await Command.RunAsync("git", $"clone https://github.com/haga-rak/floody.git \"{cloneDirectory}\"",
                     echoPrefix: "CLONE FLOODY");
             }
             else {
