@@ -71,7 +71,7 @@ namespace Fluxzy.Clients.H11
         }
 
         public async ValueTask Send(
-            Exchange exchange, ILocalLink _, RsBuffer buffer,
+            Exchange exchange, IDownStreamPipe downstreamPipe, RsBuffer buffer, ExchangeScope exchangeScope,
             CancellationToken cancellationToken)
         {
             ITimingProvider.Default.Instant();
@@ -125,7 +125,7 @@ namespace Fluxzy.Clients.H11
                 var poolProcessing = new Http11PoolProcessing(_logger);
 
                 try {
-                    await poolProcessing.Process(exchange, buffer, cancellationToken)
+                    await poolProcessing.Process(exchange, buffer, exchangeScope, cancellationToken)
                                         .ConfigureAwait(false);
 
                     if (exchange.Response.Header != null)

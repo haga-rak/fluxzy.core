@@ -24,18 +24,17 @@ namespace Fluxzy.Clients
 
         public DateTime DnsSolveEnd { get; }
     }
-
+    
     internal static class DnsUtility
     {
-        public static async ValueTask<(DnsResolutionResult, MockedConnectionPool ?)>
+        public static async ValueTask<DnsResolutionResult>
             ComputeDnsUpdateExchange(Exchange exchange, 
                 ITimingProvider timingProvider, IDnsSolver dnsSolver, 
                 ProxyRuntimeSetting? runtimeSetting)
         {
             var dnsSolveStart = timingProvider.Instant();
             var connectHostName = exchange.Context.ProxyConfiguration?.Host ?? exchange.Authority.HostName;
-
-
+            
             var ipAddress = exchange.Context.RemoteHostIp ??
                             await dnsSolver.SolveDns(connectHostName).ConfigureAwait(false);
 
@@ -49,18 +48,7 @@ namespace Fluxzy.Clients
 
             var remoteEndPoint = new IPEndPoint(ipAddress, remotePort);
 
-            if (runtimeSetting != null) {
-
-                await runtimeSetting.EnforceRules(exchange.Context,
-                    FilterScope.DnsSolveDone,
-                    exchange.Connection, exchange).ConfigureAwait(false);
-
-                if (exchange.Context.PreMadeResponse != null)
-                    return (new(remoteEndPoint, dnsSolveStart, dnsSolveEnd), new MockedConnectionPool(
-                        exchange.Authority, exchange.Context.PreMadeResponse));
-            }
-
-            return (new(remoteEndPoint, dnsSolveStart, dnsSolveEnd), null);
+            return new(remoteEndPoint, dnsSolveStart, dnsSolveEnd);
         }
 
         public static async ValueTask<DnsResolutionResult>

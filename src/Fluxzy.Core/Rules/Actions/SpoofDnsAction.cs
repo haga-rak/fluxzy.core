@@ -54,7 +54,7 @@ namespace Fluxzy.Rules.Actions
 
             if (!string.IsNullOrEmpty(remoteHostIp)) {
                 if (!IPAddress.TryParse(remoteHostIp, out var ip))
-                    throw new RuleExecutionFailureException($"{remoteHostIp} is not a valid IP address");
+                    throw new RuleExecutionFailureException($"{remoteHostIp} is not a valid IP address", this);
 
                 context.RemoteHostIp = ip;
             }
@@ -62,7 +62,7 @@ namespace Fluxzy.Rules.Actions
             if (RemoteHostPort != null && RemoteHostPort != 0) {
                 if (RemoteHostPort < 0 || RemoteHostPort > 65535)
                     throw new RuleExecutionFailureException(
-                        $"{RemoteHostPort} is not a valid port. Port must be between 0 and 65536 exclusive.");
+                        $"{RemoteHostPort} is not a valid port. Port must be between 0 and 65536 exclusive.", this);
 
                 context.RemoteHostPort = RemoteHostPort;
             }

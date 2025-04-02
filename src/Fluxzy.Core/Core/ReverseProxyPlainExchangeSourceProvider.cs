@@ -17,19 +17,20 @@ namespace Fluxzy.Core
     {
         private readonly IIdProvider _idProvider;
         private readonly int? _reverseModeForcedPort;
+        private readonly IExchangeContextBuilder _contextBuilder;
 
         public ReverseProxyPlainExchangeSourceProvider(IIdProvider idProvider,
-            int? reverseModeForcedPort)
+            int? reverseModeForcedPort, IExchangeContextBuilder contextBuilder)
             : base(idProvider)
         {
             _idProvider = idProvider;
             _reverseModeForcedPort = reverseModeForcedPort;
+            _contextBuilder = contextBuilder;
         }
 
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
             Stream stream,
             RsBuffer buffer,
-            IExchangeContextBuilder contextBuilder,
             IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token)
         {
@@ -54,13 +55,8 @@ namespace Fluxzy.Core
 
             if (remainder > 0)
             {
-                var extraBlock = new byte[remainder];
-
-                buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder)
-                      .CopyTo(extraBlock);
-
                 plainStream = new RecomposedStream(
-                    new CombinedReadonlyStream(true, new MemoryStream(extraBlock), plainStream),
+                    new CombinedReadonlyStream(true, buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder), plainStream),
                     plainStream);
             }
 
@@ -85,18 +81,18 @@ namespace Fluxzy.Core
             }
 
             var plainAuthority = new Authority(uri.Host, _reverseModeForcedPort ?? uri.Port, false);
-            var plainExchangeContext = await contextBuilder.Create(plainAuthority, false).ConfigureAwait(false);
+            var plainExchangeContext = await _contextBuilder.Create(plainAuthority, false).ConfigureAwait(false);
 
-            var bodyStream = SetChunkedBody(plainHeader, plainStream);
+            var bodyStream = Http11DownStreamPipe.SetChunkedBody(plainHeader, plainStream);
+
+            var provisionalExchange = new Exchange(_idProvider,
+                plainExchangeContext,
+                plainAuthority,
+                plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy);
 
             return new ExchangeSourceInitResult(
-                plainAuthority,
-                plainStream,
-                plainStream,
-                new Exchange(_idProvider,
-                    plainExchangeContext,
-                    plainAuthority,
-                    plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy), false);
+                new Http11DownStreamPipe(_idProvider, plainAuthority, plainStream, plainStream, false,
+                     _contextBuilder), provisionalExchange);
         }
     }
 }

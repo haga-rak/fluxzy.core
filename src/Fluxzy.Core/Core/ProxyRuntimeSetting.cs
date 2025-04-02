@@ -1,11 +1,11 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Rules;
@@ -113,8 +113,9 @@ namespace Fluxzy.Core
 
         public void Init()
         {
-            var activeRules = StartupSetting.FixedRules()
-                                            .Concat(StartupSetting.AlterationRules).ToList();
+            var activeRules = StartupSetting.AlterationRules
+                                            .Concat(StartupSetting.FixedRules())
+                                            .ToList();
 
             var startupContext = new StartupContext(StartupSetting, VariableContext, ArchiveWriter);
 
@@ -130,41 +131,40 @@ namespace Fluxzy.Core
             ExchangeContext context, FilterScope filterScope,
             Connection? connection = null, Exchange? exchange = null)
         {
-            foreach (var rule in _effectiveRules!.Where(a =>
-                         a.Action.ActionScope == filterScope
-                         || a.Action.ActionScope == FilterScope.OutOfScope
-                         || (a.Action.ActionScope == FilterScope.CopySibling
-                             && a.Action is MultipleScopeAction multipleScopeAction
-                             && multipleScopeAction.RunScope == filterScope
-                         )
-                     )) {
-                await rule.Enforce(
-                    context, exchange, connection, filterScope,
-                    ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
+            try {
+                foreach (var rule in _effectiveRules!)
+                {
+                    if (rule.Action.ActionScope != filterScope &&
+                        rule.Action.ActionScope != FilterScope.OutOfScope &&
+                        !(rule.Action.ActionScope == FilterScope.CopySibling &&
+                          rule.Action is MultipleScopeAction multipleScopeAction &&
+                          multipleScopeAction.RunScope == filterScope))
+                    {
+                        continue;
+                    }
+
+                    await rule.Enforce(
+                        context, exchange, connection, filterScope,
+                        ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
+                }
+
+                if (exchange?.RunInLiveEdit ?? false) {
+                    var breakPointAction = new BreakPointAction();
+                    var rule = new Rule(breakPointAction, AnyFilter.Default);
+
+                    await rule.Enforce(context, exchange, connection, filterScope,
+                        ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
+                }
             }
-
-            if (exchange?.RunInLiveEdit ?? false) {
-                var breakPointAction = new BreakPointAction();
-                var rule = new Rule(breakPointAction, AnyFilter.Default);
-
-                await rule.Enforce(context, exchange, connection, filterScope,
-                    ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
+            catch (Exception e) {
+                if (e is RuleExecutionFailureException) {
+                    throw;
+                }
+                
+                throw new RuleExecutionFailureException("Error while evaluating rules: " + e.Message, e);
             }
 
             return context;
         }
-    }
-
-    internal class HostInfo
-    {
-        public HostInfo(string host)
-        {
-            Host = host;
-            EncodedHost = Encoding.UTF8.GetBytes(host);
-        }
-
-        public string Host { get; }
-
-        public byte[] EncodedHost { get; set; }
     }
 }

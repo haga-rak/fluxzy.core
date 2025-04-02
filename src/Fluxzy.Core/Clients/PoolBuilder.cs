@@ -13,6 +13,8 @@ using Fluxzy.Clients.H2;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
 using Fluxzy.Misc;
+using Fluxzy.Rules;
+using Fluxzy.Utils;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Clients
@@ -39,14 +41,14 @@ namespace Fluxzy.Clients
 
         private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
             new Dictionary<Authority, IHttpConnectionPool>();
-
-        private readonly ConcurrentDictionary<Authority, SemaphoreSlim> _lock = new();
         private readonly CancellationTokenSource _poolCheckHaltSource = new();
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
 
         private readonly ConcurrentDictionary<string, DefaultDnsResolver> _dnsSolversCache = new();
+
+        private Synchronizer<Authority> _synchronizer = new(true);
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
@@ -102,31 +104,29 @@ namespace Fluxzy.Clients
                 ProxyRuntimeSetting proxyRuntimeSetting,
                 CancellationToken cancellationToken = default)
         {
-            // At this point, we'll trying the suitable pool for exchange
+            var dnsSolver = ResolveDnsProvider(exchange, proxyRuntimeSetting);
 
-            if (exchange.Context.PreMadeResponse != null) {
-                return new MockedConnectionPool(exchange.Authority,
-                    exchange.Context.PreMadeResponse);
-            }
-
-            var dnsSolver = string.IsNullOrWhiteSpace(exchange.Context.DnsOverHttpsNameOrUrl) ? 
-                _dnsSolver : _dnsSolversCache.GetOrAdd(exchange.Context.DnsOverHttpsNameOrUrl,
-                    n => new DnsOverHttpsResolver(n, exchange.Context.DnsOverHttpsCapture ?
-                        proxyRuntimeSetting.GetInternalProxyAuthentication() : null));
-
-            // We should solve DNS here 
             var computeDnsPromise = 
                 DnsUtility.ComputeDnsUpdateExchange(exchange, _timingProvider, dnsSolver, proxyRuntimeSetting);
 
-            IHttpConnectionPool? result = null;
+            var dnsResolutionResult = await computeDnsPromise.ConfigureAwait(false);
 
-            var semaphorePerAuthority = _lock.GetOrAdd(exchange.Authority, auth => new SemaphoreSlim(1));
-            var released = false;
+            await proxyRuntimeSetting.EnforceRules(exchange.Context,
+                FilterScope.DnsSolveDone,
+                exchange.Connection, exchange).ConfigureAwait(false);
+
+            if (exchange.Context.PreMadeResponse != null) {
+                var mockedConnectionPool =
+                    new MockedConnectionPool(exchange.Authority, exchange.Context.PreMadeResponse);
+                mockedConnectionPool.Init();
+                return mockedConnectionPool;
+            }
+
+            IHttpConnectionPool? result = null;
 
             try
             {
-                if (!semaphorePerAuthority.Wait(0))
-                    await semaphorePerAuthority.WaitAsync(cancellationToken).ConfigureAwait(false);
+                using var _ = await _synchronizer.LockAsync(exchange.Authority);
 
                 var forceNewConnection = exchange.Context.ForceNewConnection;
 
@@ -136,20 +136,21 @@ namespace Fluxzy.Clients
                 // Looking for existing HttpPool
 
                 if (!forceNewConnection) {
-                    lock (_connectionPools) {
-                        while (_connectionPools.TryGetValue(exchange.Authority, out var pool)) {
+                    lock (_connectionPools) 
+                    {
+                        if (_connectionPools.TryGetValue(exchange.Authority, out var pool)) 
+                        {
                             if (pool.Complete) {
                                 _connectionPools.Remove(pool.Authority);
-
-                                continue;
                             }
+                            else {
+                                if (exchange.Metrics.RetrievingPool == default)
+                                    exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
-                            if (exchange.Metrics.RetrievingPool == default)
-                                exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+                                exchange.Metrics.ReusingConnection = true;
 
-                            exchange.Metrics.ReusingConnection = true;
-
-                            return pool;
+                                return pool;
+                            }
                         }
                     }
                 }
@@ -157,19 +158,12 @@ namespace Fluxzy.Clients
                 if (exchange.Metrics.RetrievingPool == default)
                     exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
-                var dnsResolutionResult = await computeDnsPromise.ConfigureAwait(false);
-
-                if (dnsResolutionResult.Item2 != null)
-                {
-                    dnsResolutionResult.Item2.Init();
-                    return dnsResolutionResult.Item2;
-                }
 
                 //  pool 
                 if (exchange.Context.BlindMode) {
                     var tunneledConnectionPool = new TunnelOnlyConnectionPool(
                         exchange.Authority, _timingProvider,
-                        _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult.Item1);
+                        _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult);
 
                     return result = tunneledConnectionPool;
                 }
@@ -177,7 +171,7 @@ namespace Fluxzy.Clients
                 if (exchange.Request.Header.IsWebSocketRequest) {
                     var tunneledConnectionPool = new WebsocketConnectionPool(
                         exchange.Authority, _timingProvider,
-                        _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult.Item1);
+                        _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult);
 
                     return result = tunneledConnectionPool;
                 }
@@ -187,7 +181,7 @@ namespace Fluxzy.Clients
 
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting,
-                        _archiveWriter!, dnsResolutionResult.Item1);
+                        _archiveWriter!, dnsResolutionResult);
 
                     exchange.HttpVersion = "HTTP/1.1";
 
@@ -209,7 +203,7 @@ namespace Fluxzy.Clients
                 {
                     openingResult =
                         (await _remoteConnectionBuilder.OpenConnectionToRemote(
-                            exchange, dnsResolutionResult.Item1,
+                            exchange, dnsResolutionResult,
                             exchange.Context.SslApplicationProtocols ?? AllProtocols, proxyRuntimeSetting,
                             exchange.Context.ProxyConfiguration,
                             cancellationToken).ConfigureAwait(false))!;
@@ -228,12 +222,11 @@ namespace Fluxzy.Clients
                     throw;
                 }
 
-                // exchange.Connection = openingResult.Connection;
 
                 if (openingResult.Type == RemoteConnectionResultType.Http11) {
                     var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                         _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter,
-                        dnsResolutionResult.Item1);
+                        dnsResolutionResult);
 
                     exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/1.1";
 
@@ -264,23 +257,25 @@ namespace Fluxzy.Clients
                 throw new NotSupportedException($"Unhandled protocol type {openingResult.Type}");
             }
             finally {
-                try {
-                    if (result != null) {
-                        released = true;
-                        semaphorePerAuthority.Release();
-
+                if (result != null) {
+                    try
+                    {
                         result.Init();
                     }
-                }
-                catch {
-                    if (result != null)
+                    catch
+                    {
                         OnConnectionFaulted(result);
-                }
-                finally {
-                    if (!released)
-                        semaphorePerAuthority.Release();
+                    }
                 }
             }
+        }
+
+        private IDnsSolver ResolveDnsProvider(Exchange exchange, ProxyRuntimeSetting proxyRuntimeSetting)
+        {
+            return string.IsNullOrWhiteSpace(exchange.Context.DnsOverHttpsNameOrUrl) ? 
+                _dnsSolver : _dnsSolversCache.GetOrAdd(exchange.Context.DnsOverHttpsNameOrUrl,
+                    n => new DnsOverHttpsResolver(n, exchange.Context.DnsOverHttpsCapture ?
+                        proxyRuntimeSetting.GetInternalProxyAuthentication() : null));
         }
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)

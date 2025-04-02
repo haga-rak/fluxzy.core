@@ -1,49 +1,19 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.IO;
-using System.Threading;
-using Fluxzy.Clients;
-using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    internal class ExchangeSourceInitResult : ILocalLink
+    internal class ExchangeSourceInitResult 
     {
-        private static int _count;
-
-        public ExchangeSourceInitResult(
-            Authority authority,
-            Stream readStream,
-            Stream writeStream,
-            Exchange provisionalExchange, bool tunnelOnly)
+        public ExchangeSourceInitResult(IDownStreamPipe downStreamPipe, Exchange provisionalExchange)
         {
-            Id = Interlocked.Increment(ref _count);
-            Authority = authority;
-            ReadStream = readStream;
-            WriteStream = writeStream;
+            DownStreamPipe = downStreamPipe;
             ProvisionalExchange = provisionalExchange;
-            TunnelOnly = tunnelOnly;
-
-            if (DebugContext.EnableNetworkFileDump)
-            {
-                ReadStream = new DebugFileStream($"raw/{Id:0000}_browser_",
-                    ReadStream, true);
-
-                WriteStream = new DebugFileStream($"raw/{Id:0000}_browser_",
-                    WriteStream, false);
-            }
         }
-
-        public int Id { get; }
-
-        public Authority Authority { get; }
 
         public Exchange ProvisionalExchange { get; }
 
-        public bool TunnelOnly { get; }
-
-        public Stream ReadStream { get; }
-
-        public Stream WriteStream { get; }
+        public IDownStreamPipe DownStreamPipe { get; }
     }
 }

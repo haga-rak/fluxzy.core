@@ -40,20 +40,21 @@ namespace Fluxzy.Clients.Mock
             if (exchangeContext != null && Body != null && Body.Text != null) {
                 Body.Text = Body.Text.EvaluateVariable(exchangeContext);
             }
-            
+
             var bodyContentLength = Body?.GetLength() ?? 0;
 
-            if (bodyContentLength > 0) {
-
-                builder.Append($"Content-length: {bodyContentLength}\r\n"); }
+            if (bodyContentLength >= 0) {
+                builder.Append($"Content-length: {bodyContentLength}\r\n");
+            }
 
             if (Body != null && !Headers.Any(k => k.Name.Equals("content-type", StringComparison.OrdinalIgnoreCase))) {
                 var shortCutContentType = Body.GetContentTypeHeaderValue();
 
-                if (shortCutContentType != null)
+                if (shortCutContentType != null) {
                     builder.Append($"Content-Type: {shortCutContentType}\r\n");
+                }
             }
-            
+
             foreach (var header in Headers) {
                 builder.Append($"{header.Name}: {header.Value}\r\n");
             }
@@ -71,7 +72,8 @@ namespace Fluxzy.Clients.Mock
         public string? GetHeaderValueOrDefault(string headerName, string? defaultValue = default)
         {
             return Headers
-                   .FirstOrDefault(k => k.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase))?.Value ?? defaultValue;
+                   .FirstOrDefault(k => k.Name.Equals(headerName, StringComparison.OrdinalIgnoreCase))?.Value ??
+                   defaultValue;
         }
     }
 
@@ -87,6 +89,6 @@ namespace Fluxzy.Clients.Mock
         public string Name { get; }
 
         [PropertyDistinctive(Description = "Header value")]
-        public string Value { get;  }
+        public string Value { get; }
     }
 }

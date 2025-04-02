@@ -26,6 +26,8 @@ namespace Fluxzy.Clients.DotNetBridge
         private readonly SemaphoreSlim _semaphore = new(1);
         private readonly SslProvider _sslProvider;
 
+        private readonly ExchangeScope _exchangeScope = new();
+
         public FluxzyHttp11Handler(SslProvider sslProvider = SslProvider.OsDefault)
         {
             _sslProvider = sslProvider;
@@ -38,6 +40,8 @@ namespace Fluxzy.Clients.DotNetBridge
             var authority = new Authority(request.RequestUri!.Host, request.RequestUri.Port,
                 true);
 
+            Http11ConnectionPool connectionPool; 
+
             try {
                 await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -46,6 +50,8 @@ namespace Fluxzy.Clients.DotNetBridge
 
                     _activeConnections[request.RequestUri.Authority] = connection;
                 }
+
+                connectionPool = _activeConnections[request.RequestUri.Authority];
             }
             finally {
                 _semaphore.Release();
@@ -57,8 +63,8 @@ namespace Fluxzy.Clients.DotNetBridge
 
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-            await _activeConnections[request.RequestUri.Authority].Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
+            
+            await connectionPool.Send(exchange, null!, RsBuffer.Allocate(32 * 1024), _exchangeScope,
                 cancellationToken).ConfigureAwait(false);
 
             return new FluxzyHttpResponseMessage(exchange);
@@ -73,6 +79,7 @@ namespace Fluxzy.Clients.DotNetBridge
             foreach (var connection in _activeConnections.Values) {
                 connection.Dispose();
             }
+            _exchangeScope.Dispose();
         }
     }
 

@@ -1,6 +1,5 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using SimpleExec;
@@ -40,11 +39,17 @@ namespace Fluxzy.Build
 
         private static string GetFileName(string runtimeIdentifier, string version)
         {
-            return $"fluxzy-cli-{version}-{runtimeIdentifier}.zip";
+            return $"fluxzy-cli-{version}-{runtimeIdentifier}";
         }
 
         private static async Task Upload(FileInfo fullFile)
         {
+            if (!string.Equals(Environment.GetEnvironmentVariable("ENABLE_UPLOAD"), 
+                    "1", StringComparison.OrdinalIgnoreCase)) {
+                Console.WriteLine("Skipping upload");
+                return;
+            }
+            
             var uploadReleaseToken = EnvironmentHelper.GetEvOrFail("UPLOAD_RELEASE_TOKEN");
 
             var hashValue = HashHelper.GetSha512Hash(fullFile);
@@ -263,12 +268,8 @@ namespace Fluxzy.Build
                     foreach (var runtimeIdentifier in TargetRuntimeIdentifiers[current]) {
                         var outDirectory = $".artefacts/{runtimeIdentifier}";
 
-                        ZipFile.CreateFromDirectory(
-                            outDirectory,
-                            $".artefacts/final/{GetFileName(runtimeIdentifier, runningVersion)}",
-                            CompressionLevel.Optimal,
-                            false
-                        );
+                        CompressionHelper.CreateCompressed(outDirectory,
+                            $".artefacts/final/{GetFileName(runtimeIdentifier, runningVersion)}");
                     }
                 });
 
@@ -399,6 +400,20 @@ namespace Fluxzy.Build
                     var shortVersion = await GetRunningVersionShort();
                     await DockerHelper.BuildDockerImage(".", shortVersion);
                     await DockerHelper.PushDockerImage(".", shortVersion);
+                });
+
+            Target(Targets.FluxzyStressTest,
+                DependsOn(),
+                async () => {
+                    await FloodyBenchmark.Run(new FloodyBenchmarkSetting());
+                });
+
+            Target(Targets.FluxzyStressTestPlain,
+                DependsOn(),
+                async () => {
+                    await FloodyBenchmark.Run(new FloodyBenchmarkSetting() {
+                        Plain = true
+                    });
                 });
 
             await RunTargetsAndExitAsync(args, ex => ex is ExitCodeException);

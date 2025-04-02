@@ -22,6 +22,19 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         private static readonly int[] DefaultKeyShares = new int[] {
             NamedGroup.x25519
         };
+        
+        private static readonly int[] DefaultSupportGroups = new int[] {
+            NamedGroup.x25519,
+            NamedGroup.secp256r1,
+            NamedGroup.x448,
+            NamedGroup.secp521r1,
+            NamedGroup.secp384r1,
+            NamedGroup.ffdhe2048,
+            NamedGroup.ffdhe3072,
+            NamedGroup.ffdhe4096,
+            NamedGroup.ffdhe6144,
+            NamedGroup.ffdhe8192,
+        };
 
         private readonly IReadOnlyCollection<SslApplicationProtocol>_applicationProtocols;
         private readonly FluxzyCrypto _crypto;
@@ -91,7 +104,7 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 return _fingerPrint.EffectiveSupportGroups;
             }
 
-            return base.GetSupportedGroups(namedGroupRoles);
+            return DefaultSupportGroups;
         }
 
         protected override IList<ServerName> GetSniServerNames()

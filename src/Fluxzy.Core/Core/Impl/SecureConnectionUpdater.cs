@@ -44,10 +44,10 @@ namespace Fluxzy.Core
 
             if (!DetectTlsClientHello(buffer)) {
                 // This is a regular CONNECT request without SSL
-                return new SecureConnectionUpdateResult(false, new CombinedReadonlyStream(false, new MemoryStream(buffer), stream), stream);
+                return new SecureConnectionUpdateResult(false, new CombinedReadonlyStream(false, buffer, stream), stream);
             }
 
-            stream = new CombinedReadonlyStream(false, new MemoryStream(buffer), stream);
+            stream = new CombinedReadonlyStream(false, buffer, stream);
 
             var secureStream = new SslStream(new RecomposedStream(stream, originalStream), false);
 

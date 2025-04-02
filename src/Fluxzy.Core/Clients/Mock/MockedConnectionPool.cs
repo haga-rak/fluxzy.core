@@ -39,14 +39,15 @@ namespace Fluxzy.Clients.Mock
 
         public async ValueTask Send(
             Exchange exchange,
-            ILocalLink localLink, RsBuffer buffer,
+            IDownStreamPipe downStreamPipe, RsBuffer buffer, ExchangeScope __,
             CancellationToken cancellationToken = default)
         {
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
             exchange.Metrics.TotalSent = 0;
 
-            if (exchange.Request.Body != null)
+            if (exchange.Request.Body != null) {
                 await exchange.Request.Body.DrainAsync().ConfigureAwait(false); // We empty request body stream 
+            }
 
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
@@ -57,21 +58,27 @@ namespace Fluxzy.Clients.Mock
             exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
             exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
+            var bodyStream = _preMadeResponse.ReadBody(Authority);
+
             exchange.Response.Body =
                 new MetricsStream(_preMadeResponse.ReadBody(Authority),
                     () => { exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant(); },
                     length => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
-                        exchange.ExchangeCompletionSource.SetResult(true);
+                        exchange.ExchangeCompletionSource.TrySetResult(false);
                     },
                     exception => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.ExchangeCompletionSource.SetException(exception);
                     },
                     cancellationToken
-                )
-                ;
+                );
+
+            if (bodyStream.CanSeek && bodyStream.Length == 0) {
+                exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+                exchange.ExchangeCompletionSource.TrySetResult(false);
+            }
 
             Complete = true;
         }

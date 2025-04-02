@@ -1,5 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using Fluxzy.Misc;
 
@@ -11,25 +13,28 @@ namespace Fluxzy.Tests
         ///  Make an executable have the required capabilities
         /// </summary>
         /// <returns></returns>
-        public static async Task<bool> AcquireCapabilities(string executablePath)
+        public static async Task<bool> AcquireCapabilitiesLinux(string executablePath)
         {
+            if (!File.Exists(executablePath)) {
+                executablePath = (await ProcessUtilX.GetExecutablePath(executablePath))
+                    ?? throw new InvalidOperationException("Executable not found");
+            }
+            
             if (await ProcessUtilX.CanElevated())
                 return true; // Already root  - no need to set capabilities
             
             if (!ProcessUtils.IsCommandAvailable("setcap"))
-                return false; 
-            
-            if (!ProcessUtils.IsCommandAvailable("pkexec"))
-                return false; 
+                return false;
 
-            var fullCommand = $"setcap cap_net_raw,cap_net_admin=eip \"{executablePath}\""; 
+            if (await ProcessUtilX.HasCaptureCapabilities()) {
+                return true;
+            }
             
-            var process = await ProcessUtils.RunElevatedAsync("pkexec", 
-                new []{ "setcap", "cap_net_raw,cap_net_admin=eip", executablePath},
+            var process = await ProcessUtilX.RunElevatedSudoALinux("setcap", 
+                new []{ "cap_net_raw,cap_net_admin=eip", executablePath},
                 false, "Please enter your password to set the required capabilities");
             
             await process!.WaitForExitAsync();
-
             return process.ExitCode == 0; 
         }
     }

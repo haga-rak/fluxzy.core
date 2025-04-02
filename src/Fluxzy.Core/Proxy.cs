@@ -123,11 +123,13 @@ namespace Fluxzy
 
             proxyAuthenticationMethod ??= ProxyAuthenticationMethodBuilder.Create(startupSetting.ProxyAuthentication);
 
+            var exchangeContextBuilder = new ExchangeContextBuilder(_runTimeSetting);
+
             _proxyOrchestrator = new ProxyOrchestrator(
                 _runTimeSetting,
                 ExchangeSourceProviderHelper.GetSourceProvider(
                     startupSetting, secureConnectionManager,
-                    IdProvider, certificateProvider, proxyAuthenticationMethod),
+                    IdProvider, certificateProvider, proxyAuthenticationMethod, exchangeContextBuilder),
                 poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
@@ -213,35 +215,35 @@ namespace Fluxzy
                     break;
                 }
 
-                _ = Task.Run(() => ProcessingConnection(client));
+                _ = Task.Factory.StartNew(() => ProcessingConnection(client), TaskCreationOptions.LongRunning);
             }
         }
 
-        private async ValueTask ProcessingConnection(TcpClient client)
+        private async void ProcessingConnection(TcpClient client)
         {
             var currentCount = Interlocked.Increment(ref _currentConcurrentCount);
 
             try {
                 await Task.Yield();
 
-                using (client) {
-                    using var buffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
+                using var _ =  client;
 
-                    try {
-                        // already disposed
-                        if (_proxyHaltTokenSource.IsCancellationRequested) {
-                            return;
-                        }
+                using var buffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
 
-                        var closeImmediately = FluxzySharedSetting.OverallMaxConcurrentConnections <
-                                               currentCount;
-
-                        await _proxyOrchestrator!.Operate(client, buffer, closeImmediately, _proxyHaltTokenSource.Token)
-                                                 .ConfigureAwait(false);
+                try {
+                    // already disposed
+                    if (_proxyHaltTokenSource.IsCancellationRequested) {
+                        return;
                     }
-                    finally {
-                        client.Close();
-                    }
+
+                    var closeImmediately = FluxzySharedSetting.OverallMaxConcurrentConnections <
+                                           currentCount;
+
+                    await _proxyOrchestrator!.Operate(client, buffer, closeImmediately, _proxyHaltTokenSource.Token)
+                                             .ConfigureAwait(false);
+                }
+                finally {
+                    client.Close();
                 }
             }
             catch (Exception ex) {
