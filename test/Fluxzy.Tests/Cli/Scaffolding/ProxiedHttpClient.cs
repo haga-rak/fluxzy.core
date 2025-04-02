@@ -23,9 +23,10 @@ namespace Fluxzy.Tests.Cli.Scaffolding
                 ,
                 UseProxy = true,
                 AllowAutoRedirect = allowAutoRedirect, 
-                ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => {
+                ServerCertificateCustomValidationCallback = (_, certificate2, arg3, _) => {
                     ServerCertificate = certificate2;
                     ServerChain = arg3;
+                    ServerCertificateIssuer = certificate2?.Issuer;
                     return true;
                 },
             };
@@ -44,6 +45,8 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         public X509Chain? ServerChain { get; private set; }
 
         public X509Certificate2?  ServerCertificate { get; private set; }
+
+        public string ?  ServerCertificateIssuer { get; private set; }
 
         public HttpClient Client { get; }
 

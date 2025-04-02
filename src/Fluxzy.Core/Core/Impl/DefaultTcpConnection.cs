@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -10,22 +9,30 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    internal class DefaultTcpConnection : ITcpConnection
+    internal class DefaultTcpConnectionConnectResult : ITcpConnectionConnectResult
     {
-        private readonly TcpClient _client;
-
-        public DefaultTcpConnection()
+        public DefaultTcpConnectionConnectResult(DisposeEventNotifierStream stream)
         {
-            _client = new TcpClient();
-            _client.NoDelay = true;
+            Stream = stream;
         }
 
-        public async Task<IPEndPoint> ConnectAsync(IPAddress address, int port)
+        public DisposeEventNotifierStream Stream { get; }
+
+        public void ProcessNssKey(string nssKey)
+        {
+        }
+    }
+
+    internal class DefaultTcpConnection : ITcpConnection
+    {
+        public async Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress address, int port)
         {
             try {
-                await _client.ConnectAsync(address, port).ConfigureAwait(false);
-
-                return (IPEndPoint) _client.Client.LocalEndPoint!;
+                var client = new TcpClient();
+                client.NoDelay = true;
+                await client.ConnectAsync(address, port).ConfigureAwait(false);
+                var stream = new DisposeEventNotifierStream(client, null);
+                return new DefaultTcpConnectionConnectResult(stream);
             }
             catch (Exception ex) {
                 if (ex is AggregateException aggregateException && aggregateException.InnerExceptions.Any()) {
@@ -35,17 +42,7 @@ namespace Fluxzy.Core
                 throw;
             }
         }
-
-        public Stream GetStream()
-        {
-            var resultStream =
-                new DisposeEventNotifierStream(_client.GetStream());
-
-            resultStream.OnStreamDisposed += ResultStreamOnOnStreamDisposed;
-
-            return resultStream;
-        }
-
+        
         public void OnKeyReceived(string nssKey)
         {
             // Ignore
@@ -53,17 +50,7 @@ namespace Fluxzy.Core
 
         public ValueTask DisposeAsync()
         {
-            _client?.Dispose();
-
             return default;
-        }
-
-        private ValueTask ResultStreamOnOnStreamDisposed(object sender, StreamDisposeEventArgs args)
-        {
-            var stream = (DisposeEventNotifierStream) sender;
-            stream.OnStreamDisposed -= ResultStreamOnOnStreamDisposed;
-
-            return DisposeAsync();
         }
     }
 }

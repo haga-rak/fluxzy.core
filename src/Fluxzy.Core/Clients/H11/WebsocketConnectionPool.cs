@@ -51,7 +51,7 @@ namespace Fluxzy.Clients.H11
         }
 
         public async ValueTask Send(
-            Exchange exchange, ILocalLink localLink, RsBuffer buffer,
+            Exchange exchange, IDownStreamPipe downStreamPipe, RsBuffer buffer, ExchangeScope __,
             CancellationToken cancellationToken = default)
         {
             try {
@@ -62,7 +62,7 @@ namespace Fluxzy.Clients.H11
                     _connectionBuilder,
                     _proxyRuntimeSetting, _proxyRuntimeSetting.ArchiveWriter, _dnsResolutionResult);
 
-                await ex.Process(exchange, localLink, buffer.Buffer, cancellationToken).ConfigureAwait(false);
+                await ex.Process(exchange, downStreamPipe, buffer.Buffer, cancellationToken).ConfigureAwait(false);
             }
             finally {
                 _semaphoreSlim.Release();
@@ -108,11 +108,13 @@ namespace Fluxzy.Clients.H11
         }
 
         public async Task Process(
-            Exchange exchange, ILocalLink localLink, byte[] buffer,
+            Exchange exchange, IDownStreamPipe downStreamPipe, byte[] buffer,
             CancellationToken cancellationToken)
         {
-            if (localLink == null)
-                throw new ArgumentNullException(nameof(localLink));
+            var (readStream, writeStream) = downStreamPipe.AbandonPipe();
+
+            await using var _ = readStream;
+            await using var __ = writeStream;
 
             var openingResult = await _remoteConnectionBuilder.OpenConnectionToRemote(
                 exchange, _dnsResolutionResult,
@@ -148,21 +150,17 @@ namespace Fluxzy.Clients.H11
             exchange.Response.Header = new ResponseHeader(
                 headerContent, exchange.Authority.Secure, true);
 
-            await localLink.WriteStream!.WriteAsync(rsBuffer.Buffer, 0, headerBlock.HeaderLength, cancellationToken).ConfigureAwait(false);
+            await writeStream.WriteAsync(rsBuffer.Buffer, 0, headerBlock.HeaderLength, cancellationToken).ConfigureAwait(false);
 
             var concatedReadStream = exchange.Connection.ReadStream!;
 
             if (headerBlock.HeaderLength < headerBlock.TotalReadLength) {
-                var remainder = new byte[headerBlock.TotalReadLength -
-                                         headerBlock.HeaderLength];
-
-                Buffer.BlockCopy(rsBuffer.Buffer, headerBlock.HeaderLength,
-                    remainder, 0, remainder.Length);
+                var length = headerBlock.TotalReadLength - headerBlock.HeaderLength;
 
                 // Concat the extra body bytes read while retrieving header
                 concatedReadStream = new CombinedReadonlyStream(
                     true,
-                    new MemoryStream(remainder),
+                    rsBuffer.Buffer.AsSpan(headerBlock.HeaderLength, length),
                     exchange.Connection.ReadStream!
                 );
             }
@@ -188,7 +186,7 @@ namespace Fluxzy.Clients.H11
                     },
                     wsMessageId => _archiveWriter!.CreateWebSocketResponseContent(exchange.Id, wsMessageId));
 
-                await using var downReaderStream = new WebSocketStream(localLink.ReadStream!, _timingProvider,
+                await using var downReaderStream = new WebSocketStream(readStream, _timingProvider,
                     cancellationToken,
                     wsMessage => {
                         wsMessage.Direction = WsMessageDirection.Sent;
@@ -206,7 +204,7 @@ namespace Fluxzy.Clients.H11
                     downReaderStream.CopyDetailed(outWriteStream, buffer, copied =>
                             exchange.Metrics.TotalSent += copied
                         , cancellationToken).AsTask(),
-                    upReadStream.CopyDetailed(localLink.WriteStream, 1024 * 16, copied =>
+                    upReadStream.CopyDetailed(writeStream, 1024 * 16, copied =>
                             exchange.Metrics.TotalReceived += copied
                         , cancellationToken).AsTask());
 

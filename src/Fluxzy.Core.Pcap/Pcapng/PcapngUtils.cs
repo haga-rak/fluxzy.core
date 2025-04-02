@@ -17,8 +17,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         public static async Task<HttpMessageHandler> CreateHttpHandler(string outPcapFileName,
             SslProvider sslProvider = SslProvider.BouncyCastle)
         {
-            var proxyScope = new ProxyScope(() => null!,
-                a => new OutOfProcessCaptureContext(a));
+            var proxyScope = new ProxyScope(() => null!, a => new OutOfProcessCaptureContext(a));
 
             var tcpProvider = await CapturedTcpConnectionProvider.Create(proxyScope, false);
 

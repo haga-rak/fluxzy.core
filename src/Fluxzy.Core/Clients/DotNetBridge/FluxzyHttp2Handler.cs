@@ -25,6 +25,7 @@ namespace Fluxzy.Clients.DotNetBridge
         private readonly SemaphoreSlim _semaphore = new(1);
         private readonly H2StreamSetting _streamSetting;
 
+        private readonly ExchangeScope _exchangeScope = new();
         public FluxzyHttp2Handler(H2StreamSetting? streamSetting = null)
         {
             _streamSetting = streamSetting ?? new H2StreamSetting();
@@ -66,7 +67,7 @@ namespace Fluxzy.Clients.DotNetBridge
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 
-            await connectionPool.Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
+            await connectionPool.Send(exchange, null!, RsBuffer.Allocate(32 * 1024), _exchangeScope,
                 cancellationToken).ConfigureAwait(false);
 
             return new FluxzyHttpResponseMessage(exchange);
@@ -77,6 +78,7 @@ namespace Fluxzy.Clients.DotNetBridge
             base.Dispose(disposing);
 
             _semaphore.Dispose();
+            _exchangeScope.Dispose();
         }
     }
 }

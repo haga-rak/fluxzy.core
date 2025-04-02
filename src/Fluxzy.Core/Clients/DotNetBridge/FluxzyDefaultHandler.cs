@@ -28,6 +28,8 @@ namespace Fluxzy.Clients.DotNetBridge
 
         private readonly IReadOnlyCollection<IAsyncDisposable>? _disposables;
 
+        private readonly ExchangeScope _exchangeScope = new();
+
         public FluxzyDefaultHandler(
             SslProvider sslProvider,
             ITcpConnectionProvider? connectionProvider = null, 
@@ -73,8 +75,8 @@ namespace Fluxzy.Clients.DotNetBridge
                 exchange.Context.SslApplicationProtocols = Protocols;
 
             var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken).ConfigureAwait(false);
-
-            await connection.Send(exchange, null!, RsBuffer.Allocate(32 * 1024),
+            
+            await connection.Send(exchange, null!, RsBuffer.Allocate(32 * 1024), _exchangeScope,
                 cancellationToken).ConfigureAwait(false);
 
             return new FluxzyHttpResponseMessage(exchange);
@@ -90,6 +92,8 @@ namespace Fluxzy.Clients.DotNetBridge
             }
 
             base.Dispose(disposing);
+
+            _exchangeScope.Dispose();
         }
     }
 }

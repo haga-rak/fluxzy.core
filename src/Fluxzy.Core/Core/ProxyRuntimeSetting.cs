@@ -132,14 +132,17 @@ namespace Fluxzy.Core
             Connection? connection = null, Exchange? exchange = null)
         {
             try {
-                foreach (var rule in _effectiveRules!.Where(a =>
-                             a.Action.ActionScope == filterScope
-                             || a.Action.ActionScope == FilterScope.OutOfScope
-                             || (a.Action.ActionScope == FilterScope.CopySibling
-                                 && a.Action is MultipleScopeAction multipleScopeAction
-                                 && multipleScopeAction.RunScope == filterScope
-                             )
-                         )) {
+                foreach (var rule in _effectiveRules!)
+                {
+                    if (rule.Action.ActionScope != filterScope &&
+                        rule.Action.ActionScope != FilterScope.OutOfScope &&
+                        !(rule.Action.ActionScope == FilterScope.CopySibling &&
+                          rule.Action is MultipleScopeAction multipleScopeAction &&
+                          multipleScopeAction.RunScope == filterScope))
+                    {
+                        continue;
+                    }
+
                     await rule.Enforce(
                         context, exchange, connection, filterScope,
                         ExecutionContext?.BreakPointManager!).ConfigureAwait(false);

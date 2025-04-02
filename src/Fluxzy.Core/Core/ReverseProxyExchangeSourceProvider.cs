@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Misc.ResizableBuffers;
-using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
@@ -18,6 +17,7 @@ namespace Fluxzy.Core
         private readonly ICertificateProvider _certificateProvider;
         private readonly IIdProvider _idProvider;
         private readonly int? _reverseModeForcedPort;
+        private readonly IExchangeContextBuilder _contextBuilder;
 
         private static readonly string TransparentExchangeConnectHeaderTemplate = 
             $"CONNECT {{0}}:{{1}} HTTP/1.1\r\n" +
@@ -25,18 +25,18 @@ namespace Fluxzy.Core
             $"\r\n";
 
         public ReverseProxyExchangeSourceProvider(ICertificateProvider certificateProvider, IIdProvider idProvider,
-            int ? reverseModeForcedPort)
+            int ? reverseModeForcedPort, IExchangeContextBuilder contextBuilder)
                 : base(idProvider)
         {
             _certificateProvider = certificateProvider;
             _idProvider = idProvider;
             _reverseModeForcedPort = reverseModeForcedPort;
+            _contextBuilder = contextBuilder;
         }
 
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
             Stream stream,
             RsBuffer buffer,
-            IExchangeContextBuilder contextBuilder,
             IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token)
         {
@@ -49,7 +49,7 @@ namespace Fluxzy.Core
                 ClientCertificateRequired = false,
                 CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                 EncryptionPolicy = EncryptionPolicy.RequireEncryption,
-                ServerCertificateSelectionCallback = (sender, name) => {
+                ServerCertificateSelectionCallback = (_, name) => {
                     var certificate = _certificateProvider.GetCertificate(string.IsNullOrWhiteSpace(name) ? "fluxzy.io" : name);
                     authorityName = name;
                     return certificate;
@@ -66,7 +66,7 @@ namespace Fluxzy.Core
 
             var authority = new Authority(authorityName, destinationPort, true);
 
-            var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
+            var exchangeContext = await _contextBuilder.Create(authority, true).ConfigureAwait(false);
 
             var receivedFromProxy = ITimingProvider.Default.Instant();
             var certStart = receivedFromProxy;
@@ -83,7 +83,9 @@ namespace Fluxzy.Core
             exchange.Metrics.CreateCertStart = certStart;
             exchange.Metrics.CreateCertEnd = certEnd;
 
-            return new(authority, secureStream, secureStream, exchange, false);
+            var downStreamPipe = new Http11DownStreamPipe(_idProvider, authority, secureStream, secureStream, false, _contextBuilder);
+
+            return new ExchangeSourceInitResult(downStreamPipe, exchange);
         }
     }
 }

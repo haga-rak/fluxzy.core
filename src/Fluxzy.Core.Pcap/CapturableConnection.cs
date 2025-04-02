@@ -6,44 +6,61 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core.Pcap
 {
+    internal class CapturableConnectionConnectResult : ITcpConnectionConnectResult
+    {
+        private readonly ICaptureContext _captureContext;
+        private readonly IPEndPoint _remoteEndPoint;
+        private readonly IPEndPoint _localEndPoint;
+
+        public CapturableConnectionConnectResult(ICaptureContext captureContext, DisposeEventNotifierStream stream)
+        {
+            _captureContext = captureContext;
+            _remoteEndPoint = stream.RemoteEndPoint;
+            _localEndPoint = stream.LocalEndPoint;
+            Stream = stream;
+        }
+        
+        public DisposeEventNotifierStream Stream { get; }
+
+        public void ProcessNssKey(string nssKey)
+        {
+            var remoteEndPoint = _remoteEndPoint;
+            _captureContext.StoreKey(nssKey, remoteEndPoint.Address, remoteEndPoint.Port, _localEndPoint.Port);
+        }
+    }
+
+
     internal class CapturableTcpConnection : ITcpConnection
     {
         private readonly TcpClient _innerTcpClient;
+        private readonly ICaptureContext _captureContext;
         private readonly string _outTraceFileName;
-        private readonly ProxyScope _proxyScope;
 
         private bool _disposed;
-        private IPEndPoint? _localEndPoint;
-        private IPAddress? _remoteAddress;
         private DisposeEventNotifierStream? _stream;
-        private long _subscription;
+        private long _subscriptionId;
 
-        public CapturableTcpConnection(ProxyScope proxyScope, string outTraceFileName)
+        public CapturableTcpConnection(ICaptureContext captureContext, string outTraceFileName)
         {
-            _proxyScope = proxyScope;
+            _captureContext = captureContext;
             _outTraceFileName = outTraceFileName;
             _innerTcpClient = new TcpClient();
         }
 
-        public async Task<IPEndPoint> ConnectAsync(IPAddress remoteAddress, int remotePort)
+        public async Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress remoteAddress, int remotePort)
         {
             if (_stream != null)
                 throw new InvalidOperationException("A previous connect attempt was already made");
 
-            var context = _proxyScope.CaptureContext;
             var connectError = false;
 
-            context?.Include(remoteAddress, remotePort);
+            _captureContext.Include(remoteAddress, remotePort);
 
             try {
                 await _innerTcpClient.ConnectAsync(remoteAddress, remotePort).ConfigureAwait(false);
-
-                _remoteAddress = remoteAddress;
-                _localEndPoint = (IPEndPoint) _innerTcpClient.Client.LocalEndPoint!;
             }
             catch {
                 connectError = true;
-
                 throw;
             }
             finally {
@@ -52,43 +69,17 @@ namespace Fluxzy.Core.Pcap
                 var localPort = ((IPEndPoint?) _innerTcpClient.Client?.LocalEndPoint)?.Port;
 
                 if (localPort != null && localPort > 0) {
-                    _subscription = context?.Subscribe(_outTraceFileName, remoteAddress, remotePort, localPort.Value) ??
-                                    0;
+                    _subscriptionId = _captureContext.Subscribe(_outTraceFileName, remoteAddress, remotePort, localPort.Value);
                 }
 
                 if (connectError)
                     await Task.Delay(1000).ConfigureAwait(false);
             }
 
-            _stream = new DisposeEventNotifierStream(_innerTcpClient.GetStream());
-
-            _stream.OnStreamDisposed += async (_, _) => {
-                // TODO when stream disposed 
-                await DisposeAsync().ConfigureAwait(false);
-            };
-
-            return _localEndPoint;
+            _stream = new DisposeEventNotifierStream(_innerTcpClient, DisposeAsync);
+            return new CapturableConnectionConnectResult(_captureContext, _stream);
         }
-
-        public Stream GetStream()
-        {
-            if (_stream == null)
-                throw new InvalidOperationException("Not connected yet");
-
-            return _stream;
-        }
-
-        public void OnKeyReceived(string nssKey)
-        {
-            if (_proxyScope.CaptureContext != null && _localEndPoint != null
-                                                   && _innerTcpClient.Client.RemoteEndPoint != null) {
-                var remoteEndPoint = (IPEndPoint) _innerTcpClient.Client.RemoteEndPoint;
-
-                _proxyScope.CaptureContext.StoreKey(nssKey, _remoteAddress!, remoteEndPoint.Port,
-                    _localEndPoint.Port);
-            }
-        }
-
+        
         public async ValueTask DisposeAsync()
         {
             if (_disposed)
@@ -96,17 +87,14 @@ namespace Fluxzy.Core.Pcap
 
             _disposed = true;
 
-            _innerTcpClient.Dispose();
-
-            if (_subscription != 0) {
-                var context = _proxyScope.CaptureContext;
-
-                if (context != null)
-                    await context.Unsubscribe(_subscription).ConfigureAwait(false);
+            if (_subscriptionId != 0) {
+                    await _captureContext.Unsubscribe(_subscriptionId).ConfigureAwait(false);
 
                 // We should wait few instant before disposing the writer 
                 // to ensure that all packets are written to the file
             }
         }
     }
+
+
 }

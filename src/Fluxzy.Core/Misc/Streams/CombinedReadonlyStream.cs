@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -17,6 +18,20 @@ namespace Fluxzy.Misc.Streams
         private Stream? _current;
         private IEnumerator<Stream>? _iterator;
         private long _position;
+
+        private byte[]? _arrayPoolTrailer;
+
+        private int _iteratorIndex;
+
+        public CombinedReadonlyStream(bool closeStreams, ReadOnlySpan<byte> trailer, Stream innerStream)
+        {
+            _arrayPoolTrailer = ArrayPool<byte>.Shared.Rent(trailer.Length);
+            trailer.CopyTo(_arrayPoolTrailer);
+
+            var streams = new[] { new MemoryStream(_arrayPoolTrailer, 0, trailer.Length), innerStream };
+            _iterator = ((IEnumerable<Stream>) streams).GetEnumerator();
+            _closeStreams = closeStreams;
+        }
 
         public CombinedReadonlyStream(bool closeStreams, params Stream[] args)
             : this(args, closeStreams)
@@ -50,6 +65,13 @@ namespace Fluxzy.Misc.Streams
 
                 if (_iterator.MoveNext()) {
                     _current = _iterator.Current;
+
+                    _iteratorIndex++;
+
+                    if (_arrayPoolTrailer != null && _iteratorIndex > 1)
+                    {
+                        ReturnTrailer();
+                    }
                 }
 
                 return _current;
@@ -83,6 +105,15 @@ namespace Fluxzy.Misc.Streams
             _current = null;
         }
 
+        private void ReturnTrailer()
+        {
+            if (_arrayPoolTrailer != null)
+            {
+                ArrayPool<byte>.Shared.Return(_arrayPoolTrailer);
+                _arrayPoolTrailer = null;
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing) {
@@ -90,6 +121,7 @@ namespace Fluxzy.Misc.Streams
                 _iterator?.Dispose();
                 _iterator = null;
                 _current = null;
+                ReturnTrailer();
             }
 
             base.Dispose(disposing);

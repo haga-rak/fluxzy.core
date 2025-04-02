@@ -67,15 +67,15 @@ namespace Fluxzy.Clients
                                            ? setting.ArchiveWriter.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
             
-            var localEndpoint = await tcpConnection.ConnectAsync(
+            var connectResult = await tcpConnection.ConnectAsync(
                 resolutionResult.EndPoint.Address,
                 resolutionResult.EndPoint.Port).ConfigureAwait(false);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
-            exchange.Connection.LocalPort = localEndpoint.Port;
-            exchange.Connection.LocalAddress = localEndpoint.Address.ToString();
+            exchange.Connection.LocalPort = connectResult.Stream.LocalEndPoint.Port;
+            exchange.Connection.LocalAddress = connectResult.Stream.LocalEndPoint.Address.ToString();
 
-            var newlyOpenedStream = tcpConnection.GetStream();
+            var newlyOpenedStream = connectResult.Stream;
 
             if (proxyConfiguration != null) {
                 exchange.Connection.ProxyConnectStart = _timeProvider.Instant();
@@ -117,9 +117,8 @@ namespace Fluxzy.Clients
                               exchange.Context.ClientCertificates.First() : null,
                               exchange.Context.AdvancedTlsSettings);
 
-            var sslConnectionInfo =
-                await _sslConnectionBuilder.AuthenticateAsClient(
-                    newlyOpenedStream, builderOptions, tcpConnection.OnKeyReceived, token).ConfigureAwait(false);
+            var sslConnectionInfo = 
+                await _sslConnectionBuilder.AuthenticateAsClient(newlyOpenedStream, builderOptions, connectResult.ProcessNssKey, token).ConfigureAwait(false);
 
             exchange.Connection.SslInfo = sslConnectionInfo.SslInfo;
 

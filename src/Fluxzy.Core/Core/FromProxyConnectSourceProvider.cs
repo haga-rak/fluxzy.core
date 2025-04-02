@@ -26,17 +26,21 @@ namespace Fluxzy.Core
         
         private readonly IIdProvider _idProvider;
         private readonly ProxyAuthenticationMethod _proxyAuthenticationMethod;
+        private readonly IExchangeContextBuilder _contextBuilder;
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
         private readonly int _attemptCount;
 
         public FromProxyConnectSourceProvider(
             SecureConnectionUpdater secureConnectionUpdater,
-            IIdProvider idProvider, ProxyAuthenticationMethod proxyAuthenticationMethod) :
+            IIdProvider idProvider, ProxyAuthenticationMethod proxyAuthenticationMethod,
+            IExchangeContextBuilder contextBuilder) :
             base (idProvider)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
             _idProvider = idProvider;
             _proxyAuthenticationMethod = proxyAuthenticationMethod;
+            _contextBuilder = contextBuilder;
+
             _attemptCount = proxyAuthenticationMethod.AuthenticationType == ProxyAuthenticationType.None ? 
                 1 : FluxzySharedSetting.ProxyAuthenticationMaxAttempt;
         }
@@ -44,7 +48,6 @@ namespace Fluxzy.Core
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
             Stream stream,
             RsBuffer buffer,
-            IExchangeContextBuilder contextBuilder,
             IPEndPoint localEndpoint, IPEndPoint remoteEndPoint,
             CancellationToken token)
         {
@@ -52,7 +55,7 @@ namespace Fluxzy.Core
 
             while (count-- > 0)
             {
-                var result = await InternalInitClientConnection(stream, buffer, contextBuilder, localEndpoint, remoteEndPoint, token)
+                var result = await InternalInitClientConnection(stream, buffer, _contextBuilder, localEndpoint, remoteEndPoint, token)
                     .ConfigureAwait(false);
 
                 if (result.Retry)
@@ -111,7 +114,8 @@ namespace Fluxzy.Core
 
                     return
                         new (false, new ExchangeSourceInitResult(
-                            authority, stream, stream, provisionalExchange, true));
+                            new Http11DownStreamPipe(_idProvider, authority, stream, stream, true, _contextBuilder), 
+                            provisionalExchange));
                 }
 
                 var certStart = ITimingProvider.Default.Instant();
@@ -133,22 +137,15 @@ namespace Fluxzy.Core
                 return
                     new (false, 
                     new ExchangeSourceInitResult
-                    (authority,
-                        authenticateResult.InStream,
-                        authenticateResult.OutStream, exchange, false));
+                    (new Http11DownStreamPipe(_idProvider, authority, authenticateResult.InStream, authenticateResult.OutStream, false, _contextBuilder), exchange));
             }
 
             var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
 
             if (remainder > 0)
             {
-                var extraBlock = new byte[remainder];
-
-                buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder)
-                      .CopyTo(extraBlock);
-
                 stream = new RecomposedStream(
-                    new CombinedReadonlyStream(true, new MemoryStream(extraBlock), stream),
+                    new CombinedReadonlyStream(true, buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder), stream),
                     stream);
             }
 
@@ -175,16 +172,15 @@ namespace Fluxzy.Core
             var plainAuthority = new Authority(uri.Host, uri.Port, false);
             var plainExchangeContext = await contextBuilder.Create(plainAuthority, false).ConfigureAwait(false);
 
-            var bodyStream = SetChunkedBody(plainHeader, stream);
+            var bodyStream = Http11DownStreamPipe.SetChunkedBody(plainHeader, stream);
 
-            return new (false, new ExchangeSourceInitResult(
+            var nextExchange = new Exchange(_idProvider,
+                plainExchangeContext,
                 plainAuthority,
-                stream,
-                stream,
-                new Exchange(_idProvider,
-                    plainExchangeContext,
-                    plainAuthority,
-                    plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy), false));
+                plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy);
+
+            return new (false, new ExchangeSourceInitResult(new Http11DownStreamPipe(
+                _idProvider, plainAuthority, stream, stream, false, _contextBuilder), nextExchange));
         }
 
         private record ReadNextBlockResult(

@@ -27,14 +27,13 @@ namespace Fluxzy.Clients.H11
         /// </summary>
         /// <param name="exchange"></param>
         /// <param name="buffer"></param>
+        /// <param name="exchangeScope"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>True if remote server close connection</returns>
-        public async ValueTask<bool> Process(Exchange exchange, RsBuffer buffer, CancellationToken cancellationToken)
+        public async ValueTask<bool> Process(Exchange exchange, RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken cancellationToken)
         {
-            if (exchange.Context.EventNotifierStream != null) {
-                if (exchange.Context.EventNotifierStream.Faulted) {
-                    throw new ConnectionCloseException("Abandoned stream");
-                }
+            if (exchange.Context.EventNotifierStream?.Faulted == true) {
+                throw new ConnectionCloseException("Abandoned stream");
             }
 
             exchange.Connection!.AddNewRequestProcessed();
@@ -126,7 +125,7 @@ namespace Fluxzy.Clients.H11
                 throw new ConnectionCloseException("Relaunch");
             }
 
-            Memory<char> headerContent = new char[headerBlockDetectResult.HeaderLength];
+            Memory<char> headerContent = exchangeScope.RegisterForReturn(headerBlockDetectResult.HeaderLength);
 
             Encoding.ASCII
                     .GetChars(buffer.Memory.Slice(0, headerBlockDetectResult.HeaderLength).Span, headerContent.Span);
@@ -160,16 +159,13 @@ namespace Fluxzy.Clients.H11
             var bodyStream = exchange.Connection.ReadStream!;
 
             if (headerBlockDetectResult.HeaderLength < headerBlockDetectResult.TotalReadLength) {
-                var remainder = new byte[headerBlockDetectResult.TotalReadLength -
-                                         headerBlockDetectResult.HeaderLength];
-
-                Buffer.BlockCopy(buffer.Buffer, headerBlockDetectResult.HeaderLength,
-                    remainder, 0, remainder.Length);
+                var length = headerBlockDetectResult.TotalReadLength -
+                             headerBlockDetectResult.HeaderLength;
 
                 // Concat the extra body bytes read while retrieving header
                 bodyStream = new CombinedReadonlyStream(
                     shouldCloseConnection,
-                    new MemoryStream(remainder),
+                    buffer.Buffer.AsSpan(headerBlockDetectResult.HeaderLength, length),
                     exchange.Connection.ReadStream!
                 );
             }
