@@ -60,7 +60,7 @@ namespace Fluxzy.Tests.Cli
                 requestMessage, useBouncyCastle: useBouncyCastle);
             
             var thumbPrint = await response.Content.ReadAsStringAsync();
-            var expectedThumbPrint = "960b00317d47d0d52d04a3a03b045e96bf3be3a3";
+            var expectedThumbPrint = "3D4F40710F4D2AAFD5E24B618C0F05B95FD8B00C";
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(expectedThumbPrint, thumbPrint, StringComparer.OrdinalIgnoreCase);
