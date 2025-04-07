@@ -54,6 +54,9 @@
     <None Update="_Files\Certificates\fluxzytest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="_Files\Others\template-Edge_Windows_131.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Rules\Injected\injected-script.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -88,7 +91,6 @@
 
   <ItemGroup>
     <Folder Include="_Files\Certificates\" />
-    <Folder Include="_Files\Others\" />
     <Folder Include="_Files\Outputs\" />
   </ItemGroup>
 
