@@ -20,9 +20,9 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var expectedResponse = "HTTP/1.0" + "Hello";
 
             setting.ConfigureRule().WhenAny()
-                   .Do(new TransformTextResponseBodyAction((context, bodyReader) => {
-                       var body = bodyReader.ConsumeAsString();
-                       return Task.FromResult<BodyContent>(body + "Hello");
+                   .Do(new TransformTextResponseBodyAction(async (context, bodyReader) => {
+                       var body = await bodyReader.ConsumeAsString();
+                       return body + "Hello";
                    }));
 
             await using var proxy = new Proxy(setting);
