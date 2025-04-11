@@ -14,7 +14,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
         [InlineData(DecompressionMethods.GZip)]
         [InlineData(DecompressionMethods.Deflate)]
         [InlineData(DecompressionMethods.Brotli)]
-        public async Task TestWithEncoding(DecompressionMethods method)
+        public async Task ResponseBodyWithEncoding(DecompressionMethods method)
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
             var expectedResponse = "HTTP/1.0" + "Hello";
@@ -50,12 +50,12 @@ namespace Fluxzy.Tests.UnitTests.Rules
         [InlineData(DecompressionMethods.GZip)]
         [InlineData(DecompressionMethods.Deflate)]
         [InlineData(DecompressionMethods.Brotli)]
-        public async Task TestIgnoreBody(DecompressionMethods method)
+        public async Task ResponseBodyIgnoreOriginalBody(DecompressionMethods method)
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
 
             setting.ConfigureRule().WhenAny()
-                   .Transform((_, _) => Task.FromResult<BodyContent>("Hello"));
+                   .TransformResponse((_, _) => Task.FromResult<BodyContent>("Hello"));
 
             await using var proxy = new Proxy(setting);
 
@@ -75,6 +75,32 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var content = await response.Content.ReadAsStringAsync();
 
             Assert.Equal("Hello", content);
+        }
+
+        [Fact]
+        public async Task ResponseBodyTransformOverload()
+        {
+            var setting = FluxzySetting.CreateLocalRandomPort();
+            var expectedResponse = "HTTP/1.0" + "Hello";
+
+            setting.ConfigureRule().WhenAny()
+                   .TransformResponse((_, originalContent) => Task.FromResult(originalContent + "Hello"));
+
+            await using var proxy = new Proxy(setting);
+
+            var endPoints = proxy.Run();
+
+            var url = $"https://sandbox.smartizy.com/protocol";
+
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(expectedResponse, content);
         }
     }
 }

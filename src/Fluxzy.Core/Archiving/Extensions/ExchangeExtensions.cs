@@ -39,12 +39,12 @@ namespace Fluxzy.Extensions
 
         public static Encoding? GetResponseEncoding(this IExchange exchangeInfo)
         {
-            var responseHeaders = exchangeInfo.GetResponseHeaders();
+            var headers = exchangeInfo.GetResponseHeaders();
 
-            if (responseHeaders == null)
+            if (headers == null)
                 return null;
 
-            var contentTypeHeader = responseHeaders.LastOrDefault(h =>
+            var contentTypeHeader = headers.LastOrDefault(h =>
                 h.Name.Span.Equals("Content-Type", StringComparison.OrdinalIgnoreCase));
 
             if (contentTypeHeader == null)
