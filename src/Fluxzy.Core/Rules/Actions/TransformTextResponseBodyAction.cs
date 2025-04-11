@@ -14,7 +14,7 @@ namespace Fluxzy.Rules.Actions
 {
     public class TransformTextResponseBodyAction : Action
     {
-        public TransformTextResponseBodyAction(Func<TransformContext, IBodyReader, Task<BodyContent>> transformFunction)
+        public TransformTextResponseBodyAction(Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction)
         {
             TransformFunction = transformFunction;
         }
@@ -22,7 +22,7 @@ namespace Fluxzy.Rules.Actions
         /// <summary>
         /// Function that takes the transform context and the original content as a string and returns the new content as a string
         /// </summary>
-        public Func<TransformContext, IBodyReader, Task<BodyContent>> TransformFunction { get; }
+        public Func<TransformContext, IBodyReader, Task<BodyContent?>> TransformFunction { get; }
 
         /// <summary>
         /// Encoding used to decode the response body, if null, taken from the response headers,
@@ -54,7 +54,7 @@ namespace Fluxzy.Rules.Actions
                 var transformContext = new TransformContext(context, exchange, connection);
 
                 context.RegisterResponseBodySubstitution(
-                    new TransformResponseTextSubstitution(exchange, transformContext,
+                    new TransformResponseTextSubstitution(this, exchange, transformContext,
                         TransformFunction, InputEncoding, OutputEncoding));
             }
 
@@ -68,10 +68,10 @@ namespace Fluxzy.Rules.Actions
         /// Forwards the request to the specified URL.
         /// </summary>
         /// <param name="builder">The <see cref="IConfigureActionBuilder"/> object.</param>
-        /// <param name="transformFunction"></param>
+        /// <param name="transformFunction">A transformation function that shall return BodyContent or null if no change is made</param>
         /// <returns>The <see cref="IConfigureFilterBuilder"/> object.</returns>
         public static IConfigureFilterBuilder TransformResponse(this IConfigureActionBuilder builder,
-            Func<TransformContext, IBodyReader, Task<BodyContent>> transformFunction)
+            Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction)
         {
             builder.Do(new TransformTextResponseBodyAction(transformFunction));
             return new ConfigureFilterBuilderBuilder(builder.Setting);
@@ -81,7 +81,7 @@ namespace Fluxzy.Rules.Actions
         /// Transform the response body using a function that takes the transform context and the original content as a string and returns the new content as a string.
         /// </summary>
         /// <param name="builder">The <see cref="IConfigureActionBuilder"/> object.</param>
-        /// <param name="transformFunction">Function that takes  the transform context and the original content as a string and returns the new content as a string</param>
+        /// <param name="transformFunction">Function that takes  the transform context and the original content as a string and returns the new content as a string, return null to avoid making changes</param>
         /// <returns>The <see cref="IConfigureFilterBuilder"/> object.</returns>
         public static IConfigureFilterBuilder TransformResponse(this IConfigureActionBuilder builder,
             Func<TransformContext, string, Task<string>> transformFunction)
@@ -99,18 +99,20 @@ namespace Fluxzy.Rules.Actions
     
     internal class TransformResponseTextSubstitution : IStreamSubstitution
     {
+        private readonly Action _source;
         private readonly Exchange _exchange;
         private readonly TransformContext _transformContext;
-        private readonly Func<TransformContext, IBodyReader, Task<BodyContent>> _transformFunction;
+        private readonly Func<TransformContext, IBodyReader, Task<BodyContent?>> _transformFunction;
         private readonly Encoding? _inputEncoding;
         private readonly Encoding? _outputEncoding;
 
-        public TransformResponseTextSubstitution(Exchange exchange,
+        public TransformResponseTextSubstitution(Action source, Exchange exchange,
             TransformContext transformContext,
-            Func<TransformContext, IBodyReader, Task<BodyContent>> transformFunction,
+            Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction,
             Encoding? inputEncoding,
             Encoding? outputEncoding)
         {
+            _source = source;
             _exchange = exchange;
             _transformContext = transformContext;
             _transformFunction = transformFunction;
@@ -122,15 +124,22 @@ namespace Fluxzy.Rules.Actions
         {
             // detect exchange encoding 
             var inputEncoding = (_inputEncoding ?? _exchange.GetResponseEncoding()) ?? Encoding.UTF8;
-            var outputEncoding = _outputEncoding ?? inputEncoding;
-
             // read the original stream to a string
             
             var bodyReader = new InternalBodyReader(originalStream, inputEncoding);
 
             // transform the string
             var bodyContent = await _transformFunction(_transformContext, bodyReader);
-            
+
+            if (bodyContent == null) {
+                if (bodyReader.Consumed)
+                    throw new RuleExecutionFailureException(
+                        $"Could not return original content as it's already consumed by the transformation function", _source);
+
+                // ignore the transformation 
+                return originalStream;
+            }
+
             // convert the transformed string to a stream
 
             if (!bodyReader.Consumed) {

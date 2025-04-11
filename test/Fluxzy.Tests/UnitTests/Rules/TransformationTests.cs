@@ -9,6 +9,59 @@ namespace Fluxzy.Tests.UnitTests.Rules
 {
     public class TransformationTests
     {
+        [Fact]
+        public async Task ResponseBodyStartSample()
+        {
+            var setting = FluxzySetting.CreateLocalRandomPort();
+            var expectedResponse = "HTTP/1.0" + "Hello";
+
+            setting.ConfigureRule().WhenAny()
+                   .TransformResponse((_, originalContent) => Task.FromResult(originalContent + "Hello"));
+
+            await using var proxy = new Proxy(setting);
+
+            var endPoints = proxy.Run();
+
+            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(expectedResponse, content);
+        }
+
+        [Fact]
+        public async Task ResponseBodyNoChange()
+        {
+            var setting = FluxzySetting.CreateLocalRandomPort();
+            var expectedResponse = "HTTP/1.0";
+
+            setting.ConfigureRule().WhenAny()
+                   .TransformResponse(async (_, originalContent) =>  (BodyContent?) null); // Return null to keep the original content without change
+
+            await using var proxy = new Proxy(setting);
+
+            var endPoints = proxy.Run();
+
+            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(expectedResponse, content);
+        }
+
+
         [Theory]
         [InlineData(DecompressionMethods.None)]
         [InlineData(DecompressionMethods.GZip)]
@@ -20,7 +73,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var expectedResponse = "HTTP/1.0" + "Hello";
 
             setting.ConfigureRule().WhenAny()
-                   .Do(new TransformTextResponseBodyAction(async (context, bodyReader) => {
+                   .Do(new TransformTextResponseBodyAction(async (_, bodyReader) => {
                        var body = await bodyReader.ConsumeAsString();
                        return body + "Hello";
                    }));
@@ -55,7 +108,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var setting = FluxzySetting.CreateLocalRandomPort();
 
             setting.ConfigureRule().WhenAny()
-                   .TransformResponse((_, _) => Task.FromResult<BodyContent>("Hello"));
+                   .TransformResponse((_, _) => Task.FromResult<BodyContent?>("Hello"));
 
             await using var proxy = new Proxy(setting);
 
@@ -78,29 +131,29 @@ namespace Fluxzy.Tests.UnitTests.Rules
         }
 
         [Fact]
-        public async Task ResponseBodyTransformOverload()
+        public async Task ResponseBodyConsumeViolation()
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
-            var expectedResponse = "HTTP/1.0" + "Hello";
 
             setting.ConfigureRule().WhenAny()
-                   .TransformResponse((_, originalContent) => Task.FromResult(originalContent + "Hello"));
+                   .TransformResponse(async (_, originalContent) => {
+                       await originalContent.ConsumeAsBytes();
+                       return (BodyContent?)null;
+                   }); // Return null to keep the original content without change
 
             await using var proxy = new Proxy(setting);
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol";
+            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 
             var response = await client.GetAsync(url);
-
-            response.EnsureSuccessStatusCode();
-
             var content = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(expectedResponse, content);
+            Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+            Assert.Contains("A rule execution failure has occured.", content);
         }
     }
 }
