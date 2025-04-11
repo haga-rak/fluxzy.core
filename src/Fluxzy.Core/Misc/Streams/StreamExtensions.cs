@@ -357,6 +357,17 @@ namespace Fluxzy.Misc.Streams
             return streamReader.ReadToEnd();
         }
 
+        public static async Task<string> ReadToEndGreedyAsync(this Stream stream, Encoding? encoding = null)
+        {
+            if (!stream.CanRead) {
+                return string.Empty;
+            }
+
+            using var streamReader = new StreamReader(stream, encoding ?? Encoding.UTF8);
+
+            return await streamReader.ReadToEndAsync();
+        }
+
         public static void CopyToThenDisposeDestination(this Stream src, Stream dest)
         {
             src.CopyTo(dest);

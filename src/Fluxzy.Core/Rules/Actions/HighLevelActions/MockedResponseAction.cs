@@ -16,7 +16,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     {
         public MockedResponseAction(MockedResponseContent?  response)
         {
-            Response = response ?? new MockedResponseContent(200, BodyContent.CreateFromString(""));
+            Response = response ?? new MockedResponseContent(200, Clients.Mock.BodyContent.CreateFromString(""));
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         public override IEnumerable<ActionExample> GetExamples()
         {
             {
-                var bodyContent = BodyContent.CreateFromString("{ \"result\": true }");
+                var bodyContent = Clients.Mock.BodyContent.CreateFromString("{ \"result\": true }");
                 bodyContent.Type = BodyType.Json;
 
                 yield return new ActionExample("Mock a response with a raw text",
@@ -55,7 +55,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             }
 
             {
-                var bodyContent = BodyContent.CreateFromFile("/path/to/my/response.data"); 
+                var bodyContent = Clients.Mock.BodyContent.CreateFromFile("/path/to/my/response.data"); 
                 bodyContent.Type = BodyType.Binary;
 
                 yield return new ActionExample("Mock a response with a file.",
@@ -71,7 +71,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
         public static MockedResponseAction BuildDefaultInstance()
         {
-            var bodyContent = BodyContent.CreateFromString("{ \"result\": true }");
+            var bodyContent = Clients.Mock.BodyContent.CreateFromString("{ \"result\": true }");
 
             bodyContent.Type = BodyType.Json;
 

@@ -37,12 +37,14 @@ namespace Fluxzy.Extensions
             return contentTypeHeader?.Value.ToString();
         }
 
-        public static Encoding? GetResponseEncoding(this ExchangeInfo exchangeInfo)
+        public static Encoding? GetResponseEncoding(this IExchange exchangeInfo)
         {
-            if (exchangeInfo.ResponseHeader?.Headers == null)
+            var responseHeaders = exchangeInfo.GetResponseHeaders();
+
+            if (responseHeaders == null)
                 return null;
 
-            var contentTypeHeader = exchangeInfo.ResponseHeader.Headers.LastOrDefault(h =>
+            var contentTypeHeader = responseHeaders.LastOrDefault(h =>
                 h.Name.Span.Equals("Content-Type", StringComparison.OrdinalIgnoreCase));
 
             if (contentTypeHeader == null)
