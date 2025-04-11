@@ -8,6 +8,7 @@ using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Actions
 {
@@ -48,7 +49,7 @@ namespace Fluxzy.Rules.Actions
             ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
             BreakPointManager breakPointManager)
         {
-            if (exchange != null) {
+            if (exchange != null && connection != null) {
                 var transformContext = new TransformContext(exchange, connection);
 
                 context.RegisterResponseBodySubstitution(
@@ -59,9 +60,24 @@ namespace Fluxzy.Rules.Actions
             return default; 
         }
     }
-
-
-    public class TransformTextSubstitution : IStreamSubstitution
+    
+    public static class TransformActionExtensions
+    {
+        /// <summary>
+        /// Forwards the request to the specified URL.
+        /// </summary>
+        /// <param name="builder">The <see cref="IConfigureActionBuilder"/> object.</param>
+        /// <param name="transformFunction"></param>
+        /// <returns>The <see cref="IConfigureFilterBuilder"/> object.</returns>
+        public static IConfigureFilterBuilder Transform(this IConfigureActionBuilder builder,
+            Func<TransformContext, IBodyReader, Task<BodyContent>> transformFunction)
+        {
+            builder.Do(new TransformTextResponseBodyAction(transformFunction));
+            return new ConfigureFilterBuilderBuilder(builder.Setting);
+        }
+    }
+    
+    internal class TransformTextSubstitution : IStreamSubstitution
     {
         private readonly Exchange _exchange;
         private readonly TransformContext _transformContext;

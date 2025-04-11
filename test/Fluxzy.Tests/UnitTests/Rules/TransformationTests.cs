@@ -14,7 +14,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
         [InlineData(DecompressionMethods.GZip)]
         [InlineData(DecompressionMethods.Deflate)]
         [InlineData(DecompressionMethods.Brotli)]
-        public async Task TestWithVariousEncoding(DecompressionMethods method)
+        public async Task TestWithEncoding(DecompressionMethods method)
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
             var expectedResponse = "HTTP/1.0" + "Hello";
@@ -43,6 +43,38 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var content = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(expectedResponse, content);
+        }
+
+        [Theory]
+        [InlineData(DecompressionMethods.None)]
+        [InlineData(DecompressionMethods.GZip)]
+        [InlineData(DecompressionMethods.Deflate)]
+        [InlineData(DecompressionMethods.Brotli)]
+        public async Task TestIgnoreBody(DecompressionMethods method)
+        {
+            var setting = FluxzySetting.CreateLocalRandomPort();
+
+            setting.ConfigureRule().WhenAny()
+                   .Transform((_, _) => Task.FromResult<BodyContent>("Hello"));
+
+            await using var proxy = new Proxy(setting);
+
+            var endPoints = proxy.Run();
+
+            var url = $"https://sandbox.smartizy.com/protocol";
+
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, setting, 
+                configureHandler: httpClientHandler => {
+                    httpClientHandler.AutomaticDecompression = method;
+                });
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal("Hello", content);
         }
     }
 }
