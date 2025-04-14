@@ -8,13 +8,12 @@ using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Rules.Extensions;
 
 namespace Fluxzy.Rules.Actions
 {
-    public class TransformTextResponseBodyAction : Action
+    public class TransformResponseBodyAction : Action
     {
-        public TransformTextResponseBodyAction(Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction)
+        public TransformResponseBodyAction(Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction)
         {
             TransformFunction = transformFunction;
         }
@@ -29,12 +28,6 @@ namespace Fluxzy.Rules.Actions
         /// if not found in the response headers, defaults to UTF8
         /// </summary>
         public Encoding? InputEncoding { get; set; } = null;
-
-        /// <summary>
-        /// Same as input-encoding if null, if not specified, taken from the response headers,
-        /// if not found in the response headers, defaults to UTF8
-        /// </summary>
-        public Encoding? OutputEncoding { get; set; } = Encoding.UTF8;
 
         /// <summary>
         /// 
@@ -54,70 +47,32 @@ namespace Fluxzy.Rules.Actions
                 var transformContext = new TransformContext(context, exchange, connection);
 
                 context.RegisterResponseBodySubstitution(
-                    new TransformResponseTextSubstitution(this, exchange, transformContext,
-                        TransformFunction, InputEncoding, OutputEncoding));
+                    new TransformResponseSubstitution(this, exchange, transformContext,
+                        TransformFunction, InputEncoding));
             }
 
             return default; 
         }
     }
 
-    public static class TransformActionExtensions
-    {
-        /// <summary>
-        /// Forwards the request to the specified URL.
-        /// </summary>
-        /// <param name="builder">The <see cref="IConfigureActionBuilder"/> object.</param>
-        /// <param name="transformFunction">A transformation function that shall return BodyContent or null if no change is made</param>
-        /// <returns>The <see cref="IConfigureFilterBuilder"/> object.</returns>
-        public static IConfigureFilterBuilder TransformResponse(this IConfigureActionBuilder builder,
-            Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction)
-        {
-            builder.Do(new TransformTextResponseBodyAction(transformFunction));
-            return new ConfigureFilterBuilderBuilder(builder.Setting);
-        }
-
-        /// <summary>
-        /// Transform the response body using a function that takes the transform context and the original content as a string and returns the new content as a string.
-        /// </summary>
-        /// <param name="builder">The <see cref="IConfigureActionBuilder"/> object.</param>
-        /// <param name="transformFunction">Function that takes  the transform context and the original content as a string and returns the new content as a string, return null to avoid making changes</param>
-        /// <returns>The <see cref="IConfigureFilterBuilder"/> object.</returns>
-        public static IConfigureFilterBuilder TransformResponse(this IConfigureActionBuilder builder,
-            Func<TransformContext, string, Task<string>> transformFunction)
-        {
-            var action = new TransformTextResponseBodyAction(async (c , reader) =>
-            {
-                var content = await reader.ConsumeAsString();
-                return await transformFunction(c, content);
-            });
-
-            builder.Do(action);
-            return new ConfigureFilterBuilderBuilder(builder.Setting);
-        }
-    }
-    
-    internal class TransformResponseTextSubstitution : IStreamSubstitution
+    internal class TransformResponseSubstitution : IStreamSubstitution
     {
         private readonly Action _source;
         private readonly Exchange _exchange;
         private readonly TransformContext _transformContext;
         private readonly Func<TransformContext, IBodyReader, Task<BodyContent?>> _transformFunction;
         private readonly Encoding? _inputEncoding;
-        private readonly Encoding? _outputEncoding;
 
-        public TransformResponseTextSubstitution(Action source, Exchange exchange,
+        public TransformResponseSubstitution(Action source, Exchange exchange,
             TransformContext transformContext,
             Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction,
-            Encoding? inputEncoding,
-            Encoding? outputEncoding)
+            Encoding? inputEncoding)
         {
             _source = source;
             _exchange = exchange;
             _transformContext = transformContext;
             _transformFunction = transformFunction;
             _inputEncoding = inputEncoding;
-            _outputEncoding = outputEncoding;
         }
 
         public async ValueTask<Stream> Substitute(Stream originalStream)
@@ -141,7 +96,6 @@ namespace Fluxzy.Rules.Actions
             }
 
             // convert the transformed string to a stream
-
             if (!bodyReader.Consumed) {
                 await bodyReader.InnerStream.DrainAsync();
             }
@@ -204,6 +158,17 @@ namespace Fluxzy.Rules.Actions
             return memoryStream.ToArray();
         }
 
+        public Stream ConsumeAsStream()
+        {
+            if (Consumed)
+            {
+                throw new InvalidOperationException("Already read");
+            }
+
+            Consumed = true;
+            return _innerStream;
+        }
+
         public bool Consumed { get; private set; }
 
         internal Stream InnerStream => _innerStream;
@@ -215,6 +180,8 @@ namespace Fluxzy.Rules.Actions
 
         Task<byte[]> ConsumeAsBytes();
 
+        Stream ConsumeAsStream();
+
         bool Consumed { get; }
     }
 
@@ -222,28 +189,23 @@ namespace Fluxzy.Rules.Actions
     {
         private readonly Stream _stream;
 
-        public BodyContent(string content)
+        public BodyContent(string content, Encoding? encoding = null)
         {
-            var bytes = Encoding.UTF8.GetBytes(content);
+            var bytes = (encoding ?? Encoding.UTF8).GetBytes(content);
             _stream = new MemoryStream(bytes);
-            Encoding = Encoding.UTF8;
         }
 
         public BodyContent(byte[] content, Encoding encoding)
         {
-            Encoding = encoding;
             _stream = new MemoryStream(content);
         }
 
         public BodyContent(Stream stream, Encoding encoding)
         {
             _stream = stream;
-            Encoding = encoding;
         }
 
         internal Stream Stream => _stream;
-
-        internal Encoding Encoding { get; }
 
         // Add an implicit cast from string 
 

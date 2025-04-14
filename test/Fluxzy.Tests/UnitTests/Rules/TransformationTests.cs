@@ -1,8 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Rules.Actions;
+using Fluxzy.Rules.Filters.ResponseFilters;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Rules
@@ -61,6 +65,109 @@ namespace Fluxzy.Tests.UnitTests.Rules
             Assert.Equal(expectedResponse, content);
         }
 
+        [Fact]
+        public async Task ResponseBodyNoConsume()
+        {
+            var setting = FluxzySetting.CreateLocalRandomPort();
+
+            setting.ConfigureRule().WhenAny()
+                   .TransformResponse(async (_, _) =>  (BodyContent?) "hello"); // Return null to keep the original content without change
+
+            await using var proxy = new Proxy(setting);
+
+            var endPoints = proxy.Run();
+
+            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal("hello", content);
+        }
+        
+        [Fact]
+        public async Task ResponseBodySampleString()
+        {
+            var expectedResponse = "http/1.0";
+
+            var fluxzySetting = FluxzySetting.CreateLocalRandomPort();
+            fluxzySetting.ConfigureRule().WhenAny()
+                   .TransformResponse(
+                       (_, originalContent) => Task.FromResult(originalContent.ToLowerInvariant()));
+
+            await using var proxy = new Proxy(fluxzySetting);
+
+            var endPoints = proxy.Run();
+
+            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(expectedResponse, content);
+        }
+
+        [Fact]
+        public async Task ResponseBodySampleStream()
+        {
+            var expectedResponse = "A";
+
+            var fluxzySetting = FluxzySetting.CreateLocalRandomPort();
+            fluxzySetting.ConfigureRule().WhenAny()
+                   .TransformResponse(
+                       (_, originalStream) => Task.FromResult<Stream?>(new MemoryStream(new byte[] { 65 })));
+
+            await using var proxy = new Proxy(fluxzySetting);
+
+            var endPoints = proxy.Run();
+
+            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(expectedResponse, content);
+        }
+
+        [Fact]
+        public async Task ResponseBodySampleStreamRead()
+        {
+            var fluxzySetting = FluxzySetting.CreateLocalRandomPort();
+            fluxzySetting.ConfigureRule().WhenAny()
+                   .TransformResponse(
+                       (_, originalStream) => Task.FromResult<Stream?>(new MemoryStream(Encoding.UTF8.GetBytes(originalStream.Drain().ToString()))));
+
+            await using var proxy = new Proxy(fluxzySetting);
+
+            var endPoints = proxy.Run();
+
+            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+
+            using var client = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
+
+            var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal("8", content);
+        }
 
         [Theory]
         [InlineData(DecompressionMethods.None)]
@@ -73,7 +180,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var expectedResponse = "HTTP/1.0" + "Hello";
 
             setting.ConfigureRule().WhenAny()
-                   .Do(new TransformTextResponseBodyAction(async (_, bodyReader) => {
+                   .Do(new TransformResponseBodyAction(async (_, bodyReader) => {
                        var body = await bodyReader.ConsumeAsString();
                        return body + "Hello";
                    }));
