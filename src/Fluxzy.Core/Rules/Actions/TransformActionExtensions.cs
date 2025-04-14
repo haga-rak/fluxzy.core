@@ -99,5 +99,4 @@ namespace Fluxzy.Rules.Actions
             return new ConfigureFilterBuilderBuilder(builder.Setting);
         }
     }
-
 }
