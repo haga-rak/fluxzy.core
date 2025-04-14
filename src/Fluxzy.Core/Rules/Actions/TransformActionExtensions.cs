@@ -66,5 +66,38 @@ namespace Fluxzy.Rules.Actions
             builder.Do(action);
             return new ConfigureFilterBuilderBuilder(builder.Setting);
         }
+
+
+        /// <summary>
+        /// Transform the request body using a function that takes the transform context and the original content as a string and returns the new content as a string.
+        /// </summary>
+        /// <param name="builder">The <see cref="IConfigureActionBuilder"/> object.</param>
+        /// <param name="transformFunction">A transformation function that shall return BodyContent or null if no change is made</param>
+        /// <returns>The <see cref="IConfigureFilterBuilder"/> object.</returns>
+        public static IConfigureFilterBuilder TransformRequest(this IConfigureActionBuilder builder,
+            Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction)
+        {
+            builder.Do(new TransformRequestBodyAction(transformFunction));
+            return new ConfigureFilterBuilderBuilder(builder.Setting);
+        }
+
+        /// <summary>
+        /// Transform the request body using a function that takes the transform context and the original content as a string and returns the new content as a string.
+        /// </summary>
+        /// <param name="builder">The <see cref="IConfigureActionBuilder"/> object.</param>
+        /// <param name="transformFunction"> </param>
+        /// <returns></returns>
+        public static IConfigureFilterBuilder TransformRequest(this IConfigureActionBuilder builder,
+            Func<TransformContext, string, Task<string>> transformFunction)
+        {
+            var action = new TransformRequestBodyAction(async (c, reader) =>
+            {
+                var content = await reader.ConsumeAsString();
+                return await transformFunction(c, content);
+            });
+            builder.Do(action);
+            return new ConfigureFilterBuilderBuilder(builder.Setting);
+        }
     }
+
 }

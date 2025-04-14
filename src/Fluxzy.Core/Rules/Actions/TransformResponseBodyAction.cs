@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
-using Fluxzy.Extensions;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Rules.Actions
@@ -55,58 +54,54 @@ namespace Fluxzy.Rules.Actions
         }
     }
 
-    internal class TransformResponseSubstitution : IStreamSubstitution
+    public class TransformRequestBodyAction : Action
     {
-        private readonly Action _source;
-        private readonly Exchange _exchange;
-        private readonly TransformContext _transformContext;
-        private readonly Func<TransformContext, IBodyReader, Task<BodyContent?>> _transformFunction;
-        private readonly Encoding? _inputEncoding;
-
-        public TransformResponseSubstitution(Action source, Exchange exchange,
-            TransformContext transformContext,
-            Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction,
-            Encoding? inputEncoding)
+        public TransformRequestBodyAction(Func<TransformContext, IBodyReader, Task<BodyContent?>> transformFunction)
         {
-            _source = source;
-            _exchange = exchange;
-            _transformContext = transformContext;
-            _transformFunction = transformFunction;
-            _inputEncoding = inputEncoding;
+            TransformFunction = transformFunction;
         }
 
-        public async ValueTask<Stream> Substitute(Stream originalStream)
+        /// <summary>
+        /// Function that takes the transform context and the original content as a string and returns the new content as a string
+        /// </summary>
+        public Func<TransformContext, IBodyReader, Task<BodyContent?>> TransformFunction { get; }
+
+        /// <summary>
+        /// Encoding used to decode the response body, if null, taken from the response headers,
+        /// if not found in the response headers, defaults to UTF8
+        /// </summary>
+        public Encoding? InputEncoding { get; set; } = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public override FilterScope ActionScope { get; } = FilterScope.RequestHeaderReceivedFromClient;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public override string DefaultDescription { get; } = "FX(Text)";
+
+        public override ValueTask InternalAlter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
         {
-            // detect exchange encoding 
-            var inputEncoding = (_inputEncoding ?? _exchange.GetResponseEncoding()) ?? Encoding.UTF8;
-            // read the original stream to a string
-            
-            var bodyReader = new InternalBodyReader(originalStream, inputEncoding);
+            if (exchange != null) {
+                var transformContext = new TransformContext(context, exchange, connection);
 
-            // transform the string
-            var bodyContent = await _transformFunction(_transformContext, bodyReader);
-
-            if (bodyContent == null) {
-                if (bodyReader.Consumed)
-                    throw new RuleExecutionFailureException(
-                        $"Could not return original content as it's already consumed by the transformation function", _source);
-
-                // ignore the transformation 
-                return originalStream;
+                context.RegisterRequestBodySubstitution(
+                    new TransformRequestSubstitution(this, exchange, transformContext,
+                        TransformFunction, InputEncoding));
             }
 
-            // convert the transformed string to a stream
-            if (!bodyReader.Consumed) {
-                await bodyReader.InnerStream.DrainAsync();
-            }
-
-            return bodyContent.Stream;
+            return default; 
         }
     }
 
+
     public class TransformContext
     {
-        public TransformContext(ExchangeContext exchangeContext, Exchange exchange, Connection connection)
+        public TransformContext(ExchangeContext exchangeContext, Exchange exchange, Connection? connection)
         {
             ExchangeContext = exchangeContext;
             Exchange = exchange;
@@ -117,7 +112,7 @@ namespace Fluxzy.Rules.Actions
 
         public Exchange Exchange { get;  }
 
-        public Connection Connection { get; }
+        public Connection? Connection { get; }
     }
 
     internal class InternalBodyReader : IBodyReader
