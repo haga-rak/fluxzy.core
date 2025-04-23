@@ -41,7 +41,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
             if (!Uri.TryCreate(exchange.FullUrl, UriKind.Absolute, out var result)
                 || !result.Scheme.StartsWith("http")) {
-                context.PreMadeResponse = new MockedResponseContent(404, new BodyContent(
+                context.PreMadeResponse = new MockedResponseContent(404, new Clients.Mock.BodyContent(
                     BodyContentLoadingType.FromString, BodyType.Text
                 ) {
                     Text = $"Cannot parse {exchange.FullUrl}"
@@ -59,7 +59,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             var dir = new DirectoryInfo(Path.Combine(Directory, path));
 
             if (file.FullName.Length < fullDirectoryPath.Length) {
-                context.PreMadeResponse = new MockedResponseContent(404, new BodyContent(
+                context.PreMadeResponse = new MockedResponseContent(404, new Clients.Mock.BodyContent(
                     BodyContentLoadingType.FromString, BodyType.Text
                 ) {
                     Text = $"Path not found {path}"
@@ -71,7 +71,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             if (File.Exists(file.FullName)) {
                 var contentType = ContentTypeResolver.GetContentType(file.FullName);
 
-                context.PreMadeResponse = new MockedResponseContent(200, new BodyContent(
+                context.PreMadeResponse = new MockedResponseContent(200, new Clients.Mock.BodyContent(
                     BodyContentLoadingType.FromFile, BodyType.Binary) {
                     FileName = file.FullName
                 }) {
@@ -92,7 +92,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     var contentType = ContentTypeResolver.GetContentType(indexFullPath.FullName);
 
                     context.PreMadeResponse = new MockedResponseContent(200,
-                        new BodyContent(BodyContentLoadingType.FromFile, BodyType.Binary) {
+                        new Clients.Mock.BodyContent(BodyContentLoadingType.FromFile, BodyType.Binary) {
                             FileName = indexFullPath.FullName
                         }) {
                         Headers = {
@@ -104,7 +104,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                 }
             }
 
-            context.PreMadeResponse = new MockedResponseContent(404, new BodyContent(
+            context.PreMadeResponse = new MockedResponseContent(404, new Clients.Mock.BodyContent(
                 BodyContentLoadingType.FromString, BodyType.Text) {
                 Text = $"Path not found {path}"
             });

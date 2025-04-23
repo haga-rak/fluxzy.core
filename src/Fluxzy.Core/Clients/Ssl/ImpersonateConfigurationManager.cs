@@ -38,6 +38,12 @@ namespace Fluxzy.Clients.Ssl
 
         public ImpersonateConfiguration? LoadConfiguration(string nameOrConfigFile)
         {
+            if (File.Exists(nameOrConfigFile))
+            {
+                var json = File.ReadAllText(nameOrConfigFile);
+                return JsonSerializer.Deserialize<ImpersonateConfiguration>(json, JsonSerializerOptions);
+            }
+
             if (!ImpersonateProfile.TryParse(nameOrConfigFile, out var agent))
             {
                 return null;
@@ -64,14 +70,7 @@ namespace Fluxzy.Clients.Ssl
                     return _configurations[latest];
                 }
             }
-
-            if (File.Exists(nameOrConfigFile))
-            {
-                var json = File.ReadAllText(nameOrConfigFile);
-                return JsonSerializer.Deserialize<ImpersonateConfiguration>(json, JsonSerializerOptions);
-            }
-
-
+            
             return null;
         }
 

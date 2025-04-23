@@ -144,13 +144,13 @@ namespace Fluxzy
 
         internal ProxyExecutionContext ExecutionContext { get; }
 
+        internal FromIndexIdProvider IdProvider { get; }
+
         /// <summary>
         ///     Get the writer that is used by this proxy.
         /// </summary>
-        public RealtimeArchiveWriter Writer { get; } = new EventOnlyArchiveWriter();
-
-        internal FromIndexIdProvider IdProvider { get; }
-
+        public RealtimeArchiveWriter Writer { get; set;  } = new EventOnlyArchiveWriter();
+        
         /// <summary>
         ///     Get the setting that was used to start this proxy. Altering this setting will not affect the proxy.
         /// </summary>

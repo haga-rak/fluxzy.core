@@ -25,7 +25,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             BreakPointManager breakPointManager)
         {
             if (context.PreMadeResponse == null) {
-                var bodyContent = BodyContent.CreateFromString(FileStore.welcome);
+                var bodyContent = Clients.Mock.BodyContent.CreateFromString(FileStore.welcome);
 
                 context.PreMadeResponse = new MockedResponseContent(200,
                     bodyContent) {

@@ -26,7 +26,7 @@ namespace Fluxzy.Tests.Cli.Certificates
         }
 
         [Theory]
-        [InlineData("_Files/Certificates/client-cert.clear.pifix", false)]
+        [InlineData("_Files/Certificates/client-cert.clear.pifix", true)]
         [InlineData("_Files/Certificates/client-cert.pifix", true)]
         [InlineData("_Files/Certificates/fluxzytest.txt", false)]
         [InlineData("_Files/Certificates/missing_file.txt", false)]

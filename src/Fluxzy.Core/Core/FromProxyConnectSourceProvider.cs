@@ -137,7 +137,9 @@ namespace Fluxzy.Core
                 return
                     new (false, 
                     new ExchangeSourceInitResult
-                    (new Http11DownStreamPipe(_idProvider, authority, authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder), exchange));
+                    (authority,
+                        authenticateResult.InStream,
+                        authenticateResult.OutStream, exchange, false));
             }
 
             var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
@@ -174,13 +176,14 @@ namespace Fluxzy.Core
 
             var bodyStream = Http11DownStreamPipe.SetChunkedBody(plainHeader, stream);
 
-            var nextExchange = new Exchange(_idProvider,
-                plainExchangeContext,
+            return new (false, new ExchangeSourceInitResult(
                 plainAuthority,
-                plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy);
-
-            return new (false, new ExchangeSourceInitResult(new Http11DownStreamPipe(
-                _idProvider, plainAuthority, stream, stream, _contextBuilder), nextExchange));
+                stream,
+                stream,
+                new Exchange(_idProvider,
+                    plainExchangeContext,
+                    plainAuthority,
+                    plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy), false));
         }
 
         private record ReadNextBlockResult(

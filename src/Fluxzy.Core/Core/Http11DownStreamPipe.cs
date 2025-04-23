@@ -16,6 +16,8 @@ namespace Fluxzy.Core
     {
         Authority RequestedAuthority { get; }
 
+        bool TunnelOnly { get; }
+
         ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token);
 
         ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, CancellationToken token);
@@ -60,6 +62,13 @@ namespace Fluxzy.Core
         }
 
         public Authority RequestedAuthority { get; }
+
+        private Stream? ReadStream { get; set; }
+
+        private Stream? WriteStream { get; set; }
+
+        public bool TunnelOnly { get; }
+
         public virtual async ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token)
         { 
             if (_readStream == null)
