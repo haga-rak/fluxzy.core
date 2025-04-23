@@ -7,6 +7,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H2;
 using Fluxzy.Misc.ResizableBuffers;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
@@ -29,9 +30,10 @@ namespace Fluxzy.Core
         {
             // Make announcement to the client
 
-            var prefaceMemory = buffer.Memory.Slice(0, H2Constants.Preface.Length); 
+            var prefaceMemory = buffer.Memory.Slice(0, H2Constants.Preface.Length);
 
-            await _readStream.ReadExactlyAsync(prefaceMemory, token);
+
+            await _readStream.ReadExactAsync(prefaceMemory, token);
 
             if (!prefaceMemory.Span.SequenceEqual(H2Constants.Preface)) {
                 throw new InvalidOperationException("Invalid preface");
@@ -53,6 +55,8 @@ namespace Fluxzy.Core
 
 
         public Authority RequestedAuthority { get; }
+
+        public bool TunnelOnly { get; set; }
 
         public async ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token)
         {
