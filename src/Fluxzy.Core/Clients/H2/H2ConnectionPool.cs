@@ -20,9 +20,16 @@ using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
 {
+    public static class H2Constants
+    {
+        public static readonly byte[] Preface = Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
+
+
+    }
+
+
     public class H2ConnectionPool : IHttpConnectionPool
     {
-        private static readonly byte[] Preface = Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
 
         private static int _connectionIdCounter;
 
@@ -113,7 +120,7 @@ namespace Fluxzy.Clients.H2
             _initDone = false;
 
             //_baseStream.Write(Preface);
-            SettingHelper.WriteWelcomeSettings(Preface, _baseStream, Setting, _logger);
+            SettingHelper.WriteWelcomeSettings(H2Constants.Preface, _baseStream, Setting, _logger);
 
             _innerReadTask = InternalReadLoop(_connectionToken);
             _innerWriteRun = InternalWriteLoop(_connectionToken);

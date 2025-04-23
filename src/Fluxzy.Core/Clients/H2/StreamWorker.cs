@@ -350,7 +350,6 @@ namespace Fluxzy.Clients.H2
                 await _pipeResponseBody.Writer.CompleteAsync().ConfigureAwait(false);
 
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
-
                 Parent.NotifyDispose(this);
             }
         }

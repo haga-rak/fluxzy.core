@@ -45,8 +45,6 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             }
 
             if (startString >= 0) {
-                count++;
-
                 yield return input.Slice(startString);
             }
         }
