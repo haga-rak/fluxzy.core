@@ -69,7 +69,7 @@ namespace Fluxzy.Certificates
                     _options.DaysBeforeExpiration));
 
             if (_options.P12Password != null)
-                cert.Export(X509ContentType.Pkcs12, _options.P12Password);
+                return cert.Export(X509ContentType.Pkcs12, _options.P12Password);
 
             return cert.Export(X509ContentType.Pkcs12);
         }
