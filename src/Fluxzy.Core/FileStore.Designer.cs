@@ -101,6 +101,16 @@ namespace Fluxzy {
         /// <summary>
         ///   Recherche une ressource localisée de type System.Byte[].
         /// </summary>
+        internal static byte[] PublicSuffixList {
+            get {
+                object obj = ResourceManager.GetObject("PublicSuffixList", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Byte[].
+        /// </summary>
         internal static byte[] UserAgents {
             get {
                 object obj = ResourceManager.GetObject("UserAgents", resourceCulture);
