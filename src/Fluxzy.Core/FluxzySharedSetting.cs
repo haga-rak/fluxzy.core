@@ -92,5 +92,8 @@ namespace Fluxzy
         /// </summary>
         public static int PcapEnhancedBlockMaxLength { get; } =
             EnvironmentUtility.GetInt32("FLUXZY_PCAP_ENHANCED_BLOCK_MAX_LENGTH", 8 * 1024);
+        
+        public static bool NoCacheOnFqdn { get; internal set; } =
+            Environment.GetEnvironmentVariable("NoCacheOnFqdnCompute") == "1";
     }
 }

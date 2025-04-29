@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Core;
@@ -25,6 +25,8 @@ namespace Fluxzy.Certificates
         private readonly X509Certificate2 _rootCertificate;
 
         private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new();
+
+        private readonly Dictionary<string, string> _rootDomainCache = new(StringComparer.OrdinalIgnoreCase);
 
         public CertificateProvider(
             Certificate rootCertificate,
@@ -106,7 +108,23 @@ namespace Fluxzy.Certificates
 
         protected virtual string GetRootDomain(string hostName)
         {
-            return PublicSuffixHelper.GetRootDomain(hostName);
+            if (FluxzySharedSetting.NoCacheOnFqdn) {
+                return PublicSuffixHelper.GetRootDomain(hostName);
+            }
+
+            lock (_rootDomainCache)
+            {
+                if (_rootDomainCache.TryGetValue(hostName, out var value))
+                {
+                    return value;
+                }
+
+                var result = PublicSuffixHelper.GetRootDomain(hostName);
+
+                _rootDomainCache[hostName] = result;
+
+                return result;
+            }
         }
 
         private static byte[] BuildCertificateForRootDomain(
