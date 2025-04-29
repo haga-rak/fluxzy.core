@@ -93,19 +93,5 @@ namespace Fluxzy.Certificates
 
             return string.Join(".", labels, 1, n - 1);
         }
-
-    }
-
-    public class SolveDomainResult
-    {
-        public SolveDomainResult(string main, string wildCard)
-        {
-            Main = main;
-            WildCard = wildCard;
-        }
-
-        public string Main { get; }
-
-        public string WildCard { get;  }
     }
 }
