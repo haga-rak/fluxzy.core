@@ -58,22 +58,22 @@ namespace Fluxzy.Certificates
                 true)
         };
 
-        public X509Certificate2 GetCertificate(string hostName)
+        public X509Certificate2 GetCertificate(string rootDomain)
         {
-            hostName = GetRootDomain(hostName);
+            var cnName = GetRootDomain(rootDomain);
 
-            if (_solveCertificateRepository.TryGetValue(hostName, out var value)) {
+            if (_solveCertificateRepository.TryGetValue(cnName, out var value)) {
                 return value;
             }
 
-            lock (string.Intern(hostName)) {
-                if (_solveCertificateRepository.TryGetValue(hostName, out value)) {
+            lock (string.Intern(cnName)) {
+                if (_solveCertificateRepository.TryGetValue(cnName, out value)) {
                     return value;
                 }
 
                 var lazyCertificate =
-                    _certificateRepository.GetOrAdd(hostName, new Lazy<byte[]>(() =>
-                            _certCache.Load(_rootCertificate.SerialNumber!, hostName,
+                    _certificateRepository.GetOrAdd(cnName, new Lazy<byte[]>(() =>
+                            _certCache.Load(_rootCertificate.SerialNumber!, cnName,
                                 rootDomain => BuildCertificateForRootDomain(_rootCertificate, _privateKey, rootDomain)),
                         true));
 
@@ -81,7 +81,7 @@ namespace Fluxzy.Certificates
 
                 var r = new X509Certificate2(val);
 
-                _solveCertificateRepository[hostName] = r;
+                _solveCertificateRepository[cnName] = r;
 
                 return r;
             }
@@ -104,27 +104,21 @@ namespace Fluxzy.Certificates
             return BuildCertificateForRootDomain(_rootCertificate, _privateKey, hostName);
         }
 
-        private string GetRootDomain(string hostName)
+        protected virtual string GetRootDomain(string hostName)
         {
-            var splittedArray = hostName.Split('.');
-
-            if (splittedArray.Length <= 2) {
-                return hostName;
-            }
-
-            return string.Join(".", splittedArray.Reverse().Take(splittedArray.Length - 1).Reverse());
+            return PublicSuffixHelper.GetRootDomain(hostName);
         }
 
         private static byte[] BuildCertificateForRootDomain(
             X509Certificate2 rootCertificate,
-            AsymmetricAlgorithm privateKey, string rootDomain)
+            AsymmetricAlgorithm privateKey, string cnName)
         {
             if (privateKey is RSA rsa) {
-                return InternalBuildCertificateForRootDomain(rootCertificate, rsa, rootDomain);
+                return InternalBuildCertificateForRootDomain(rootCertificate, rsa, cnName);
             }
 
             if (privateKey is ECDsa ecdsa) {
-                return InternalBuildCertificateForRootDomain(rootCertificate, ecdsa, rootDomain);
+                return InternalBuildCertificateForRootDomain(rootCertificate, ecdsa, cnName);
             }
 
             throw new NotSupportedException($"The private key type {privateKey.GetType()} is not supported");
@@ -132,12 +126,12 @@ namespace Fluxzy.Certificates
 
         private static byte[] InternalBuildCertificateForRootDomain(
             X509Certificate2 rootCertificate,
-            RSA privateKey, string rootDomain)
+            RSA privateKey, string cnName)
         {
             var randomGenerator = new Random();
 
             var certificateRequest = new CertificateRequest(
-                $"CN=*.{rootDomain}",
+                $"CN=*.{cnName}",
                 privateKey,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
@@ -147,8 +141,8 @@ namespace Fluxzy.Certificates
             }
 
             var alternativeName = new SubjectAlternativeNameBuilder();
-            alternativeName.AddDnsName(rootDomain);
-            alternativeName.AddDnsName($"*.{rootDomain}");
+            alternativeName.AddDnsName(cnName);
+            alternativeName.AddDnsName($"*.{cnName}");
 
             certificateRequest.CertificateExtensions.Add(alternativeName.Build());
 
@@ -193,12 +187,12 @@ namespace Fluxzy.Certificates
 
         private static byte[] InternalBuildCertificateForRootDomain(
             X509Certificate2 rootCertificate,
-            ECDsa privateKey, string rootDomain)
+            ECDsa privateKey, string cnName)
         {
             var randomGenerator = new Random();
 
             var certificateRequest = new CertificateRequest(
-                $"CN=*.{rootDomain}",
+                $"CN=*.{cnName}",
                 privateKey,
                 HashAlgorithmName.SHA256);
 
@@ -208,8 +202,8 @@ namespace Fluxzy.Certificates
 
             var alternativeName = new SubjectAlternativeNameBuilder();
 
-            alternativeName.AddDnsName(rootDomain);
-            alternativeName.AddDnsName($"*.{rootDomain}");
+            alternativeName.AddDnsName(cnName);
+            alternativeName.AddDnsName($"*.{cnName}");
 
             certificateRequest.CertificateExtensions.Add(alternativeName.Build());
 
