@@ -22,7 +22,7 @@ namespace Fluxzy.Rules.Actions
         [ActionDistinctive]
         public string Url { get; }
 
-        public override FilterScope ActionScope => FilterScope.ResponseHeaderReceivedFromRemote;
+        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
 
         public override string DefaultDescription => $"Forward request to {Url}".Trim();
 
