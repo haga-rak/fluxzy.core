@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncKeyedLock;
 using Fluxzy.Clients.H2;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
@@ -22,7 +23,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
         private readonly IIdProvider _idProvider;
 
-        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly AsyncNonKeyedLocker _semaphore = new();
         private readonly H2StreamSetting _streamSetting;
 
         private readonly ExchangeScope _exchangeScope = new();
@@ -44,21 +45,16 @@ namespace Fluxzy.Clients.DotNetBridge
         {
             H2ConnectionPool connectionPool;
 
-            try {
-                await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-                if (!_activeConnections.TryGetValue(request.RequestUri!.Authority, out var connection)) {
+            using (await _semaphore.LockAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!_activeConnections.TryGetValue(request.RequestUri!.Authority, out var connection))
+                {
                     connection = await ConnectionBuilder.CreateH2(
                         request.RequestUri.Host,
                         request.RequestUri.Port, _streamSetting, cancellationToken);
-
                     _activeConnections[request.RequestUri.Authority] = connection;
                 }
-
                 connectionPool = _activeConnections[request.RequestUri.Authority];
-            }
-            finally {
-                _semaphore.Release();
             }
 
             var exchange = new Exchange(_idProvider, new Authority(request.RequestUri.Host, request.RequestUri.Port,

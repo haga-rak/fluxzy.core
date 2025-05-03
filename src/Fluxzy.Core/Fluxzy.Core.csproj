@@ -70,6 +70,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AsyncKeyedLock" Version="7.1.6" />
     <PackageReference Include="Fluxzy.BouncyCastle.Crypto.Async" Version="2.6.0" />
     <PackageReference Include="MessagePack" Version="2.5.192" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />

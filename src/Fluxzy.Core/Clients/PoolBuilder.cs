@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncKeyedLock;
 using Fluxzy.Clients.Dns;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
@@ -48,7 +49,7 @@ namespace Fluxzy.Clients
 
         private readonly ConcurrentDictionary<string, DefaultDnsResolver> _dnsSolversCache = new();
 
-        private Synchronizer<Authority> _synchronizer = new(true);
+        private AsyncKeyedLocker<Authority> _synchronizer = new();
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,

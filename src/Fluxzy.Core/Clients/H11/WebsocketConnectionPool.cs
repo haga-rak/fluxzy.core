@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncKeyedLock;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
@@ -20,7 +21,7 @@ namespace Fluxzy.Clients.H11
         private readonly RemoteConnectionBuilder _connectionBuilder;
         private readonly DnsResolutionResult _dnsResolutionResult;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
-        private readonly SemaphoreSlim _semaphoreSlim;
+        private readonly AsyncNonKeyedLocker _semaphoreSlim;
         private readonly ITimingProvider _timingProvider;
 
         public WebsocketConnectionPool(
@@ -34,7 +35,7 @@ namespace Fluxzy.Clients.H11
             _proxyRuntimeSetting = proxyRuntimeSetting;
             _dnsResolutionResult = dnsResolutionResult;
             Authority = authority;
-            _semaphoreSlim = new SemaphoreSlim(proxyRuntimeSetting.ConcurrentConnection + 100);
+            _semaphoreSlim = new(proxyRuntimeSetting.ConcurrentConnection + 100);
         }
 
         public Authority Authority { get; }
@@ -54,9 +55,8 @@ namespace Fluxzy.Clients.H11
             Exchange exchange, IDownStreamPipe downStreamPipe, RsBuffer buffer, ExchangeScope __,
             CancellationToken cancellationToken = default)
         {
+            using var _ = await _semaphoreSlim.LockAsync(cancellationToken).ConfigureAwait(false);
             try {
-                await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
-
                 await using var ex = new WebSocketProcessing(
                     Authority, _timingProvider,
                     _connectionBuilder,
@@ -65,7 +65,6 @@ namespace Fluxzy.Clients.H11
                 await ex.Process(exchange, downStreamPipe, buffer.Buffer, cancellationToken).ConfigureAwait(false);
             }
             finally {
-                _semaphoreSlim.Release();
                 Complete = true;
             }
         }

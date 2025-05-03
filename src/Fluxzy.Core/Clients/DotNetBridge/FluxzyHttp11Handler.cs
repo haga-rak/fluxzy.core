@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncKeyedLock;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
 using Fluxzy.Core;
@@ -23,7 +24,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
         private readonly IIdProvider _idProvider;
 
-        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly AsyncNonKeyedLocker _semaphore = new();
         private readonly SslProvider _sslProvider;
 
         private readonly ExchangeScope _exchangeScope = new();
@@ -40,11 +41,10 @@ namespace Fluxzy.Clients.DotNetBridge
             var authority = new Authority(request.RequestUri!.Host, request.RequestUri.Port,
                 true);
 
-            Http11ConnectionPool connectionPool; 
+            Http11ConnectionPool connectionPool;
 
-            try {
-                await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
+            using (await _semaphore.LockAsync(cancellationToken).ConfigureAwait(false))
+            {
                 if (!_activeConnections.TryGetValue(request.RequestUri.Authority, out var connection)) {
                     connection = await ConnectionBuilder.CreateH11(authority, _sslProvider, cancellationToken).ConfigureAwait(false);
 
@@ -52,9 +52,6 @@ namespace Fluxzy.Clients.DotNetBridge
                 }
 
                 connectionPool = _activeConnections[request.RequestUri.Authority];
-            }
-            finally {
-                _semaphore.Release();
             }
 
             var reqHttpString = request.ToHttp11String();

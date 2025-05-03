@@ -189,7 +189,6 @@ namespace Fluxzy.Clients.H11
                 }
             }
             finally {
-                //_semaphoreSlim.Release();
                 ITimingProvider.Default.Instant();
             }
         }
