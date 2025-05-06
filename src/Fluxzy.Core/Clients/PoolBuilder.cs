@@ -160,7 +160,7 @@ namespace Fluxzy.Clients
 
 
                 //  pool 
-                if (exchange.Context.BlindMode) {
+                if (exchange.Context.BlindMode && exchange.Authority.Secure) {
                     var tunneledConnectionPool = new TunnelOnlyConnectionPool(
                         exchange.Authority, _timingProvider,
                         _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult);

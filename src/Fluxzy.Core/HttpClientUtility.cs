@@ -46,18 +46,19 @@ namespace Fluxzy
                 ? $"[{validIpEndPoint.Address}]" : validIpEndPoint.Address.ToString();
 
             var messageHandler = new HttpClientHandler() {
-                Proxy = new WebProxy(address, validIpEndPoint.Port),
-                ServerCertificateCustomValidationCallback = (_, _, chain, _) => {
-                    if (chain == null || chain.ChainElements.Count < 1)
-                        return false; 
+                Proxy = new WebProxy(address, validIpEndPoint.Port)
+            };
+
+            messageHandler.ServerCertificateCustomValidationCallback = (_, _, chain, _) => {
+                if (chain == null || chain.ChainElements.Count < 1)
+                    return false; 
                     
-                    var lastChainThumbPrint = 
-                        chain.ChainElements[chain.ChainElements.Count - 1].Certificate.Thumbprint;
+                var lastChainThumbPrint = 
+                    chain.ChainElements[chain.ChainElements.Count - 1].Certificate.Thumbprint;
                     
-                    return lastChainThumbPrint == thumbPrint;
-                }
-            }; 
-            
+                return lastChainThumbPrint == thumbPrint;
+            };
+
             return messageHandler;
         }
 
