@@ -64,17 +64,17 @@ namespace Fluxzy.Core
         /// <summary>
         /// Request PATH
         /// </summary>
-        public ReadOnlyMemory<char> Path { get; internal set; }
+        public ReadOnlyMemory<char> Path { get; set; }
 
         /// <summary>
         /// Request method
         /// </summary>
-        public ReadOnlyMemory<char> Method { get; internal set; }
+        public ReadOnlyMemory<char> Method { get; set; }
 
         /// <summary>
         /// Request scheme
         /// </summary>
-        public ReadOnlyMemory<char> Scheme { get; internal set; }
+        public ReadOnlyMemory<char> Scheme { get; set; }
 
         /// <summary>
         /// true if it's a websocket request
