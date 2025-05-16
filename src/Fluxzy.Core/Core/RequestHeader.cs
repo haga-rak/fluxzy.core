@@ -59,7 +59,7 @@ namespace Fluxzy.Core
         /// <summary>
         /// Authority, can contain port number prefixed with ':'
         /// </summary>
-        public ReadOnlyMemory<char> Authority { get; }
+        public ReadOnlyMemory<char> Authority { get; internal set; }
 
         /// <summary>
         /// Request PATH
