@@ -10,21 +10,21 @@ namespace Fluxzy.Core.Pcap
     {
         public static int Get4BytesHash(this IPAddress address)
         {
-            Span<byte> bouff = stackalloc byte[16];
+            Span<byte> buffer = stackalloc byte[16];
             int offset, length;
 
             if (address.IsIPv4MappedToIPv6) {
-                address.TryWriteBytes(bouff, out _);
+                address.TryWriteBytes(buffer, out _);
                 length = 4;
                 offset = 12;
             }
             else
             {
-                address.TryWriteBytes(bouff, out length);
+                address.TryWriteBytes(buffer, out length);
                 offset = 0;
             }
 
-            return GetHashCode(bouff.Slice(offset, length));
+            return GetHashCode(buffer.Slice(offset, length));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -24,15 +24,15 @@ namespace Fluxzy.Tests.UnitTests.Keylogs
                                    typeKind: noOpAction
                                """;
 
-            var outputDiretory = "test_directory_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+            var outputDirectory = "test_directory_" + DateTime.Now.ToString("yyyyMMddHHmmss");
             
-            var extraCommandLines = $"-b -c -d {outputDiretory}";
+            var extraCommandLines = $"-b -c -d {outputDirectory}";
 
             var _ = await Exec(yamlContent, requestMessage,
                 allowAutoRedirect: false, 
                 extraCommandLineArgs: extraCommandLines);
 
-            var allFiles = new DirectoryInfo(outputDiretory).EnumerateFiles("*.nsskeylog", SearchOption.AllDirectories)
+            var allFiles = new DirectoryInfo(outputDirectory).EnumerateFiles("*.nsskeylog", SearchOption.AllDirectories)
                                                             .ToList();
 
             Assert.NotEmpty(allFiles);
