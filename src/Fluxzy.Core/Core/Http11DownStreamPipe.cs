@@ -12,23 +12,6 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    public interface IDownStreamPipe : IDisposable
-    {
-        Authority RequestedAuthority { get; }
-
-        bool TunnelOnly { get; }
-
-        ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token);
-
-        ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, CancellationToken token);
-
-        ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, CancellationToken token);
-
-        (Stream ReadStream, Stream WriteStream) AbandonPipe();
-
-        bool CanWrite { get; }
-    }
-
     internal class Http11DownStreamPipe : IDownStreamPipe
     {
         private readonly IIdProvider _idProvider;

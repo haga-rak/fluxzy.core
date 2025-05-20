@@ -32,7 +32,6 @@ namespace Fluxzy.Core
 
             var prefaceMemory = buffer.Memory.Slice(0, H2Constants.Preface.Length);
 
-
             await _readStream.ReadExactAsync(prefaceMemory, token);
 
             if (!prefaceMemory.Span.SequenceEqual(H2Constants.Preface)) {
