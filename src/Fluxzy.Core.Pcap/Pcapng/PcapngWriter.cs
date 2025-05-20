@@ -125,7 +125,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
                      }
 #endif
                 }
-                _nssKeyLogStreamWriter?.WriteLine($"{nssKey}");
+                _nssKeyLogStreamWriter?.Write($"{nssKey}");
             }
             catch {
                 // This call comes from a different thread,
