@@ -281,6 +281,12 @@ namespace Fluxzy.Clients.H2
 
                 _exchange.Response.Header = new ResponseHeader(charHeader, true, false);
 
+                if (_exchange.Response.Header.StatusCode == 103)
+                {
+                    _totalHeaderReceived -= buffer.Length;
+                    return; // We wait for more header and ignore 103
+                }
+
                 _logger.TraceResponse(this, _exchange);
 
                 if (DebugContext.InsertFluxzyMetricsOnResponseHeader) {

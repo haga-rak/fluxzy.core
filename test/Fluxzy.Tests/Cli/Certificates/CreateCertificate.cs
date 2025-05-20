@@ -29,6 +29,22 @@ namespace Fluxzy.Tests.Cli.Certificates
         }
 
         [Fact]
+        public async Task Check_With_Password()
+        {
+            var password = "youshallnotpass";
+
+            var getTempPath = GetTempFile();
+            await InternalRun("create", getTempPath.FullName, "TestCN", "-p", password);
+
+            var certificate = new X509Certificate2(getTempPath.FullName, password);
+
+            Assert.True(getTempPath.Exists);
+            Assert.Equal(2048, certificate.PublicKey.GetRSAPublicKey()!.KeySize);
+            Assert.Equal(10 * 365D, (certificate.NotAfter - DateTime.Now).TotalDays, 1);
+            Assert.Equal("CN=TestCN", certificate.Subject);
+        }
+
+        [Fact]
         public async Task Check_With_Option()
         {
             var getTempPath = GetTempFile();

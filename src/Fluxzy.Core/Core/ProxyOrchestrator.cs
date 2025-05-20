@@ -348,8 +348,9 @@ namespace Fluxzy.Core
 
                 // We do not need to read websocket response
 
-                if (!exchange.Request.Header.IsWebSocketRequest && !exchange.Context.BlindMode
-                                                                && exchange.Response.Header != null) {
+                if (!exchange.Request.Header.IsWebSocketRequest 
+                    && (!exchange.Context.Authority.Secure || !exchange.Context.BlindMode) 
+                    && exchange.Response.Header != null) {
                     // Request processed by IHttpConnectionPool returns before complete response body
                     // Apply response alteration 
 
