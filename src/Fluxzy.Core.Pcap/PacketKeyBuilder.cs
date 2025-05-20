@@ -14,7 +14,7 @@ namespace Fluxzy.Core.Pcap
         public static long GetConnectionKey(int localPort, int remotePort, IPAddress remoteAddress)
         {
             var portCombination = (remotePort << 16) | localPort;
-            var addressHash = remoteAddress.GetHashCode(); // TODO : Upgrade to 64 bits hash
+            var addressHash = remoteAddress.Get4BytesHash(); // TODO : Upgrade to 64 bits hash
 
             return ((long) portCombination << 32) | (uint) addressHash.GetHashCode();
         }
@@ -22,7 +22,7 @@ namespace Fluxzy.Core.Pcap
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long GetAuthorityKey(IPAddress address, int port)
         {
-            var addressHash = address.GetHashCode(); // TODO : Upgrade to 64 bits hash to cover IPv6
+            var addressHash = address.Get4BytesHash(); // TODO : Upgrade to 64 bits hash to cover IPv6
 
             return ((long) port << 32) | (uint) addressHash.GetHashCode();
         }
