@@ -27,13 +27,13 @@ namespace Fluxzy.Utils
             try
             {
                 await lockInfo.Semaphore.WaitAsync();
+                Interlocked.Increment(ref lockInfo.OwnerCount);
             }
             finally
             {
                 Interlocked.Decrement(ref lockInfo.WaitingCount);
             }
 
-            Interlocked.Increment(ref lockInfo.OwnerCount);
             return new Releaser(this, key, lockInfo);
         }
 
@@ -42,7 +42,7 @@ namespace Fluxzy.Utils
             Interlocked.Decrement(ref lockInfo.OwnerCount);
             lockInfo.Semaphore.Release();
 
-            if (!_preserve
+            if (!_preserve 
                 && Volatile.Read(ref lockInfo.WaitingCount) == 0
                 && Volatile.Read(ref lockInfo.OwnerCount) == 0)
             {
