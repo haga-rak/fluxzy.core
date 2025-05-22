@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -27,7 +28,7 @@ namespace Fluxzy.Clients.Dns
             ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
         };
 
-        private readonly Dictionary<DnsCacheKey, IReadOnlyCollection<string?>> _cache = new();
+        private readonly ConcurrentDictionary<DnsCacheKey, IReadOnlyCollection<string?>> _cache = new();
 
         private readonly string _finalUrl;
         private readonly HttpClient _client;
@@ -72,7 +73,6 @@ namespace Fluxzy.Clients.Dns
             var result = await InternalGetDnsData(type, hostName);
 
             _cache[key] = result;
-
 
             return result;
         }
@@ -146,12 +146,22 @@ namespace Fluxzy.Clients.Dns
 
     internal record struct DnsCacheKey
     {
+        public readonly bool Equals(DnsCacheKey other)
+        {
+            return Type == other.Type && Host == other.Host;
+        }
+
+        public readonly override int GetHashCode()
+        {
+            return HashCode.Combine(Type, Host);
+        }
+
         public DnsCacheKey(string type, string host)
         {
             Type = type;
             Host = host;
         }
-
+        
         public string Type { get; } 
 
         public string Host { get; }
