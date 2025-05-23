@@ -22,18 +22,19 @@ namespace Fluxzy.Utils
 
         public async ValueTask<IDisposable> LockAsync(T key)
         {
-            var lockInfo = _locks.GetOrAdd(key, _ => new LockInfo());
-            Interlocked.Increment(ref lockInfo.WaitingCount);
-            try
+            LockInfo lockInfo;
+
+            lock (_locks)
             {
-                await lockInfo.Semaphore.WaitAsync();
-            }
-            finally
-            {
-                Interlocked.Decrement(ref lockInfo.WaitingCount);
+                lockInfo = _locks.GetOrAdd(key, _ => new LockInfo());
+                Interlocked.Increment(ref lockInfo.WaitingCount);
             }
 
+            await lockInfo.Semaphore.WaitAsync();
+
             Interlocked.Increment(ref lockInfo.OwnerCount);
+            Interlocked.Decrement(ref lockInfo.WaitingCount);
+
             return new Releaser(this, key, lockInfo);
         }
 
@@ -42,14 +43,16 @@ namespace Fluxzy.Utils
             Interlocked.Decrement(ref lockInfo.OwnerCount);
             lockInfo.Semaphore.Release();
 
-            if (!_preserve
-                && Volatile.Read(ref lockInfo.WaitingCount) == 0
-                && Volatile.Read(ref lockInfo.OwnerCount) == 0)
-            {
-                var pair = new KeyValuePair<T, LockInfo>(key, lockInfo);
-                if (((ICollection<KeyValuePair<T, LockInfo>>)_locks).Remove(pair))
+            lock (_locks) {
+                if (!_preserve
+                    && Volatile.Read(ref lockInfo.WaitingCount) == 0
+                    && Volatile.Read(ref lockInfo.OwnerCount) == 0)
                 {
-                    lockInfo.Semaphore.Dispose();
+                    var pair = new KeyValuePair<T, LockInfo>(key, lockInfo);
+                    if (((ICollection<KeyValuePair<T, LockInfo>>)_locks).Remove(pair))
+                    {
+                        lockInfo.Semaphore.Dispose();
+                    }
                 }
             }
         }
