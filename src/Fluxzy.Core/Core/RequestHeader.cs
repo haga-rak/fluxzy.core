@@ -22,10 +22,10 @@ namespace Fluxzy.Core
             bool isSecure)
             : base(headerContent, isSecure)
         {
-            Authority = this[Http11Constants.AuthorityVerb].First().Value;
-            Path = this[Http11Constants.PathVerb].First().Value;
-            Method = this[Http11Constants.MethodVerb].First().Value;
-            Scheme = this[Http11Constants.SchemeVerb].First().Value;
+            Authority = this[Http11Constants.AuthorityVerb].FirstOrDefault().Value;
+            Path = this[Http11Constants.PathVerb].FirstOrDefault().Value;
+            Method = this[Http11Constants.MethodVerb].FirstOrDefault().Value;
+            Scheme = this[Http11Constants.SchemeVerb].FirstOrDefault().Value;
 
             IsWebSocketRequest = this[Http11Constants.ConnectionVerb]
                                      .Any(c => c.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
