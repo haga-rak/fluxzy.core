@@ -29,5 +29,7 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 build/
+
 LICENSE
 README.md
+global.json
