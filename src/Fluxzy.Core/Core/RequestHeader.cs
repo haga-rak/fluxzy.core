@@ -22,16 +22,7 @@ namespace Fluxzy.Core
             bool isSecure)
             : base(headerContent, isSecure)
         {
-            Authority = this[Http11Constants.AuthorityVerb].First().Value;
-            Path = this[Http11Constants.PathVerb].First().Value;
-            Method = this[Http11Constants.MethodVerb].First().Value;
-            Scheme = this[Http11Constants.SchemeVerb].First().Value;
-
-            IsWebSocketRequest = this[Http11Constants.ConnectionVerb]
-                                     .Any(c => c.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
-                                 &&
-                                 this[Http11Constants.Upgrade]
-                                     .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
+            InitSettings();
         }
 
         /// <summary>
@@ -41,19 +32,26 @@ namespace Fluxzy.Core
         public RequestHeader(IEnumerable<HeaderField> headers)
             : base(headers)
         {
+            InitSettings();
+        }
+
+        private void InitSettings()
+        {
             Authority = this[Http11Constants.AuthorityVerb].First().Value;
             Path = this[Http11Constants.PathVerb].First().Value;
             Method = this[Http11Constants.MethodVerb].First().Value;
             Scheme = this[Http11Constants.SchemeVerb].First().Value;
 
-            IsWebSocketRequest = this[Http11Constants.ConnectionVerb]
-                                     .Any(c => c.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
-                                 &&
-                                 this[Http11Constants.Upgrade]
-                                     .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
-
-            // TODO: Request replay change method 
-
+            IsWebSocketRequest = DoesHeadersIndicateWebsocketRequest();
+        }
+        
+        private bool DoesHeadersIndicateWebsocketRequest()
+        {
+            return this[Http11Constants.ConnectionVerb]
+                       .Any(c => c.Value.Span.Contains("upgrade", StringComparison.OrdinalIgnoreCase))
+                   &&
+                   this[Http11Constants.Upgrade]
+                       .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -79,7 +77,7 @@ namespace Fluxzy.Core
         /// <summary>
         /// true if it's a websocket request
         /// </summary>
-        public bool IsWebSocketRequest { get; }
+        public bool IsWebSocketRequest { get; set; }
 
         /// <summary>
         /// Full URL building with Authority, path and scheme

@@ -187,7 +187,7 @@ namespace Fluxzy.Core
 
             var (header, body) = ConnectionErrorPageHelper.GetSimplePlainTextResponse(
                 exchange.Authority,
-                message, ex.GetType().Name);
+                message, ex.ToString());
 
             exchange.ClientErrors.Add(new ClientError(9999, message));
 
