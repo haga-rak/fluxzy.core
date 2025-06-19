@@ -16,41 +16,38 @@
 
 </div>
 
-fluxzy is a *fully managed* and *fully streamed* MITM engine and a CLI app to intercept, record and alter HTTP/1.1, H2, websocket traffic over plain or secure channels.
+A [fast](https://fluxzy.io/resources/blogs/performance-benchmark-fluxzy-mitmproxy-mitmdump-squid) and fully streamed MITM tool to intercept, record, and modify HTTP/1, HTTP/2, and WebSocket traffic, whether in plain or secured with TLS.
 
-This repository contains the source code of [Fluxzy CLI](https://www.fluxzy.io/download#cli) which is a standalone command line application for Windows, macOS, and Linux and  the .NET packages that are used by [Fluxzy Desktop](https://www.fluxzy.io/download). 
+Fluxzy can be used as a .NET library, a CLI tool, or a Docker container and is used under the hood by [Fluxzy Desktop](https://www.fluxzy.io/download).
 
-## 1. Features
+## Key Features
 
-### 1.1 Core features 
+- Intercepts HTTP/1.1, HTTP/2, and WebSocket traffic  
+- Supports both plain and TLS-encrypted connections  
+- [Acts as a system-wide proxy](examples/Samples.No006.CaptureOsTraffic/Program.cs)  
+- [Captures and exports deciphered raw packets in PCAP format](examples/Samples.No003.RawCapture/Program.cs)  
+- [Offers a choice of TLS providers: .NET native or BouncyCastle](https://docs.fluxzy.io/api/Fluxzy.FluxzySetting.html#Fluxzy_FluxzySetting_UseBouncyCastleSslEngine)
+- [Exports sessions as HTTP Archive (HAR) or Fluxzy Archive](examples/Samples.No001.RecordAsHarOrFxzy/Program.cs)  
+- [Manages custom certificates](https://www.fluxzy.io/resources/cli/command-cert)  
+- [Impersonates JA4 fingerprints and custom HTTP/2 settings](examples/Samples.No016.ImpersonateBrowser/Program.cs)
 
-- Intercept HTTP/1.1, H2, WebSocket traffic over plain or secure channels
-- Fully streamed intermediate as proxy or transparent proxy
-- [Deflect operating system traffic (act as system proxy)](https://docs.fluxzy.io/documentation/core/06-capturing-os-trafic.html)
-- [Automatic root certificate installation](https://docs.fluxzy.io/api/Fluxzy.FluxzySetting.html#Fluxzy_FluxzySetting_SetAutoInstallCertificate_System_Boolean_) (with elevation on Windows, macOS, and several Linux distributions) 
-- [Certificate management](https://www.fluxzy.io/resources/cli/command-cert): built-in feature to create CA compatible certificates 
-- [Export as HTTP Archive](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
-- [Use a custom root certificate authority](https://docs.fluxzy.io/documentation/core/short-examples/use-custom-root-certificate.html)
-- [Choice between default .NET SSL provider and BouncyCastle](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
-- [Raw packet capture](https://docs.fluxzy.io/documentation/core/04-capture-raw-packets.html) (with the extension `Fluxzy.Core.Pcap`)
-- [NSS Key log extraction (when using Bouncy Castle)](https://docs.fluxzy.io/documentation/core/short-examples/export-http-archive-format.html)
-- [Optional configuration-based data extraction and alteration](https://www.fluxzy.io/resources/documentation/the-rule-file) 
-- [Impersonation on JA4 fingerprint, H2 settings and Headers](https://www.fluxzy.io/rule/item/impersonateAction)
-  
-### 1.2 Alteration and traffic management features 
+## Key Traffic Modification Features
 
-Alteration and traffic management features are available as [fluxzy actions](https://www.fluxzy.io/resources/documentation/core-concepts). You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to see built-in actions on the latest stable version. Here are a few examples:
-
-- Add, remove, modify request and response headers
-- [Tranform request and response bodies on the fly](https://github.com/haga-rak/fluxzy.core/pull/395)
-- [Mock or substitute request and response body](https://docs.fluxzy.io/documentation/core/short-examples/mock-response.html)
+- [Add, remove, or modify request and response headers](examples/Samples.No013.ModifyHeaders/Program.cs)  
+- [Transform request](examples/Samples.No017.TransformRequestBody/Program.cs) and [transform response](examples/Samples.No018.TransformResponseBody/Program.cs) bodies from the original content  
+- [Mock or substitute request and response bodies](examples/Samples.No010.MockResponse/Program.cs) 
 - [Forward](https://www.fluxzy.io/rule/item/forwardAction), redirect, [spoof DNS](https://www.fluxzy.io/rule/item/spoofDnsAction), [abort connections](https://www.fluxzy.io/rule/item/abortAction) 
-- [Inject html snippet on intercepted request and response bodies](https://docs.fluxzy.io/documentation/core/short-examples/inject-code-in-html-pages.html)
+- [Inject HTML snippets into request and response bodies](examples/Samples.No009.InjectCodeSnippet/Program.cs)  
 - [Remove cache directives](https://www.fluxzy.io/rule/item/removeCacheAction), add request and response cookies
 - [Serve static directory](https://www.fluxzy.io/rule/item/serveDirectoryAction) 
-- Add metadata to HTTP exchanges (tags and comments)
+- Provide a specific TLS certificate for a given host
 - [Provide a specific certificate for a host](https://www.fluxzy.io/rule/item/useCertificateAction)
-  
+
+You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to see all built-in actions available.
+
+
+
+
 
 ## 2. Quick Usage
 
