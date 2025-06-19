@@ -22,8 +22,7 @@ Fluxzy can be used as a .NET library, a CLI tool, or a Docker container and is u
 
 ## Key Features
 
-- Intercepts HTTP/1.1, HTTP/2, and WebSocket traffic  
-- Supports both plain and TLS-encrypted connections  
+- [Intercepts HTTP/1.1, HTTP/2, and WebSocket traffic](examples/Samples.No004.BasicAlterations/Program.cs)  
 - [Acts as a system-wide proxy](examples/Samples.No006.CaptureOsTraffic/Program.cs)  
 - [Captures and exports deciphered raw packets in PCAP format](examples/Samples.No003.RawCapture/Program.cs)  
 - [Offers a choice of TLS providers: .NET native or BouncyCastle](https://docs.fluxzy.io/api/Fluxzy.FluxzySetting.html#Fluxzy_FluxzySetting_UseBouncyCastleSslEngine)
@@ -47,17 +46,11 @@ You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to
 
 
 
+## Usage
 
+### With .NET
 
-## 2. Quick Usage
-
-### 2.1 .NET library
-
-### 2.1.1 Simple usage
 The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
-The following shows a very basic usage of the .NET packages.
-
-The main line to begin a capture session is to create a [FluxzySetting](https://docs.fluxzy.io/documentation/core/fluxzy-settings.html) instance and use it to create a `Proxy` instance.
 
 Install NuGet package `Fluxzy.Core` 
 
