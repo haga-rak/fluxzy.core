@@ -28,7 +28,10 @@ namespace Fluxzy.Core.Pcap
 
         public bool TryRemove(long key, out IRawCaptureWriter? writer)
         {
-            return _writers.TryRemove(key, out writer);
+            var res = _writers.TryRemove(key, out writer);
+            writer?.Flush();
+
+            return res;
         }
 
         public void FlushAll()
