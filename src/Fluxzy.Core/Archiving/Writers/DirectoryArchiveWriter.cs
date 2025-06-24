@@ -20,7 +20,8 @@ namespace Fluxzy.Writers
 
         private static ArchiveMetaInformation CreateNewCaptureArchiveMetaInformation()
         {
-            var metaInformation = new ArchiveMetaInformation {
+            var metaInformation = new ArchiveMetaInformation
+            {
                 EnvironmentInformation = new EnvironmentInformation(
                     RuntimeInformation.OSDescription,
 #if NET6_0_OR_GREATER
@@ -28,7 +29,7 @@ namespace Fluxzy.Writers
 #else
                     "unknown",
 #endif
-                    FluxzySharedSetting.SkipCollectingEnvironmentInformation ? "": Environment.MachineName
+                    FluxzySharedSetting.SkipCollectingEnvironmentInformation ? "" : Environment.MachineName
                 )
             };
 
@@ -56,7 +57,7 @@ namespace Fluxzy.Writers
 
             _archiveMetaInformationPath = DirectoryArchiveHelper.GetMetaPath(baseDirectory);
         }
-        
+
         public override void Init()
         {
             base.Init();
@@ -77,14 +78,21 @@ namespace Fluxzy.Writers
             if (!force && File.Exists(_archiveMetaInformationPath))
                 return;
 
-            using var fileStream = File.Create(_archiveMetaInformationPath);
-            JsonSerializer.Serialize(fileStream, _archiveMetaInformation, GlobalArchiveOption.DefaultSerializerOptions);
+            lock (_archiveMetaInformationPath)
+            {
+                using var fileStream = File.Create(_archiveMetaInformationPath);
+                JsonSerializer.Serialize(fileStream, _archiveMetaInformation, GlobalArchiveOption.DefaultSerializerOptions);
+            }
         }
 
         public override void UpdateTags(IEnumerable<Tag> tags)
         {
-            foreach (var tag in tags) {
-                _archiveMetaInformation.Tags.Add(tag);
+            lock (_archiveMetaInformationPath)
+            {
+                foreach (var tag in tags)
+                {
+                    _archiveMetaInformation.Tags.Add(tag);
+                }
             }
 
             UpdateMeta(true);
@@ -103,7 +111,7 @@ namespace Fluxzy.Writers
             //if (_saveFilter != null && !_saveFilter.Apply(null, connection.Authority, null, null))
             //    return false;
 
-            return true; 
+            return true;
         }
 
         public override bool Update(ExchangeInfo exchangeInfo, CancellationToken cancellationToken)
@@ -112,18 +120,24 @@ namespace Fluxzy.Writers
 
             DirectoryArchiveHelper.CreateDirectory(exchangePath);
 
-            using (var fileStream = File.Create(exchangePath)) {
+            using (var fileStream = File.Create(exchangePath))
+            {
                 MessagePackSerializer.Serialize(fileStream, exchangeInfo,
                     GlobalArchiveOption.MessagePackSerializerOptions);
 
                 // JsonSerializer.Serialize(fileStream, exchangeInfo, GlobalArchiveOption.DefaultSerializerOptions);
             }
 
-            if (exchangeInfo.Tags?.Any() ?? false) {
+            if (exchangeInfo.Tags?.Any() ?? false)
+            {
                 var modified = false;
 
-                foreach (var tag in exchangeInfo.Tags) {
-                    modified = _archiveMetaInformation.Tags.Add(tag) || modified;
+                lock (_archiveMetaInformation) {
+
+                    foreach (var tag in exchangeInfo.Tags)
+                    {
+                        modified = _archiveMetaInformation.Tags.Add(tag) || modified;
+                    }
                 }
 
                 if (modified)
@@ -148,7 +162,7 @@ namespace Fluxzy.Writers
         protected override void InternalUpdate(DownstreamErrorInfo errorInfo, CancellationToken cancellationToken)
         {
             var errorPath = DirectoryArchiveHelper.GetErrorPath(_baseDirectory);
-            
+
             MessagePackQueueExtensions.AppendMultiple(errorPath, errorInfo,
                 GlobalArchiveOption.MessagePackSerializerOptions);
         }
@@ -198,12 +212,12 @@ namespace Fluxzy.Writers
 
         public (int ExchangeId, int ConnectionId) GetNextIds()
         {
-            var maxExchangeIds = 
+            var maxExchangeIds =
                 new DirectoryInfo(DirectoryArchiveHelper.GetExchangeDirectory(_baseDirectory))
                     .EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
                     .Select(x => {
                         var res = DirectoryArchiveHelper.TryParseIds(x.Name, out var ids);
-                        return res ? ids.EndId : 0; 
+                        return res ? ids.EndId : 0;
                     })
                     .OrderByDescending(r => r)
                     .DefaultIfEmpty(0)
@@ -214,20 +228,20 @@ namespace Fluxzy.Writers
                     .EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
                     .Select(x => {
                         var res = DirectoryArchiveHelper.TryParseIds(x.Name, out var ids);
-                        return res ? ids.EndId: 0; 
+                        return res ? ids.EndId : 0;
                     })
                     .OrderByDescending(r => r)
                     .DefaultIfEmpty(0)
                     .First();
 
             // Ids doesn't have to be contiguous, so we add a margin
-            return (maxExchangeIds + 1 , maxConnectionIds + 1);
+            return (maxExchangeIds + 1, maxConnectionIds + 1);
         }
 
         public void WriteAsset(string relativePath, Stream stream)
         {
             var path = Path.Combine(_baseDirectory, relativePath);
-            var fullPath = new FileInfo(path); 
+            var fullPath = new FileInfo(path);
 
             fullPath.Directory?.Create();
 

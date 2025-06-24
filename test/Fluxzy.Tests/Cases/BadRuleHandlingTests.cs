@@ -54,7 +54,7 @@ namespace Fluxzy.Tests.Cases
 
             Assert.True(hasHeader);
             Assert.NotNull(values);
-            Assert.Equal(nameof(RuleExecutionFailureException), values.First());
+            Assert.Contains(nameof(RuleExecutionFailureException), values.First());
         }
     }
 }

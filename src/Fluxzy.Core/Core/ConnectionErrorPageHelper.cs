@@ -76,9 +76,34 @@ namespace Fluxzy.Core
             Authority authority, string messageText, string errorTypeText)
         {
             var statusLine = "502 Fluxzy Configuration Error";
-            var header = string.Format(ErrorHeaderText, statusLine, messageText.Length, errorTypeText);
+            var header = string.Format(ErrorHeaderText, statusLine,
+                messageText.Length, SanitizeHeaderValue(errorTypeText));
             var body = Encoding.UTF8.GetBytes(messageText);
             return (header, body);
+        }
+
+        private static string SanitizeHeaderValue(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+
+            var sb = new StringBuilder(input.Length);
+
+            foreach (char c in input)
+            {
+                // ASCII 32 (space) to 126 (~) are printable characters in HTTP headers
+                if (c >= 32 && c <= 126 && c != '\r' && c != '\n')
+                {
+                    sb.Append(c);
+                }
+                else
+                {
+                    // Replace invalid character with underscore (or remove if preferred)
+                    sb.Append('_');
+                }
+            }
+
+            return sb.ToString().Trim();
         }
     }
 }
