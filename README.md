@@ -12,13 +12,13 @@
 [![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
 
 
-[Features](#key-features) | [Quick usage (.NET)](#usage) | [Quick usage (CLI)](#using-cli)  | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
+[Features](#-key-features) | [Quick usage (.NET)](#-usage) | [Quick usage (CLI)](#using-cli)  | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
 
 </div>
 
 <i>A [fast](https://fluxzy.io/resources/blogs/performance-benchmark-fluxzy-mitmproxy-mitmdump-squid) and fully streamed MITM tool to intercept, record, and modify HTTP/1, HTTP/2, and WebSocket traffic, whether in plain or secured with TLS.</i>
 
-Fluxzy was developed to address the lack of free and actively maintained MITM tools tailored for the .NET ecosystem. From the start, it was designed with performance in mind, relying on full streaming to keep interception overhead minimal and nearly unnoticeable. It also supports configuration-driven setups through rule files, allowing users to define powerful behaviors without writing code.
+Fluxzy is a man-in-the-middle (MITM) proxy that acts as both client and server, enabling interception and modification of HTTP/1, HTTP/2, and WebSocket traffic. It’s designed for high performance, using full streaming to minimize overhead, while response bodies exceeding the initial buffer are fully stored in memory for inspection. Fluxzy supports configuration-driven setups through rule files, allowing easy reuse and switching of configurations between CLI, .NET applications, and the Fluxzy Desktop application without additional effort.
 
 Fluxzy can be used as a CLI tool, a Docker container or a .NET library and is used under the hood by [Fluxzy Desktop](https://www.fluxzy.io/download) which is a cross-platform HTTP debugger.
 
