@@ -12,7 +12,7 @@
 [![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
 
 
-[Features](#1-features) | [Quick usage (.NET)](#2-quick-usage) | [Quick usage (CLI)](#sample-usage)  | [Quick usage (Docker)](#run-with-docker) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#3-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
+[Features](#key-features) | [Quick usage (.NET)](#key-traffic-modification-features) | [Quick usage (CLI)](#usage)  | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
 
 </div>
 
@@ -92,7 +92,6 @@ More use cases are available in [examples directory](./examples/).
 |macOS |  [![osx64](https://fluxzy.io/misc/badge/cli/Osx64)  ![osxArm64](https://fluxzy.io/misc/badge/cli/OsxArm64)](https://www.fluxzy.io/download#cli)   | 
 | Linux |  [![linux64](https://fluxzy.io/misc/badge/cli/Linux64)  ![linuxArm64](https://fluxzy.io/misc/badge/cli/LinuxArm64)](https://www.fluxzy.io/download#cli)   |
 
-### Sample usage
 
 <details>
     <summary><code>fluxzy</code> root commands</summary>
@@ -161,6 +160,10 @@ Options:
 </details>
 
 
+
+<details>
+    <summary>Usage overview </summary>
+
 The following highlights the basic way to use fluxzy with an optional rule file.
 The ["rule file"](https://www.fluxzy.io/resources/documentation/the-rule-file) is a straightforward YAML file containing a list of directives that fluxzy will evaluate during proxying.
 
@@ -224,7 +227,9 @@ More command and options are available, including [exporting to HAR](https://www
 
 By default, fluxzy will bind to `127.0.0.1:44344`.
 
-### Run with docker
+</details>
+
+### Using docker container
 
 The CLI can be run from a [docker image](https://hub.docker.com/r/fluxzy/fluxzy).
 
@@ -238,28 +243,33 @@ To test:
 curl -x 127.0.0.1:44344 https://www.fluxzy.io
 ```
 
-## 3. Build
+## Build
 
-### 3.1 Requirements
+### Requirements
 
-- .NET 8.0 SDK
-- Git bash if Windows
-- `libpcap` or any equivalent library
-- tests collecting pcap files and installing certificates requires elevation. 
-- An IDE is not necessary to build the app. For information, this project was developed using both Visual Studio 2022 and JetBrains Rider on Windows, macOS and Linux.
+- .NET 8.0 SDK  
+- Git Bash (required on Windows)  
+- `libpcap` or an equivalent packet capture library (tests that collect PCAP files or install certificates require elevated privileges)  
+- No IDE is required to build the application. For reference, the project has been developed and tested using Visual Studio 2022 and JetBrains Rider on Windows, macOS, and Linux
 
-### 3.2 Build
+### Building the Project
 
-- Clone the repository
-- Run  `dotnet build src/Fluxzy.Core` for Fluxzy.Core 
-- Run  `dotnet build src/Fluxzy.Core.Pcap` for Fluxzy.Core.Pcap
+To build the core components:
 
-### 3.3 Test 
+```bash
+# Clone the repository
+git clone https://github.com/haga-rak/fluxzy.core.git
+cd fluxzy.core
 
-- Several tests are run against various private web servers (iis, nginx, kestrel, apache, ...) which is not currently available to the public.
+# Build the core library
+dotnet build src/Fluxzy.Core
+
+# Build the packet capture extension
+dotnet build src/Fluxzy.Core.Pcap
+```
 
 
-## 4 Contact 
+## Contact 
 
 - Use github issues for bug reports and feature requests
 - Mail to **project@fluxzy.io** for inquiries
