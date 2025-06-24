@@ -12,15 +12,17 @@
 [![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
 
 
-[Features](#key-features) | [Quick usage (.NET)](#key-traffic-modification-features) | [Quick usage (CLI)](#usage)  | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
+[Features](#key-features) | [Quick usage (.NET)](#usage) | [Quick usage (CLI)](#using-cli)  | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
 
 </div>
 
-A [fast](https://fluxzy.io/resources/blogs/performance-benchmark-fluxzy-mitmproxy-mitmdump-squid) and fully streamed MITM tool to intercept, record, and modify HTTP/1, HTTP/2, and WebSocket traffic, whether in plain or secured with TLS.
+<i>A [fast](https://fluxzy.io/resources/blogs/performance-benchmark-fluxzy-mitmproxy-mitmdump-squid) and fully streamed MITM tool to intercept, record, and modify HTTP/1, HTTP/2, and WebSocket traffic, whether in plain or secured with TLS.</i>
 
-Fluxzy can be used as a .NET library, a CLI tool, or a Docker container and is used under the hood by [Fluxzy Desktop](https://www.fluxzy.io/download).
+Fluxzy was developed to address the lack of free and actively maintained MITM tools tailored for the .NET ecosystem. From the start, it was designed with performance in mind, relying on full streaming to keep interception overhead minimal and nearly unnoticeable. It also supports configuration-driven setups through rule files, allowing users to define powerful behaviors without writing code.
 
-## Key Features
+Fluxzy can be used as a CLI tool, a Docker container or a .NET library and is used under the hood by [Fluxzy Desktop](https://www.fluxzy.io/download) which is a cross-platform HTTP debugger.
+
+## ⚙️ Key Features
 
 - [Intercepts HTTP/1.1, HTTP/2, and WebSocket traffic](examples/Samples.No004.BasicAlterations/Program.cs)  
 - [Acts as a system-wide proxy](examples/Samples.No006.CaptureOsTraffic/Program.cs)  
@@ -30,27 +32,24 @@ Fluxzy can be used as a .NET library, a CLI tool, or a Docker container and is u
 - [Manages custom certificates](https://www.fluxzy.io/resources/cli/command-cert)  
 - [Impersonates JA4 fingerprints and custom HTTP/2 settings](examples/Samples.No016.ImpersonateBrowser/Program.cs)
 
-## Key Traffic Modification Features
+## 🧪 Key Traffic Modification Features
 
 - [Add, remove, or modify request and response headers](examples/Samples.No013.ModifyHeaders/Program.cs)  
 - [Transform request](examples/Samples.No017.TransformRequestBody/Program.cs) and [transform response](examples/Samples.No018.TransformResponseBody/Program.cs) bodies from the original content  
 - [Mock or substitute request and response bodies](examples/Samples.No010.MockResponse/Program.cs) 
-- [Forward](https://www.fluxzy.io/rule/item/forwardAction), redirect, [spoof DNS](https://www.fluxzy.io/rule/item/spoofDnsAction), [abort connections](https://www.fluxzy.io/rule/item/abortAction) 
+- [Forward](https://www.fluxzy.io/rule/item/forwardAction), redirect, [spoof DNS](https://www.fluxzy.io/rule/item/spoofDnsAction), [block or connections](https://www.fluxzy.io/rule/item/abortAction) 
 - [Inject HTML snippets into request and response bodies](examples/Samples.No009.InjectCodeSnippet/Program.cs)  
-- [Remove cache directives](https://www.fluxzy.io/rule/item/removeCacheAction), add request and response cookies
+- [Remove cache directives](https://www.fluxzy.io/rule/item/removeCacheAction), add [request](examples/Samples.No011.AddRequestCookie/Program.cs) and [response](examples/Samples.No012.AddResponseCookie/Program.cs) cookies
 - [Serve static directory](https://www.fluxzy.io/rule/item/serveDirectoryAction) 
-- Provide a specific TLS certificate for a given host
+- [Provide a specific TLS certificate for a given host](https://fluxzy.io/rule/item/setClientCertificateAction)
 - [Provide a specific certificate for a host](https://www.fluxzy.io/rule/item/useCertificateAction)
 
 You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to see all built-in actions available.
 
 
-
-## Usage
+## 📘 Usage
 
 ### Integrate with a .NET application
-
-The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
 
 Install NuGet package `Fluxzy.Core` 
 
@@ -81,7 +80,7 @@ Console.WriteLine("Press any key to stop the proxy and exit...");
 Console.ReadKey();
 ```
 
-More use cases are available in [examples directory](./examples/).
+More use cases are available in [examples directory](./examples/). The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
 
 
 ### Using the CLI
@@ -243,7 +242,7 @@ To test:
 curl -x 127.0.0.1:44344 https://www.fluxzy.io
 ```
 
-## Build
+## 🏗️ Build
 
 ### Requirements
 
@@ -269,7 +268,7 @@ dotnet build src/Fluxzy.Core.Pcap
 ```
 
 
-## Contact 
+## 📬 Contact 
 
 - Use github issues for bug reports and feature requests
 - Mail to **project@fluxzy.io** for inquiries
