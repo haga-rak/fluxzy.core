@@ -48,7 +48,7 @@ You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to
 
 ## Usage
 
-### With .NET
+### Integrate with a .NET application
 
 The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
 
@@ -60,69 +60,31 @@ dotnet add package Fluxzy.Core
 Create a top-level statement console app, with .NET 6.0 or above:
 
 ```csharp	
-using System.Net;
-using Fluxzy;
-using Fluxzy.Core;
-using Fluxzy.Rules.Actions;
-using Fluxzy.Rules.Actions.HighLevelActions;
-using Fluxzy.Rules.Filters;
-using Fluxzy.Rules.Filters.RequestFilters;
-using Fluxzy.Rules.Filters.ResponseFilters;
+// Creating settings
+var fluxzySetting = FluxzySetting
+    .CreateDefault(IPAddress.Any, 44344);
 
-// Create a new setting 
-var fluxzySetting = FluxzySetting.CreateDefault(IPAddress.Loopback, 8080);
-
+// configure rules
 fluxzySetting
     .ConfigureRule()
-    // Forward request
-    .WhenHostMatch("twitter.com")
-    .Forward("https://www.google.com/")
+    .WhenAny()
+    .Do(new AddResponseHeaderAction("x-fluxzy", "Captured by Fluxzy"))
+    .WhenAll(new JsonResponseFilter(), new StatusCodeSuccessFilter())
+    .Do(new MockedResponseAction(MockedResponseContent.CreateFromPlainText("Not allowed to return JSON", 403, "text/plain")));
 
-    // Mock any POST request to /api/auth/token
-    .WhenAll(
-        new GetFilter(),
-        new PathFilter("/api/auth/token", StringSelectorOperation.Contains))
-    .ReplyJson("{ token: \"your fake key\" }")
-
-    // Select wikipedia domains that produces text/html content-type
-    .WhenAll(
-        new HostFilter("wikipedia.[a-z]+$", StringSelectorOperation.Regex),
-        new HtmlResponseFilter()
-    )
-    // Inject a CSS after opening head tag
-    .Do(
-        // Remove CSP to allow injecting CSS and scripts
-        new DeleteResponseHeaderAction("Content-Security-Policy"),
-        new InjectHtmlTagAction
-        {
-            Tag = "head",
-            // Make all pages purple
-            HtmlContent = "<style>* { background-color: #7155ab !important; }</style>"
-        }
-    );
-
+// Create proxy instance and run it
 await using var proxy = new Proxy(fluxzySetting);
-var endPoints = proxy.Run();
+var endpoints = proxy.Run();
 
-// Register as system proxy, the proxy is restore when the IAsyncDisposable is disposed
-await using var _ = await SystemProxyRegistrationHelper.Create(endPoints.First());
-
-// Create a new HttpClient that uses the proxy 
-var httpClient = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
-
-var responseText = await httpClient.GetStringAsync("https://baddomain.com/api/auth/token");
-
-Console.WriteLine($"Final answer: {responseText}");
-Console.WriteLine("Press enter to halt this program and restore system proxy setting...");
-
-Console.ReadLine();
+Console.WriteLine($"Fluxzy is running on {endpoints.First().Address}:{endpoints.First().Port}");
+Console.WriteLine("Press any key to stop the proxy and exit...");
+Console.ReadKey();
 ```
 
+More use cases are available in [examples directory](./examples/).
 
-More examples are available at [docs.fluxzy.io](https://docs.fluxzy.io/documentation/core/introduction.html).
 
-
-### 2.2 Fluxzy CLI
+### Using the CLI
 
 | Fluxzy CLI | Version |
 | --- | --- |
