@@ -30,6 +30,7 @@ namespace Fluxzy.Core.Pcap
         {
             var res = _writers.TryRemove(key, out writer);
             writer?.Flush();
+            writer?.Dispose();
 
             return res;
         }

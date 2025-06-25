@@ -95,5 +95,11 @@ namespace Fluxzy
         
         public static bool NoCacheOnFqdn { get; internal set; } =
             Environment.GetEnvironmentVariable("NoCacheOnFqdnCompute") == "1";
+
+        /// <summary>
+        ///     The delay in milliseconds before tearing down a raw capture connection after an explicit close
+        /// </summary>
+        public static int RawCaptureLingerDelayBeforeTearDownMillis { get; set; } =
+            EnvironmentUtility.GetInt32("RAW_CAPTURE_LINGER_DELAY_BEFORE_TEARDOWN", 200);
     }
 }
