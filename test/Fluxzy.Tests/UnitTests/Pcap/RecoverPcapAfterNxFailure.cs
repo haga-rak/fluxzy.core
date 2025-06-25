@@ -12,8 +12,10 @@ namespace Fluxzy.Tests.UnitTests.Pcap
 {
     public class RecoverPcapAfterNxFailure : WithRuleOptionBase
     {
-        [Fact]
-        public async Task SslNegotiationFail()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task SslNegotiationFail(bool useBouncyCastle)
         {
             var url = "https://www.fluxzy.io/favicon.ico";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -27,9 +29,9 @@ namespace Fluxzy.Tests.UnitTests.Pcap
                                   sslProtocols: tls
                               """;
 
-            var outputDirectory = "ValidateSslKeyLogExists_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+            var outputDirectory = "ValidateSslKeyLogExists_" + DateTime.Now.ToString("yyyyMMddHHmmss") + Guid.NewGuid();
 
-            var extraCommandLines = $"-b -c -d {outputDirectory}";
+            var extraCommandLines = $"{(useBouncyCastle ? "-b" : "")} -c -d {outputDirectory}";
 
             var res = await Exec(yamlContent, requestMessage,
                 allowAutoRedirect: false,
@@ -46,8 +48,10 @@ namespace Fluxzy.Tests.UnitTests.Pcap
             Assert.True(allFiles.First().Length > 0);
         }
 
-        [Fact]
-        public async Task RefusedConnection()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task RefusedConnection(bool useBouncyCastle)
         {
             var url = "https://www.fluxzy.io:100/favicon.ico";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -60,9 +64,9 @@ namespace Fluxzy.Tests.UnitTests.Pcap
                                   typeKind: noOpAction
                               """;
 
-            var outputDirectory = "RefusedConnection_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+            var outputDirectory = "RefusedConnection_" + DateTime.Now.ToString("yyyyMMddHHmmss") + Guid.NewGuid(); 
 
-            var extraCommandLines = $"-b -c -d {outputDirectory}";
+            var extraCommandLines = $"{(useBouncyCastle ? "-b" : "")} -c -d {outputDirectory}";
 
             var res = await Exec(yamlContent, requestMessage,
                 allowAutoRedirect: false,
@@ -79,8 +83,10 @@ namespace Fluxzy.Tests.UnitTests.Pcap
             Assert.True(allFiles.First().Length > 0);
         }
 
-        [Fact]
-        public async Task InvalidProtocol()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task InvalidProtocol(bool useBouncyCastle)
         {
             var url = "http://www.fluxzy.io:443/favicon.ico";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -93,9 +99,9 @@ namespace Fluxzy.Tests.UnitTests.Pcap
                                   typeKind: noOpAction
                               """;
 
-            var outputDirectory = "InvalidProtocol_" + DateTime.Now.ToString("yyyyMMddHHmmss");
+            var outputDirectory = "InvalidProtocol_" + DateTime.Now.ToString("yyyyMMddHHmmss") + Guid.NewGuid();
 
-            var extraCommandLines = $"-b -c -d {outputDirectory}";
+            var extraCommandLines = $"{(useBouncyCastle ? "-b" : "")} -c -d {outputDirectory}";
 
             var res = await Exec(yamlContent, requestMessage,
                 allowAutoRedirect: false,
