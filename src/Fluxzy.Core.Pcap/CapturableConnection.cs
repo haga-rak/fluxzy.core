@@ -88,7 +88,8 @@ namespace Fluxzy.Core.Pcap
             _disposed = true;
 
             if (_subscriptionId != 0) {
-                    await _captureContext.Unsubscribe(_subscriptionId).ConfigureAwait(false);
+                await Task.Delay(FluxzySharedSetting.RawCaptureLingerDelayBeforeTearDownMillis).ConfigureAwait(false); 
+                await _captureContext.Unsubscribe(_subscriptionId).ConfigureAwait(false);
 
                 // We should wait few instant before disposing the writer 
                 // to ensure that all packets are written to the file
