@@ -14,6 +14,7 @@ namespace Fluxzy.Tests.Cli
     {
         private readonly List<FileInfo> _tempFiles = new();
         private ProxyInstance? _fluxzyInstance;
+        private bool _disposed = false; 
 
         private string? _ruleFile;
 
@@ -23,6 +24,17 @@ namespace Fluxzy.Tests.Cli
 
         public async ValueTask DisposeAsync()
         {
+            await ReleaseAll();
+        }
+
+        protected async Task ReleaseAll()
+        {
+            if (_disposed) {
+                return;
+            }
+
+            _disposed = true;
+
             if (_ruleFile != null && File.Exists(_ruleFile)) {
                 File.Delete(_ruleFile);
             }
