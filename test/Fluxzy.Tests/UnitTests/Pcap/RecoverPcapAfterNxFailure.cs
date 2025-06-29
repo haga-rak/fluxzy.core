@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -53,6 +54,9 @@ namespace Fluxzy.Tests.UnitTests.Pcap
         [InlineData(false)]
         public async Task RefusedConnection(bool useBouncyCastle)
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
             var url = "https://www.fluxzy.io:100/favicon.ico";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
