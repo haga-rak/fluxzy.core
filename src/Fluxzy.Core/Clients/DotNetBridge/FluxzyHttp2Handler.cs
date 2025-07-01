@@ -63,7 +63,7 @@ namespace Fluxzy.Clients.DotNetBridge
 
             var exchange = new Exchange(_idProvider, new Authority(request.RequestUri.Host, request.RequestUri.Port,
                 true), request.ToHttp11String().AsMemory(), "HTTP/2", DateTime.Now);
-
+            
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync();
 

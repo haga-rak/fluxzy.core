@@ -61,6 +61,8 @@ namespace Fluxzy.Clients.DotNetBridge
 
         public List<SslApplicationProtocol>? Protocols { get; set; }
 
+        public Action<ExchangeContext>? ConfigureContext { get; set; }
+
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -73,6 +75,10 @@ namespace Fluxzy.Clients.DotNetBridge
 
             if (Protocols != null)
                 exchange.Context.SslApplicationProtocols = Protocols;
+
+            if (ConfigureContext != null) {
+                ConfigureContext(exchange.Context);
+            }
 
             var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken).ConfigureAwait(false);
             
