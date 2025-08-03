@@ -17,7 +17,7 @@ namespace Fluxzy.Tests.Cli
                                rules:
                                - filter:
                                    typeKind: AuthorityFilter
-                                   pattern: www.example.com
+                                   pattern: sandboxy.smartizy.com
                                    port: 443
                                    operation: exact
                                  action :

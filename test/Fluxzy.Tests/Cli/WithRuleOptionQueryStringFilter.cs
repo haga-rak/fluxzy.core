@@ -37,7 +37,7 @@ namespace Fluxzy.Tests.Cli
                                """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://www.example.com{pathAndQuery}");
+                $"https://sandbox.smartizy.com{pathAndQuery}");
 
             // Act
             using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect: false);
