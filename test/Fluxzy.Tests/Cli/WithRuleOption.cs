@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
 using Xunit;
 
@@ -94,7 +95,7 @@ namespace Fluxzy.Tests.Cli
             await using var fluxzyInstance = await commandLineHost.Run();
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://www.example.com");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, TestConstants.TestDomain);
 
             requestMessage.Headers.Add("User-Agent", "Unit test");
 
@@ -124,7 +125,7 @@ namespace Fluxzy.Tests.Cli
                     addIfMissing: true
                 """;
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://www.example.com");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, TestConstants.TestDomain);
 
             // Act 
             using var response = await Exec(yamlContent, requestMessage);

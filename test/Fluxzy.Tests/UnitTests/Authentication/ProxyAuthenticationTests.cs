@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Authentication
@@ -33,7 +34,7 @@ namespace Fluxzy.Tests.UnitTests.Authentication
                     )
             });
 
-            var response = await httpClient.GetAsync("https://example.com");
+            var response = await httpClient.GetAsync(TestConstants.TestDomain);
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -60,7 +61,7 @@ namespace Fluxzy.Tests.UnitTests.Authentication
                     )
             });
 
-            var response = await httpClient.GetAsync("https://example.com");
+            var response = await httpClient.GetAsync(TestConstants.TestDomain);
 
             Assert.True(response.IsSuccessStatusCode);
         }
@@ -88,7 +89,7 @@ namespace Fluxzy.Tests.UnitTests.Authentication
             await Assert.ThrowsAsync<HttpRequestException>(async () => {
                 try
                 {
-                    await httpClient.GetAsync("https://example.com");
+                    await httpClient.GetAsync(TestConstants.TestDomain);
                 }
                 catch (HttpRequestException requestException) {
                     Assert.Equal(HttpRequestError.ProxyTunnelError, requestException.HttpRequestError);
@@ -116,7 +117,7 @@ namespace Fluxzy.Tests.UnitTests.Authentication
             await Assert.ThrowsAsync<HttpRequestException>(async () => {
                 try
                 {
-                    await httpClient.GetAsync("https://example.com");
+                    await httpClient.GetAsync(TestConstants.TestDomain);
                 }
                 catch (HttpRequestException requestException)
                 {

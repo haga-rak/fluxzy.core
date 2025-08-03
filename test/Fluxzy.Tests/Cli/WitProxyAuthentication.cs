@@ -3,6 +3,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Tests.Cli.Scaffolding;
 using Xunit;
 
@@ -29,7 +30,7 @@ namespace Fluxzy.Tests.Cli
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort, proxyCredential:
                 new NetworkCredential(user, password));
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, "https://www.example.com");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, TestConstants.TestDomain);
 
             requestMessage.Headers.Add("User-Agent", "Unit test");
 
