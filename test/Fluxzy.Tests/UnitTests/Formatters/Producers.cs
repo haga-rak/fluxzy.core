@@ -13,10 +13,10 @@ namespace Fluxzy.Tests.UnitTests.Formatters
     public class Producers : FormatterTestBase
     {
         [Theory]
-        [InlineData("https://example.com/?a=1&b=2&c=3")]
+        [InlineData("https://sandbox.smartizy.com/?a=1&b=2&c=3")]
         [InlineData(TestConstants.TestDomain)]
-        [InlineData("https://example.com/?a=&b=2&c=3")]
-        [InlineData("https://example.com/?a=1%201&b=2&c=3")]
+        [InlineData("https://sandbox.smartizy.com/?a=&b=2&c=3")]
+        [InlineData("https://sandbox.smartizy.com/?a=1%201&b=2&c=3")]
         public async Task QueryString(string url)
         {
             var producer = new QueryStringProducer();
