@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Fluxzy.Tests._Fixtures
@@ -15,6 +14,10 @@ namespace Fluxzy.Tests._Fixtures
 
         public const string HttpBinHost = "registry.2befficient.io:40300";
         public const string HttpBinHostDomainOnly  = "registry.2befficient.io";
+
+        public const string TestDomain = "https://sandbox.smartizy.com/ip";
+        public const string TestDomainHost = "sandbox.smartizy.com";
+        public const string TestDomainPage = "https://sandbox.smartizy.com/swagger/index.html";
 
         public static string GetHost(string protocol)
         {

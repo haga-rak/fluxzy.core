@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.Cases
         public async Task Run_Until_Close_Notify(string sslEngine)
         {
             var count = 3;
-            var url = "https://www.example.com/"; 
+            var url = TestConstants.TestDomain; 
 
             await using var proxy = new AddHocConfigurableProxy(1, 10);
 
@@ -30,7 +30,7 @@ namespace Fluxzy.Tests.Cases
             using var httpClient = new HttpClient(clientHandler);
 
             for (int i = 0; i < count; i++) {
-                var requestMessage = new HttpRequestMessage(HttpMethod.Head,
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get,
                                        url);
 
                 using var response = await httpClient.SendAsync(requestMessage);

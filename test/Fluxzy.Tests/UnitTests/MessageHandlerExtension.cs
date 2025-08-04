@@ -3,6 +3,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Fluxzy.Rules.Actions;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests
@@ -26,7 +27,7 @@ namespace Fluxzy.Tests.UnitTests
 
             var messageHandler = HttpClientUtility.CreateHttpClient(endPoints, startSetting); 
             
-            var response = await messageHandler.GetAsync("https://www.example.com");
+            var response = await messageHandler.GetAsync(TestConstants.TestDomain);
             Assert.True(response.Headers.Contains("x-test"));
         }
     }

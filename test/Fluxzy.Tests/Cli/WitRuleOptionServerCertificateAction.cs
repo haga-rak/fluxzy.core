@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -23,7 +24,7 @@ namespace Fluxzy.Tests.Cli
             var certificateProvider = new CertificateProvider(Certificate.LoadFromPkcs12(tempFile.FullName),
                 new InMemoryCertificateCache());
 
-            var certificateData = certificateProvider.GetCertificateBytes("example.com");
+            var certificateData = certificateProvider.GetCertificateBytes("sandbox.smartizy.com");
             var serverCertificateFile = GetTempFile();
             await File.WriteAllBytesAsync(serverCertificateFile.FullName, certificateData);
 
@@ -32,7 +33,7 @@ namespace Fluxzy.Tests.Cli
                                rules:
                                - filter:
                                    typeKind: HostFilter
-                                   pattern: example.com
+                                   pattern: sandbox.smartizy.com
                                    operation: contains
                                  action :
                                    typeKind: useCertificateAction
@@ -42,7 +43,7 @@ namespace Fluxzy.Tests.Cli
                                """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://www.example.com/");
+                TestConstants.TestDomain);
 
 
             // Act
