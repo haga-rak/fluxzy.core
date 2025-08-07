@@ -147,7 +147,7 @@ namespace Fluxzy.Clients.H11
 
                 exchange.Response.Body = Stream.Null;
 
-                exchange.ExchangeCompletionSource.TrySetResult(shouldClose);
+                exchange.ExchangeCompletionSource.TrySetResult(shouldCloseConnection || shouldClose);
 
                 _logger.Trace(exchange.Id, () => "No response body");
 

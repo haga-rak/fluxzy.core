@@ -13,15 +13,17 @@ namespace Fluxzy.Misc.Streams
     public class MetricsStream : Stream
     {
         private readonly Action<bool, long> _endRead;
-        private readonly Action _firstBytesReaden;
+        private readonly Action _firstBytesRead;
         private readonly Action<Exception> _onReadError;
         private readonly long? _expectedLength;
         private readonly CancellationToken _parentToken;
+
+        private bool _firstReadNotified;
         private bool _finalReadNotified;
 
         public MetricsStream(
             Stream innerStream,
-            Action firstBytesReaden,
+            Action firstBytesRead,
             Action<bool, long> endRead,
             Action<Exception> onReadError,
             bool endConnection,
@@ -30,11 +32,16 @@ namespace Fluxzy.Misc.Streams
         {
             InnerStream = innerStream;
             EndConnection = endConnection;
-            _firstBytesReaden = firstBytesReaden;
+            _firstBytesRead = firstBytesRead;
             _endRead = endRead;
             _onReadError = onReadError;
             _expectedLength = expectedLength;
             _parentToken = parentToken;
+            
+            if (_expectedLength == 0) {
+                NotifyFirstRead();
+                NotifyFinalRead();
+            }
         }
 
         public long TotalRead { get; private set; }
@@ -67,7 +74,7 @@ namespace Fluxzy.Misc.Streams
             var read = InnerStream.Read(buffer, offset, count);
 
             if (TotalRead == 0) {
-                _firstBytesReaden();
+                NotifyFirstRead();
             }
 
             TotalRead += read;
@@ -124,24 +131,20 @@ namespace Fluxzy.Misc.Streams
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
             try {
-                if (EndConnection) {
-
-                }
-
                 using var combinedTokenSource =
                     CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
 
                 var read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
                                             .ConfigureAwait(false);
 
-                if (TotalRead == 0) {
-                    _firstBytesReaden();
+                if (TotalRead == 0)
+                {
+                    NotifyFirstRead();
                 }
 
                 TotalRead += read;
 
-                if ((read == 0 && _expectedLength == null) ||
-                    (_expectedLength != null && _expectedLength >= TotalRead))
+                if ((read == 0 && _expectedLength == null) || (_expectedLength != null && _expectedLength >= TotalRead))
                 {
                     NotifyFinalRead();
                 }
@@ -149,12 +152,20 @@ namespace Fluxzy.Misc.Streams
                 return read;
             }
             catch (Exception ex) {
-                if (_onReadError != null) {
-                    _onReadError(ex);
-                }
+                _onReadError(ex);
 
                 throw;
             }
+        }
+
+        private void NotifyFirstRead()
+        {
+            if (_firstReadNotified)
+                return;
+
+            _firstReadNotified = true;
+
+            _firstBytesRead();
         }
 
         private void NotifyFinalRead()
