@@ -115,7 +115,7 @@ namespace Fluxzy.Clients.H11
                 if (ex is TlsFatalAlert || (exchange.Context.EventNotifierStream?.Faulted ?? false)) {
                     throw new ConnectionCloseException("Relaunch");
                 }
-
+                
                 throw new ClientErrorException(0,
                     "The connection was closed while trying to read the response header",
                     ex.Message, ex);
@@ -135,9 +135,7 @@ namespace Fluxzy.Clients.H11
 
             _logger.TraceResponse(exchange);
 
-            var shouldCloseConnection =
-                    exchange.Response.Header.ConnectionCloseRequest
-                ; //|| exchange.Response.Header.ChunkedBody; 
+            var shouldCloseConnection = exchange.Response.Header.ConnectionCloseRequest;
 
             if (!exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span, out var shouldClose)) {
                 // We close the connection because
@@ -181,16 +179,15 @@ namespace Fluxzy.Clients.H11
                 bodyStream = new ContentBoundStream(bodyStream, exchange.Response.Header.ContentLength);
             }
 
-            exchange.Response.Body =
-                new MetricsStream(bodyStream,
+            exchange.Response.Body = new MetricsStream(bodyStream,
                     () => {
                         exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
                         _logger.Trace(exchange.Id, () => "First body bytes read");
                     },
-                    length => {
+                    (endConnection, length) => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
-                        exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
+                        exchange.ExchangeCompletionSource.SetResult(endConnection);
 
                         _logger.Trace(exchange.Id, () => $"Last body bytes end : {length} total bytes");
                     },
@@ -200,9 +197,10 @@ namespace Fluxzy.Clients.H11
 
                         _logger.Trace(exchange.Id, () => $"Read error : {exception}");
                     },
+                    shouldCloseConnection,
+                    exchange.Response.Header.ContentLength >= 0 ? exchange.Response.Header.ContentLength : null,
                     cancellationToken
-                )
-                ;
+                );
 
             return shouldCloseConnection;
         }

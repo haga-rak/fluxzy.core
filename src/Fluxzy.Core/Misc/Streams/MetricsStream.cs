@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -12,22 +12,28 @@ namespace Fluxzy.Misc.Streams
     /// </summary>
     public class MetricsStream : Stream
     {
-        private readonly Action<long> _endRead;
+        private readonly Action<bool, long> _endRead;
         private readonly Action _firstBytesReaden;
         private readonly Action<Exception> _onReadError;
+        private readonly long? _expectedLength;
         private readonly CancellationToken _parentToken;
+        private bool _finalReadNotified;
 
         public MetricsStream(
             Stream innerStream,
             Action firstBytesReaden,
-            Action<long> endRead,
+            Action<bool, long> endRead,
             Action<Exception> onReadError,
+            bool endConnection,
+            long ? expectedLength,
             CancellationToken parentToken)
         {
             InnerStream = innerStream;
+            EndConnection = endConnection;
             _firstBytesReaden = firstBytesReaden;
             _endRead = endRead;
             _onReadError = onReadError;
+            _expectedLength = expectedLength;
             _parentToken = parentToken;
         }
 
@@ -49,6 +55,8 @@ namespace Fluxzy.Misc.Streams
 
         public Stream InnerStream { get; }
 
+        public bool EndConnection { get; }
+
         public override void Flush()
         {
             InnerStream.Flush();
@@ -58,15 +66,16 @@ namespace Fluxzy.Misc.Streams
         {
             var read = InnerStream.Read(buffer, offset, count);
 
-            if (TotalRead == 0 && _firstBytesReaden != null) {
+            if (TotalRead == 0) {
                 _firstBytesReaden();
             }
 
-            if (read == 0) {
-                _endRead(TotalRead);
-            }
-
             TotalRead += read;
+
+            if (_expectedLength != null && _expectedLength >= TotalRead)
+            {
+                NotifyFinalRead();
+            }
 
             return read;
         }
@@ -110,25 +119,32 @@ namespace Fluxzy.Misc.Streams
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
                 .ConfigureAwait(false);
         }
-
+        
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
             try {
+                if (EndConnection) {
+
+                }
+
                 using var combinedTokenSource =
                     CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
 
                 var read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
                                             .ConfigureAwait(false);
 
-                if (TotalRead == 0 && _firstBytesReaden != null) {
+                if (TotalRead == 0) {
                     _firstBytesReaden();
                 }
 
-                if (read == 0) {
-                    _endRead(TotalRead);
-                }
 
                 TotalRead += read;
+
+
+                if (_expectedLength != null && _expectedLength >= TotalRead)
+                {
+                    NotifyFinalRead();
+                }
 
                 return read;
             }
@@ -138,6 +154,26 @@ namespace Fluxzy.Misc.Streams
                 }
 
                 throw;
+            }
+        }
+
+        private void NotifyFinalRead()
+        {
+            if (_finalReadNotified)
+                return; 
+
+            _finalReadNotified = true;
+
+            _endRead(EndConnection, TotalRead);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (_expectedLength != null && _expectedLength >= TotalRead)
+            {
+                NotifyFinalRead();
             }
         }
     }
