@@ -38,22 +38,28 @@ namespace Fluxzy.Core
                 return null;
 
             try {
-                var asyncState = await
-                    _pendingClientConnections.Reader.ReadAsync(_token).ConfigureAwait(false);
+                var available = await _pendingClientConnections.Reader.WaitToReadAsync(_token); 
 
-                var listener = (TcpListener?) asyncState.AsyncState;
+                if (!available)
+                    return null;
 
-                if (listener != null) {
-                    var tcpClient = listener.EndAcceptTcpClient(asyncState);
+                while (_pendingClientConnections.Reader.TryRead(out var asyncState)) {
 
-                    tcpClient.NoDelay = true;
+                    var listener = (TcpListener?)asyncState.AsyncState;
 
-                    if (FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds >= 0)
+                    if (listener != null)
                     {
-                        tcpClient.ReceiveTimeout = FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds;
-                    }
+                        var tcpClient = listener.EndAcceptTcpClient(asyncState);
 
-                    return tcpClient;
+                        tcpClient.NoDelay = true;
+
+                        if (FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds >= 0)
+                        {
+                            tcpClient.ReceiveTimeout = FluxzySharedSetting.DownStreamProviderReceiveTimeoutMilliseconds;
+                        }
+
+                        return tcpClient;
+                    }
                 }
             }
             catch (Exception) {
