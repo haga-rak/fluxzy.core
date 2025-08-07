@@ -141,10 +141,10 @@ namespace Fluxzy.Core
                             _proxyRuntimeSetting.UserAgentProvider);
                     }
 
-                    var shouldClose = await InternalProcessExchange(exchange,
+                    var shouldCloseDownStreamConnection = await InternalProcessExchange(exchange,
                         downStreamPipe, buffer, closeImmediately, callerTokenSource, token);
 
-                    if (shouldClose) {
+                    if (shouldCloseDownStreamConnection) {
                         return;
                     }
                 }
@@ -412,8 +412,7 @@ namespace Fluxzy.Core
                             CancellationToken.None
                         );
 
-                        if (responseBodyStream != null &&
-                            (!responseBodyStream.CanSeek || responseBodyStream.Length > 0)) {
+                        if (responseBodyStream != null && (!responseBodyStream.CanSeek || responseBodyStream.Length > 0)) {
                             if (exchange.Context.HasResponseBodySubstitution) {
                                 originalResponseBodyStream = responseBodyStream;
 
@@ -533,6 +532,7 @@ namespace Fluxzy.Core
 
                     try {
                         shouldClose = shouldClose || await exchange.Complete.ConfigureAwait(false);
+                        //await exchange.Complete.ConfigureAwait(false);
                     }
                     catch (ExchangeException) {
                         // Enhance your calm
