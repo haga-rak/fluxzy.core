@@ -125,6 +125,7 @@ namespace Fluxzy.Core
                 return false;
             }
 
+            shouldClose = false;
             return StatusCode != 304 && StatusCode != 204 && StatusCode != 205;
         }
 
