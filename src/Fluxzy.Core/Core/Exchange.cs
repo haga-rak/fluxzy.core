@@ -180,6 +180,8 @@ namespace Fluxzy.Core
 
         public HashSet<Tag>? Tags { get; set; } = null;
 
+        public bool ReadUntilClose { get; set; }
+
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
             return Request.Header.Headers.Select(t => (HeaderFieldInfo) t);

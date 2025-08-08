@@ -13,8 +13,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
     public class ProducersActions : FormatterTestBase
     {
         [Theory]
-        [InlineData("https://example.com", true, true)]
-        [InlineData("https://example.com", false, true)]
+        [InlineData(TestConstants.TestDomain, true, true)]
+        [InlineData(TestConstants.TestDomain, false, true)]
         [InlineData("https://sandbox.smartizy.com/swagger/index.html", false, true)]
         [InlineData("https://sandbox.smartizy.com/swagger/index.html", true, true)]
         public async Task SaveResponseBodyAction(string url, bool decode, bool pass)
@@ -48,8 +48,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
         
         [Theory]
-        [InlineData("https://example.com", true)]
-        [InlineData("https://example.com", false)]
+        [InlineData(TestConstants.TestDomain, true)]
+        [InlineData(TestConstants.TestDomain, false)]
         public async Task SaveRequestBodyAction(string url, bool pass)
         {
             var randomFile = GetRegisteredRandomFile();

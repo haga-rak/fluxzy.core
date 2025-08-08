@@ -2,6 +2,7 @@
 
 using System;
 using Fluxzy.Misc;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Misc
@@ -11,8 +12,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
         [Theory]
         [InlineData("http://eu.httpbin.org", "/")]
         [InlineData("http://eu.httpbin.org/", "/")]
-        [InlineData("https://example.com", "/")]
-        [InlineData("https://example.com/", "/")]
+        [InlineData(TestConstants.TestDomain, "/ip")]
         [InlineData("https://www.fluxzy.io/download", "/download")]
         [InlineData("http://www.fluxzy.io/download", "/download")]
         [InlineData("http://www.fluxzy.io/download://a", "/download://a")]

@@ -2,6 +2,9 @@
 - **Fluxzy.Core**: [GPLv3 or other](src/Fluxzy.Core/LICENSE.md) 
 - **Fluxzy.Core.Pcap**: [GPLv3 or other](src/Fluxzy.Core.Pcap/LICENSE.md)
 
+
+Commercial licensing is available upon request. Please contact project@fluxzy.io for details.
+
 GNU General Public License
 ==========================
 

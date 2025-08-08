@@ -207,6 +207,8 @@ namespace Fluxzy.Core
         /// </summary>
         public bool DnsOverHttpsCapture { get; set; }
 
+        public bool AlwaysSendClientCertificate { get; set; }
+
         /// <summary>
         ///     Register a response body substitution
         /// </summary>

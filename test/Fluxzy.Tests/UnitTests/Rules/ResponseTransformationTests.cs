@@ -149,7 +149,10 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var fluxzySetting = FluxzySetting.CreateLocalRandomPort();
             fluxzySetting.ConfigureRule().WhenAny()
                    .TransformResponse(
-                       (_, originalStream) => Task.FromResult<Stream?>(new MemoryStream(Encoding.UTF8.GetBytes(originalStream.Drain().ToString()))));
+                       async (_, originalStream) => {
+                           var length = await originalStream.DrainAsync();
+                           return new MemoryStream(Encoding.UTF8.GetBytes(length.ToString()));
+                       });
 
             await using var proxy = new Proxy(fluxzySetting);
 

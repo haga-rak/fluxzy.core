@@ -13,10 +13,10 @@ namespace Fluxzy.Tests.UnitTests.Formatters
     public class Producers : FormatterTestBase
     {
         [Theory]
-        [InlineData("https://example.com/?a=1&b=2&c=3")]
-        [InlineData("https://example.com")]
-        [InlineData("https://example.com/?a=&b=2&c=3")]
-        [InlineData("https://example.com/?a=1%201&b=2&c=3")]
+        [InlineData("https://sandbox.smartizy.com/?a=1&b=2&c=3")]
+        [InlineData(TestConstants.TestDomain)]
+        [InlineData("https://sandbox.smartizy.com/?a=&b=2&c=3")]
+        [InlineData("https://sandbox.smartizy.com/?a=1%201&b=2&c=3")]
         public async Task QueryString(string url)
         {
             var producer = new QueryStringProducer();
@@ -51,9 +51,9 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com", "leeloo", "multipass")]
-        [InlineData("https://example.com", "leeloo", "")]
-        [InlineData("https://example.com", "", "")]
+        [InlineData(TestConstants.TestDomain, "leeloo", "multipass")]
+        [InlineData(TestConstants.TestDomain, "leeloo", "")]
+        [InlineData(TestConstants.TestDomain, "", "")]
         public async Task AuthorizationBasic(string url, string userName, string password)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -79,8 +79,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com", "leeloo")]
-        [InlineData("https://example.com", "")]
+        [InlineData(TestConstants.TestDomain, "leeloo")]
+        [InlineData(TestConstants.TestDomain, "")]
         public async Task AuthorizationBearer(string url, string token)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -102,8 +102,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com", "leeloo")]
-        [InlineData("https://example.com", "")]
+        [InlineData(TestConstants.TestDomain, "leeloo")]
+        [InlineData(TestConstants.TestDomain, "")]
         public async Task AuthorizationProducer(string url, string token)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -125,9 +125,9 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com", "")]
-        [InlineData("https://example.com", "a=b;d=f")]
-        [InlineData("https://example.com", "a=b;d=fà56789àç(_$£*")]
+        [InlineData(TestConstants.TestDomain, "")]
+        [InlineData(TestConstants.TestDomain, "a=b;d=f")]
+        [InlineData(TestConstants.TestDomain, "a=b;d=fà56789àç(_$£*")]
         public async Task FormUrlEncodedProducer(string url, string flatParams)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -161,7 +161,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com")]
+        [InlineData(TestConstants.TestDomain)]
         public async Task RawRequestHeaderProducer(string url)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -177,11 +177,11 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             var result = producer.Build(firstExchange, producerContext);
             
             Assert.NotNull(result);
-            Assert.Equal("GET / HTTP/1.1\r\nHost: example.com\r\nAccept-Encoding: gzip, deflate, br\r\n\r\n", result.RawHeader);
+            Assert.Equal($"GET /ip HTTP/1.1\r\nHost: {TestConstants.TestDomainHost}\r\nAccept-Encoding: gzip, deflate, br\r\n\r\n", result.RawHeader);
         }
 
         [Theory]
-        [InlineData("https://example.com")]
+        [InlineData(TestConstants.TestDomain)]
         public async Task RequestBodyAnalysis(string url)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -203,8 +203,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com", true)]
-        [InlineData("https://example.com", false)]
+        [InlineData(TestConstants.TestDomain, true)]
+        [InlineData(TestConstants.TestDomain, false)]
         public async Task RequestJsonBodyProducer(string url, bool pass)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -233,7 +233,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
 
         [Theory]
-        [InlineData("https://example.com")]
+        [InlineData(TestConstants.TestDomain)]
         public async Task RequestTextBodyProducer(string url)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -286,7 +286,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         [Theory]
         [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
         [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
-        [InlineData("https://example.com", false)]
+        [InlineData(TestConstants.TestDomain, false)]
         public async Task ResponseBodyJsonProducer(string url, bool match)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -370,7 +370,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         [Theory]
         [InlineData("https://www.fluxzy.io/assets/images/logo-small.png", true)]
         [InlineData("https://www.fluxzy.io/favicon.ico", true)]
-        [InlineData("https://example.com", false)]
+        [InlineData(TestConstants.TestDomain, false)]
         public async Task ImageResultProducer(string url, bool image)
         {
             var randomFile = GetRegisteredRandomFile();

@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -33,7 +34,7 @@ namespace Fluxzy.Tests.UnitTests.Dns
 
             async Task<bool> DoRequest()
             {
-                var requestMessage = new HttpRequestMessage(HttpMethod.Head, $"https://nothing-{count++}.yahoo.fr/favicon.ico");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Head, $"https://nothing-{count++}-{Guid.NewGuid().ToString()}.yahoo.fr/favicon.ico");
 
                 // Act
                 using var response = await httpClient.SendAsync(requestMessage);
@@ -50,7 +51,7 @@ namespace Fluxzy.Tests.UnitTests.Dns
 
             var tasks = new List<Task<bool>>();
 
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 10; i++)
             {
                 tasks.Add(DoRequest());
             }

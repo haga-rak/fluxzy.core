@@ -141,10 +141,10 @@ namespace Fluxzy.Core
                             _proxyRuntimeSetting.UserAgentProvider);
                     }
 
-                    var shouldClose = await InternalProcessExchange(exchange,
+                    var shouldCloseDownStreamConnection = await InternalProcessExchange(exchange,
                         downStreamPipe, buffer, closeImmediately, callerTokenSource, token);
 
-                    if (shouldClose) {
+                    if (shouldCloseDownStreamConnection) {
                         return;
                     }
                 }
@@ -194,7 +194,7 @@ namespace Fluxzy.Core
             bool closeImmediately,
             CancellationTokenSource callerTokenSource, CancellationToken token)
         {
-            var shouldClose = false;
+            var shouldCloseConnectionToDownStream = false;
             using var exchangeScope = new ExchangeScope();
 
             var processMessage = !exchange.Unprocessed;
@@ -207,7 +207,7 @@ namespace Fluxzy.Core
                     D.TraceInfo(message);
                 }
 
-                shouldClose = closeImmediately || exchange.ShouldClose();
+                shouldCloseConnectionToDownStream = closeImmediately || exchange.ShouldClose();
 
                 exchange.Step = ExchangeStep.Request;
 
@@ -300,6 +300,10 @@ namespace Fluxzy.Core
                                 downStreamPipe,
                                 buffer, exchangeScope, token).ConfigureAwait(false);
 
+                            if (exchange.ReadUntilClose) {
+                                shouldCloseConnectionToDownStream = true;
+                            }
+
                             if (D.EnableTracing) {
                                 var message = $"[#{exchange.Id}] Response received";
                                 D.TraceInfo(message);
@@ -335,7 +339,7 @@ namespace Fluxzy.Core
                     await SafeCloseResponseBody(exchange, originalResponseBodyStream).ConfigureAwait(false);
 
                     if (exception is OperationCanceledException) {
-                        return shouldClose;
+                        return shouldCloseConnectionToDownStream;
                     }
 
                     if (!ConnectionErrorHandler.RequalifyOnResponseSendError(exception, exchange,
@@ -343,7 +347,7 @@ namespace Fluxzy.Core
                         throw;
                     }
 
-                    shouldClose = true;
+                    shouldCloseConnectionToDownStream = true;
                 }
 
                 // We do not need to read websocket response
@@ -384,7 +388,6 @@ namespace Fluxzy.Core
                     if (exchange.Response.Header.ContentLength == -1 &&
                         responseBodyStream != null &&
                         exchange.HttpVersion == "HTTP/2")
-
                         // HTTP2 servers are allowed to send response body
                         // without specifying a content-length or transfer-encoding chunked.
                         // In case content-length is not present, we force transfer-encoding chunked 
@@ -412,8 +415,7 @@ namespace Fluxzy.Core
                             CancellationToken.None
                         );
 
-                        if (responseBodyStream != null &&
-                            (!responseBodyStream.CanSeek || responseBodyStream.Length > 0)) {
+                        if (responseBodyStream != null && (!responseBodyStream.CanSeek || responseBodyStream.Length > 0)) {
                             if (exchange.Context.HasResponseBodySubstitution) {
                                 originalResponseBodyStream = responseBodyStream;
 
@@ -457,7 +459,7 @@ namespace Fluxzy.Core
                     }
 
                     try {
-                        await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, shouldClose, token)
+                        await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, shouldCloseConnectionToDownStream, token)
                                             .ConfigureAwait(false);
                     }
                     catch (Exception ex) {
@@ -471,7 +473,7 @@ namespace Fluxzy.Core
 
                             // local browser interrupt connection 
                         {
-                            return shouldClose;
+                            return shouldCloseConnectionToDownStream;
                         }
 
                         throw;
@@ -532,18 +534,18 @@ namespace Fluxzy.Core
                     // we wait for the current exchange to complete before reading further request
 
                     try {
-                        shouldClose = shouldClose || await exchange.Complete.ConfigureAwait(false);
+                        await exchange.Complete.ConfigureAwait(false);
                     }
                     catch (ExchangeException) {
                         // Enhance your calm
                     }
                 }
                 else {
-                    shouldClose = true;
+                    shouldCloseConnectionToDownStream = true;
                 }
             }
 
-            return shouldClose;
+            return shouldCloseConnectionToDownStream;
         }
 
         private ValueTask SafeCloseRequestBody(Exchange exchange, Stream? substitutionStream)

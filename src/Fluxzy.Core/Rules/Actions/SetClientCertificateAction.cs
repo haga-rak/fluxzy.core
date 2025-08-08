@@ -36,6 +36,12 @@ namespace Fluxzy.Rules.Actions
         [ActionDistinctive(Expand = true, Description = "Client certificate")]
         public Certificate ClientCertificate { get; set; }
 
+        /// Forces the client certificate to be sent during TLS handshake,
+        /// even if the server's certificate request does not include a matching issuer.
+        /// Use with caution—this may violate strict TLS validation rules.
+        [ActionDistinctive()]
+        public bool AlwaysSendClientCertificate { get; set; }
+
         public override FilterScope ActionScope => FilterScope.OnAuthorityReceived;
 
         public override string DefaultDescription => "Set client certificate".Trim();
@@ -46,6 +52,7 @@ namespace Fluxzy.Rules.Actions
         {
             context.ClientCertificates ??= new ();
             context.ClientCertificates.Add(ClientCertificate);
+            context.AlwaysSendClientCertificate = AlwaysSendClientCertificate;
 
             return default;
         }
