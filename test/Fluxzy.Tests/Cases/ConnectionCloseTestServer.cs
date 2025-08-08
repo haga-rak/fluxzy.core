@@ -18,17 +18,21 @@ namespace Fluxzy.Tests.Cases
         private readonly Func<int, bool> _whenShouldClose;
         private readonly string _responseBodyString;
         private readonly bool _closeTransportFirst;
-        private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
+        private readonly bool _emptyBody;
+        private readonly bool _ommitContentLength;
+        private readonly TcpListener _listener = new(IPAddress.Loopback, 8501);
         private readonly X509Certificate2 _certificate = new("_Files/Certificates/client-cert.pifix",
             CertificateContext.DefaultPassword);
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public ConnectionCloseTestServer(Func<int, bool> whenShouldClose, 
-            string responseBodyString, bool closeTransportFirst)
+            string responseBodyString, bool closeTransportFirst, bool emptyBody, bool ommitContentLength = false)
         {
             _whenShouldClose = whenShouldClose;
             _responseBodyString = responseBodyString;
             _closeTransportFirst = closeTransportFirst;
+            _emptyBody = emptyBody;
+            _ommitContentLength = ommitContentLength;
         }
 
         public ConnectionCloseTestServerInstance Start()
@@ -60,6 +64,7 @@ namespace Fluxzy.Tests.Cases
             await using var networkStream = client.GetStream();
             await using var sslStream = new SslStream(networkStream, false);
 
+
             await sslStream.AuthenticateAsServerAsync(cert, clientCertificateRequired: false,
                 enabledSslProtocols: SslProtocols.Tls12, checkCertificateRevocation: false);
 
@@ -70,10 +75,15 @@ namespace Fluxzy.Tests.Cases
                 {
                     try
                     {
-                        var __ = await ReadUntilDoubleCrLfAsync(sslStream);
+                        var request = await ReadUntilDoubleCrLfAsync(sslStream);
+
+                        if (string.IsNullOrEmpty(request))
+                        {
+                            break; // No request, exit
+                        }
 
                         index++;
-                        var shouldClose = _whenShouldClose(index);
+                        var shouldClose = _whenShouldClose(index) || _ommitContentLength;
 
                         var connectionWord = shouldClose ? "Connection: close\r\n" : "";
 
@@ -83,6 +93,26 @@ namespace Fluxzy.Tests.Cases
                             $"Content-Length: {_responseBodyString.Length}\r\n" + connectionWord +
                             "\r\n" +
                             _responseBodyString;
+                        
+                        if (_emptyBody)
+                        {
+                            response =
+                                "HTTP/1.1 204 No Content\r\n" +
+                                "Host: local.fluxzy.io\r\n" +
+                                "Connection: Keep-Alive\r\n" +
+                                "Keep-Alive: timeout=50, max=100\r\n" +
+                                "\r\n";
+                        }
+
+                        if (_ommitContentLength)
+                        {
+                            response =
+                                "HTTP/1.1 200 OK\r\n" +
+                                "Host: local.fluxzy.io\r\n" +
+                                "Connection: close\r\n" +
+                                "\r\n" +
+                                _responseBodyString;
+                        }
 
                         var buffer = Encoding.UTF8.GetBytes(response);
                         await sslStream.WriteAsync(buffer, 0, buffer.Length);
