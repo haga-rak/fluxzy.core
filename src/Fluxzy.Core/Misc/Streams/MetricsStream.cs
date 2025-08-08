@@ -79,8 +79,8 @@ namespace Fluxzy.Misc.Streams
 
             TotalRead += read;
 
-            if ((read == 0 && _expectedLength == null) ||
-                (_expectedLength != null && _expectedLength >= TotalRead) )
+            if ((read == 0 && _expectedLength == null)
+                || (_expectedLength != null && TotalRead >= _expectedLength))
             {
                 NotifyFinalRead();
             }
@@ -144,7 +144,8 @@ namespace Fluxzy.Misc.Streams
 
                 TotalRead += read;
 
-                if ((read == 0 && _expectedLength == null) || (_expectedLength != null && _expectedLength >= TotalRead))
+                if ((read == 0 && _expectedLength == null) 
+                    || (_expectedLength != null && TotalRead >= _expectedLength))
                 {
                     NotifyFinalRead();
                 }
