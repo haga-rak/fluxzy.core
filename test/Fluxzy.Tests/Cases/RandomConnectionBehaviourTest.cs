@@ -12,11 +12,6 @@ namespace Fluxzy.Tests.Cases
 {
     public class RandomConnectionBehaviourTest
     {
-        public RandomConnectionBehaviourTest()
-        {
-            Environment.SetEnvironmentVariable("SSLKEYLOGFILE", "D:\\poubelle\\keylog.txt");
-        }
-
         [Theory, CombinatorialData]
         public async Task ValidateClose(
             [CombinatorialValues("hello world!", "")] string responseString,
