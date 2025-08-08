@@ -531,7 +531,6 @@ namespace Fluxzy.Core
                     // we wait for the current exchange to complete before reading further request
 
                     try {
-                        //shouldCloseConnectionToDownStream = shouldCloseConnectionToDownStream || await exchange.Complete.ConfigureAwait(false);
                         await exchange.Complete.ConfigureAwait(false);
                     }
                     catch (ExchangeException) {
