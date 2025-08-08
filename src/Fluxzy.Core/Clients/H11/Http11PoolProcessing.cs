@@ -187,8 +187,7 @@ namespace Fluxzy.Clients.H11
                     (endConnection, length) => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
-                        exchange.ExchangeCompletionSource.SetResult(endConnection);
-
+                        exchange.ExchangeCompletionSource.TrySetResult(endConnection);
                         _logger.Trace(exchange.Id, () => $"Last body bytes end : {length} total bytes");
                     },
                     exception => {
