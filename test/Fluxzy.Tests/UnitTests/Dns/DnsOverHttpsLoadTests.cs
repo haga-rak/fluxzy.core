@@ -34,7 +34,7 @@ namespace Fluxzy.Tests.UnitTests.Dns
 
             async Task<bool> DoRequest()
             {
-                var requestMessage = new HttpRequestMessage(HttpMethod.Head, $"https://nothing-{count++}-{Guid.NewGuid().ToString()}.yahoo-bad-domain-inexistent-zzz.fr/favicon.ico");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Head, $"https://nothing-{count++}-{Guid.NewGuid().ToString()}.yahoo.fr/favicon.ico");
 
                 // Act
                 using var response = await httpClient.SendAsync(requestMessage);
