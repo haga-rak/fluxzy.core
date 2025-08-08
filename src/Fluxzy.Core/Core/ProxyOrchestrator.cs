@@ -300,6 +300,10 @@ namespace Fluxzy.Core
                                 downStreamPipe,
                                 buffer, exchangeScope, token).ConfigureAwait(false);
 
+                            if (exchange.ReadUntilClose) {
+                                shouldCloseConnectionToDownStream = true;
+                            }
+
                             if (D.EnableTracing) {
                                 var message = $"[#{exchange.Id}] Response received";
                                 D.TraceInfo(message);
@@ -384,7 +388,6 @@ namespace Fluxzy.Core
                     if (exchange.Response.Header.ContentLength == -1 &&
                         responseBodyStream != null &&
                         exchange.HttpVersion == "HTTP/2")
-
                         // HTTP2 servers are allowed to send response body
                         // without specifying a content-length or transfer-encoding chunked.
                         // In case content-length is not present, we force transfer-encoding chunked 

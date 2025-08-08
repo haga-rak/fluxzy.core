@@ -136,7 +136,7 @@ namespace Fluxzy.Clients.H11
             _logger.TraceResponse(exchange);
 
             var shouldCloseConnection = exchange.Response.Header.ConnectionCloseRequest;
-
+            
             if (!exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span, out var shouldClose)) {
                 // We close the connection because
                 // many web server still sends a content-body with a 304 response 
@@ -152,6 +152,16 @@ namespace Fluxzy.Clients.H11
                 _logger.Trace(exchange.Id, () => "No response body");
 
                 return true;
+            }
+
+            if (exchange.Response.Header.ConnectionCloseRequest &&
+                exchange.Response.Header.ContentLength == -1 &&
+                !exchange.Response.Header.ChunkedBody) {
+
+                // we force chunked transfer encoding when the server
+                // does not send a content-length header and request a close connection
+
+                exchange.ReadUntilClose = true;
             }
 
             var bodyStream = exchange.Connection.ReadStream!;
