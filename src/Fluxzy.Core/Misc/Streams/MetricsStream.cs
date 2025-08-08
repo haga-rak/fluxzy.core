@@ -71,21 +71,7 @@ namespace Fluxzy.Misc.Streams
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var read = InnerStream.Read(buffer, offset, count);
-
-            if (TotalRead == 0) {
-                NotifyFirstRead();
-            }
-
-            TotalRead += read;
-
-            if ((read == 0 && _expectedLength == null)
-                || (_expectedLength != null && TotalRead >= _expectedLength))
-            {
-                NotifyFinalRead();
-            }
-
-            return read;
+            throw new NotSupportedException($"{nameof(MetricsStream)} does not support sync call.");
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -105,19 +91,7 @@ namespace Fluxzy.Misc.Streams
 
         public override int Read(Span<byte> buffer)
         {
-            try {
-                var res = InnerStream.Read(buffer);
-                TotalRead += res;
-
-                return res;
-            }
-            catch (Exception ex) {
-                if (_onReadError != null) {
-                    _onReadError(ex);
-                }
-
-                throw;
-            }
+            throw new NotSupportedException($"{nameof(MetricsStream)} does not support sync call.");
         }
 
         public override async Task<int> ReadAsync(
@@ -134,8 +108,23 @@ namespace Fluxzy.Misc.Streams
                 using var combinedTokenSource =
                     CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
 
-                var read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
-                                            .ConfigureAwait(false);
+                int read;
+
+                try {
+                    read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
+                                                .ConfigureAwait(false);
+                }
+                catch (Exception e) {
+                    if (EndConnection && e is Org.BouncyCastle.Tls.TlsNoCloseNotifyException) {
+                        // This is a TLS connection that was closed without a close notify
+                        // We treat this as a normal end of stream when Connection.Close is required
+
+                        read = 0;
+                    }
+                    else {
+                        throw;
+                    }
+                }
 
                 if (TotalRead == 0)
                 {
