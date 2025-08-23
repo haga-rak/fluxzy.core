@@ -229,10 +229,8 @@ namespace Fluxzy.Clients.H2
                     Parent.Context.UpStreamChannel(ref writeTaskBody);
 
                     totalSent += dataFramePayloadLength;
-                    _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
-                    if (dataFramePayloadLength > 0)
-                        NotifyStreamWindowUpdate(dataFramePayloadLength);
+                    _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
                     if (dataFramePayloadLength == 0 || endStream)
                         return;
