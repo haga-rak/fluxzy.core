@@ -14,22 +14,22 @@ namespace Fluxzy.Clients.H2
         // private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         private readonly Queue<TaskCompletionSource<object>> _windowSizeAWaiters = new();
-        private volatile int _windowSize;
+        private volatile int _availableWindowSize;
 
         public WindowSizeHolder(
             H2Logger logger,
-            int windowSize,
+            int availableWindowSize,
             int streamIdentifier)
         {
             _logger = logger;
-            WindowSize = windowSize;
+            AvailableWindowSize = availableWindowSize;
             StreamIdentifier = streamIdentifier;
         }
 
-        public int WindowSize {
-            get => _windowSize;
+        public int AvailableWindowSize {
+            get => _availableWindowSize;
 
-            private set => _windowSize = value;
+            private set => _availableWindowSize = value;
         }
 
         public int StreamIdentifier { get; }
@@ -45,11 +45,11 @@ namespace Fluxzy.Clients.H2
             _logger.Trace(this, windowSizeIncrement);
 
             lock (this) {
-                if (WindowSize + (long) windowSizeIncrement > int.MaxValue) {
-                    WindowSize = int.MaxValue;
+                if (_availableWindowSize + (long) windowSizeIncrement > int.MaxValue) {
+                    _availableWindowSize = int.MaxValue;
                 }
                 else {
-                    WindowSize += windowSizeIncrement;
+                    Interlocked.Add(ref _availableWindowSize, windowSizeIncrement);
                 }
             }
 
@@ -76,10 +76,10 @@ namespace Fluxzy.Clients.H2
             }
 
             lock (this) {
-                var maxAvailable = Math.Min(requestedLength, WindowSize);
+                var maxAvailable = Math.Min(requestedLength, AvailableWindowSize);
 
                 if (maxAvailable > 0) {
-                    WindowSize -= maxAvailable;
+                    Interlocked.Add(ref _availableWindowSize, -maxAvailable);
 
                     _logger.Trace(this, -maxAvailable);
 
