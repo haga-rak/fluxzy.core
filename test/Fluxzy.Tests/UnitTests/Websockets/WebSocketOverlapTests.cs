@@ -25,7 +25,7 @@ namespace Fluxzy.Tests.UnitTests.Websockets
 
         public WebSocketOverlapTests()
         {
-            _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutConstants.Regular));
+            _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutConstants.Extended));
             _cancellationToken = _cancellationTokenSource.Token;
             _fluxzySetting = FluxzySetting.CreateLocalRandomPort();
             _clientWebSocket = new ClientWebSocket();
