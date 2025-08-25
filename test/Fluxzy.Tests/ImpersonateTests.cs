@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -49,6 +48,7 @@ namespace Fluxzy.Tests
         [InlineData("Chrome_Windows_131")]
         [InlineData("Firefox_Windows_133")]
         [InlineData("Edge_Windows_131")]
+        [InlineData("Firefox_Windows_142")]
         public async Task CheckSignature(string nameOrConfigfile)
         {
             var testUrl = "https://check.ja3.zone/";
@@ -83,6 +83,7 @@ namespace Fluxzy.Tests
         [InlineData("Chrome_Android_131")]
         [InlineData("Edge_Windows_131")]
         [InlineData("Firefox_Windows_133")]
+        [InlineData("Firefox_Windows_142")]
         [InlineData("Chrome_Windows_139")]
         public async Task CheckBlock(string nameOrConfigfile)
         {
