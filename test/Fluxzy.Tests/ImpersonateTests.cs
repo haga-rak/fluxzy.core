@@ -78,11 +78,12 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        //[InlineData("Chrome_Windows_131")]
-        //[InlineData("Chrome_Windows_latest")]
-        //[InlineData("Chrome_Android_131")]
-        //[InlineData("Edge_Windows_131")]
+        [InlineData("Chrome_Windows_131")]
+        [InlineData("Chrome_Windows_latest")]
+        [InlineData("Chrome_Android_131")]
+        [InlineData("Edge_Windows_131")]
         [InlineData("Firefox_Windows_133")]
+        [InlineData("Chrome_Windows_139")]
         public async Task CheckBlock(string nameOrConfigfile)
         {
             string url = Encoding.UTF8.GetString(Convert.FromBase64String("aHR0cHM6Ly93d3cuZ2FsZXJpZXNsYWZheWV0dGUuY29tL25vdGhpbmc="));
