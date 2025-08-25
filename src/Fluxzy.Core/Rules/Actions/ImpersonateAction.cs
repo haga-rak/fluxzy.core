@@ -90,6 +90,10 @@ namespace Fluxzy.Rules.Actions
                     streamSetting.SetSetting(setting.Identifier, setting.Value);
                 }
 
+                if (_configuration.H2Settings.InitialWindowSize != null) {
+                    streamSetting.Local.WindowSize = _configuration.H2Settings.InitialWindowSize.Value;
+                }
+
                 context.AdvancedTlsSettings.H2StreamSetting = streamSetting;
 
                 var existingHeaders = exchange?.GetRequestHeaders().Select(s => s.Name)

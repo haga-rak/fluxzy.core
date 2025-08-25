@@ -241,7 +241,7 @@ namespace Fluxzy.Clients
                     var h2ConnectionPool = new H2ConnectionPool(
                         openingResult.Connection
                                      .ReadStream!, // Read and write stream are the same after the sslhandshake
-                        new H2StreamSetting(),
+                        exchange.Context.AdvancedTlsSettings.H2StreamSetting ?? new H2StreamSetting(),
                         exchange.Authority, exchange.Connection!, OnConnectionFaulted);
 
                     exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
