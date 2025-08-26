@@ -79,20 +79,7 @@ namespace Fluxzy.Rules.Actions
             if (_configuration != null) {
                 context.AdvancedTlsSettings.TlsFingerPrint = _fingerPrint;
 
-                var streamSetting = new H2StreamSetting();
-
-                if (_configuration.H2Settings.RemoveDefaultValues) {
-                    streamSetting.AdvertiseSettings.Clear();
-                }
-
-                foreach (var setting in _configuration.H2Settings.Settings) {
-                    streamSetting.AdvertiseSettings.Add(setting.Identifier);
-                    streamSetting.SetSetting(setting.Identifier, setting.Value);
-                }
-
-                if (_configuration.H2Settings.InitialWindowSize != null) {
-                    streamSetting.Local.WindowSize = _configuration.H2Settings.InitialWindowSize.Value;
-                }
+                var streamSetting = _configuration.H2Settings.ToH2StreamSetting();
 
                 context.AdvancedTlsSettings.H2StreamSetting = streamSetting;
 

@@ -96,6 +96,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No018.TransformResp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No017.TransformRequestBody", "examples\Samples.No017.TransformRequestBody\Samples.No017.TransformRequestBody.csproj", "{9E059754-45E1-A78A-C64C-58A7B064A5E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No019.HttpMessageHandlerWithCustomFingerPrint", "examples\Samples.No019.HttpMessageHandlerWithCustomFingerPrint\Samples.No019.HttpMessageHandlerWithCustomFingerPrint.csproj", "{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -210,6 +212,10 @@ Global
 		{9E059754-45E1-A78A-C64C-58A7B064A5E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E059754-45E1-A78A-C64C-58A7B064A5E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E059754-45E1-A78A-C64C-58A7B064A5E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -239,6 +245,7 @@ Global
 		{644B0F31-E946-4BF9-AFA5-54C80C78AE17} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{D7327C1F-008C-B410-1731-4C9D73C36294} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{9E059754-45E1-A78A-C64C-58A7B064A5E5} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
+		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}
