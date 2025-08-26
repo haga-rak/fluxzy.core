@@ -32,7 +32,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             var configuration = ImpersonateConfigurationManager
                                     .Instance.LoadConfiguration(
-                                        ImpersonateProfileManager.Chrome139Windows)!;
+                                        ImpersonateProfileManager.Chrome131Windows)!;
             
             var tlsFingerPrint = TlsFingerPrint.ParseFromImpersonateConfiguration(configuration);
 
