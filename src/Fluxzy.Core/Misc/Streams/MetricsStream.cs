@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.IO;
@@ -12,23 +12,36 @@ namespace Fluxzy.Misc.Streams
     /// </summary>
     public class MetricsStream : Stream
     {
-        private readonly Action<long> _endRead;
-        private readonly Action _firstBytesReaden;
+        private readonly Action<bool, long> _endRead;
+        private readonly Action _firstBytesRead;
         private readonly Action<Exception> _onReadError;
+        private readonly long? _expectedLength;
         private readonly CancellationToken _parentToken;
+
+        private bool _firstReadNotified;
+        private bool _finalReadNotified;
 
         public MetricsStream(
             Stream innerStream,
-            Action firstBytesReaden,
-            Action<long> endRead,
+            Action firstBytesRead,
+            Action<bool, long> endRead,
             Action<Exception> onReadError,
+            bool endConnection,
+            long ? expectedLength,
             CancellationToken parentToken)
         {
             InnerStream = innerStream;
-            _firstBytesReaden = firstBytesReaden;
+            EndConnection = endConnection;
+            _firstBytesRead = firstBytesRead;
             _endRead = endRead;
             _onReadError = onReadError;
+            _expectedLength = expectedLength;
             _parentToken = parentToken;
+            
+            if (_expectedLength == 0) {
+                NotifyFirstRead();
+                NotifyFinalRead();
+            }
         }
 
         public long TotalRead { get; private set; }
@@ -49,6 +62,8 @@ namespace Fluxzy.Misc.Streams
 
         public Stream InnerStream { get; }
 
+        public bool EndConnection { get; }
+
         public override void Flush()
         {
             InnerStream.Flush();
@@ -56,19 +71,7 @@ namespace Fluxzy.Misc.Streams
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var read = InnerStream.Read(buffer, offset, count);
-
-            if (TotalRead == 0 && _firstBytesReaden != null) {
-                _firstBytesReaden();
-            }
-
-            if (read == 0) {
-                _endRead(TotalRead);
-            }
-
-            TotalRead += read;
-
-            return read;
+            throw new NotSupportedException($"{nameof(MetricsStream)} does not support sync call.");
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -88,19 +91,7 @@ namespace Fluxzy.Misc.Streams
 
         public override int Read(Span<byte> buffer)
         {
-            try {
-                var res = InnerStream.Read(buffer);
-                TotalRead += res;
-
-                return res;
-            }
-            catch (Exception ex) {
-                if (_onReadError != null) {
-                    _onReadError(ex);
-                }
-
-                throw;
-            }
+            throw new NotSupportedException($"{nameof(MetricsStream)} does not support sync call.");
         }
 
         public override async Task<int> ReadAsync(
@@ -110,34 +101,80 @@ namespace Fluxzy.Misc.Streams
             return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken)
                 .ConfigureAwait(false);
         }
-
+        
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
             try {
                 using var combinedTokenSource =
                     CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
 
-                var read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
-                                            .ConfigureAwait(false);
+                int read;
 
-                if (TotalRead == 0 && _firstBytesReaden != null) {
-                    _firstBytesReaden();
+                try {
+                    read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
+                                                .ConfigureAwait(false);
+                }
+                catch (Exception e) {
+                    if (EndConnection && e is Org.BouncyCastle.Tls.TlsNoCloseNotifyException) {
+                        // This is a TLS connection that was closed without a close notify
+                        // We treat this as a normal end of stream when Connection.Close is required
+
+                        read = 0;
+                    }
+                    else {
+                        throw;
+                    }
                 }
 
-                if (read == 0) {
-                    _endRead(TotalRead);
+                if (TotalRead == 0)
+                {
+                    NotifyFirstRead();
                 }
 
                 TotalRead += read;
 
+                if ((read == 0 && _expectedLength == null) 
+                    || (_expectedLength != null && TotalRead >= _expectedLength))
+                {
+                    NotifyFinalRead();
+                }
+
                 return read;
             }
             catch (Exception ex) {
-                if (_onReadError != null) {
-                    _onReadError(ex);
-                }
+                _onReadError(ex);
 
                 throw;
+            }
+        }
+
+        private void NotifyFirstRead()
+        {
+            if (_firstReadNotified)
+                return;
+
+            _firstReadNotified = true;
+
+            _firstBytesRead();
+        }
+
+        private void NotifyFinalRead()
+        {
+            if (_finalReadNotified)
+                return; 
+
+            _finalReadNotified = true;
+
+            _endRead(EndConnection, TotalRead);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (_expectedLength != null && _expectedLength >= TotalRead)
+            {
+                NotifyFinalRead();
             }
         }
     }

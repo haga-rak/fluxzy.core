@@ -2,6 +2,7 @@
 
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -21,7 +22,7 @@ namespace Fluxzy.Tests.Cli
                                """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://www.example.com/");
+                TestConstants.TestDomain);
 
             // Act
             using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect: false);
@@ -41,7 +42,7 @@ namespace Fluxzy.Tests.Cli
                                """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://www.example.com/");
+                TestConstants.TestDomain);
 
             // Act
             using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect: false);

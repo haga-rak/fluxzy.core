@@ -113,6 +113,8 @@ namespace Fluxzy.Clients.Ssl
         /// Remove default values.
         /// </summary>
         public bool RemoveDefaultValues { get; }
+
+        public int? InitialWindowSize { get; set; } = null;
     }
 
     public class ImpersonateHeader

@@ -115,7 +115,7 @@ namespace Fluxzy.Clients.H11
                 if (ex is TlsFatalAlert || (exchange.Context.EventNotifierStream?.Faulted ?? false)) {
                     throw new ConnectionCloseException("Relaunch");
                 }
-
+                
                 throw new ClientErrorException(0,
                     "The connection was closed while trying to read the response header",
                     ex.Message, ex);
@@ -135,10 +135,8 @@ namespace Fluxzy.Clients.H11
 
             _logger.TraceResponse(exchange);
 
-            var shouldCloseConnection =
-                    exchange.Response.Header.ConnectionCloseRequest
-                ; //|| exchange.Response.Header.ChunkedBody; 
-
+            var shouldCloseConnection = exchange.Response.Header.ConnectionCloseRequest;
+            
             if (!exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span, out var shouldClose)) {
                 // We close the connection because
                 // many web server still sends a content-body with a 304 response 
@@ -149,11 +147,21 @@ namespace Fluxzy.Clients.H11
 
                 exchange.Response.Body = Stream.Null;
 
-                exchange.ExchangeCompletionSource.TrySetResult(shouldClose);
+                exchange.ExchangeCompletionSource.TrySetResult(shouldCloseConnection || shouldClose);
 
                 _logger.Trace(exchange.Id, () => "No response body");
 
                 return true;
+            }
+
+            if (exchange.Response.Header.ConnectionCloseRequest &&
+                exchange.Response.Header.ContentLength == -1 &&
+                !exchange.Response.Header.ChunkedBody) {
+
+                // we force chunked transfer encoding when the server
+                // does not send a content-length header and request a close connection
+
+                exchange.ReadUntilClose = true;
             }
 
             var bodyStream = exchange.Connection.ReadStream!;
@@ -181,17 +189,15 @@ namespace Fluxzy.Clients.H11
                 bodyStream = new ContentBoundStream(bodyStream, exchange.Response.Header.ContentLength);
             }
 
-            exchange.Response.Body =
-                new MetricsStream(bodyStream,
+            exchange.Response.Body = new MetricsStream(bodyStream,
                     () => {
                         exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
                         _logger.Trace(exchange.Id, () => "First body bytes read");
                     },
-                    length => {
+                    (endConnection, length) => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
-                        exchange.ExchangeCompletionSource.SetResult(shouldCloseConnection);
-
+                        exchange.ExchangeCompletionSource.TrySetResult(endConnection);
                         _logger.Trace(exchange.Id, () => $"Last body bytes end : {length} total bytes");
                     },
                     exception => {
@@ -200,9 +206,10 @@ namespace Fluxzy.Clients.H11
 
                         _logger.Trace(exchange.Id, () => $"Read error : {exception}");
                     },
+                    shouldCloseConnection,
+                    exchange.Response.Header.ContentLength >= 0 ? exchange.Response.Header.ContentLength : null,
                     cancellationToken
-                )
-                ;
+                );
 
             return shouldCloseConnection;
         }

@@ -3,6 +3,7 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -13,7 +14,7 @@ namespace Fluxzy.Tests.Cli
         [CombinatorialData]
         public async Task Validate_Simple_Request(
             [CombinatorialValues("GOOGLE", "CLOUDFLARE", "https://dns.google.com/resolve")] string nameOrUrl,
-            [CombinatorialValues("https://www.example.com", "https://httpbingo.org/json", "http://1.1.1.1")]
+            [CombinatorialValues(TestConstants.TestDomain, "https://httpbingo.org/json", "http://1.1.1.1")]
             string url,
             [CombinatorialValues(false, true)]
             bool noCapture)

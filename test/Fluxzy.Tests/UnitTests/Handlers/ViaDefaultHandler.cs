@@ -13,6 +13,7 @@ using Fluxzy.Core;
 using Fluxzy.Core.Pcap;
 using Fluxzy.Core.Pcap.Cli.Clients;
 using Fluxzy.Core.Pcap.Pcapng;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Writers;
 using Xunit;
 
@@ -170,7 +171,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             {
                 using var handler = await PcapngUtils.CreateHttpHandler(tempFile, sslProvider: sslProvider);
                 using var httpClient = new HttpClient(handler);
-                using var _ = await httpClient.GetAsync("https://www.example.com");
+                using var _ = await httpClient.GetAsync(TestConstants.TestDomain);
             }
 
             await using (var outStream = File.Create(decodedFile))

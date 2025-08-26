@@ -382,9 +382,9 @@ namespace Fluxzy.Clients
 
             var message =
                 "Window Update - " +
-                $"Before = {holder.WindowSize} - " +
+                $"Before = {holder.AvailableWindowSize} - " +
                 $"Value = {windowSizeIncrement} -  " +
-                $"After = {holder.WindowSize + windowSizeIncrement} -  ";
+                $"After = {holder.AvailableWindowSize + windowSizeIncrement} -  ";
 
             //$"Sid = {holder.StreamIdentifier} " +
 

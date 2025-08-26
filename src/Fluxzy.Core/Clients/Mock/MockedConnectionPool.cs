@@ -63,7 +63,7 @@ namespace Fluxzy.Clients.Mock
             exchange.Response.Body =
                 new MetricsStream(_preMadeResponse.ReadBody(Authority),
                     () => { exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant(); },
-                    length => {
+                    (_, length) => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.Metrics.TotalReceived += length;
                         exchange.ExchangeCompletionSource.TrySetResult(false);
@@ -71,7 +71,7 @@ namespace Fluxzy.Clients.Mock
                     exception => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.ExchangeCompletionSource.SetException(exception);
-                    },
+                    }, false, null,
                     cancellationToken
                 );
 

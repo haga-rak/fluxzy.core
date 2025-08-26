@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Rules;
+using Fluxzy.Tests._Fixtures;
 using Fluxzy.Writers;
 using Xunit;
 
@@ -38,7 +39,7 @@ namespace Fluxzy.Tests.UnitTests.Events
 
                 using var client = HttpClientHelper.Create(endPoint);
 
-                await client.GetAsync("https://example.com");
+                await client.GetAsync(TestConstants.TestDomain);
 
                 var delayTask = Task.Delay(maxTimeoutSeconds * 1000);
 

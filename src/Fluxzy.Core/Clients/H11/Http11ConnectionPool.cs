@@ -156,7 +156,8 @@ namespace Fluxzy.Clients.H11
                         }
                         else if (completeTask.IsCompletedSuccessfully && !closeConnectionRequest) { // 
 
-                            if (_pendingConnections.Writer.TryWrite(new Http11ProcessingState(exchange.Connection, lastUsed)))
+                            if (_pendingConnections.Writer.TryWrite(
+                                    new Http11ProcessingState(exchange.Connection, lastUsed)))
                             {
                                 _logger.Trace(exchange.Id, () => "Complete on success, recycling connection ...");
                                 return;
@@ -171,7 +172,7 @@ namespace Fluxzy.Clients.H11
                         FreeConnectionStreams(exchange.Connection);
                     }
 
-                    var res = exchange.Complete.ContinueWith(OnExchangeCompleteFunction, cancellationToken);
+                    var _ = exchange.Complete.ContinueWith(OnExchangeCompleteFunction, cancellationToken);
                 }
                 catch (Exception ex) {
 

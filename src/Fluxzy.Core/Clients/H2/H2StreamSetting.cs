@@ -17,7 +17,7 @@ namespace Fluxzy.Clients.H2
 
         public int SettingsHeaderTableSize { get; set; } = 65536;
 
-        public int OverallWindowSize { get; set; } = 65536;
+        public int OverallWindowSize { get; set; } = 65535;
 
         public int MaxFrameSizeAllowed { get; set; } = 128 * 1024;
 
