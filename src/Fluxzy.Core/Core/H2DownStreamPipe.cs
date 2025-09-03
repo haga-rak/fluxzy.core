@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H2;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
+using YamlDotNet.Core.Tokens;
 
 namespace Fluxzy.Core
 {
@@ -15,9 +16,12 @@ namespace Fluxzy.Core
     {
         private readonly Stream _readStream;
         private readonly Stream _writeStream;
-        private Task _readLoop;
+        private Task? _readLoop;
 
-        private Channel<Exchange> _exchangeChannel = Channel.CreateUnbounded<Exchange>();
+        private readonly Channel<Exchange> _exchangeChannel = Channel.CreateUnbounded<Exchange>();
+        private readonly RsBuffer _readBuffer = RsBuffer.Allocate(8 * 1024); 
+
+        private H2StreamSetting _h2StreamSetting = new H2StreamSetting();
 
         public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream)
         {
@@ -35,10 +39,10 @@ namespace Fluxzy.Core
             await _readStream.ReadExactAsync(prefaceMemory, token);
 
             if (!prefaceMemory.Span.SequenceEqual(H2Constants.Preface)) {
-                throw new InvalidOperationException("Invalid preface");
+                throw new FluxzyException("Invalid preface received");
             }
 
-            _readLoop = ReadLoop(); 
+            _readLoop = ReadLoop(token); 
 
             // validate announcement 
 
@@ -46,8 +50,22 @@ namespace Fluxzy.Core
         }
 
 
-        private async Task ReadLoop()
+        private async Task ReadLoop(CancellationToken token)
         {
+            while (!token.IsCancellationRequested) {
+
+                var frame =
+                    await H2FrameReader.ReadNextFrameAsync(_readStream, _readBuffer.Memory,
+                        token).ConfigureAwait(false);
+
+                if (frame.BodyType == H2FrameType.Settings) {
+
+
+                }
+            }
+
+
+
 
         }
 
@@ -89,7 +107,7 @@ namespace Fluxzy.Core
 
         public void Dispose()
         {
-            throw new System.NotImplementedException();
+            _readBuffer.Dispose();
         }
 
     }

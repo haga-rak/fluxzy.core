@@ -5,9 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Security;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -20,14 +18,6 @@ using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
 {
-    public static class H2Constants
-    {
-        public static readonly byte[] Preface = Encoding.ASCII.GetBytes("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n");
-
-
-    }
-
-
     public class H2ConnectionPool : IHttpConnectionPool
     {
 
@@ -246,56 +236,6 @@ namespace Fluxzy.Clients.H2
             UpStreamChannel(ref writeTask);
         }
 
-        private bool ProcessIncomingSettingFrame(ref SettingFrame settingFrame)
-        {
-            _logger.IncomingSetting(ref settingFrame);
-
-            if (settingFrame.Ack)
-                return false;
-
-            switch (settingFrame.SettingIdentifier) {
-                case SettingIdentifier.SettingsEnablePush:
-                    if (settingFrame.Value > 0)
-
-                        // TODO Send a Goaway. Push not supported 
-                        return false;
-
-                    return true;
-
-                case SettingIdentifier.SettingsMaxConcurrentStreams:
-                    Setting.Remote.SettingsMaxConcurrentStreams = settingFrame.Value;
-
-                    return true;
-
-                case SettingIdentifier.SettingsInitialWindowSize:
-                    Setting.OverallWindowSize = settingFrame.Value;
-
-                    return true;
-
-                case SettingIdentifier.SettingsMaxFrameSize:
-                    Setting.Remote.MaxFrameSize = settingFrame.Value;
-
-                    return true;
-
-                case SettingIdentifier.SettingsMaxHeaderListSize:
-                    Setting.Remote.MaxHeaderListSize = settingFrame.Value;
-
-                    return true;
-
-                case SettingIdentifier.SettingsHeaderTableSize:
-                    Setting.SettingsHeaderTableSize = settingFrame.Value;
-
-                    return true;
-            }
-
-            // We do not throw anything here, some server  
-            // sends an identifier equals to 8 that match none of the value of rfc 7540
-
-            // ---> old : throw new InvalidOperationException("Unknown setting type");
-
-            return false;
-        }
-
         private void OnGoAway(ref GoAwayFrame frame)
         {
             _goAwayInitByRemote = true;
@@ -495,7 +435,9 @@ namespace Fluxzy.Clients.H2
                 var sendAck = false;
 
                 while (frame.TryReadNextSetting(out var settingFrame, ref indexer)) {
-                    var needAck = ProcessIncomingSettingFrame(ref settingFrame);
+
+                    _logger.IncomingSetting(ref settingFrame);
+                    var needAck = H2Helper.ProcessIncomingSettingFrame(Setting, ref settingFrame);
 
                     sendAck = sendAck || needAck;
 
