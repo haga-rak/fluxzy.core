@@ -3,6 +3,7 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.Cli
@@ -25,8 +26,7 @@ namespace Fluxzy.Tests.Cli
                                    htmlContent: '<style>body { background-color: red !important; }</style>'
                                """;
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://example.com");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, TestConstants.TestDomainPage);
 
             // Act
             using var response = await Exec(yamlContent, requestMessage, automaticDecompression: useCompression);
@@ -54,8 +54,7 @@ namespace Fluxzy.Tests.Cli
                                    fileName: _Files/Rules/Injected/injected-script.js
                                """;
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://example.com");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, TestConstants.TestDomainPage);
 
             // Act
             using var response = await Exec(yamlContent, requestMessage, automaticDecompression: useCompression);

@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Core;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Fluxzy.Clients.H2
 {
@@ -98,6 +100,15 @@ namespace Fluxzy.Clients.H2
             if (_runningStreams.TryRemove(streamWorker.StreamIdentifier, out _)) {
                 _maxConcurrentStreamBarrier.Release();
                 streamWorker.Dispose();
+            }
+        }
+
+        public void NotifyInitialWindowChange(int newInitialWindow)
+        {
+            foreach (var kvp in _runningStreams)         
+            {
+                StreamWorker worker = kvp.Value;
+                worker.RemoteWindowSize.UpdateInitialWindowSize(newInitialWindow);
             }
         }
 

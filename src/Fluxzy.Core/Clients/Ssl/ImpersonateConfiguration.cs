@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Fluxzy.Clients.H2;
 using Fluxzy.Clients.H2.Frames;
 
 namespace Fluxzy.Clients.Ssl
@@ -113,6 +114,31 @@ namespace Fluxzy.Clients.Ssl
         /// Remove default values.
         /// </summary>
         public bool RemoveDefaultValues { get; }
+
+        public int? InitialWindowSize { get; set; } = null;
+
+        public H2StreamSetting ToH2StreamSetting()
+        {
+            var streamSetting = new H2StreamSetting();
+
+            if (RemoveDefaultValues)
+            {
+                streamSetting.AdvertiseSettings.Clear();
+            }
+
+            foreach (var setting in Settings)
+            {
+                streamSetting.AdvertiseSettings.Add(setting.Identifier);
+                streamSetting.SetSetting(setting.Identifier, setting.Value);
+            }
+
+            if (InitialWindowSize != null)
+            {
+                streamSetting.Local.WindowSize = InitialWindowSize.Value;
+            }
+
+            return streamSetting;
+        }
     }
 
     public class ImpersonateHeader

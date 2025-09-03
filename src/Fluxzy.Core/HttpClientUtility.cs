@@ -76,7 +76,9 @@ namespace Fluxzy
 
             configureHandler?.Invoke(handler);
 
-            return new(handler);
+            return new(handler) {
+                Timeout = TimeSpan.FromSeconds(15)
+            };
         }
     }
 }

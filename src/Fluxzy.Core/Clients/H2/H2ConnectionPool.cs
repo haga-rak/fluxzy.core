@@ -439,6 +439,11 @@ namespace Fluxzy.Clients.H2
                     _logger.IncomingSetting(ref settingFrame);
                     var needAck = H2Helper.ProcessIncomingSettingFrame(Setting, ref settingFrame);
 
+                    if (settingFrame.SettingIdentifier == SettingIdentifier.SettingsInitialWindowSize) {
+                        // update an existing stream window size
+                        _streamPool.NotifyInitialWindowChange(settingFrame.Value);
+                    }
+
                     sendAck = sendAck || needAck;
 
                     _logger.TraceDeep(0, () => "4");
