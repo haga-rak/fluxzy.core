@@ -17,40 +17,24 @@ namespace Fluxzy.Clients.DotNetBridge
         /// <returns></returns>
         public static string ToHttp11String(this HttpRequestMessage message)
         {
-            var builder = new StringBuilder();
+            StringBuilder builder = new();
 
             builder.Append($"{message.Method} {message.RequestUri} HTTP/1.1\r\n");
             builder.Append($"Host: {message.RequestUri!.Authority}\r\n");
 
-            foreach (var header in message.Headers) {
-                foreach (var value in header.Value) {
-                    builder.Append(header.Key);
-                    builder.Append(": ");
-                    builder.Append(value);
-                    builder.Append("\r\n");
-                }
-            }
+            builder.Append(message.Headers.ToString());
 
             // Do not remove that line because evaluating ContentLength is necessary
-            var clAsk = message?.Content?.Headers.ContentLength;
+            _ = message?.Content?.Headers.ContentLength;
 
-            if (message!.Content?.Headers != null) {
-                foreach (var header in message.Content.Headers) {
-                    foreach (var value in header.Value) {
-                        builder.Append(header.Key);
-                        builder.Append(": ");
-                        builder.Append(value);
-                        builder.Append("\r\n");
-                    }
-                }
+            if (message!.Content?.Headers != null)
+            {
+                builder.Append(message.Content.Headers.ToString());
             }
 
-            var s = message.ToString();
-
             builder.Append("\r\n");
-            var yo = builder.ToString();
 
-            return yo;
+            return builder.ToString();
         }
     }
 }
