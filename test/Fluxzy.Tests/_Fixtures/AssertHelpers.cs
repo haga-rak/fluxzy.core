@@ -28,7 +28,7 @@ namespace Fluxzy.Tests._Fixtures
                     continue;
 
                 Assert.True(binResponse.Headers!.TryGetValue(header.Key, out var responseValue));
-                Assert.Equal(string.Join(",", header.Value), responseValue);
+                Assert.Equal(string.Join(", ", header.Value), responseValue);
             }
 
             return binResponse;
@@ -133,4 +133,5 @@ namespace Fluxzy.Tests._Fixtures
             }
         }
     }
+
 }
