@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace Fluxzy.Core
 {
@@ -14,6 +15,7 @@ namespace Fluxzy.Core
 
         public override ProxyAuthenticationType AuthenticationType => ProxyAuthenticationType.None;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override bool ValidateAuthentication(IPEndPoint localEndPoint, IPEndPoint remoteEndPoint, RequestHeader requestHeader)
         {
             return true;
