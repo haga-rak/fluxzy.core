@@ -1,6 +1,8 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -12,13 +14,16 @@ namespace Fluxzy.Clients.Ssl
 {
     public class SslConnectionBuilderOptions
     {
+        private readonly bool _alwaysSendClientCertificate;
         private SslClientAuthenticationOptions? _authenticationOptions; 
 
         public SslConnectionBuilderOptions(string targetHost, 
             SslProtocols enabledSslProtocols, List<SslApplicationProtocol> applicationProtocols,
             RemoteCertificateValidationCallback? remoteCertificateValidationCallback,
-            Certificate? clientCertificate, AdvancedTlsSettings? advancedTlsSettings)
+            Certificate? clientCertificate, bool alwaysSendClientCertificate, 
+            AdvancedTlsSettings? advancedTlsSettings)
         {
+            _alwaysSendClientCertificate = alwaysSendClientCertificate;
             TargetHost = targetHost;
             EnabledSslProtocols = enabledSslProtocols;
             ApplicationProtocols = applicationProtocols;
@@ -54,8 +59,16 @@ namespace Fluxzy.Clients.Ssl
                 result.RemoteCertificateValidationCallback = RemoteCertificateValidationCallback;
 
             if (ClientCertificate != null) {
+
+                var certificate = ClientCertificate.GetX509Certificate();
+
                 result.ClientCertificates ??= new X509CertificateCollection();
                 result.ClientCertificates.Add(ClientCertificate.GetX509Certificate());
+
+                if (_alwaysSendClientCertificate) {
+
+                    result.LocalCertificateSelectionCallback = (_, _, _, _, _) => certificate;
+                }
             }
 
             return _authenticationOptions = result;

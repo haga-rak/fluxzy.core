@@ -186,7 +186,10 @@ namespace Fluxzy.Certificates
 
                 case CertificateRetrieveMode.FromPkcs12:
                     return _cachedCertificate = (Pkcs12Password != null ? 
-                        new X509Certificate2(Pkcs12File ?? throw new InvalidOperationException("Pkcs12File is not set"), Pkcs12Password) :
+                        new X509Certificate2(Pkcs12File ?? throw new InvalidOperationException("Pkcs12File is not set"), Pkcs12Password,
+                            X509KeyStorageFlags.MachineKeySet |
+                            X509KeyStorageFlags.PersistKeySet |
+                            X509KeyStorageFlags.Exportable) :
                         new X509Certificate2(Pkcs12File ?? throw new InvalidOperationException("Pkcs12File is not set"))) ;
                         
 

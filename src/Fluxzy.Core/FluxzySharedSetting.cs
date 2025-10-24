@@ -92,5 +92,14 @@ namespace Fluxzy
         /// </summary>
         public static int PcapEnhancedBlockMaxLength { get; } =
             EnvironmentUtility.GetInt32("FLUXZY_PCAP_ENHANCED_BLOCK_MAX_LENGTH", 8 * 1024);
+        
+        public static bool NoCacheOnFqdn { get; internal set; } =
+            Environment.GetEnvironmentVariable("NoCacheOnFqdnCompute") == "1";
+
+        /// <summary>
+        ///     The delay in milliseconds before tearing down a raw capture connection after an explicit close
+        /// </summary>
+        public static int RawCaptureLingerDelayBeforeTearDownMillis { get; set; } =
+            EnvironmentUtility.GetInt32("RAW_CAPTURE_LINGER_DELAY_BEFORE_TEARDOWN", 200);
     }
 }

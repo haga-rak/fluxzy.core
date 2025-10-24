@@ -91,8 +91,9 @@ namespace Fluxzy.Clients.H2
             if (requestedBodyLength == 0)
                 return 0;
 
-            var streamWindow = await RemoteWindowSize.BookWindowSize(requestedBodyLength, cancellationToken)
-                                                     .ConfigureAwait(false);
+            var streamWindow = await RemoteWindowSize
+                                            .BookWindowSize(requestedBodyLength, cancellationToken)
+                                            .ConfigureAwait(false);
 
             if (streamWindow == 0)
                 return 0;
@@ -191,7 +192,7 @@ namespace Fluxzy.Clients.H2
             if (requestBodyStream != null
                 && (!requestBodyStream.CanSeek || requestBodyStream.Length > 0)) {
                 while (true) {
-                    var bookedSize = Math.Min(Parent.Context.Setting.Local.MaxFrameSize - 9, buffer.Buffer.Length - 9);
+                    var bookedSize = Math.Min(Parent.Context.Setting.Local.MaxFrameSize, buffer.Buffer.Length) - 9;
 
                     if (_disposed)
                         throw new TaskCanceledException("Stream cancellation request");
@@ -204,14 +205,16 @@ namespace Fluxzy.Clients.H2
                         throw new TaskCanceledException("Stream cancellation request");
 
                     var dataFramePayloadLength = await requestBodyStream
-                                                       .ReadAsync(localBuffer.Slice(9, bookedSize),
-                                                           token)
+                                                       .ReadAsync(buffer.Memory.Slice(9, bookedSize), token)
                                                        .ConfigureAwait(false);
 
-                    if (dataFramePayloadLength < bookedSize) {
+                    var refund = bookedSize - dataFramePayloadLength;
+
+                    if (bookedSize > dataFramePayloadLength) {
                         // window size refund 
-                        RemoteWindowSize.UpdateWindowSize(bookedSize - dataFramePayloadLength);
-                        Parent.Context.OverallWindowSizeHolder.UpdateWindowSize(bookedSize - dataFramePayloadLength);
+
+                        RemoteWindowSize.UpdateWindowSize(refund);
+                        Parent.Context.OverallWindowSizeHolder.UpdateWindowSize(refund);
                     }
 
                     var endStream = dataFramePayloadLength == 0;
@@ -220,19 +223,17 @@ namespace Fluxzy.Clients.H2
                         endStream = true;
 
                     new DataFrame(endStream ? HeaderFlags.EndStream : HeaderFlags.None, dataFramePayloadLength,
-                        StreamIdentifier).WriteHeaderOnly(localBuffer.Span, dataFramePayloadLength);
+                        StreamIdentifier).WriteHeaderOnly(buffer.Memory.Span, dataFramePayloadLength);
 
                     var writeTaskBody = new WriteTask(H2FrameType.Data, StreamIdentifier,
                         StreamPriority, StreamDependency,
-                        localBuffer.Slice(0, 9 + dataFramePayloadLength));
+                        buffer.Memory.Slice(0, 9 + dataFramePayloadLength));
 
                     Parent.Context.UpStreamChannel(ref writeTaskBody);
 
                     totalSent += dataFramePayloadLength;
-                    _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
-                    if (dataFramePayloadLength > 0)
-                        NotifyStreamWindowUpdate(dataFramePayloadLength);
+                    _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
                     if (dataFramePayloadLength == 0 || endStream)
                         return;
@@ -280,6 +281,12 @@ namespace Fluxzy.Clients.H2
                 var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
 
                 _exchange.Response.Header = new ResponseHeader(charHeader, true, false);
+
+                if (_exchange.Response.Header.StatusCode == 103)
+                {
+                    _totalHeaderReceived -= buffer.Length;
+                    return; // We wait for more header and ignore 103
+                }
 
                 _logger.TraceResponse(this, _exchange);
 

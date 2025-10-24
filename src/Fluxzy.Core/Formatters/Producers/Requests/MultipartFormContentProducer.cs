@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace Fluxzy.Formatters.Producers.Requests
                 return null;
 
             var boundaryIndex = multipartHeader.Value.Span.IndexOf("boundary=", StringComparison.OrdinalIgnoreCase);
-            var boundary = multipartHeader.Value.Span.Slice(boundaryIndex + "boundary=".Length).ToString();
+            var boundary = multipartHeader.Value.Span.Slice(boundaryIndex + "boundary=".Length).Trim("'\"").ToString();
 
             using var stream = context.ArchiveReader.GetRequestBody(exchangeInfo.Id);
 
@@ -166,6 +166,9 @@ namespace Fluxzy.Formatters.Producers.Requests
 
     public static class MultipartReader
     {
+        private static byte[] doubleCrLf = Encoding.ASCII.GetBytes("\r\n\r\n");
+        private static byte[] crlLf = Encoding.ASCII.GetBytes("\r\n");
+
         public static Stream GetSlicedStream(this Stream seekableStream, long offsetBegin, long length)
         {
             seekableStream.Seek(offsetBegin, SeekOrigin.Begin);
@@ -176,11 +179,15 @@ namespace Fluxzy.Formatters.Producers.Requests
         public static List<RawMultipartItem> ReadItems(
             Stream stream, string boundary, int readBodyBufferSize = 1024 * 8)
         {
-            if (!stream.CanSeek)
-                throw new ArgumentException("Stream must be seekable", nameof(stream));
+            if (!stream.CanSeek) {
+                var maxArray = stream.ReadMaxLengthOrNull(1024 * 1024 * 2); // try to read 2MB max
 
-            var doubleCrLf = Encoding.ASCII.GetBytes("\r\n\r\n");
-            var crlLf = Encoding.ASCII.GetBytes("\r\n");
+                if (maxArray == null)
+                    throw new ArgumentException("Stream must be seekable", nameof(stream));
+                
+                stream = new MemoryStream(maxArray);
+            }
+            
             var endBoundaryBytes = Encoding.ASCII.GetBytes("\r\n--" + boundary)!;
 
             var memoryStream = new MemoryStream();
@@ -242,15 +249,11 @@ namespace Fluxzy.Formatters.Producers.Requests
             Memory<byte> previousBuffer = default;
 
             int read;
-            var totalRead = 0;
 
             long discarded = 0;
 
             while ((read = stream.ReadAtLeast(rawReadBuffer, endBoundary.Length)) > 0) {
-                totalRead += read;
-
                 var readBuffer = new Memory<byte>(rawReadBuffer, 0, read);
-                var readBufferText = Encoding.UTF8.GetString(readBuffer.Span);
 
                 if (previousBuffer.Length == 0) {
                     // Check boundary only on read
@@ -260,13 +263,6 @@ namespace Fluxzy.Formatters.Producers.Requests
 
                     if ((boundaryFound = checkData.Span.IndexOf(endBoundary.Span)) >= 0) {
                         var result = boundaryFound;
-
-                        //var newOffset = result + endBoundary.Length;
-
-                        //var seekValue = totalRead - newOffset;
-
-                        //stream.Seek(-seekValue, SeekOrigin.Current);
-
                         return result;
                     }
 

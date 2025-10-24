@@ -220,5 +220,26 @@ namespace Fluxzy.Clients.Ssl
                 ellipticCurvesFormat, greaseMode, overrideClientExtensionsValues, 
                 signatureAndHashAlgorithms, earlyShardGroups);
         }
+
+        /// <summary>
+        ///  Parse TLS fingerprint from impersonate configuration
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static TlsFingerPrint ParseFromImpersonateConfiguration(ImpersonateConfiguration configuration)
+        {
+            var tlsFingerPrint = TlsFingerPrint.ParseFromJa3(
+                configuration.NetworkSettings.Ja3FingerPrint,
+                configuration.NetworkSettings.GreaseMode,
+                signatureAndHashAlgorithms:
+                configuration.NetworkSettings
+                             .SignatureAlgorithms?.Select(s =>
+                                 SignatureAndHashAlgorithm.GetInstance(SignatureScheme.GetHashAlgorithm(s),
+                                     SignatureScheme.GetSignatureAlgorithm(s))
+                             ).ToList(),
+                earlyShardGroups: configuration.NetworkSettings.EarlySharedGroups);
+
+            return tlsFingerPrint;
+        }
     }
 }

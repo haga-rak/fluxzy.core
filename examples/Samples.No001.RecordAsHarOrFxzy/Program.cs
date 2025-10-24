@@ -1,7 +1,7 @@
 using System.Net;
 using Fluxzy;
 
-namespace Samples.No001.SimpleCapture
+namespace Samples.No001.RecordAsHarOrFxzy
 {
     internal class Program
     {
