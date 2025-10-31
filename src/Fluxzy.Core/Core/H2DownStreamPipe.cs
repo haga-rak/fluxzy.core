@@ -1,33 +1,65 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
+using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
-using YamlDotNet.Core.Tokens;
+using YamlDotNet.Serialization;
 
 namespace Fluxzy.Core
 {
-    public class H2DownStreamPipe : IDownStreamPipe
+    internal class H2DownStreamPipe : IDownStreamPipe, IExitStream
     {
         private readonly Stream _readStream;
         private readonly Stream _writeStream;
+        private readonly IIdProvider _idProvider;
+        private readonly IExchangeContextBuilder _contextBuilder;
+
         private Task? _readLoop;
+        private Task _writeLoop;
 
         private readonly Channel<Exchange> _exchangeChannel = Channel.CreateUnbounded<Exchange>();
         private readonly RsBuffer _readBuffer = RsBuffer.Allocate(8 * 1024); 
 
         private H2StreamSetting _h2StreamSetting = new H2StreamSetting();
 
-        public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream)
+        /// <summary>
+        /// TODO setup pipe options here
+        /// </summary>
+        private readonly Pipe _outControlPipe = new Pipe();
+
+        private readonly Dictionary<int, ServerStreamWorker> _currentStreams = new();
+        private readonly HeaderEncoder _headerEncoder;
+
+        public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream,
+            IIdProvider idProvider,
+            IExchangeContextBuilder contextBuilder)
         {
             _readStream = readStream;
             _writeStream = writeStream;
+            _idProvider = idProvider;
+            _contextBuilder = contextBuilder;
             RequestedAuthority = requestedAuthority;
+
+            var hPackEncoder =
+                new HPackEncoder(new EncodingContext(ArrayPoolMemoryProvider<char>.Default));
+
+            var hPackDecoder =
+                new HPackDecoder(new DecodingContext(RequestedAuthority, 
+                    ArrayPoolMemoryProvider<char>.Default));
+
+            _headerEncoder = new HeaderEncoder(hPackEncoder, hPackDecoder, _h2StreamSetting);
         }
 
         public async Task Init(RsBuffer buffer, CancellationToken token)
@@ -42,33 +74,82 @@ namespace Fluxzy.Core
                 throw new FluxzyException("Invalid preface received");
             }
 
-            _readLoop = ReadLoop(token); 
+            _readLoop = ReadLoop(token);
+            _writeLoop = WriteLoop(token);
 
             // validate announcement 
 
             // adjust settings 
         }
 
+        public void Write(ReadOnlySpan<byte> buffer)
+        {
+            _outControlPipe.Writer.Write(buffer);
+        }
+
+        private void WriteRstStream(int streamIdentifier, H2ErrorCode errorCode)
+        {
+            RstStreamFrame rstFrame = new RstStreamFrame(streamIdentifier, errorCode);
+            Span<byte> buffer = stackalloc byte[rstFrame.BodyLength + 9];
+
+            int length = rstFrame.Write(buffer);
+
+            _outControlPipe.Writer.Write(buffer.Slice(0, length));
+        }
 
         private async Task ReadLoop(CancellationToken token)
         {
             while (!token.IsCancellationRequested) {
-
-                var frame =
+                H2FrameReadResult frame =
                     await H2FrameReader.ReadNextFrameAsync(_readStream, _readBuffer.Memory,
                         token).ConfigureAwait(false);
 
-                if (frame.BodyType == H2FrameType.Settings) {
+                if (frame.BodyType == H2FrameType.Settings)
+                {
+                    H2Helper.ProcessSettingFrame(_h2StreamSetting, frame, this);
+                }
 
 
+                if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker))
+                {
+                    worker = new ServerStreamWorker(frame.StreamIdentifier,
+                        _h2StreamSetting.MaxHeaderSize, _headerEncoder);
+                    _currentStreams.Add(frame.StreamIdentifier, worker);
+                }
+
+                if (frame.BodyType == H2FrameType.Headers) {
+                    var errorCode = worker.ProcessHeaderFrame(ref frame);
+
+                    if (errorCode != H2ErrorCode.NoError) {
+                        WriteRstStream(frame.StreamIdentifier, errorCode);
+                        _currentStreams.Remove(frame.StreamIdentifier);
+                    }
+                }
+
+                if (worker.ReadyToCreateExchange) {
+                    var exchange = await worker.CreateExchange(_idProvider, _contextBuilder,
+                        RequestedAuthority, true);
+
+                    await _exchangeChannel.Writer.WriteAsync(exchange, token);
                 }
             }
-
-
-
-
         }
 
+        private async Task WriteLoop(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                var result = await _outControlPipe.Reader.ReadAsync(token);
+                var buffer = result.Buffer;
+
+                foreach (var segment in buffer)
+                {
+                    await _writeStream.WriteAsync(segment, token);
+                }
+
+                _outControlPipe.Reader.AdvanceTo(buffer.End);
+            }
+        }
 
 
         public Authority RequestedAuthority { get; }
