@@ -91,7 +91,7 @@ namespace Fluxzy.Core
             return new Exchange(_idProvider, exchangeContext, RequestedAuthority, secureHeader, bodyStream, null!, receivedFromProxy);
         }
 
-        public async ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, CancellationToken token)
+        public async ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int _, CancellationToken token)
         {
             if (_writeStream == null)
                 throw new FluxzyException("Down stream has already been closed");
@@ -103,7 +103,7 @@ namespace Fluxzy.Core
             }
         }
 
-        public async ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, CancellationToken token)
+        public async ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, int _, CancellationToken token)
         {
             if (_writeStream == null)
                 throw new FluxzyException("Down stream has already been closed");

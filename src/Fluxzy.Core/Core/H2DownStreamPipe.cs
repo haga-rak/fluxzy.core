@@ -206,12 +206,19 @@ namespace Fluxzy.Core
         }
 
         public ValueTask WriteResponseHeader(
-            ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, CancellationToken token)
+            ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, CancellationToken token)
         {
+            // determine which stream identifier? 
+            // encode headers
+            // packetize 
+            // send
+
+            var downStreamIdentifier = streamIdentifier + 1;
+
             throw new System.NotImplementedException();
         }
 
-        public ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, CancellationToken token)
+        public ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, int streamIdentifier, CancellationToken token)
         {
             throw new System.NotImplementedException();
         }

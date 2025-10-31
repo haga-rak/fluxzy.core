@@ -182,6 +182,8 @@ namespace Fluxzy.Core
 
         public bool ReadUntilClose { get; set; }
 
+        public int StreamIdentifier { get; set; }
+
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
             return Request.Header.Headers.Select(t => (HeaderFieldInfo) t);

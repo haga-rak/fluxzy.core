@@ -129,7 +129,9 @@ namespace Fluxzy.Core
             var context = await contextBuilder.Create(authority, secure);
 
             var exchange = new Exchange(idProvider, context, authority, requestHeader, bodyStream, "h2",
-                receivedFromProxy);
+                receivedFromProxy) {
+                StreamIdentifier = _streamIdentifier
+            };
 
             return exchange;
         }

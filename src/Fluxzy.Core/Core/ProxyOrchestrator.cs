@@ -459,7 +459,7 @@ namespace Fluxzy.Core
                     }
 
                     try {
-                        await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, shouldCloseConnectionToDownStream, token)
+                        await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, shouldCloseConnectionToDownStream, exchange.StreamIdentifier, token)
                                             .ConfigureAwait(false);
                     }
                     catch (Exception ex) {
@@ -488,7 +488,7 @@ namespace Fluxzy.Core
 
                             await downStreamPipe.WriteResponseBody(
                                 responseBodyStream,
-                                buffer, chunked, token).ConfigureAwait(false);
+                                buffer, chunked, exchange.StreamIdentifier, token).ConfigureAwait(false);
                         }
                         catch (Exception ex) {
                             if (ex is IOException || ex is OperationCanceledException) {
