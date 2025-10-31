@@ -1,12 +1,15 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.H2.Frames;
+using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Core
 {
@@ -32,22 +35,6 @@ namespace Fluxzy.Core
             _headerBuffer = new byte[maxHeaderSize];
         }
 
-        /// <summary>
-        /// returns false if stream shall be go awayed
-        /// </summary>
-        /// <param name="headerFrame"></param>
-        /// <returns></returns>
-        public H2ErrorCode ProcessHeaderFrame(ref H2FrameReadResult headerFrame)
-        {
-            var frame = headerFrame.GetHeadersFrame();
-
-            if (frame.EndStream) {
-                _endStream = true;
-            }
-
-            return ReceiveHeaderFragment(frame.Data.Span, frame.EndHeaders);
-        }
-
         private H2ErrorCode ReceiveHeaderFragment(ReadOnlySpan<byte> data, bool endHeaders)
         {
             var futureHeaderLength = _receivedHeaderLength + data.Length;
@@ -59,17 +46,58 @@ namespace Fluxzy.Core
 
             _receivedHeaderLength = futureHeaderLength;
 
-            if (endHeaders) {
+            if (endHeaders)
+            {
                 _endHeader = true;
             }
 
             return H2ErrorCode.NoError;
         }
 
-        public H2ErrorCode ProcessContinuation(ref H2FrameReadResult headerFrame)
+        /// <summary>
+        /// returns false if stream shall be go awayed
+        /// </summary>
+        /// <param name="headerFrame"></param>
+        /// <returns></returns>
+        public H2ErrorCode ProcessHeaderFrame(ref H2FrameReadResult frame)
         {
-            var frame = headerFrame.GetContinuationFrame(); 
-            return ReceiveHeaderFragment(frame.Data.Span, frame.EndHeaders);
+            var headerFrame = frame.GetHeadersFrame();
+
+            if (headerFrame.EndStream) {
+                _endStream = true;
+            }
+
+            return ReceiveHeaderFragment(headerFrame.Data.Span, headerFrame.EndHeaders);
+        }
+
+        public H2ErrorCode ProcessContinuation(ref H2FrameReadResult frame)
+        {
+            var continuationFrame = frame.GetContinuationFrame(); 
+            return ReceiveHeaderFragment(continuationFrame.Data.Span, continuationFrame.EndHeaders);
+        }
+
+        public async Task<H2ErrorCode> ProcessData(H2FrameReadResult frame, RsBuffer buffer, CancellationToken token)
+        {
+            var length = frame.GetDataFrame().Buffer.Length;
+            buffer.Ensure(length);
+            frame.GetDataFrame().Buffer.CopyTo(buffer.Memory);
+            var endStream = frame.GetDataFrame().EndStream;
+
+            if (_requestBodyPipe == null)
+            {
+                // unexpected data frame
+                return H2ErrorCode.ProtocolError;
+            }
+
+            await _requestBodyPipe.Writer.WriteAsync(buffer.Memory.Slice(0, length), token);
+
+            if (endStream)
+            {
+                _endStream = true;
+                await _requestBodyPipe.Writer.CompleteAsync();
+            }
+
+            return H2ErrorCode.NoError;
         }
 
         public bool ReadyToCreateExchange => _endHeader && !_exchangeCreated;

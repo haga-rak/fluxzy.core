@@ -41,6 +41,7 @@ namespace Fluxzy.Core
 
         private readonly Dictionary<int, ServerStreamWorker> _currentStreams = new();
         private readonly HeaderEncoder _headerEncoder;
+        private int _lastStreamId = int.MaxValue;
 
         public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream,
             IIdProvider idProvider,
@@ -107,8 +108,20 @@ namespace Fluxzy.Core
                 if (frame.BodyType == H2FrameType.Settings)
                 {
                     H2Helper.ProcessSettingFrame(_h2StreamSetting, frame, this);
+                    continue;
+                }
+                
+                if (frame.BodyType == H2FrameType.Goaway) {
+                    frame.GetGoAwayFrame().Read(out var errorCode, out _lastStreamId);
+                    break;
                 }
 
+                if (frame.BodyType == H2FrameType.Priority) {
+                    // IGNORED
+                    continue;
+                }
+
+                // 
 
                 if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker))
                 {
@@ -117,10 +130,34 @@ namespace Fluxzy.Core
                     _currentStreams.Add(frame.StreamIdentifier, worker);
                 }
 
+                if (frame.BodyType == H2FrameType.PushPromise) {
+                    var errorCode = H2ErrorCode.ProtocolError;
+                    WriteRstStream(frame.StreamIdentifier, errorCode);
+                    _currentStreams.Remove(frame.StreamIdentifier);
+                }
+
                 if (frame.BodyType == H2FrameType.Headers) {
                     var errorCode = worker.ProcessHeaderFrame(ref frame);
 
                     if (errorCode != H2ErrorCode.NoError) {
+                        WriteRstStream(frame.StreamIdentifier, errorCode);
+                        _currentStreams.Remove(frame.StreamIdentifier);
+                    }
+                }
+
+                if (frame.BodyType == H2FrameType.Continuation) {
+                    var errorCode = worker.ProcessContinuation(ref frame);
+
+                    if (errorCode != H2ErrorCode.NoError) {
+                        WriteRstStream(frame.StreamIdentifier, errorCode);
+                        _currentStreams.Remove(frame.StreamIdentifier);
+                    }
+                }
+
+                if (frame.BodyType == H2FrameType.Data) {
+                    var errorCode = await worker.ProcessData(frame, _readBuffer, token);
+                    if (errorCode != H2ErrorCode.NoError)
+                    {
                         WriteRstStream(frame.StreamIdentifier, errorCode);
                         _currentStreams.Remove(frame.StreamIdentifier);
                     }

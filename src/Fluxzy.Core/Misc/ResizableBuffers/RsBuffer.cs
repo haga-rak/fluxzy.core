@@ -55,6 +55,22 @@ namespace Fluxzy.Misc.ResizableBuffers
             Buffer = newBuffer;
         }
 
+        public void Ensure(int desiredLength)
+        {
+            //  Use extend to ensure that the buffer is at least desiredLength long
+
+            if (desiredLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(desiredLength));
+
+            if (desiredLength <= Buffer.Length) {
+                return; 
+            }
+
+            var extensionLength = desiredLength - Buffer.Length;
+            Extend(extensionLength);
+        }
+
+
         public void Dispose()
         {
             ArrayPool<byte>.Shared.Return(Buffer);
