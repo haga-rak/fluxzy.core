@@ -16,6 +16,7 @@ using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using YamlDotNet.Serialization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Fluxzy.Core
 {
@@ -27,12 +28,12 @@ namespace Fluxzy.Core
         private readonly IExchangeContextBuilder _contextBuilder;
 
         private Task? _readLoop;
-        private Task _writeLoop;
+        private Task? _writeLoop;
 
         private readonly Channel<Exchange> _exchangeChannel = Channel.CreateUnbounded<Exchange>();
         private readonly RsBuffer _readBuffer = RsBuffer.Allocate(8 * 1024); 
 
-        private H2StreamSetting _h2StreamSetting = new H2StreamSetting();
+        private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting();
 
         /// <summary>
         /// TODO setup pipe options here
@@ -42,6 +43,8 @@ namespace Fluxzy.Core
         private readonly Dictionary<int, ServerStreamWorker> _currentStreams = new();
         private readonly HeaderEncoder _headerEncoder;
         private int _lastStreamId = int.MaxValue;
+
+        private readonly WindowSizeHolder _overallWindowSizeHolder;
 
         public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream,
             IIdProvider idProvider,
@@ -60,7 +63,11 @@ namespace Fluxzy.Core
                 new HPackDecoder(new DecodingContext(RequestedAuthority, 
                     ArrayPoolMemoryProvider<char>.Default));
 
+            
             _headerEncoder = new HeaderEncoder(hPackEncoder, hPackDecoder, _h2StreamSetting);
+            var logger = new H2Logger(requestedAuthority, -1);
+            _overallWindowSizeHolder = new WindowSizeHolder(logger, _h2StreamSetting.OverallWindowSize, 0);
+
         }
 
         public async Task Init(RsBuffer buffer, CancellationToken token)
@@ -187,8 +194,7 @@ namespace Fluxzy.Core
                 _outControlPipe.Reader.AdvanceTo(buffer.End);
             }
         }
-
-
+        
         public Authority RequestedAuthority { get; }
 
         public bool TunnelOnly { get; set; }
@@ -199,6 +205,7 @@ namespace Fluxzy.Core
             // RECEIVE BODY PROMISE (probably on a PipeStream) 
             // RETURN AN EXCHANGE 
             // SAVE STREAM INDEX 
+
 
             var exchange = await _exchangeChannel.Reader.ReadAsync(token);
 
@@ -215,11 +222,23 @@ namespace Fluxzy.Core
 
             var downStreamIdentifier = streamIdentifier + 1;
 
-            throw new System.NotImplementedException();
+            var endStream = responseHeader.HasResponseBody("GET", out _);
+
+            var payload = _headerEncoder.Encode(
+                new HeaderEncodingJob(responseHeader.GetHttp11Header(),
+                    downStreamIdentifier, 0),
+                buffer, endStream);
+
+            _outControlPipe.Writer.Write(payload.Span);
+
+            return ValueTask.CompletedTask;
         }
 
         public ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, int streamIdentifier, CancellationToken token)
         {
+            // take care of window size
+
+
             throw new System.NotImplementedException();
         }
 

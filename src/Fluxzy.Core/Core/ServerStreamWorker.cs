@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
