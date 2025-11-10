@@ -12,7 +12,7 @@ using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Core
 {
-    internal class ServerStreamWorker
+    internal class ServerStreamWorker : IDisposable
     {
         private readonly int _streamIdentifier;
         private readonly IHeaderEncoder _headerEncoder;
@@ -26,20 +26,24 @@ namespace Fluxzy.Core
 
         private readonly WindowSizeHolder _streamWindowSizeHolder;
         private readonly WindowSizeHolder _overallWindowSizeHolder;
+        private readonly H2StreamSetting _h2StreamSetting;
+
+        private bool _disposed;
+        private int _unNotifiedWindowSize;
 
         public ServerStreamWorker(
             int streamIdentifier,
-            int maxHeaderSize,
             IHeaderEncoder headerEncoder,
-            int initialWindowSize,
             WindowSizeHolder overallWindowSizeHolder,
+            H2StreamSetting h2StreamSetting,
             H2Logger logger)
         {
             _streamIdentifier = streamIdentifier;
             _headerEncoder = headerEncoder;
             _overallWindowSizeHolder = overallWindowSizeHolder;
-            _headerBuffer = new byte[maxHeaderSize];
-            _streamWindowSizeHolder = new WindowSizeHolder(logger, initialWindowSize, streamIdentifier);
+            _h2StreamSetting = h2StreamSetting;
+            _headerBuffer = new byte[h2StreamSetting.MaxHeaderSize];
+            _streamWindowSizeHolder = new WindowSizeHolder(logger, h2StreamSetting.Remote.WindowSize, streamIdentifier);
         }
 
         private H2ErrorCode ReceiveHeaderFragment(ReadOnlySpan<byte> data, bool endHeaders)
@@ -83,7 +87,7 @@ namespace Fluxzy.Core
             return ReceiveHeaderFragment(continuationFrame.Data.Span, continuationFrame.EndHeaders);
         }
 
-        public async Task<H2ErrorCode> ProcessData(H2FrameReadResult frame, RsBuffer buffer, CancellationToken token)
+        public async Task<ReceiveBodyResult> ReceiveBodyFragment(H2FrameReadResult frame, RsBuffer buffer, CancellationToken token)
         {
             var length = frame.GetDataFrame().Buffer.Length;
             buffer.Ensure(length);
@@ -93,7 +97,7 @@ namespace Fluxzy.Core
             if (_requestBodyPipe == null)
             {
                 // unexpected data frame
-                return H2ErrorCode.ProtocolError;
+                return new (H2ErrorCode.ProtocolError, 0, null);
             }
 
             await _requestBodyPipe.Writer.WriteAsync(buffer.Memory.Slice(0, length), token);
@@ -104,7 +108,17 @@ namespace Fluxzy.Core
                 await _requestBodyPipe.Writer.CompleteAsync();
             }
 
-            return H2ErrorCode.NoError;
+            _unNotifiedWindowSize += length;
+
+            int? notified = null;
+
+            if (_unNotifiedWindowSize > _h2StreamSetting.Local.WindowSize) {
+
+                notified = _unNotifiedWindowSize;
+                _unNotifiedWindowSize = 0;
+            }
+
+            return new (H2ErrorCode.NoError, length, notified);
         }
 
         public bool ReadyToCreateExchange => _endHeader && !_exchangeCreated;
@@ -161,5 +175,38 @@ namespace Fluxzy.Core
 
             return overallWindow;
         }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+
+            _requestBodyPipe?.Writer.Complete();
+        }
+    }
+
+    internal readonly record struct ReceiveBodyResult
+    {
+        public ReceiveBodyResult(H2ErrorCode h2ErrorCode, int bodyLength, int? windowSizeUpdateLength)
+        {
+            H2ErrorCode = h2ErrorCode;
+            BodyLength = bodyLength;
+            WindowSizeUpdateLength = windowSizeUpdateLength;
+        }
+
+        public void Deconstruct(out H2ErrorCode h2ErrorCode, out int bodyLength, out int? windowSizeUpdateLength)
+        {
+            h2ErrorCode = H2ErrorCode;
+            bodyLength = BodyLength;
+            windowSizeUpdateLength = WindowSizeUpdateLength;
+        }
+
+        public H2ErrorCode H2ErrorCode { get; }
+
+        public int BodyLength { get; }
+
+        public int? WindowSizeUpdateLength { get; }
     }
 }

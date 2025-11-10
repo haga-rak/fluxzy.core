@@ -15,6 +15,7 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
+using YamlDotNet.Core.Tokens;
 
 namespace Fluxzy.Core
 {
@@ -29,7 +30,6 @@ namespace Fluxzy.Core
         private Task? _writeLoop;
 
         private readonly Channel<Exchange> _exchangeChannel = Channel.CreateUnbounded<Exchange>();
-        private readonly RsBuffer _readBuffer = RsBuffer.Allocate(8 * 1024); 
 
         private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting();
 
@@ -44,6 +44,9 @@ namespace Fluxzy.Core
 
         private readonly WindowSizeHolder _overallWindowSizeHolder;
         private readonly H2Logger _logger;
+
+        private int _unNotifiedWindowSize;
+
 
         public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream,
             IIdProvider idProvider,
@@ -96,7 +99,7 @@ namespace Fluxzy.Core
 
         private void WriteRstStream(int streamIdentifier, H2ErrorCode errorCode)
         {
-            RstStreamFrame rstFrame = new RstStreamFrame(streamIdentifier, errorCode);
+            var rstFrame = new RstStreamFrame(streamIdentifier, errorCode);
             Span<byte> buffer = stackalloc byte[rstFrame.BodyLength + 9];
 
             int length = rstFrame.Write(buffer);
@@ -104,11 +107,33 @@ namespace Fluxzy.Core
             _outControlPipe.Writer.Write(buffer.Slice(0, length));
         }
 
+        private async ValueTask NotifyConnectionWindowSizeDecrement(int length, CancellationToken token)
+        {
+            _unNotifiedWindowSize += length;
+
+            if (_unNotifiedWindowSize > (_h2StreamSetting.Local.WindowSize / 2)) {
+
+                await SendWindowUpdateFrame(0, _unNotifiedWindowSize, token);
+                _unNotifiedWindowSize = 0;
+            }
+        }
+
+        private async ValueTask SendWindowUpdateFrame(int streamIdentifier, int length, CancellationToken token)
+        {
+            using var buffer = RsBuffer.Allocate(9 + 4);
+
+            var writtenLength = new WindowUpdateFrame(streamIdentifier, length).Write(buffer.Buffer);
+            await _outControlPipe.Writer.WriteAsync(buffer.Memory.Slice(0, writtenLength), token);
+        }
+
+
         private async Task ReadLoop(CancellationToken token)
         {
+            using var readBuffer = RsBuffer.Allocate(_h2StreamSetting.MaxFrameSizeAllowed + 9);
+           
             while (!token.IsCancellationRequested) {
                 H2FrameReadResult frame =
-                    await H2FrameReader.ReadNextFrameAsync(_readStream, _readBuffer.Memory,
+                    await H2FrameReader.ReadNextFrameAsync(_readStream, readBuffer.Memory,
                         token).ConfigureAwait(false);
 
                 if (frame.BodyType == H2FrameType.Settings)
@@ -131,9 +156,8 @@ namespace Fluxzy.Core
 
                 if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker))
                 {
-                    worker = new ServerStreamWorker(frame.StreamIdentifier,
-                        _h2StreamSetting.MaxHeaderSize, _headerEncoder, _h2StreamSetting.OverallWindowSize, 
-                        _overallWindowSizeHolder, _logger);
+                    worker = new ServerStreamWorker(frame.StreamIdentifier, _headerEncoder,
+                        _overallWindowSizeHolder, _h2StreamSetting, _logger);
                     _currentStreams.Add(frame.StreamIdentifier, worker);
                 }
 
@@ -162,11 +186,25 @@ namespace Fluxzy.Core
                 }
 
                 if (frame.BodyType == H2FrameType.Data) {
-                    var errorCode = await worker.ProcessData(frame, _readBuffer, token);
+                    var (errorCode, bodyLength, notifiableLength) = await worker.ReceiveBodyFragment(frame, readBuffer, token);
+
                     if (errorCode != H2ErrorCode.NoError)
                     {
                         WriteRstStream(frame.StreamIdentifier, errorCode);
                         _currentStreams.Remove(frame.StreamIdentifier);
+                    }
+                    else {
+                        // send widow size increment stream level
+                        if (notifiableLength > 0)
+                        {
+                            await SendWindowUpdateFrame(frame.StreamIdentifier, notifiableLength.Value,
+                                token);
+                        }
+
+                        // send window size increment connection level
+                        if (bodyLength > 0) {
+                            await NotifyConnectionWindowSizeDecrement(bodyLength, token);
+                        }
                     }
                 }
 
@@ -283,12 +321,18 @@ namespace Fluxzy.Core
                         read -= bodySize;
                     }
                 }
+
+                // Send end stream
+                new DataFrame(HeaderFlags.EndStream, 0, sendStreamIdentifier)
+                    .WriteHeaderOnly(rsBuffer.Memory.Span, 0);
+
+                await _outControlPipe.Writer.WriteAsync(rsBuffer.Memory.Slice(0, 9), token);
+
             }
             finally {
                 ArrayPool<byte>.Shared.Return(readBuffer);
             }
         }
-
 
         public (Stream ReadStream, Stream WriteStream) AbandonPipe()
         {
@@ -299,7 +343,7 @@ namespace Fluxzy.Core
 
         public void Dispose()
         {
-            _readBuffer.Dispose();
+
         }
 
     }
