@@ -9,7 +9,23 @@ namespace Fluxzy.Core
 {
     public static class H2Helper
     {
-        public static void ProcessSettingFrame(H2StreamSetting streamSetting, H2FrameReadResult frame, IExitStream exitStream)
+        public static byte[] SettingAckBuffer { get; }
+
+        static H2Helper()
+        {
+            var settingFrame = new SettingFrame(true);
+            SettingAckBuffer = new byte[9];
+            settingFrame.Write(SettingAckBuffer);
+        }
+
+        /// <summary>
+        /// Should return true if an ACK frame is need to be sent
+        /// </summary>
+        /// <param name="streamSetting"></param>
+        /// <param name="frame"></param>
+        /// <returns></returns>
+        public static bool ProcessSettingFrame(
+            H2StreamSetting streamSetting, H2FrameReadResult frame)
         {
             var indexer = 0;
             var sendAck = false;
@@ -20,13 +36,10 @@ namespace Fluxzy.Core
             }
 
             if (sendAck) {
-                var settingFrame = new SettingFrame(true);
-                var buffer = new byte[9];
-                settingFrame.Write(buffer);
-
-                var writeTask = new WriteTask(H2FrameType.Settings, 0, 0, 0, buffer);
-                exitStream.Write(writeTask.BufferBytes.Span);
+                return true;
             }
+
+            return false;
         }
 
         public static bool ProcessIncomingSettingFrame(H2StreamSetting setting, ref SettingFrame settingFrame)
@@ -98,10 +111,5 @@ namespace Fluxzy.Core
                 ArrayPool<char>.Shared.Return(byteArray);
             }
         }
-    }
-
-    public interface IExitStream
-    {
-        void Write(ReadOnlySpan<byte> buffer);
     }
 }

@@ -14,7 +14,8 @@ namespace Fluxzy.Core
 {
     internal class ServerStreamWorker : IDisposable
     {
-        private readonly int _streamIdentifier;
+        public int StreamIdentifier { get; }
+
         private readonly IHeaderEncoder _headerEncoder;
         private readonly byte[] _headerBuffer;
         private int _receivedHeaderLength;
@@ -38,7 +39,7 @@ namespace Fluxzy.Core
             H2StreamSetting h2StreamSetting,
             H2Logger logger)
         {
-            _streamIdentifier = streamIdentifier;
+            StreamIdentifier = streamIdentifier;
             _headerEncoder = headerEncoder;
             _overallWindowSizeHolder = overallWindowSizeHolder;
             _h2StreamSetting = h2StreamSetting;
@@ -151,7 +152,7 @@ namespace Fluxzy.Core
 
             var exchange = new Exchange(idProvider, context, authority, requestHeader, bodyStream, "h2",
                 receivedFromProxy) {
-                StreamIdentifier = _streamIdentifier
+                StreamIdentifier = StreamIdentifier
             };
 
             return exchange;
@@ -184,6 +185,7 @@ namespace Fluxzy.Core
             _disposed = true;
 
             _requestBodyPipe?.Writer.Complete();
+            _streamWindowSizeHolder.Dispose();
         }
     }
 

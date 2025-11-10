@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    internal class H2DownStreamPipe : IDownStreamPipe, IExitStream
+    internal class H2DownStreamPipe : IDownStreamPipe
     {
         private readonly Stream _readStream;
         private readonly Stream _writeStream;
@@ -28,27 +27,27 @@ namespace Fluxzy.Core
         private Task? _readLoop;
         private Task? _writeLoop;
 
-        private readonly Channel<Exchange> _exchangeChannel = Channel.CreateUnbounded<Exchange>();
+        private readonly Channel<Exchange> _exchangeChannel = 
+            Channel.CreateUnbounded<Exchange>();
 
-        private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting();
-
-        /// <summary>
-        /// TODO setup pipe options here
-        /// </summary>
-        private readonly Pipe _outControlPipe = new Pipe();
-
+        private readonly Channel<ReadOnlyMemory<byte>> _writeChannel =
+                        Channel.CreateUnbounded<ReadOnlyMemory<byte>>();
+        
         private readonly Dictionary<int, ServerStreamWorker> _currentStreams = new();
         private readonly HeaderEncoder _headerEncoder;
-        private int _lastStreamId = int.MaxValue;
-
+        private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting();
         private readonly WindowSizeHolder _overallWindowSizeHolder;
         private readonly H2Logger _logger;
+        private readonly CancellationToken _mainLoopToken;
+        private readonly CancellationTokenSource _mainLoopTokenSource;
 
         private int _unNotifiedWindowSize;
-        private CancellationToken _mainLoopToken;
-
         private bool _readHalted;
         private bool _writeHalted;
+        private int _lastStreamId = int.MaxValue;
+        private bool _disposed;
+        private bool _goAwayReceived;
+        private H2ErrorCode _goAwayErrorCode;
 
         public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream,
             IIdProvider idProvider,
@@ -66,49 +65,47 @@ namespace Fluxzy.Core
             var hPackDecoder =
                 new HPackDecoder(new DecodingContext(RequestedAuthority, 
                     ArrayPoolMemoryProvider<char>.Default));
-
             
             _headerEncoder = new HeaderEncoder(hPackEncoder, hPackDecoder, _h2StreamSetting);
             _logger = new H2Logger(requestedAuthority, -1);
             _overallWindowSizeHolder = new WindowSizeHolder(_logger, _h2StreamSetting.OverallWindowSize, 0);
-
+            _mainLoopTokenSource = new CancellationTokenSource();
+            _mainLoopToken = _mainLoopTokenSource.Token;
         }
 
-        public async Task Init(RsBuffer buffer, CancellationToken token)
+        public Authority RequestedAuthority { get; }
+
+        public bool TunnelOnly { get; set; }
+
+        public async Task Init(RsBuffer buffer)
         {
             // Make announcement to the client
 
             var prefaceMemory = buffer.Memory.Slice(0, H2Constants.Preface.Length);
 
-            await _readStream.ReadExactAsync(prefaceMemory, token);
+            await _readStream.ReadExactAsync(prefaceMemory, _mainLoopToken);
 
             if (!prefaceMemory.Span.SequenceEqual(H2Constants.Preface)) {
                 throw new FluxzyException("Invalid preface received");
             }
 
-            _readLoop = ReadLoop(token);
-            _writeLoop = WriteLoop(token);
+            _readLoop = ReadLoop(_mainLoopToken);
+            _writeLoop = WriteLoop(_mainLoopToken);
 
             // validate announcement 
-
             // adjust settings 
-
-            _mainLoopToken = token;
         }
 
-        public void Write(ReadOnlySpan<byte> buffer)
+        private async ValueTask WriteRstStream(int streamIdentifier, H2ErrorCode errorCode, CancellationToken token)
         {
-            _outControlPipe.Writer.Write(buffer);
+            var buffer = new byte[9 + 4];
+            _ = new RstStreamFrame(streamIdentifier, errorCode).Write(buffer);
+            await _writeChannel.Writer.WriteAsync(buffer, token);
         }
 
-        private void WriteRstStream(int streamIdentifier, H2ErrorCode errorCode)
+        private async ValueTask WriteAck(CancellationToken token)
         {
-            var rstFrame = new RstStreamFrame(streamIdentifier, errorCode);
-            Span<byte> buffer = stackalloc byte[rstFrame.BodyLength + 9];
-
-            int length = rstFrame.Write(buffer);
-
-            _outControlPipe.Writer.Write(buffer.Slice(0, length));
+            await _writeChannel.Writer.WriteAsync(H2Helper.SettingAckBuffer, token);
         }
 
         private async ValueTask NotifyConnectionWindowSizeDecrement(int length, CancellationToken token)
@@ -124,30 +121,55 @@ namespace Fluxzy.Core
 
         private async ValueTask SendWindowUpdateFrame(int streamIdentifier, int length, CancellationToken token)
         {
-            using var buffer = RsBuffer.Allocate(9 + 4);
+            var buffer = new byte[9 + 4];
+            var writtenLength = new WindowUpdateFrame(streamIdentifier, length).Write(buffer);
+            await _writeChannel.Writer.WriteAsync(buffer.AsMemory().Slice(0, writtenLength), token);
+        }
 
-            var writtenLength = new WindowUpdateFrame(streamIdentifier, length).Write(buffer.Buffer);
-            await _outControlPipe.Writer.WriteAsync(buffer.Memory.Slice(0, writtenLength), token);
+        private void OnGoAwayReceived(int lastStreamId, H2ErrorCode errorCode)
+        {
+            _goAwayReceived = true;
+            _goAwayErrorCode = errorCode;
+        }
+
+        private void CheckoutServerStreamWorker(ServerStreamWorker streamWorker)
+        {
+            _currentStreams.Remove(streamWorker.StreamIdentifier);
+            streamWorker.Dispose();
         }
 
         private async Task ReadLoop(CancellationToken token)
         {
             try {
                 using var readBuffer = RsBuffer.Allocate(_h2StreamSetting.MaxFrameSizeAllowed + 9);
-           
-                while (!token.IsCancellationRequested) {
-                    H2FrameReadResult frame =
-                        await H2FrameReader.ReadNextFrameAsync(_readStream, readBuffer.Memory,
-                            token).ConfigureAwait(false);
 
-                    if (frame.BodyType == H2FrameType.Settings)
-                    {
-                        H2Helper.ProcessSettingFrame(_h2StreamSetting, frame, this);
+                while (!token.IsCancellationRequested) {
+
+                    H2FrameReadResult frame;
+
+                    try {
+                        frame =
+                            await H2FrameReader.ReadNextFrameAsync(_readStream, readBuffer.Memory,
+                                token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) {
+                        break;
+                    }
+
+                    if (frame.BodyType == H2FrameType.Settings) {
+                        var sendAck = H2Helper.ProcessSettingFrame(_h2StreamSetting, frame);
+
+                        if (sendAck)
+                        {
+                            await WriteAck(token);
+                        }
+
                         continue;
                     }
-                
+
                     if (frame.BodyType == H2FrameType.Goaway) {
                         frame.GetGoAwayFrame().Read(out var errorCode, out _lastStreamId);
+                        OnGoAwayReceived(_lastStreamId, errorCode);
                         break;
                     }
 
@@ -158,49 +180,51 @@ namespace Fluxzy.Core
 
                     // 
 
-                    if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker))
-                    {
+                    if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker)) {
                         worker = new ServerStreamWorker(frame.StreamIdentifier, _headerEncoder,
                             _overallWindowSizeHolder, _h2StreamSetting, _logger);
+
                         _currentStreams.Add(frame.StreamIdentifier, worker);
                     }
 
                     if (frame.BodyType == H2FrameType.PushPromise) {
                         var errorCode = H2ErrorCode.ProtocolError;
-                        WriteRstStream(frame.StreamIdentifier, errorCode);
-                        _currentStreams.Remove(frame.StreamIdentifier);
+                        await WriteRstStream(frame.StreamIdentifier, errorCode, token);
+                        CheckoutServerStreamWorker(worker);
                     }
 
                     if (frame.BodyType == H2FrameType.Headers) {
                         var errorCode = worker.ProcessHeaderFrame(ref frame);
 
-                        if (errorCode != H2ErrorCode.NoError) {
-                            WriteRstStream(frame.StreamIdentifier, errorCode);
-                            _currentStreams.Remove(frame.StreamIdentifier);
+                        if (errorCode != H2ErrorCode.NoError)
+                        {
+                            await WriteRstStream(frame.StreamIdentifier, errorCode, token);
+                            CheckoutServerStreamWorker(worker);
                         }
                     }
 
                     if (frame.BodyType == H2FrameType.Continuation) {
                         var errorCode = worker.ProcessContinuation(ref frame);
 
-                        if (errorCode != H2ErrorCode.NoError) {
-                            WriteRstStream(frame.StreamIdentifier, errorCode);
-                            _currentStreams.Remove(frame.StreamIdentifier);
+                        if (errorCode != H2ErrorCode.NoError)
+                        {
+                            await WriteRstStream(frame.StreamIdentifier, errorCode, token);
+                            CheckoutServerStreamWorker(worker);
                         }
                     }
 
                     if (frame.BodyType == H2FrameType.Data) {
-                        var (errorCode, bodyLength, notifiableLength) = await worker.ReceiveBodyFragment(frame, readBuffer, token);
+                        var (errorCode, bodyLength, notifiableLength) =
+                            await worker.ReceiveBodyFragment(frame, readBuffer, token);
 
                         if (errorCode != H2ErrorCode.NoError)
                         {
-                            WriteRstStream(frame.StreamIdentifier, errorCode);
-                            _currentStreams.Remove(frame.StreamIdentifier);
+                            await WriteRstStream(frame.StreamIdentifier, errorCode, token);
+                            CheckoutServerStreamWorker(worker);
                         }
                         else {
                             // send widow size increment stream level
-                            if (notifiableLength > 0)
-                            {
+                            if (notifiableLength > 0) {
                                 await SendWindowUpdateFrame(frame.StreamIdentifier, notifiableLength.Value,
                                     token);
                             }
@@ -216,11 +240,15 @@ namespace Fluxzy.Core
                         var exchange = await worker.CreateExchange(_idProvider, _contextBuilder,
                             RequestedAuthority, true);
 
-                        await _exchangeChannel.Writer.WriteAsync(exchange, token);
+                        _exchangeChannel.Writer.TryWrite(exchange);
                     }
                 }
             }
-            finally {
+            catch (Exception ex) {
+
+                throw;
+            }
+            finally  {
                 _readHalted = true;
             }
         }
@@ -229,38 +257,32 @@ namespace Fluxzy.Core
         {
             try {
 
-                while (!token.IsCancellationRequested)
-                {
-                    var result = await _outControlPipe.Reader.ReadAsync(token);
-                    var buffer = result.Buffer;
-
-                    foreach (var segment in buffer)
-                    {
-                        await _writeStream.WriteAsync(segment, token);
+                while (!token.IsCancellationRequested && await _writeChannel.Reader.WaitToReadAsync(token)) {
+                    while (_writeChannel.Reader.TryRead(out var buffer)) {
+                        await _writeStream.WriteAsync(buffer, token);
                     }
-
-                    _outControlPipe.Reader.AdvanceTo(buffer.End);
                 }
+            }
+            catch (Exception ex) {
+                // stream is closed. 
+                throw;
             }
             finally {
                 _writeHalted = true;
             }
         }
         
-        public Authority RequestedAuthority { get; }
-
-        public bool TunnelOnly { get; set; }
 
         public async ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token)
         {
-            // RECEIVE REQUEST IN A STREAM LOOP 
-            // RECEIVE BODY PROMISE (probably on a PipeStream) 
-            // RETURN AN EXCHANGE 
-            // SAVE STREAM INDEX
+            if (_disposed || _goAwayReceived || _readHalted || _writeHalted)
+                return null; 
+
             using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_mainLoopToken, token);
             var combinedToken = combinedTokenSource.Token;
 
             var exchange = await _exchangeChannel.Reader.ReadAsync(combinedToken);
+
             return exchange;
         }
 
@@ -279,7 +301,7 @@ namespace Fluxzy.Core
                     downStreamIdentifier, 0),
                 buffer, endStream);
 
-            await _outControlPipe.Writer.WriteAsync(payload, combinedToken);
+            await _writeChannel.Writer.WriteAsync(payload, combinedToken);
         }
 
         public async ValueTask WriteResponseBody(Stream responseBodyStream, 
@@ -328,7 +350,7 @@ namespace Fluxzy.Core
                         writable
                             .Slice(0, bodySize).CopyTo(rsBuffer.Memory.Slice(9, bodySize));
                     
-                        await _outControlPipe.Writer.WriteAsync(rsBuffer.Memory.Slice(0, bodySize + 9), combinedToken);
+                        await _writeChannel.Writer.WriteAsync(rsBuffer.Memory.Slice(0, bodySize + 9), combinedToken);
 
                         offset += bodySize;
                         read -= bodySize;
@@ -339,7 +361,7 @@ namespace Fluxzy.Core
                 new DataFrame(HeaderFlags.EndStream, 0, sendStreamIdentifier)
                     .WriteHeaderOnly(rsBuffer.Memory.Span, 0);
 
-                await _outControlPipe.Writer.WriteAsync(rsBuffer.Memory.Slice(0, 9), combinedToken);
+                await _writeChannel.Writer.WriteAsync(rsBuffer.Memory.Slice(0, 9), combinedToken);
 
             }
             finally {
@@ -356,7 +378,21 @@ namespace Fluxzy.Core
 
         public void Dispose()
         {
+            if (_disposed)
+                return;
 
+            _disposed = true;
+
+            _mainLoopTokenSource.Cancel();
+            _writeChannel.Writer.TryComplete();
+            _exchangeChannel.Writer.TryComplete();
+
+            foreach (var (_, worker) in _currentStreams)
+            {
+                worker.Dispose();
+            }
+
+            _overallWindowSizeHolder.Dispose();
         }
     }
 }
