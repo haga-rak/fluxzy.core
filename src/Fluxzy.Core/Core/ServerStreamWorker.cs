@@ -23,15 +23,23 @@ namespace Fluxzy.Core
         private bool _exchangeCreated;
 
         private Pipe? _requestBodyPipe;
-        
+
+        private readonly WindowSizeHolder _streamWindowSizeHolder;
+        private readonly WindowSizeHolder _overallWindowSizeHolder;
+
         public ServerStreamWorker(
             int streamIdentifier,
             int maxHeaderSize,
-            IHeaderEncoder headerEncoder)
+            IHeaderEncoder headerEncoder,
+            int initialWindowSize,
+            WindowSizeHolder overallWindowSizeHolder,
+            H2Logger logger)
         {
             _streamIdentifier = streamIdentifier;
             _headerEncoder = headerEncoder;
+            _overallWindowSizeHolder = overallWindowSizeHolder;
             _headerBuffer = new byte[maxHeaderSize];
+            _streamWindowSizeHolder = new WindowSizeHolder(logger, initialWindowSize, streamIdentifier);
         }
 
         private H2ErrorCode ReceiveHeaderFragment(ReadOnlySpan<byte> data, bool endHeaders)
@@ -133,6 +141,25 @@ namespace Fluxzy.Core
             };
 
             return exchange;
+        }
+
+        public async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
+        {
+            if (requestedBodyLength == 0)
+                return 0;
+
+            var streamWindow = await _streamWindowSizeHolder
+                                     .BookWindowSize(requestedBodyLength, cancellationToken)
+                                     .ConfigureAwait(false);
+
+            if (streamWindow == 0)
+                return 0;
+
+            var overallWindow = await _overallWindowSizeHolder
+                                            .BookWindowSize(streamWindow, cancellationToken)
+                                            .ConfigureAwait(false);
+
+            return overallWindow;
         }
     }
 }

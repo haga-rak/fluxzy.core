@@ -15,8 +15,6 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
-using YamlDotNet.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Fluxzy.Core
 {
@@ -45,6 +43,7 @@ namespace Fluxzy.Core
         private int _lastStreamId = int.MaxValue;
 
         private readonly WindowSizeHolder _overallWindowSizeHolder;
+        private readonly H2Logger _logger;
 
         public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream,
             IIdProvider idProvider,
@@ -65,8 +64,8 @@ namespace Fluxzy.Core
 
             
             _headerEncoder = new HeaderEncoder(hPackEncoder, hPackDecoder, _h2StreamSetting);
-            var logger = new H2Logger(requestedAuthority, -1);
-            _overallWindowSizeHolder = new WindowSizeHolder(logger, _h2StreamSetting.OverallWindowSize, 0);
+            _logger = new H2Logger(requestedAuthority, -1);
+            _overallWindowSizeHolder = new WindowSizeHolder(_logger, _h2StreamSetting.OverallWindowSize, 0);
 
         }
 
@@ -133,7 +132,8 @@ namespace Fluxzy.Core
                 if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker))
                 {
                     worker = new ServerStreamWorker(frame.StreamIdentifier,
-                        _h2StreamSetting.MaxHeaderSize, _headerEncoder);
+                        _h2StreamSetting.MaxHeaderSize, _headerEncoder, _h2StreamSetting.OverallWindowSize, 
+                        _overallWindowSizeHolder, _logger);
                     _currentStreams.Add(frame.StreamIdentifier, worker);
                 }
 
@@ -234,13 +234,61 @@ namespace Fluxzy.Core
             return ValueTask.CompletedTask;
         }
 
-        public ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, int streamIdentifier, CancellationToken token)
+        public async ValueTask WriteResponseBody(Stream responseBodyStream, 
+            RsBuffer rsBuffer, bool chunked, int streamIdentifier, CancellationToken token)
         {
             // take care of window size
+            if (!_currentStreams.TryGetValue(streamIdentifier, out var worker)) {
 
+                // stream already closed
+                throw new FluxzyException($"Invalid Local H2 stream : identifier {streamIdentifier}");
+            }
 
-            throw new System.NotImplementedException();
+            var sendStreamIdentifier = streamIdentifier + 1;
+
+            var readBuffer = ArrayPool<byte>.Shared.Rent(_h2StreamSetting.MaxFrameSizeAllowed + 9);
+
+            try {
+                int read; 
+
+                while ((read = await responseBodyStream
+                           .ReadAsync(readBuffer.AsMemory().Slice(0, _h2StreamSetting.MaxFrameSizeAllowed), token)) > 0)
+                {
+                    int offset = 0;
+
+                    while (read > 0)
+                    {
+                        var toWrite = await worker.BookWindowSize(read, token);
+
+                        if (toWrite == 0)
+                        {
+                            // stream closed 
+                            return;
+                        }
+
+                        var bodySize = Math.Min(toWrite, _h2StreamSetting.MaxFrameSizeAllowed);
+                        var writable = readBuffer.AsMemory().Slice(offset, bodySize);
+
+                        rsBuffer.Ensure(bodySize + 9);
+
+                        new DataFrame(HeaderFlags.None, bodySize, sendStreamIdentifier)
+                            .WriteHeaderOnly(rsBuffer.Memory.Span, bodySize);
+
+                        writable
+                            .Slice(0, bodySize).CopyTo(rsBuffer.Memory.Slice(9, bodySize));
+                    
+                        await _outControlPipe.Writer.WriteAsync(rsBuffer.Memory.Slice(0, bodySize + 9), token);
+
+                        offset += bodySize;
+                        read -= bodySize;
+                    }
+                }
+            }
+            finally {
+                ArrayPool<byte>.Shared.Return(readBuffer);
+            }
         }
+
 
         public (Stream ReadStream, Stream WriteStream) AbandonPipe()
         {
