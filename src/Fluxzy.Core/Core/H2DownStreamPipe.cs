@@ -15,7 +15,6 @@ using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
-using YamlDotNet.Core.Tokens;
 
 namespace Fluxzy.Core
 {
@@ -46,7 +45,10 @@ namespace Fluxzy.Core
         private readonly H2Logger _logger;
 
         private int _unNotifiedWindowSize;
+        private CancellationToken _mainLoopToken;
 
+        private bool _readHalted;
+        private bool _writeHalted;
 
         public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream,
             IIdProvider idProvider,
@@ -90,6 +92,8 @@ namespace Fluxzy.Core
             // validate announcement 
 
             // adjust settings 
+
+            _mainLoopToken = token;
         }
 
         public void Write(ReadOnlySpan<byte> buffer)
@@ -126,110 +130,120 @@ namespace Fluxzy.Core
             await _outControlPipe.Writer.WriteAsync(buffer.Memory.Slice(0, writtenLength), token);
         }
 
-
         private async Task ReadLoop(CancellationToken token)
         {
-            using var readBuffer = RsBuffer.Allocate(_h2StreamSetting.MaxFrameSizeAllowed + 9);
+            try {
+                using var readBuffer = RsBuffer.Allocate(_h2StreamSetting.MaxFrameSizeAllowed + 9);
            
-            while (!token.IsCancellationRequested) {
-                H2FrameReadResult frame =
-                    await H2FrameReader.ReadNextFrameAsync(_readStream, readBuffer.Memory,
-                        token).ConfigureAwait(false);
+                while (!token.IsCancellationRequested) {
+                    H2FrameReadResult frame =
+                        await H2FrameReader.ReadNextFrameAsync(_readStream, readBuffer.Memory,
+                            token).ConfigureAwait(false);
 
-                if (frame.BodyType == H2FrameType.Settings)
-                {
-                    H2Helper.ProcessSettingFrame(_h2StreamSetting, frame, this);
-                    continue;
-                }
-                
-                if (frame.BodyType == H2FrameType.Goaway) {
-                    frame.GetGoAwayFrame().Read(out var errorCode, out _lastStreamId);
-                    break;
-                }
-
-                if (frame.BodyType == H2FrameType.Priority) {
-                    // IGNORED
-                    continue;
-                }
-
-                // 
-
-                if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker))
-                {
-                    worker = new ServerStreamWorker(frame.StreamIdentifier, _headerEncoder,
-                        _overallWindowSizeHolder, _h2StreamSetting, _logger);
-                    _currentStreams.Add(frame.StreamIdentifier, worker);
-                }
-
-                if (frame.BodyType == H2FrameType.PushPromise) {
-                    var errorCode = H2ErrorCode.ProtocolError;
-                    WriteRstStream(frame.StreamIdentifier, errorCode);
-                    _currentStreams.Remove(frame.StreamIdentifier);
-                }
-
-                if (frame.BodyType == H2FrameType.Headers) {
-                    var errorCode = worker.ProcessHeaderFrame(ref frame);
-
-                    if (errorCode != H2ErrorCode.NoError) {
-                        WriteRstStream(frame.StreamIdentifier, errorCode);
-                        _currentStreams.Remove(frame.StreamIdentifier);
-                    }
-                }
-
-                if (frame.BodyType == H2FrameType.Continuation) {
-                    var errorCode = worker.ProcessContinuation(ref frame);
-
-                    if (errorCode != H2ErrorCode.NoError) {
-                        WriteRstStream(frame.StreamIdentifier, errorCode);
-                        _currentStreams.Remove(frame.StreamIdentifier);
-                    }
-                }
-
-                if (frame.BodyType == H2FrameType.Data) {
-                    var (errorCode, bodyLength, notifiableLength) = await worker.ReceiveBodyFragment(frame, readBuffer, token);
-
-                    if (errorCode != H2ErrorCode.NoError)
+                    if (frame.BodyType == H2FrameType.Settings)
                     {
+                        H2Helper.ProcessSettingFrame(_h2StreamSetting, frame, this);
+                        continue;
+                    }
+                
+                    if (frame.BodyType == H2FrameType.Goaway) {
+                        frame.GetGoAwayFrame().Read(out var errorCode, out _lastStreamId);
+                        break;
+                    }
+
+                    if (frame.BodyType == H2FrameType.Priority) {
+                        // IGNORED
+                        continue;
+                    }
+
+                    // 
+
+                    if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker))
+                    {
+                        worker = new ServerStreamWorker(frame.StreamIdentifier, _headerEncoder,
+                            _overallWindowSizeHolder, _h2StreamSetting, _logger);
+                        _currentStreams.Add(frame.StreamIdentifier, worker);
+                    }
+
+                    if (frame.BodyType == H2FrameType.PushPromise) {
+                        var errorCode = H2ErrorCode.ProtocolError;
                         WriteRstStream(frame.StreamIdentifier, errorCode);
                         _currentStreams.Remove(frame.StreamIdentifier);
                     }
-                    else {
-                        // send widow size increment stream level
-                        if (notifiableLength > 0)
-                        {
-                            await SendWindowUpdateFrame(frame.StreamIdentifier, notifiableLength.Value,
-                                token);
-                        }
 
-                        // send window size increment connection level
-                        if (bodyLength > 0) {
-                            await NotifyConnectionWindowSizeDecrement(bodyLength, token);
+                    if (frame.BodyType == H2FrameType.Headers) {
+                        var errorCode = worker.ProcessHeaderFrame(ref frame);
+
+                        if (errorCode != H2ErrorCode.NoError) {
+                            WriteRstStream(frame.StreamIdentifier, errorCode);
+                            _currentStreams.Remove(frame.StreamIdentifier);
                         }
                     }
-                }
 
-                if (worker.ReadyToCreateExchange) {
-                    var exchange = await worker.CreateExchange(_idProvider, _contextBuilder,
-                        RequestedAuthority, true);
+                    if (frame.BodyType == H2FrameType.Continuation) {
+                        var errorCode = worker.ProcessContinuation(ref frame);
 
-                    await _exchangeChannel.Writer.WriteAsync(exchange, token);
+                        if (errorCode != H2ErrorCode.NoError) {
+                            WriteRstStream(frame.StreamIdentifier, errorCode);
+                            _currentStreams.Remove(frame.StreamIdentifier);
+                        }
+                    }
+
+                    if (frame.BodyType == H2FrameType.Data) {
+                        var (errorCode, bodyLength, notifiableLength) = await worker.ReceiveBodyFragment(frame, readBuffer, token);
+
+                        if (errorCode != H2ErrorCode.NoError)
+                        {
+                            WriteRstStream(frame.StreamIdentifier, errorCode);
+                            _currentStreams.Remove(frame.StreamIdentifier);
+                        }
+                        else {
+                            // send widow size increment stream level
+                            if (notifiableLength > 0)
+                            {
+                                await SendWindowUpdateFrame(frame.StreamIdentifier, notifiableLength.Value,
+                                    token);
+                            }
+
+                            // send window size increment connection level
+                            if (bodyLength > 0) {
+                                await NotifyConnectionWindowSizeDecrement(bodyLength, token);
+                            }
+                        }
+                    }
+
+                    if (worker.ReadyToCreateExchange) {
+                        var exchange = await worker.CreateExchange(_idProvider, _contextBuilder,
+                            RequestedAuthority, true);
+
+                        await _exchangeChannel.Writer.WriteAsync(exchange, token);
+                    }
                 }
+            }
+            finally {
+                _readHalted = true;
             }
         }
 
         private async Task WriteLoop(CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
-            {
-                var result = await _outControlPipe.Reader.ReadAsync(token);
-                var buffer = result.Buffer;
+            try {
 
-                foreach (var segment in buffer)
+                while (!token.IsCancellationRequested)
                 {
-                    await _writeStream.WriteAsync(segment, token);
-                }
+                    var result = await _outControlPipe.Reader.ReadAsync(token);
+                    var buffer = result.Buffer;
 
-                _outControlPipe.Reader.AdvanceTo(buffer.End);
+                    foreach (var segment in buffer)
+                    {
+                        await _writeStream.WriteAsync(segment, token);
+                    }
+
+                    _outControlPipe.Reader.AdvanceTo(buffer.End);
+                }
+            }
+            finally {
+                _writeHalted = true;
             }
         }
         
@@ -242,21 +256,19 @@ namespace Fluxzy.Core
             // RECEIVE REQUEST IN A STREAM LOOP 
             // RECEIVE BODY PROMISE (probably on a PipeStream) 
             // RETURN AN EXCHANGE 
-            // SAVE STREAM INDEX 
+            // SAVE STREAM INDEX
+            using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_mainLoopToken, token);
+            var combinedToken = combinedTokenSource.Token;
 
-
-            var exchange = await _exchangeChannel.Reader.ReadAsync(token);
-
+            var exchange = await _exchangeChannel.Reader.ReadAsync(combinedToken);
             return exchange;
         }
 
-        public ValueTask WriteResponseHeader(
+        public async ValueTask WriteResponseHeader(
             ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, CancellationToken token)
         {
-            // determine which stream identifier? 
-            // encode headers
-            // packetize 
-            // send
+            using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_mainLoopToken, token);
+            var combinedToken = combinedTokenSource.Token;
 
             var downStreamIdentifier = streamIdentifier + 1;
 
@@ -267,9 +279,7 @@ namespace Fluxzy.Core
                     downStreamIdentifier, 0),
                 buffer, endStream);
 
-            _outControlPipe.Writer.Write(payload.Span);
-
-            return ValueTask.CompletedTask;
+            await _outControlPipe.Writer.WriteAsync(payload, combinedToken);
         }
 
         public async ValueTask WriteResponseBody(Stream responseBodyStream, 
@@ -282,6 +292,9 @@ namespace Fluxzy.Core
                 throw new FluxzyException($"Invalid Local H2 stream : identifier {streamIdentifier}");
             }
 
+            using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_mainLoopToken, token);
+            var combinedToken = combinedTokenSource.Token;
+
             var sendStreamIdentifier = streamIdentifier + 1;
 
             var readBuffer = ArrayPool<byte>.Shared.Rent(_h2StreamSetting.MaxFrameSizeAllowed + 9);
@@ -290,13 +303,13 @@ namespace Fluxzy.Core
                 int read; 
 
                 while ((read = await responseBodyStream
-                           .ReadAsync(readBuffer.AsMemory().Slice(0, _h2StreamSetting.MaxFrameSizeAllowed), token)) > 0)
+                           .ReadAsync(readBuffer.AsMemory().Slice(0, _h2StreamSetting.MaxFrameSizeAllowed), combinedToken)) > 0)
                 {
                     int offset = 0;
 
                     while (read > 0)
                     {
-                        var toWrite = await worker.BookWindowSize(read, token);
+                        var toWrite = await worker.BookWindowSize(read, combinedToken);
 
                         if (toWrite == 0)
                         {
@@ -315,7 +328,7 @@ namespace Fluxzy.Core
                         writable
                             .Slice(0, bodySize).CopyTo(rsBuffer.Memory.Slice(9, bodySize));
                     
-                        await _outControlPipe.Writer.WriteAsync(rsBuffer.Memory.Slice(0, bodySize + 9), token);
+                        await _outControlPipe.Writer.WriteAsync(rsBuffer.Memory.Slice(0, bodySize + 9), combinedToken);
 
                         offset += bodySize;
                         read -= bodySize;
@@ -326,7 +339,7 @@ namespace Fluxzy.Core
                 new DataFrame(HeaderFlags.EndStream, 0, sendStreamIdentifier)
                     .WriteHeaderOnly(rsBuffer.Memory.Span, 0);
 
-                await _outControlPipe.Writer.WriteAsync(rsBuffer.Memory.Slice(0, 9), token);
+                await _outControlPipe.Writer.WriteAsync(rsBuffer.Memory.Slice(0, 9), combinedToken);
 
             }
             finally {
@@ -336,15 +349,14 @@ namespace Fluxzy.Core
 
         public (Stream ReadStream, Stream WriteStream) AbandonPipe()
         {
-            throw new System.NotImplementedException();
+            return (_readStream, _writeStream);
         }
 
-        public bool CanWrite { get; }
+        public bool CanWrite => !_writeHalted;
 
         public void Dispose()
         {
 
         }
-
     }
 }
