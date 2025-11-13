@@ -134,6 +134,7 @@ namespace Fluxzy.Core
                 exchange.Metrics.CreateCertStart = certStart;
                 exchange.Metrics.CreateCertEnd = certEnd;
 
+                // TLS
 
                 return
                     new(false,
@@ -141,6 +142,8 @@ namespace Fluxzy.Core
                             (new Http11DownStreamPipe(_idProvider, authority,
                                 authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder), exchange));
             }
+
+            // Plain request 
 
             var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
 
@@ -150,8 +153,6 @@ namespace Fluxzy.Core
                     new CombinedReadonlyStream(true, buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder), stream),
                     stream);
             }
-
-            // Plain request 
 
             var path = plainHeader.Path.ToString();
 

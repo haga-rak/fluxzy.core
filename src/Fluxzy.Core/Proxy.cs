@@ -93,7 +93,7 @@ namespace Fluxzy
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
 
-            var secureConnectionManager = new SecureConnectionUpdater(certificateProvider);
+            var secureConnectionManager = new SecureConnectionUpdater(certificateProvider, startupSetting.ServeH2);
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory
                 && StartupSetting.ArchivingPolicy.Directory != null) {
