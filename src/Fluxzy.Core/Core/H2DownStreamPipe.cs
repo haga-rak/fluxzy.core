@@ -49,8 +49,9 @@ namespace Fluxzy.Core
         private bool _goAwayReceived;
         private H2ErrorCode _goAwayErrorCode;
 
-        public H2DownStreamPipe(Authority requestedAuthority, Stream readStream, Stream writeStream,
+        public H2DownStreamPipe(
             IIdProvider idProvider,
+            Authority requestedAuthority, Stream readStream, Stream writeStream,
             IExchangeContextBuilder contextBuilder)
         {
             _readStream = readStream;
