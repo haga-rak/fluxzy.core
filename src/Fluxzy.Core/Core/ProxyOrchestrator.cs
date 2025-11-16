@@ -632,7 +632,7 @@ namespace Fluxzy.Core
             return shouldCloseConnectionToDownStream;
         }
 
-        private ValueTask SafeCloseRequestBody(Exchange exchange, Stream? substitutionStream)
+        private static ValueTask SafeCloseRequestBody(Exchange exchange, Stream? substitutionStream)
         {
             if (exchange.Request.Body != null)
             {
@@ -650,12 +650,10 @@ namespace Fluxzy.Core
                 }
             }
 
-            SafeCloseExtraStream(substitutionStream);
-
-            return default;
+            return SafeCloseExtraStream(substitutionStream);
         }
 
-        private ValueTask SafeCloseResponseBody(Exchange exchange, Stream? substitutionStream)
+        private static ValueTask SafeCloseResponseBody(Exchange exchange, Stream? substitutionStream)
         {
             if (exchange.Response.Body != null)
             {
@@ -673,12 +671,10 @@ namespace Fluxzy.Core
                 }
             }
 
-            SafeCloseExtraStream(substitutionStream);
-
-            return default;
+            return SafeCloseExtraStream(substitutionStream);
         }
 
-        private ValueTask SafeCloseExtraStream(params Stream?[] streams)
+        private static async ValueTask SafeCloseExtraStream(params Stream?[] streams)
         {
             foreach (var stream in streams)
             {
@@ -689,15 +685,13 @@ namespace Fluxzy.Core
 
                 try
                 {
-                    return stream.DisposeAsync();
+                    await stream.DisposeAsync();
                 }
                 catch
                 {
                     // ignore errors when closing pipe 
                 }
             }
-
-            return default;
         }
     }
 }

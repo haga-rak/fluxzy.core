@@ -72,19 +72,35 @@ namespace Fluxzy.Core
             }
 
             try {
+
+                var sslProtocols = SslProtocols.None;
+
+                if (_serveH2) {
+                    sslProtocols = SslProtocols.Tls12;
+
+#if NET8_0_OR_GREATER
+                    sslProtocols |= SslProtocols.Tls13;
+#endif
+                }
+
                 var sslServerAuthenticationOptions = new SslServerAuthenticationOptions
                 {
                     ApplicationProtocols = _serveH2 ? H11AndH2Protocols : H11Protocols,
+                    EnabledSslProtocols = sslProtocols,
                     ClientCertificateRequired = false,
                     CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                     EncryptionPolicy = EncryptionPolicy.RequireEncryption,
-                    EnabledSslProtocols = SslProtocols.None,
                     ServerCertificateSelectionCallback = (sender, name) => certificate
                 };
 
                 await secureStream
                     .AuthenticateAsServerAsync(sslServerAuthenticationOptions, token)
                     .ConfigureAwait(false);
+
+                var protocol = secureStream.NegotiatedApplicationProtocol;
+                var cipher = secureStream.CipherAlgorithm;
+
+
             }
             catch (Exception ex) {
                 throw new FluxzyException(
