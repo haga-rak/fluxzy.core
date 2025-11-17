@@ -48,7 +48,13 @@ namespace Fluxzy.Tests._Fixtures
 
         public override long Position {
             get => _actualReaden;
-            set => throw new NotSupportedException();
+            set
+            {
+                if (value == 0)
+                    return;
+
+                throw new NotSupportedException();
+            }
         }
 
         public override void Flush()

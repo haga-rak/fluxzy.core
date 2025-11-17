@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- Leave the following tag blank for Directory.Props-->
     <TargetFramework></TargetFramework>
-    <TargetFrameworks>net8.0;net6.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <RootNamespace>Fluxzy</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Description>MITM engine for recording, analyzing, debugging, and altering HTTP/1.1, H2, WebSocket traffic.</Description>
