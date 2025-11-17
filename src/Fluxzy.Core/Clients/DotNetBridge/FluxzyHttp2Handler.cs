@@ -65,7 +65,7 @@ namespace Fluxzy.Clients.DotNetBridge
                 true), request.ToHttp11String().AsMemory(), "HTTP/2", DateTime.Now);
             
             if (request.Content != null)
-                exchange.Request.Body = await request.Content.ReadAsStreamAsync();
+                exchange.Request.Body = await request.Content.ReadAsStreamAsync(cancellationToken);
 
             await connectionPool.Send(exchange, null!, RsBuffer.Allocate(32 * 1024), _exchangeScope,
                 cancellationToken).ConfigureAwait(false);
