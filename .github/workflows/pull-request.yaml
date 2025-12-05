@@ -15,7 +15,7 @@ jobs:
     name: "Build & core Tests"
     strategy:
       matrix:
-        osversion: [Linux, Windows, macOS]
+        osversion: [Linux, Windows]
         ostype: ['self-hosted']
       fail-fast: false
         
@@ -28,7 +28,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: On pull request
       shell: bash
       env:
