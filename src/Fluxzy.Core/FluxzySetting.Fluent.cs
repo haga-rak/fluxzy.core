@@ -492,5 +492,16 @@ namespace Fluxzy
 
             return this;
         }
+
+        /// <summary>
+        ///    Set whether to serve H2 to clients
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetServeH2(bool value)
+        {
+            ServeH2 = value;
+            return this;
+        }
     }
 }

@@ -83,7 +83,7 @@ namespace Fluxzy.Core
             exchange.Metrics.CreateCertStart = certStart;
             exchange.Metrics.CreateCertEnd = certEnd;
 
-            var downStreamPipe = new Http11DownStreamPipe(_idProvider, authority, secureStream, secureStream, false, _contextBuilder);
+            var downStreamPipe = new Http11DownStreamPipe(_idProvider, authority, secureStream, secureStream, _contextBuilder);
 
             return new ExchangeSourceInitResult(downStreamPipe, exchange);
         }

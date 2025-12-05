@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -16,11 +17,17 @@ namespace Fluxzy.Core
 {
     internal class SecureConnectionUpdater
     {
-        private readonly ICertificateProvider _certificateProvider;
+        private static readonly List<SslApplicationProtocol> H11Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 };
+        private static readonly List<SslApplicationProtocol> H11AndH2Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 , SslApplicationProtocol.Http2 };
+        
 
-        public SecureConnectionUpdater(ICertificateProvider certificateProvider)
+        private readonly ICertificateProvider _certificateProvider;
+        private readonly bool _serveH2;
+
+        public SecureConnectionUpdater(ICertificateProvider certificateProvider, bool serveH2)
         {
             _certificateProvider = certificateProvider;
+            _serveH2 = serveH2;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -65,19 +72,35 @@ namespace Fluxzy.Core
             }
 
             try {
+
+                var sslProtocols = SslProtocols.None;
+
+                if (_serveH2) {
+                    sslProtocols = SslProtocols.Tls12;
+
+#if NET8_0_OR_GREATER
+                    sslProtocols |= SslProtocols.Tls13;
+#endif
+                }
+
                 var sslServerAuthenticationOptions = new SslServerAuthenticationOptions
                 {
-                    ApplicationProtocols = new() { SslApplicationProtocol.Http11 },
+                    ApplicationProtocols = _serveH2 ? H11AndH2Protocols : H11Protocols,
+                    EnabledSslProtocols = sslProtocols,
                     ClientCertificateRequired = false,
                     CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                     EncryptionPolicy = EncryptionPolicy.RequireEncryption,
-                    EnabledSslProtocols = SslProtocols.None,
                     ServerCertificateSelectionCallback = (sender, name) => certificate
                 };
 
                 await secureStream
                     .AuthenticateAsServerAsync(sslServerAuthenticationOptions, token)
                     .ConfigureAwait(false);
+
+                var protocol = secureStream.NegotiatedApplicationProtocol;
+                var cipher = secureStream.CipherAlgorithm;
+
+
             }
             catch (Exception ex) {
                 throw new FluxzyException(

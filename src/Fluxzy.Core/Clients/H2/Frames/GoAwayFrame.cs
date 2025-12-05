@@ -1,4 +1,4 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
 using System.Buffers.Binary;
@@ -38,5 +38,11 @@ namespace Fluxzy.Clients.H2.Frames
         }
 
         public int BodyLength => 8;
+
+        public void Read(out H2ErrorCode errorCode, out int lastStreamId)
+        {
+            errorCode = ErrorCode;
+            lastStreamId = LastStreamId;
+        }
     }
 }

@@ -91,7 +91,7 @@ namespace Fluxzy.Core
                 plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy);
 
             return new ExchangeSourceInitResult(
-                new Http11DownStreamPipe(_idProvider, plainAuthority, plainStream, plainStream, false,
+                new Http11DownStreamPipe(_idProvider, plainAuthority, plainStream, plainStream,
                      _contextBuilder), provisionalExchange);
         }
     }

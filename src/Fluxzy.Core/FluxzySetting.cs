@@ -208,6 +208,12 @@ namespace Fluxzy
         [JsonInclude]
         public bool SkipRemoteCertificateValidation { get; internal set; }
 
+        /// <summary>
+        ///    Indicates whether Fluxzy should use HTTP/2 for client connections when supported.
+        /// </summary>
+        [JsonInclude]
+        public bool ServeH2 { get; internal set; }
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption) {

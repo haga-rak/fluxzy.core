@@ -278,7 +278,7 @@ namespace Fluxzy.Clients.H2
             if (lastHeaderFragment) {
                 _exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
-                var charHeader = DecodeAndAllocate(_headerBuffer.Slice(0, _totalHeaderReceived).Span);
+                var charHeader = H2Helper.DecodeAndAllocate(Parent.Context.HeaderEncoder, _headerBuffer.Slice(0, _totalHeaderReceived).Span);
 
                 _exchange.Response.Header = new ResponseHeader(charHeader, true, false);
 
@@ -305,27 +305,7 @@ namespace Fluxzy.Clients.H2
                 _headerReceivedSemaphore.Release();
             }
         }
-
-        private Memory<char> DecodeAndAllocate(ReadOnlySpan<byte> onWire)
-        {
-            var byteArray = ArrayPool<char>.Shared.Rent(1024 * 64);
-
-            try {
-                Span<char> tempBuffer = byteArray;
-
-                var decoded = Parent.Context.HeaderEncoder.Decoder.Decode(onWire, tempBuffer);
-                Memory<char> charBuffer = new char[decoded.Length + 256];
-
-                decoded.CopyTo(charBuffer.Span);
-                var length = decoded.Length;
-
-                return charBuffer.Slice(0, length);
-            }
-            finally {
-                ArrayPool<char>.Shared.Return(byteArray);
-            }
-        }
-
+        
         public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
         {
             SendWindowUpdate(Parent.Context.Setting.Local.WindowSize, StreamIdentifier);
@@ -357,7 +337,6 @@ namespace Fluxzy.Clients.H2
                 await _pipeResponseBody.Writer.CompleteAsync().ConfigureAwait(false);
 
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
-
                 Parent.NotifyDispose(this);
             }
         }
