@@ -18,7 +18,7 @@ jobs:
     name: "Build & core Tests"
     strategy:
       matrix:
-        osversion: [Linux, Windows, macOS]
+        osversion: [Linux, Windows]
         ostype: ['self-hosted']
       fail-fast: false
         
