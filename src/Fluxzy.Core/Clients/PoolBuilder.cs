@@ -60,10 +60,9 @@ namespace Fluxzy.Clients
             _timingProvider = timingProvider;
             _archiveWriter = archiveWriter;
             _dnsSolver = dnsSolver;
-
             CheckPoolStatus(_poolCheckHaltSource.Token);
         }
-
+        
         public void Dispose()
         {
             _poolCheckHaltSource.Cancel();

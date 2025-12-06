@@ -17,6 +17,7 @@ using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Traces;
+using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
@@ -115,7 +116,7 @@ namespace Fluxzy
                 new RemoteConnectionBuilder(ITimingProvider.Default, sslConnectionBuilder),
                 ITimingProvider.Default,
                 Writer, dnsSolver ?? new DefaultDnsResolver());
-
+            
             ExecutionContext = new ProxyExecutionContext(startupSetting);
 
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
@@ -291,6 +292,74 @@ namespace Fluxzy
             EndPoints = endPoints;
 
             return endPoints;
+        }
+
+        /// <summary>
+        /// Updates the alteration rules at runtime without stopping the proxy.
+        /// New rules apply to exchanges that begin processing after this call completes.
+        /// In-flight exchanges continue with their existing rules.
+        /// Fixed rules (SSL skip, CA mount, welcome page) are automatically preserved.
+        /// </summary>
+        /// <param name="rules">The new set of alteration rules</param>
+        /// <exception cref="InvalidOperationException">If proxy not started or disposed</exception>
+        /// <exception cref="ArgumentNullException">If rules is null</exception>
+        /// <exception cref="RuleInitializationException">If rule initialization fails</exception>
+        public void UpdateRules(IEnumerable<Rule> rules)
+        {
+            if (rules == null) {
+                throw new ArgumentNullException(nameof(rules));
+            }
+
+            ValidateProxyState();
+
+            _runTimeSetting.UpdateRules(rules);
+        }
+
+        /// <summary>
+        /// Updates the alteration rules at runtime using a configuration action.
+        /// Provides a fluent API for configuring rules similar to FluxzySetting setup.
+        /// </summary>
+        /// <param name="configureRules">Action to configure rules on a temporary FluxzySetting</param>
+        /// <exception cref="InvalidOperationException">If proxy not started or disposed</exception>
+        /// <exception cref="ArgumentNullException">If configureRules is null</exception>
+        /// <exception cref="RuleInitializationException">If rule initialization fails</exception>
+        public void UpdateRules(Action<FluxzySetting> configureRules)
+        {
+            if (configureRules == null) {
+                throw new ArgumentNullException(nameof(configureRules));
+            }
+
+            ValidateProxyState();
+
+            // Create temporary setting to collect rules
+            var tempSetting = new FluxzySetting();
+            configureRules(tempSetting);
+
+            _runTimeSetting.UpdateRules(tempSetting.AlterationRules);
+        }
+
+        /// <summary>
+        /// Gets a read-only snapshot of currently active alteration rules.
+        /// Does not include fixed rules (SSL skip, CA mount, welcome page).
+        /// </summary>
+        /// <returns>Read-only collection of active alteration rules</returns>
+        /// <exception cref="InvalidOperationException">If proxy not started</exception>
+        public IReadOnlyCollection<Rule> GetActiveRules()
+        {
+            ValidateProxyState();
+
+            return _runTimeSetting.GetCurrentAlterationRules();
+        }
+
+        private void ValidateProxyState()
+        {
+            if (_disposed) {
+                throw new InvalidOperationException("Proxy has been disposed");
+            }
+
+            if (!_started) {
+                throw new InvalidOperationException("Proxy has not been started. Call Run() first.");
+            }
         }
 
         private void InternalDispose()
