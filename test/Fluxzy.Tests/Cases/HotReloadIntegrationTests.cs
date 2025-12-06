@@ -4,10 +4,8 @@ using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Tests._Fixtures;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
-using static System.Net.WebRequestMethods;
 
 namespace Fluxzy.Tests.Cases
 {

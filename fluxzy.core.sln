@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fluxzy.Tests", "test\Fluxzy.Tests\Fluxzy.Tests.csproj", "{D13EFEFE-CFCF-405E-99C1-E35E43B184DE}"
 EndProject
@@ -97,6 +97,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No017.TransformRequestBody", "examples\Samples.No017.TransformRequestBody\Samples.No017.TransformRequestBody.csproj", "{9E059754-45E1-A78A-C64C-58A7B064A5E5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No019.HttpMessageHandlerWithCustomFingerPrint", "examples\Samples.No019.HttpMessageHandlerWithCustomFingerPrint\Samples.No019.HttpMessageHandlerWithCustomFingerPrint.csproj", "{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No020.HotReloadRules", "examples\Samples.No020.HotReloadRules\Samples.No020.HotReloadRules.csproj", "{927528F5-01A1-20D3-E67F-190BE1229CAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -216,6 +218,10 @@ Global
 		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{927528F5-01A1-20D3-E67F-190BE1229CAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{927528F5-01A1-20D3-E67F-190BE1229CAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{927528F5-01A1-20D3-E67F-190BE1229CAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{927528F5-01A1-20D3-E67F-190BE1229CAB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -246,6 +252,7 @@ Global
 		{D7327C1F-008C-B410-1731-4C9D73C36294} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{9E059754-45E1-A78A-C64C-58A7B064A5E5} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
+		{927528F5-01A1-20D3-E67F-190BE1229CAB} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}

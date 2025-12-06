@@ -97,30 +97,3 @@ Console.WriteLine("\nStopping proxy...");
 
 Console.WriteLine("Done!");
 
-/*
- * HOT RELOAD CAPABILITIES:
- *
- * 1. UpdateRules(IEnumerable<Rule> rules)
- *    - Direct rule list replacement
- *    - Useful when rules are generated programmatically
- *
- * 2. UpdateRules(Action<FluxzySetting> configureRules)
- *    - Fluent configuration API
- *    - Familiar syntax for Fluxzy users
- *
- * 3. GetActiveRules()
- *    - Retrieve current alteration rules
- *    - Excludes fixed rules (SSL skip, CA mount, etc.)
- *
- * THREAD SAFETY:
- * - Hot reload is fully thread-safe
- * - In-flight exchanges complete with their original rules
- * - New exchanges use the updated rules
- * - No proxy downtime during rule updates
- *
- * USE CASES:
- * - A/B testing different traffic manipulation strategies
- * - Dynamic rule adjustment based on monitoring
- * - Debugging and troubleshooting without proxy restart
- * - Gradual rollout of new interception logic
- */
