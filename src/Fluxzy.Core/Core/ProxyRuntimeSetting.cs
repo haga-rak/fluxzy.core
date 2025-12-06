@@ -17,7 +17,8 @@ namespace Fluxzy.Core
 {
     internal class ProxyRuntimeSetting
     {
-        private List<Rule>? _effectiveRules;
+        private volatile IReadOnlyList<Rule>? _effectiveRules;
+        private readonly object _ruleUpdateLock = new object();
 
         private ProxyRuntimeSetting()
         {
@@ -124,7 +125,69 @@ namespace Fluxzy.Core
                 rule.Filter.Init(startupContext);
             }
 
-            _effectiveRules ??= activeRules;
+            if (_effectiveRules == null) {
+                _effectiveRules = activeRules.AsReadOnly();
+            }
+        }
+
+        /// <summary>
+        /// Updates the active alteration rules at runtime. Thread-safe.
+        /// Fixed rules (skip SSL, CA mount, welcome page) are automatically included.
+        /// </summary>
+        /// <param name="newAlterationRules">New alteration rules to apply</param>
+        /// <exception cref="InvalidOperationException">If Init() not called yet</exception>
+        /// <exception cref="RuleInitializationException">If rule initialization fails</exception>
+        public void UpdateRules(IEnumerable<Rule> newAlterationRules)
+        {
+            if (_effectiveRules == null) {
+                throw new InvalidOperationException("Rules not initialized. Call Init() first.");
+            }
+
+            lock (_ruleUpdateLock) {
+                try {
+                    // Combine new alteration rules with fixed rules
+                    var activeRules = newAlterationRules
+                                        .Concat(StartupSetting.FixedRules())
+                                        .ToList();
+
+                    var startupContext = new StartupContext(StartupSetting, VariableContext, ArchiveWriter);
+
+                    // Initialize all new rules
+                    foreach (var rule in activeRules) {
+                        rule.Action.Init(startupContext);
+                        rule.Filter.Init(startupContext);
+                    }
+
+                    // Atomic swap - thread-safe visibility
+                    var newReadOnlyList = activeRules.AsReadOnly();
+                    System.Threading.Interlocked.Exchange(ref _effectiveRules, newReadOnlyList);
+                }
+                catch (Exception ex) {
+                    throw new RuleInitializationException("Failed to update rules: " + ex.Message, ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets current alteration rules (excluding fixed rules).
+        /// </summary>
+        public IReadOnlyCollection<Rule> GetCurrentAlterationRules()
+        {
+            var currentRules = _effectiveRules;
+
+            if (currentRules == null) {
+                return Array.Empty<Rule>();
+            }
+
+            // Identify fixed rules by action type
+            var fixedRuleActions = StartupSetting.FixedRules()
+                                                 .Select(r => r.Action.GetType())
+                                                 .ToHashSet();
+
+            return currentRules
+                .Where(r => !fixedRuleActions.Contains(r.Action.GetType()))
+                .ToList()
+                .AsReadOnly();
         }
 
         public async ValueTask<ExchangeContext> EnforceRules(
