@@ -74,8 +74,11 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
                 networkStream = (NetworkStream) disposeEventNotifierStream.InnerStream;
             }
 
+            var exportCertificate =
+                builderOptions.AdvancedTlsSettings?.ExportCertificateInSslInfo ?? false;
+
             var connection =
-                new SslConnection(protocol.Stream, new SslInfo(protocol), protocol.GetApplicationProtocol(),
+                new SslConnection(protocol.Stream, new SslInfo(protocol, exportCertificate), protocol.GetApplicationProtocol(),
                     networkStream, innerStream as DisposeEventNotifierStream) {
                     NssKey = keyInfos
                 };

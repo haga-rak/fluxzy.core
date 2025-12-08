@@ -20,7 +20,10 @@ namespace Fluxzy.Clients.Ssl.SChannel
 
             await sslStream.AuthenticateAsClientAsync(sslOptions, token).ConfigureAwait(false);
 
-            var sslInfo = new SslInfo(sslStream);
+            var exportCertificate = 
+                builderOptions.AdvancedTlsSettings?.ExportCertificateInSslInfo ?? false;
+
+            var sslInfo = new SslInfo(sslStream, exportCertificate);
 
             return new SslConnection(sslStream, sslInfo, sslStream.NegotiatedApplicationProtocol);
         }
