@@ -41,6 +41,7 @@ namespace Fluxzy.Core
             FluxzySetting = fluxzySetting;
             SetUserAgentActionMapping = setUserAgentActionMapping;
             SkipRemoteCertificateValidation = fluxzySetting?.SkipRemoteCertificateValidation ?? false;
+            AdvancedTlsSettings.ExportCertificateInSslInfo = fluxzySetting?.ExportCertificateInSslInfo ?? false;
         }
 
         /// <summary>
