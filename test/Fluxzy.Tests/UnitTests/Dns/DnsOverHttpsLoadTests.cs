@@ -23,6 +23,7 @@ namespace Fluxzy.Tests.UnitTests.Dns
                          .Do(new UseDnsOverHttpsAction("CLOUDFLARE"));
 
             fluxzySetting.UseBouncyCastleSslEngine();
+            fluxzySetting.SkipRemoteCertificateValidation = true;
 
             await using var proxy = new Proxy(fluxzySetting);
 

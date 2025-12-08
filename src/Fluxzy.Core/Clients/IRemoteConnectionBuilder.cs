@@ -111,6 +111,7 @@ namespace Fluxzy.Clients
                               exchange.Context.ProxyTlsProtocols,
                               httpProtocols,
                               exchange.Context.SkipRemoteCertificateValidation ? (_, _, _, errors) => true : null,
+                              exchange.Context.SkipRemoteCertificateValidation,
                               exchange.Context.ClientCertificates != null && exchange.Context.ClientCertificates.Any() ? exchange.Context.ClientCertificates.First() : null,
                               exchange.Context.AlwaysSendClientCertificate,
                               exchange.Context.AdvancedTlsSettings);

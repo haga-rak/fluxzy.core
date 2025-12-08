@@ -96,11 +96,7 @@ namespace Fluxzy.Core
                 await secureStream
                     .AuthenticateAsServerAsync(sslServerAuthenticationOptions, token)
                     .ConfigureAwait(false);
-
-                var protocol = secureStream.NegotiatedApplicationProtocol;
-                var cipher = secureStream.CipherAlgorithm;
-
-
+                
             }
             catch (Exception ex) {
                 throw new FluxzyException(

@@ -17,10 +17,13 @@ namespace Fluxzy.Clients.Ssl
         private readonly bool _alwaysSendClientCertificate;
         private SslClientAuthenticationOptions? _authenticationOptions; 
 
-        public SslConnectionBuilderOptions(string targetHost, 
+        public SslConnectionBuilderOptions(
+            string targetHost,
             SslProtocols enabledSslProtocols, List<SslApplicationProtocol> applicationProtocols,
             RemoteCertificateValidationCallback? remoteCertificateValidationCallback,
-            Certificate? clientCertificate, bool alwaysSendClientCertificate, 
+            bool contextSkipRemoteCertificateValidation,
+            Certificate? clientCertificate,
+            bool alwaysSendClientCertificate,
             AdvancedTlsSettings? advancedTlsSettings)
         {
             _alwaysSendClientCertificate = alwaysSendClientCertificate;
@@ -28,6 +31,7 @@ namespace Fluxzy.Clients.Ssl
             EnabledSslProtocols = enabledSslProtocols;
             ApplicationProtocols = applicationProtocols;
             RemoteCertificateValidationCallback = remoteCertificateValidationCallback;
+            ContextSkipRemoteCertificateValidation = contextSkipRemoteCertificateValidation;
             ClientCertificate = clientCertificate;
             AdvancedTlsSettings = advancedTlsSettings;
         }
@@ -38,7 +42,9 @@ namespace Fluxzy.Clients.Ssl
 
         public List<SslApplicationProtocol> ApplicationProtocols { get; }
 
-        public RemoteCertificateValidationCallback? RemoteCertificateValidationCallback { get; } 
+        public RemoteCertificateValidationCallback? RemoteCertificateValidationCallback { get; }
+
+        public bool ContextSkipRemoteCertificateValidation { get; }
 
         public Certificate ? ClientCertificate { get; set; }
 
