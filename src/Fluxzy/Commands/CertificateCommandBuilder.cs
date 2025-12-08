@@ -2,7 +2,6 @@
 
 using System;
 using System.CommandLine;
-using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -19,15 +18,15 @@ namespace Fluxzy.Cli.Commands
         {
             var command = new Command("cert", "Manage root certificates used by the fluxzy");
 
-            command.AddAlias("certificate");
+            command.Aliases.Add("certificate");
 
-            command.AddCommand(BuildExportCommand());
-            command.AddCommand(BuildCheckCommand());
-            command.AddCommand(BuildInstallCommand());
-            command.AddCommand(BuildRemoveCommand());
-            command.AddCommand(BuildListCommand());
-            command.AddCommand(BuildCreateCommand());
-            command.AddCommand(BuildDefaultCommand(environmentProvider));
+            command.Subcommands.Add(BuildExportCommand());
+            command.Subcommands.Add(BuildCheckCommand());
+            command.Subcommands.Add(BuildInstallCommand());
+            command.Subcommands.Add(BuildRemoveCommand());
+            command.Subcommands.Add(BuildListCommand());
+            command.Subcommands.Add(BuildCreateCommand());
+            command.Subcommands.Add(BuildDefaultCommand(environmentProvider));
 
             return command;
         }
@@ -35,48 +34,48 @@ namespace Fluxzy.Cli.Commands
         private static Command BuildExportCommand()
         {
             var exportCommand = new Command("export", "Export the default embedded certificate used by fluxzy");
-
-            var argumentFileInfo = new Argument<FileInfo>(
-                "output-file",
-                description: "The output file",
-                parse: a => new FileInfo(a.Tokens.First().Value)) {
-                Arity = ArgumentArity.ExactlyOne
+            
+            var argumentFileInfo = new Argument<FileInfo>("output-file") {
+                Description = "The output file",
+                Arity = ArgumentArity.ExactlyOne,
+                CustomParser = a => new FileInfo(a.Tokens.First().Value)
             };
 
-            exportCommand.AddArgument(argumentFileInfo);
-
-            exportCommand.SetHandler(async fileInfo => {
-                await using var stream = fileInfo.Create();
+            exportCommand.Arguments.Add(argumentFileInfo);
+            exportCommand.SetAction(async (parseResult, u) => {
+                
+                await using var stream = parseResult.GetRequiredValue<FileInfo>(argumentFileInfo)
+                                                    .Create();
                 var certificateManager = new DefaultCertificateAuthorityManager();
 
                 certificateManager.DumpDefaultCertificate(stream);
-            }, argumentFileInfo);
-
+            });
+            
             return exportCommand;
         }
 
         private static Command BuildInstallCommand()
         {
             var exportCommand = new Command("install", "Trust a certificate as ROOT (need elevation)");
-
             var argumentFileInfo = new Argument<FileInfo?>(
-                "cert-file",
-                description: "A X509 certificate file or stdin if omitted",
-                parse: argumentResult => {
+                "cert-file") {
+                Description = "A X509 certificate file or stdin if omitted",
+                Arity = ArgumentArity.ZeroOrOne,
+                CustomParser = argumentResult => {
                     if (!argumentResult.Tokens.Any()) {
                         return null;
                     }
 
                     return new FileInfo(argumentResult.Tokens.First().Value);
-                }) {
-                Arity = ArgumentArity.ZeroOrOne
+                }
             };
 
-            exportCommand.AddArgument(argumentFileInfo);
+            exportCommand.Arguments.Add(argumentFileInfo);
 
-            exportCommand.SetHandler(async fileInfo => {
+            exportCommand.SetAction(async (parseResult, cancellationToken) => {
                 var certificateManager = new DefaultCertificateAuthorityManager();
                 X509Certificate2 certificate;
+                var fileInfo = parseResult.GetValue(argumentFileInfo);
 
                 if (fileInfo == null) {
                     // READ stdin to end 
@@ -86,16 +85,16 @@ namespace Fluxzy.Cli.Commands
                     // We read a certificate up to 8K 
                     var buffer = new byte[8 * 1024];
                     var memoryStream = new MemoryStream(buffer);
-                    await inputStream.CopyToAsync(memoryStream);
+                    await inputStream.CopyToAsync(memoryStream, cancellationToken);
 
                     certificate = new X509Certificate2(buffer.AsSpan().Slice(0, (int) memoryStream.Position));
                 }
                 else {
-                    certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
+                    certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName, cancellationToken));
                 }
 
                 await certificateManager.InstallCertificate(certificate);
-            }, argumentFileInfo);
+            });
 
             return exportCommand;
         }
@@ -106,30 +105,29 @@ namespace Fluxzy.Cli.Commands
                                                      "trusted");
 
             var argumentFileInfo = new Argument<FileInfo?>(
-                "cert-file",
-                description: "A X509 certificate file",
-                parse: argument => new FileInfo(argument.Tokens.First().Value)) {
-                Arity = ArgumentArity.ZeroOrOne
+                "cert-file") {
+                Description = "A X509 certificate file",
+                Arity = ArgumentArity.ZeroOrOne,
+                CustomParser = argument => new FileInfo(argument.Tokens.First().Value)
             };
 
-            argumentFileInfo.SetDefaultValue("Embedded certificate");
+            exportCommand.Arguments.Add(argumentFileInfo);
 
-            exportCommand.AddArgument(argumentFileInfo);
-
-            exportCommand.SetHandler(async (fileInfo, console) => {
+            exportCommand.SetAction(async (parseResult, cancellationToken) => {
+                var fileInfo = parseResult.GetValue(argumentFileInfo);
                 var certificate = fileInfo != null ? 
-                    new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName)) 
+                    new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName, cancellationToken)) 
                     : FluxzySecurityParams.Current.BuiltinCertificate;
 
                 var certificateManager = new DefaultCertificateAuthorityManager();
 
                 if (certificateManager.IsCertificateInstalled(certificate)){
-                    console.WriteLine($"Trusted {certificate.SubjectName.Name}");
+                    Console.WriteLine($"Trusted {certificate.SubjectName.Name}");
                 }
                 else {
                     throw new Exception($"NOT trusted {certificate.SubjectName.Name}");
                 }
-            }, argumentFileInfo, new ConsoleBinder());
+            });
 
             return exportCommand;
         }
@@ -139,18 +137,19 @@ namespace Fluxzy.Cli.Commands
             var exportCommand = new Command("uninstall", "Remove a certificate from Root CA authority store");
 
             var argumentFileInfo = new Argument<string>(
-                "cert-thumbprint",
-                description: "Certificate thumb print",
-                parse: argument => argument.Tokens.First().Value) {
-                Arity = ArgumentArity.ExactlyOne
+                "cert-thumbprint") {
+                Description = "Certificate thumb print",
+                Arity = ArgumentArity.ExactlyOne,
+                CustomParser = argument => argument.Tokens.First().Value
             };
 
-            exportCommand.AddArgument(argumentFileInfo);
+            exportCommand.Arguments.Add(argumentFileInfo);
 
-            exportCommand.SetHandler(async (thumbPrint, console) => {
+            exportCommand.SetAction(async (parseResult, cancellationToken) => {
+                var thumbPrint = parseResult.GetRequiredValue(argumentFileInfo);
                 var certificateManager = new DefaultCertificateAuthorityManager();
                 await certificateManager.RemoveCertificate(thumbPrint);
-            }, argumentFileInfo, new ConsoleBinder());
+            });
 
             return exportCommand;
         }
@@ -159,15 +158,15 @@ namespace Fluxzy.Cli.Commands
         {
             var exportCommand = new Command("list", "List all root certificates");
 
-            exportCommand.SetHandler(console => {
+            exportCommand.SetAction((parseResult, cancellationToken) => {
                 var certificateManager = new DefaultCertificateAuthorityManager();
 
                 foreach (var certificate in certificateManager.EnumerateRootCertificates()) {
-                    console.Out.WriteLine($"{certificate.ThumbPrint}\t{certificate.Subject}");
+                    Console.WriteLine($"{certificate.ThumbPrint}\t{certificate.Subject}");
                 }
 
                 return Task.CompletedTask;
-            }, new ConsoleBinder());
+            });
 
             return exportCommand;
         }
@@ -177,30 +176,33 @@ namespace Fluxzy.Cli.Commands
             var createCommand = new Command("create", "Create a self-signed root CA certificate in PKCS#12 format");
 
             var argumentFileInfo = new Argument<string>(
-                "filePath",
-                description: "Output path of the certificate",
-                parse: argument => argument.Tokens.First().Value) {
-                Arity = ArgumentArity.ExactlyOne
+                "filePath") {
+                Description = "Output path of the certificate",
+                Arity = ArgumentArity.ExactlyOne,
+                CustomParser = argument => argument.Tokens.First().Value
             };
 
             var argumentCn = new Argument<string>(
-                "common-name",
-                description: "Common name of the certificate",
-                parse: argument => argument.Tokens.First().Value) {
-                Arity = ArgumentArity.ExactlyOne
+                "common-name") {
+                Description = "Common name of the certificate",
+                Arity = ArgumentArity.ExactlyOne,
+                CustomParser = argument => argument.Tokens.First().Value
             };
 
             var validityOption = new Option<int>(
-                new[] { "--validity", "-v" },
-                description: "Validity of the certificate in days from now",
-                getDefaultValue: () => 365 * 10) {
-                Arity = ArgumentArity.ExactlyOne
+                "--validity") {
+                Description = "Validity of the certificate in days from now",
+                Arity = ArgumentArity.ExactlyOne,
+                DefaultValueFactory = _ => 365 * 10
             };
+            validityOption.Aliases.Add("-v");
 
             var keySizeOption = new Option<int>(
-                new[] { "--key-size", "-k" },
-                description: "Key size of the certificate. Valid values are multiple of 1024 (max 16384)",
-                parseArgument: r => {
+                "--key-size") {
+                Description = "Key size of the certificate. Valid values are multiple of 1024 (max 16384)",
+                Arity = ArgumentArity.ExactlyOne,
+                DefaultValueFactory = _ => 2048,
+                CustomParser = r => {
                     var inputValueString = r.Tokens.FirstOrDefault()?.Value;
 
                     if (!int.TryParse(inputValueString, out var inputValue)) {
@@ -219,83 +221,80 @@ namespace Fluxzy.Cli.Commands
                     }
 
                     return inputValue;
-                }) {
-                Arity = ArgumentArity.ExactlyOne
+                }
             };
+            keySizeOption.Aliases.Add("-k");
 
             // Build O, OU, L, ST, C options
 
             var passwordOption = new Option<string?>(
-                new[] { "--password", "-p" },
-                description: "Password for the created P12 file",
-                getDefaultValue: () => null) {
+                "--password") {
+                Description = "Password for the created P12 file",
                 Arity = ArgumentArity.ExactlyOne
             };
+            passwordOption.Aliases.Add("-p");
 
             var oOption = new Option<string?>(
-                new[] { "--O", "--o" },
-                description: "Organization name",
-                getDefaultValue: () => null) {
+                "--O") {
+                Description = "Organization name",
                 Arity = ArgumentArity.ExactlyOne
             };
+            oOption.Aliases.Add("--o");
 
             var ouOption = new Option<string?>(
-                new[] { "--OU", "--ou" },
-                description: "Organization unit name",
-                getDefaultValue: () => null) {
+                "--OU") {
+                Description = "Organization unit name",
                 Arity = ArgumentArity.ExactlyOne
             };
+            ouOption.Aliases.Add("--ou");
 
             var lOption = new Option<string?>(
-                new[] { "--L", "--l" },
-                description: "Locality name",
-                getDefaultValue: () => null) {
+                "--L") {
+                Description = "Locality name",
                 Arity = ArgumentArity.ExactlyOne
             };
+            lOption.Aliases.Add("--l");
 
             var stOption = new Option<string?>(
-                new[] { "--ST", "--st" },
-                description: "State or province name",
-                getDefaultValue: () => null) {
+                "--ST") {
+                Description = "State or province name",
                 Arity = ArgumentArity.ExactlyOne
             };
+            stOption.Aliases.Add("--st");
 
             var cOption = new Option<string?>(
-                new[] { "--C", "--c" },
-                description: "Country name",
-                getDefaultValue: () => null) {
+                "--C") {
+                Description = "Country name",
                 Arity = ArgumentArity.ExactlyOne
             };
+            cOption.Aliases.Add("--c");
 
-            keySizeOption.SetDefaultValue(2048);
+            createCommand.Arguments.Add(argumentFileInfo);
+            createCommand.Arguments.Add(argumentCn);
+            createCommand.Options.Add(validityOption);
+            createCommand.Options.Add(keySizeOption);
+            createCommand.Options.Add(oOption);
+            createCommand.Options.Add(ouOption);
+            createCommand.Options.Add(lOption);
+            createCommand.Options.Add(stOption);
+            createCommand.Options.Add(cOption);
+            createCommand.Options.Add(passwordOption);
 
-            createCommand.AddArgument(argumentFileInfo);
-            createCommand.AddArgument(argumentCn);
-            createCommand.AddOption(validityOption);
-            createCommand.AddOption(keySizeOption);
-            createCommand.AddOption(oOption);
-            createCommand.AddOption(ouOption);
-            createCommand.AddOption(lOption);
-            createCommand.AddOption(stOption);
-            createCommand.AddOption(cOption);
-            createCommand.AddOption(passwordOption);
-
-            createCommand.SetHandler(invocationContext => {
-                var finalFileName =
-                    invocationContext.ParseResult.GetValueForArgument(argumentFileInfo);
+            createCommand.SetAction((parseResult, cancellationToken) => {
+                var finalFileName = parseResult.GetRequiredValue(argumentFileInfo);
 
                 var fileInfo = new FileInfo(finalFileName);
 
                 var cCertificateBuilderOptions = new CertificateBuilderOptions(
-                    invocationContext.ParseResult.GetValueForArgument(argumentCn)) {
-                    Organization = invocationContext.Value<string>("O"),
-                    OrganizationUnit = invocationContext.Value<string>("OU"),
-                    Locality = invocationContext.Value<string>("L"),
-                    State = invocationContext.Value<string>("ST"),
-                    Country = invocationContext.Value<string>("C"),
-                    DaysBeforeExpiration = invocationContext.Value<int>("validity"),
-                    KeySize = invocationContext.Value<int>("key-size"),
-                    P12Password = invocationContext.Value<string>("password")
+                    parseResult.GetRequiredValue(argumentCn)) {
+                    Organization = parseResult.GetValue(oOption),
+                    OrganizationUnit = parseResult.GetValue(ouOption),
+                    Locality = parseResult.GetValue(lOption),
+                    State = parseResult.GetValue(stOption),
+                    Country = parseResult.GetValue(cOption),
+                    DaysBeforeExpiration = parseResult.GetValue(validityOption),
+                    KeySize = parseResult.GetValue(keySizeOption),
+                    P12Password = parseResult.GetValue(passwordOption)
                 };
 
                 var certificateBuilder = new CertificateBuilder(cCertificateBuilderOptions);
@@ -303,6 +302,8 @@ namespace Fluxzy.Cli.Commands
 
                 fileInfo.Directory?.Create();
                 File.WriteAllBytes(fileInfo.FullName, result);
+
+                return Task.CompletedTask;
             });
 
             return createCommand;
@@ -315,23 +316,23 @@ namespace Fluxzy.Cli.Commands
                 "Get or set the default root CA for the current user. Environment variable FLUXZY_ROOT_CERTIFICATE overrides this setting.");
 
             var argumentFileInfo = new Argument<string?>(
-                "pkcs12-certificate",
-                description: "",
-                parse: argument => argument.Tokens.First().Value)
-            {
-                Arity = ArgumentArity.ZeroOrOne
+                "pkcs12-certificate") {
+                Description = "",
+                Arity = ArgumentArity.ZeroOrOne,
+                CustomParser = argument => argument.Tokens.First().Value
             };
 
-            setDefaultCommand.AddArgument(argumentFileInfo);
+            setDefaultCommand.Arguments.Add(argumentFileInfo);
 
-            setDefaultCommand.SetHandler(async (defaultCertificatePath, console) => {
+            setDefaultCommand.SetAction(async (parseResult, cancellationToken) => {
+                var defaultCertificatePath = parseResult.GetValue(argumentFileInfo);
 
                 if (defaultCertificatePath == null) {
                     // Print default certificate 
                     var certificate = new FluxzySecurity(FluxzySecurity.DefaultCertificatePath, environmentProvider)
                         .BuiltinCertificate;
 
-                    console.WriteLine(certificate.ToString(true));
+                    Console.WriteLine(certificate.ToString(true));
                     return;
                 }
 
@@ -342,7 +343,7 @@ namespace Fluxzy.Cli.Commands
                                                     $"`{certificateFileInfo.FullName}`", certificateFileInfo.FullName);
                 }
 
-                var certificateContent = await File.ReadAllBytesAsync(certificateFileInfo.FullName);
+                var certificateContent = await File.ReadAllBytesAsync(certificateFileInfo.FullName, cancellationToken);
 
                 try
                 {
@@ -359,19 +360,19 @@ namespace Fluxzy.Cli.Commands
                         throw new InvalidOperationException("The provided file is not a valid PKCS#12 certificate");
                     }
                     else {
-                        console.WriteLine(@"Warning: The provided certificate has been added but needs a passphrase. " +
+                        Console.WriteLine(@"Warning: The provided certificate has been added but needs a passphrase. " +
                                           @"Consider passing passphrase through" +
                                           @" FLUXZY_ROOT_CERTIFICATE_PASSWORD environment variable.");
                     }
                 }
 
-                console.WriteLine("The default certificate has been changed.");
+                Console.WriteLine("The default certificate has been changed.");
                 
                 FluxzySecurity.SetDefaultCertificateForUser(
                     certificateContent, environmentProvider,
                     FluxzySecurity.DefaultCertificatePath);
 
-            }, argumentFileInfo, new ConsoleBinder());
+            });
 
             return setDefaultCommand;
         }

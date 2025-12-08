@@ -1,10 +1,7 @@
-// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-r
 
 using System;
 using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.IO;
-using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Cli.Commands;
@@ -20,15 +17,8 @@ namespace Fluxzy.Cli
             var currentEnvironmentProvider = environmentProvider ?? new SystemEnvironmentProvider();
 
             if (currentEnvironmentProvider.GetEnvironmentVariable("FLUXZY_STDOUT_ARGS") == "1") {
-
-                if (outputConsole == null)
-                {
-                    Console.WriteLine(string.Join(" ", args));
-                }
-                else
-                {
-                    outputConsole.WriteLine(string.Join(" ", args));
-                }
+                var outWriter = outputConsole?.Out ?? Console.Out;
+                outWriter.WriteLine(string.Join(" ", args));
             }
 
             var rootCommand =
@@ -47,31 +37,23 @@ namespace Fluxzy.Cli
             rootCommand.Add(packCommandBuilder.Build());
             rootCommand.Add(dissectCommandBuilder.Build());
 
-            var final = new CommandLineBuilder(rootCommand)
-                        .UseVersionOption("-v", "--version")
-                        .UseHelp()
-                        .UseEnvironmentVariableDirective()
-                        .UseParseDirective()
-                        .UseTypoCorrections()
-                        .UseParseErrorReporting()
-                        .CancelOnProcessTermination()
-                        .UseExceptionHandler((e, context) => {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            context.Console.Error.WriteLine(e.Message);
-                            Console.ResetColor();
-                            context.ExitCode = 1;
-                        }, 1)
-                        .Build();
-
             try {
-                var exitCode = outputConsole == null
-                    ? await final.InvokeAsync(args)
-                    : await final.InvokeAsync(args, outputConsole);
+                var parseResult = rootCommand.Parse(args);
+
+                var configuration = new InvocationConfiguration();
+
+                if (outputConsole != null) {
+                    configuration.Output = outputConsole.Out;
+                    configuration.Error = outputConsole.Error;
+                }
+
+                var exitCode = await parseResult.InvokeAsync(configuration, token);
 
                 return exitCode;
             }
             catch (Exception ex) {
-                Console.WriteLine(ex.Message);
+                var errorWriter = outputConsole?.Error ?? Console.Error;
+                errorWriter.WriteLine(ex.Message);
 
                 return 1;
             }

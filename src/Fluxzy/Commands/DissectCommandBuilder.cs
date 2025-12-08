@@ -1,9 +1,8 @@
-// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-r
 
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,19 +20,21 @@ namespace Fluxzy.Cli.Commands
             var command = new Command("dissect",
                 "Read content of a previously captured file or directory.");
 
-            command.AddAlias("dis");
+            command.Aliases.Add("dis");
             
             var archiveReaderArgument = CreateInputFileOrDirectoryArgument(); 
 
-            command.AddCommand(BuildExportPcapCommand());
+            command.Subcommands.Add(BuildExportPcapCommand());
 
-            command.AddOption(CreateExchangeIdsOption());
-            command.AddOption(CreateFormatOption());
-            command.AddOption(CreateOutputFileOption());
-            command.AddOption(CreateUniqueOption());
-            command.AddArgument(archiveReaderArgument);
+            command.Options.Add(CreateExchangeIdsOption());
+            command.Options.Add(CreateFormatOption());
+            command.Options.Add(CreateOutputFileOption());
+            command.Options.Add(CreateUniqueOption());
+            command.Arguments.Add(archiveReaderArgument);
 
-            command.SetHandler(context => Run(context, archiveReaderArgument));
+            command.SetAction(async (parseResult, cancellationToken) => {
+                await Run(parseResult, archiveReaderArgument);
+            });
 
             return command;
         }
@@ -43,28 +44,28 @@ namespace Fluxzy.Cli.Commands
             var exportCommand = new Command("pcap", "Export pcapng files from an archive or dump directory.");
 
             var inputFileOrDirectory = new Argument<string>(
-                "input-file-or-directory",
-                description: "Input file or directory",
-                parse: a => a.Tokens.First().Value)
-            {
-                Arity = ArgumentArity.ExactlyOne
+                "input-file-or-directory") {
+                Description = "Input file or directory",
+                Arity = ArgumentArity.ExactlyOne,
+                CustomParser = a => a.Tokens.First().Value
             };
             
             var outFileOption = new Option<FileInfo>(
-                "output-file",
-                description: "Input file or directory",
-                parseArgument: a => new FileInfo(a.Tokens.First().Value))
-            {
+                "--output-file") {
+                Description = "Output file",
                 Arity = ArgumentArity.ExactlyOne,
-                IsRequired = true,
+                Required = true,
+                CustomParser = a => new FileInfo(a.Tokens.First().Value)
             };
 
-            outFileOption.AddAlias("-o");
+            outFileOption.Aliases.Add("-o");
 
-            exportCommand.AddArgument(inputFileOrDirectory);
-            exportCommand.AddOption(outFileOption);
+            exportCommand.Arguments.Add(inputFileOrDirectory);
+            exportCommand.Options.Add(outFileOption);
 
-            exportCommand.SetHandler((fileOrDirectory, outFile) => {
+            exportCommand.SetAction((parseResult, cancellationToken) => {
+                var fileOrDirectory = parseResult.GetRequiredValue(inputFileOrDirectory);
+                var outFile = parseResult.GetRequiredValue(outFileOption);
 
                 if (File.Exists(fileOrDirectory)) {
                     using var outStream = File.Create(outFile.FullName);
@@ -85,20 +86,22 @@ namespace Fluxzy.Cli.Commands
                 }
 
                 throw new InvalidOperationException($"{fileOrDirectory} is neither a file or a directory");
-            }, inputFileOrDirectory, outFileOption);
+            });
 
             return exportCommand;
         }
 
 
-        private async Task Run(InvocationContext context, Argument<IArchiveReader> archiveReaderArgument)
+        private async Task Run(ParseResult parseResult, Argument<IArchiveReader> archiveReaderArgument)
         {
-            var exchangeIds = context.Value<List<int>?>("id");
-            var format = context.Value<string>("format");
-            var outputFile = context.Value<FileInfo?>("output-file");
-            var mustBeUnique = context.Value<bool>("unique");
+            var stdout = parseResult.InvocationConfiguration?.Output ?? Console.Out;
 
-            var archiveReader = context.ParseResult.GetValueForArgument(archiveReaderArgument);
+            var exchangeIds = parseResult.Value<List<int>?>("id");
+            var format = parseResult.Value<string>("format");
+            var outputFile = parseResult.Value<FileInfo?>("output-file");
+            var mustBeUnique = parseResult.Value<bool>("unique");
+
+            var archiveReader = parseResult.GetRequiredValue(archiveReaderArgument);
 
             var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds?.ToHashSet(), format);
             var flowManager = new DissectionFlowManager(new SequentialFormatter(),
@@ -109,17 +112,16 @@ namespace Fluxzy.Cli.Commands
             Stream? outputFileStream = null;
 
             try {
-                var stdout = outputFile != null ? (outputFileStream = outputFile.Create()) :
-                    (context.Console is OutputConsole outputConsole ?
-                        outputConsole.BinaryStdout : Console.OpenStandardOutput());
+                var stdoutStream = outputFile != null 
+                    ? (outputFileStream = outputFile.Create()) 
+                    : Console.OpenStandardOutput();
 
-                var stdErr = context.Console is OutputConsole outputConsole2 ?
-                    outputConsole2.BinaryStderr : Console.OpenStandardError();
+                var stdErrStream = Console.OpenStandardError();
 
-                var result = await flowManager.Apply(archiveReader, stdout, stdErr, dissectionOptions);
+                var result = await flowManager.Apply(archiveReader, stdoutStream, stdErrStream, dissectionOptions);
 
                 if (!result)
-                    context.ExitCode = 1;
+                    Environment.ExitCode = 1;
             }
             finally {
                 // ReSharper disable once MethodHasAsyncOverload
@@ -130,30 +132,29 @@ namespace Fluxzy.Cli.Commands
         private static Argument<IArchiveReader> CreateInputFileOrDirectoryArgument()
         {
             var argument = new Argument<IArchiveReader>(
-                  "input-file-or-directory",
-                  description: "A fluxzy file or directory to dissect",
-                  parse: t => {
-                      var inputFileOrDirectory = t.Tokens.First().Value;
+                  "input-file-or-directory") {
+                Description = "A fluxzy file or directory to dissect",
+                Arity = ArgumentArity.ExactlyOne,
+                CustomParser = t => {
+                    var inputFileOrDirectory = t.Tokens.First().Value;
 
-                      try {
-                          if (Directory.Exists(inputFileOrDirectory)) {
-                              return new DirectoryArchiveReader(inputFileOrDirectory);
-                          }
+                    try {
+                        if (Directory.Exists(inputFileOrDirectory)) {
+                            return new DirectoryArchiveReader(inputFileOrDirectory);
+                        }
 
-                          if (File.Exists(inputFileOrDirectory)) {
-                              return new FluxzyArchiveReader(inputFileOrDirectory);
-                          }
+                        if (File.Exists(inputFileOrDirectory)) {
+                            return new FluxzyArchiveReader(inputFileOrDirectory);
+                        }
 
-                          t.ErrorMessage = $"Input file or directory \"{inputFileOrDirectory}\" does not exists";
-                      }
-                      catch (Exception ex) {
-                          t.ErrorMessage = $"Cannot read {inputFileOrDirectory} : {ex.Message}";
-                      }
+                        t.AddError($"Input file or directory \"{inputFileOrDirectory}\" does not exists");
+                    }
+                    catch (Exception ex) {
+                        t.AddError($"Cannot read {inputFileOrDirectory} : {ex.Message}");
+                    }
 
-                      return null!;
-                  })
-            {
-                Arity = ArgumentArity.ExactlyOne
+                    return null!;
+                }
             };
 
             return argument;
@@ -163,8 +164,10 @@ namespace Fluxzy.Cli.Commands
         private static Option<List<int>?> CreateExchangeIdsOption()
         {
             var option = new Option<List<int>?>(
-                "--id",
-                result => {
+                "--id") {
+                Description = "Exchange ids, comma separated exchange list",
+                Arity = ArgumentArity.ZeroOrMore,
+                CustomParser = result => {
                     var listResult = new List<int>();
 
                     foreach (var token in result.Tokens) {
@@ -175,14 +178,14 @@ namespace Fluxzy.Cli.Commands
                                              .Split(new[] { ';', ',' }, StringSplitOptions.None);
 
                         if (!rawStringArray.Any()) {
-                            result.ErrorMessage = $"Invalid exchange id {token.Value}, cannot be empty";
+                            result.AddError($"Invalid exchange id {token.Value}, cannot be empty");
 
                             return null!;
                         }
 
                         foreach (var rawString in rawStringArray) {
                             if (!int.TryParse(rawString.Trim(), out var value)) {
-                                result.ErrorMessage = $"Invalid exchange id in {token.Value}. Value {rawString}";
+                                result.AddError($"Invalid exchange id in {token.Value}. Value {rawString}");
 
                                 return null!;
                             }
@@ -192,13 +195,10 @@ namespace Fluxzy.Cli.Commands
                     }
 
                     return listResult;
-                },
-                description: "Exchange ids, comma separated exchange list"
-            );
+                }
+            };
 
-            option.AddAlias("-i");
-            option.Arity = ArgumentArity.ZeroOrMore;
-            option.SetDefaultValue(null);
+            option.Aliases.Add("-i");
 
             return option;
         }
@@ -208,16 +208,16 @@ namespace Fluxzy.Cli.Commands
             var defaultFormatValue = "{id} - {url} - {status}";
 
             var option = new Option<string>(
-                "--format",
-                description: "Specify how to format each matching exchanges to the outputted result." +
+                "--format") {
+                Description = "Specify how to format each matching exchanges to the outputted result." +
                              " The default value is \"{id} - {url} - {status}\"\r\n" +
                              $"Possible format values are : {string.Join(", ", FormatterRegistration.Indicators)}.\r\n" +
                              "Use this option to extract specific part of an exchange. Example: \"{response-body}\" for response body content, ...",
-                getDefaultValue: () => defaultFormatValue) {
-                Arity = ArgumentArity.ZeroOrOne
+                Arity = ArgumentArity.ZeroOrOne,
+                DefaultValueFactory = _ => defaultFormatValue
             };
 
-            option.AddAlias("-f");
+            option.Aliases.Add("-f");
 
             return option;
         }
@@ -225,19 +225,18 @@ namespace Fluxzy.Cli.Commands
         private static Option<FileInfo?> CreateOutputFileOption()
         {
             var option = new Option<FileInfo?>(
-                "--output-file",
-                parseArgument: result => {
+                "--output-file") {
+                Description = "Output the formatted result to a file instead of stdout",
+                Arity = ArgumentArity.ZeroOrOne,
+                CustomParser = result => {
                     if (!result.Tokens.Any())
                         return null;
 
                     return new FileInfo(result.Tokens.First().Value);
-                },
-                description: "Output the formatted result to a file instead of stdout") {
-                Arity = ArgumentArity.ZeroOrOne
+                }
             };
 
-            option.AddAlias("-o");
-            option.SetDefaultValue(null);
+            option.Aliases.Add("-o");
 
             return option;
         }
@@ -245,14 +244,13 @@ namespace Fluxzy.Cli.Commands
         private static Option<bool> CreateUniqueOption()
         {
             var option = new Option<bool>(
-                       "--unique",
-                      description: "Result must be unique or exit error",
-                      getDefaultValue: () => false)
-            {
-                Arity = ArgumentArity.ZeroOrOne
+                "--unique") {
+                Description = "Result must be unique or exit error",
+                Arity = ArgumentArity.ZeroOrOne,
+                DefaultValueFactory = _ => false
             };
 
-            option.AddAlias("-u");
+            option.Aliases.Add("-u");
 
             return option;
         }

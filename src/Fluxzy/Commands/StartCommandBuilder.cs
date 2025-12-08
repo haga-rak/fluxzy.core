@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -61,76 +59,79 @@ namespace Fluxzy.Cli.Commands
         {
             var command = new Command("start", "Start a capturing session");
 
-            command.AddOption(StartCommandOptions.CreateListenLocalhost());
-            command.AddOption(StartCommandOptions.CreateListToAllInterfaces());
-            command.AddOption(StartCommandOptions.CreateListenInterfaceOption());
-            command.AddOption(StartCommandOptions.CreateOutputFileOption());
-            command.AddOption(StartCommandOptions.CreateDumpToFolderOption());
-            command.AddOption(StartCommandOptions.CreateRuleFileOption());
-            command.AddOption(StartCommandOptions.CreateRuleStdinOption());
-            command.AddOption(StartCommandOptions.CreateSystemProxyOption());
-            command.AddOption(StartCommandOptions.CreateSkipRemoteCertificateValidation());
-            command.AddOption(StartCommandOptions.CreateSkipSslOption());
-            command.AddOption(StartCommandOptions.CreateBouncyCastleOption());
-            command.AddOption(StartCommandOptions.CreateTcpDumpOption());
-            command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
-            command.AddOption(StartCommandOptions.CreateEnableTracingOption());
-            command.AddOption(StartCommandOptions.CreateSkipCertInstallOption());
-            command.AddOption(StartCommandOptions.CreateNoCertCacheOption());
-            command.AddOption(StartCommandOptions.CreateCertificateFileOption());
-            command.AddOption(StartCommandOptions.CreateCertificatePasswordOption());
-            command.AddOption(StartCommandOptions.CreateUaParsingOption());
-            command.AddOption(StartCommandOptions.CreateUser502Option());
-            command.AddOption(StartCommandOptions.CreateReverseProxyMode());
-            command.AddOption(StartCommandOptions.CreateReverseProxyModePortOption());
-            command.AddOption(StartCommandOptions.CreateProxyAuthenticationOption());
-            command.AddOption(StartCommandOptions.CreateProxyBuffer());
-            command.AddOption(StartCommandOptions.CreateMaxConnectionPerHost());
-            command.AddOption(StartCommandOptions.CreateCounterOption());
+            command.Options.Add(StartCommandOptions.CreateListenLocalhost());
+            command.Options.Add(StartCommandOptions.CreateListToAllInterfaces());
+            command.Options.Add(StartCommandOptions.CreateListenInterfaceOption());
+            command.Options.Add(StartCommandOptions.CreateOutputFileOption());
+            command.Options.Add(StartCommandOptions.CreateDumpToFolderOption());
+            command.Options.Add(StartCommandOptions.CreateRuleFileOption());
+            command.Options.Add(StartCommandOptions.CreateRuleStdinOption());
+            command.Options.Add(StartCommandOptions.CreateSystemProxyOption());
+            command.Options.Add(StartCommandOptions.CreateSkipRemoteCertificateValidation());
+            command.Options.Add(StartCommandOptions.CreateSkipSslOption());
+            command.Options.Add(StartCommandOptions.CreateBouncyCastleOption());
+            command.Options.Add(StartCommandOptions.CreateTcpDumpOption());
+            command.Options.Add(StartCommandOptions.CreateOutOfProcCaptureOption());
+            command.Options.Add(StartCommandOptions.CreateEnableTracingOption());
+            command.Options.Add(StartCommandOptions.CreateSkipCertInstallOption());
+            command.Options.Add(StartCommandOptions.CreateNoCertCacheOption());
+            command.Options.Add(StartCommandOptions.CreateCertificateFileOption());
+            command.Options.Add(StartCommandOptions.CreateCertificatePasswordOption());
+            command.Options.Add(StartCommandOptions.CreateUaParsingOption());
+            command.Options.Add(StartCommandOptions.CreateUser502Option());
+            command.Options.Add(StartCommandOptions.CreateReverseProxyMode());
+            command.Options.Add(StartCommandOptions.CreateReverseProxyModePortOption());
+            command.Options.Add(StartCommandOptions.CreateProxyAuthenticationOption());
+            command.Options.Add(StartCommandOptions.CreateProxyBuffer());
+            command.Options.Add(StartCommandOptions.CreateMaxConnectionPerHost());
+            command.Options.Add(StartCommandOptions.CreateCounterOption());
 
-            command.SetHandler(context => Run(context, cancellationToken));
+            command.SetAction(async (parseResult, invokeCancellationToken) => {
+                await Run(parseResult, cancellationToken, invokeCancellationToken);
+            });
 
             return command;
         }
 
-        public async Task Run(InvocationContext invocationContext, CancellationToken processToken)
+        public async Task Run(ParseResult parseResult, CancellationToken processToken, CancellationToken invokeCancellationToken)
         {
+            var stdout = parseResult.InvocationConfiguration?.Output ?? Console.Out;
+            var stderr = parseResult.InvocationConfiguration?.Error ?? Console.Error;
+
             var proxyStartUpSetting = FluxzySetting.CreateDefault();
 
-            var listenInterfaces = invocationContext.Value<List<IPEndPoint>>("listen-interface");
-            var listenLocalHost = invocationContext.Value<bool>("llo");
-            var listenAnyInterfaces = invocationContext.Value<bool>("lany");
-            var outFileInfo = invocationContext.Value<FileInfo?>("output-file");
-            var dumpDirectory = invocationContext.Value<DirectoryInfo?>("dump-folder");
-            var registerAsSystemProxy = invocationContext.Value<bool>("system-proxy");
-            var skipRemoteCertificateValidation = invocationContext.Value<bool>("insecure");
-            var skipDecryption = invocationContext.Value<bool>("skip-ssl-decryption");
-            var includeTcpDump = invocationContext.Value<bool>("include-dump");
-            var installCert = invocationContext.Value<bool>("install-cert");
-            var noCertCache = invocationContext.Value<bool>("no-cert-cache");
-            var certFile = invocationContext.Value<FileInfo?>("cert-file");
-            var certPassword = invocationContext.Value<string?>("cert-password");
-            var ruleFile = invocationContext.Value<FileInfo?>("rule-file");
-            var ruleStdin = invocationContext.Value<bool>("rule-stdin");
-            var parseUserAgent = invocationContext.Value<bool>("parse-ua");
-            var outOfProcCapture = invocationContext.Value<bool>("external-capture");
-            var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
-            var requestBuffer = invocationContext.Value<int?>("request-buffer");
-            var maxConnectionPerHost = invocationContext.Value<int>("max-upstream-connection");
-            var count = invocationContext.Value<int?>("max-capture-count");
-            var trace = invocationContext.Value<bool>("trace");
-            var use502 = invocationContext.Value<bool>("use-502");
-            var proxyMode = invocationContext.Value<ProxyMode>("mode");
-            var modeReversePort = invocationContext.Value<int?>("mode-reverse-port");
-            var proxyBasicAuthCredential = invocationContext.Value<NetworkCredential?>("proxy-auth-basic");
+            var listenInterfaces = parseResult.Value<List<IPEndPoint>>("listen-interface");
+            var listenLocalHost = parseResult.Value<bool>("llo");
+            var listenAnyInterfaces = parseResult.Value<bool>("lany");
+            var outFileInfo = parseResult.Value<FileInfo?>("output-file");
+            var dumpDirectory = parseResult.Value<DirectoryInfo?>("dump-folder");
+            var registerAsSystemProxy = parseResult.Value<bool>("system-proxy");
+            var skipRemoteCertificateValidation = parseResult.Value<bool>("insecure");
+            var skipDecryption = parseResult.Value<bool>("skip-ssl-decryption");
+            var includeTcpDump = parseResult.Value<bool>("include-dump");
+            var installCert = parseResult.Value<bool>("install-cert");
+            var noCertCache = parseResult.Value<bool>("no-cert-cache");
+            var certFile = parseResult.Value<FileInfo?>("cert-file");
+            var certPassword = parseResult.Value<string?>("cert-password");
+            var ruleFile = parseResult.Value<FileInfo?>("rule-file");
+            var ruleStdin = parseResult.Value<bool>("rule-stdin");
+            var parseUserAgent = parseResult.Value<bool>("parse-ua");
+            var outOfProcCapture = parseResult.Value<bool>("external-capture");
+            var bouncyCastle = parseResult.Value<bool>("bouncy-castle");
+            var requestBuffer = parseResult.Value<int?>("request-buffer");
+            var maxConnectionPerHost = parseResult.Value<int>("max-upstream-connection");
+            var count = parseResult.Value<int?>("max-capture-count");
+            var trace = parseResult.Value<bool>("trace");
+            var use502 = parseResult.Value<bool>("use-502");
+            var proxyMode = parseResult.Value<ProxyMode>("mode");
+            var modeReversePort = parseResult.Value<int?>("mode-reverse-port");
+            var proxyBasicAuthCredential = parseResult.Value<NetworkCredential?>("proxy-auth-basic");
 
             if (trace) {
                 D.EnableTracing = true;
             }
 
             FluxzySharedSetting.Use528 = !use502;
-
-            var invokeCancellationToken = invocationContext.GetCancellationToken();
 
             using var linkedTokenSource =
                 processToken == default
@@ -219,17 +220,15 @@ namespace Fluxzy.Cli.Commands
                     proxyStartUpSetting.SetCaCertificate(cert);
                 }
                 catch (Exception ex) {
-                    invocationContext.BindingContext.Console.WriteLine($"Error while reading cert-file : {ex.Message}");
-                    invocationContext.ExitCode = 1;
+                    await stderr.WriteLineAsync($"Error while reading cert-file : {ex.Message}");
+                    Environment.ExitCode = 1;
 
                     return;
                 }
             }
 
             var ruleContent = ruleStdin
-                ? invocationContext.BindingContext.Console is OutputConsole oc
-                    ? oc.StandardInputContent
-                    : await Console.In.ReadToEndAsync(cancellationToken)
+                ? await Console.In.ReadToEndAsync(cancellationToken)
                 : null;
 
             if (ruleContent == null && ruleFile == null) {
@@ -261,8 +260,8 @@ namespace Fluxzy.Cli.Commands
                     }
                 }
                 catch (Exception ex) {
-                    invocationContext.BindingContext.Console.WriteLine($"Error while reading rule file : {ex.Message}");
-                    invocationContext.ExitCode = 1;
+                    await stderr.WriteLineAsync($"Error while reading rule file : {ex.Message}");
+                    Environment.ExitCode = 1;
 
                     return;
                 }
@@ -285,8 +284,8 @@ namespace Fluxzy.Cli.Commands
 
             await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(), a => new OutOfProcessCaptureContext(a));
 
-            if (!ValidateSetting(invocationContext, proxyStartUpSetting)) {
-                invocationContext.ExitCode = 1;
+            if (!ValidateSetting(stderr, proxyStartUpSetting)) {
+                Environment.ExitCode = 1;
 
                 return;
             }
@@ -299,17 +298,16 @@ namespace Fluxzy.Cli.Commands
                                  externalCancellationSource: linkedTokenSource)) {
                     var endPoints = proxy.Run();
 
-                    invocationContext.BindingContext.Console
-                                     .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
+                    await stdout.WriteLineAsync($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
 
                     if (registerAsSystemProxy) {
                         var setting = await systemProxyManager.Register(endPoints, proxyStartUpSetting);
 
-                        invocationContext.Console.Out.WriteLine(
+                        await stdout.WriteLineAsync(
                             $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
                     }
 
-                    invocationContext.Console.Out.WriteLine("Ready to process connections, Ctrl+C to exit.");
+                    await stdout.WriteLineAsync("Ready to process connections, Ctrl+C to exit.");
 
                     try {
                         await Task.Delay(-1, cancellationToken);
@@ -322,20 +320,20 @@ namespace Fluxzy.Cli.Commands
                                 await systemProxyManager.UnRegister();
                             }
                             catch (Exception ex) {
-                                invocationContext.Console.Error.WriteLine(
+                                await stderr.WriteLineAsync(
                                     $"Failed to unregister as system proxy : {ex.Message}");
                             }
 
-                            invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
+                            await stdout.WriteLineAsync("Unregistered as system proxy");
                         }
                     }
                 }
             }
 
-            invocationContext.Console.Out.WriteLine("Proxy ended, gracefully");
+            await stdout.WriteLineAsync("Proxy ended, gracefully");
 
             if (outFileInfo != null) {
-                invocationContext.Console.WriteLine($"Packing output to {outFileInfo.Name} ...");
+                await stdout.WriteLineAsync($"Packing output to {outFileInfo.Name} ...");
 
                 outFileInfo.Directory?.Create();
 
@@ -343,17 +341,17 @@ namespace Fluxzy.Cli.Commands
                     new DirectoryInfo(proxyStartUpSetting.ArchivingPolicy.Directory!),
                     outFileInfo.FullName);
 
-                invocationContext.Console.WriteLine("Packing output done.");
+                await stdout.WriteLineAsync("Packing output done.");
             }
         }
 
-        private static bool ValidateSetting(InvocationContext invocationContext, FluxzySetting proxyStartUpSetting)
+        private static bool ValidateSetting(TextWriter stderr, FluxzySetting proxyStartUpSetting)
         {
             var validationResults = AggregateFluxzySettingAnalyzer.Instance.Validate(proxyStartUpSetting).ToList();
 
             if (validationResults.Any()) {
                 foreach (var validationResult in validationResults) {
-                    invocationContext.Console.WriteValidationResult(validationResult);
+                    stderr.WriteValidationResult(validationResult);
                 }
 
                 if (validationResults.Any(v => v.Level == ValidationRuleLevel.Fatal)) {

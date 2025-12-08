@@ -1,15 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
-using System.CommandLine;
-using System.CommandLine.IO;
 using System.IO;
 
 namespace Fluxzy.Cli.Commands
 {
-    public class OutputConsole : IConsole
+    public class OutputConsole
     {
-        public OutputConsole(IStandardStreamWriter @out, IStandardStreamWriter error, string? standardInputContent)
+        public OutputConsole(TextWriter @out, TextWriter error, string? standardInputContent)
         {
             Out = @out;
             Error = error;
@@ -18,15 +15,9 @@ namespace Fluxzy.Cli.Commands
 
         public string? StandardInputContent { get; }
 
-        public IStandardStreamWriter Out { get; }
+        public TextWriter Out { get; }
 
-        public bool IsOutputRedirected => false;
-
-        public IStandardStreamWriter Error { get; }
-
-        public bool IsErrorRedirected => false;
-
-        public bool IsInputRedirected => false;
+        public TextWriter Error { get; }
 
         public MemoryStream BinaryStdout { get; } = new();
 
@@ -34,16 +25,7 @@ namespace Fluxzy.Cli.Commands
 
         public static OutputConsole CreateEmpty()
         {
-            return new OutputConsole(EmptyWriter, EmptyWriter, null);
-        }
-
-        private static IStandardStreamWriter EmptyWriter { get; } = new NullStreamWriter();
-        
-        class NullStreamWriter : IStandardStreamWriter
-        {
-            public void Write(string? value)
-            {
-            }
+            return new OutputConsole(TextWriter.Null, TextWriter.Null, null);
         }
     }
 }

@@ -1,18 +1,17 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.CommandLine;
-using System.CommandLine.IO;
+using System.IO;
 
 namespace Fluxzy.Cli.Commands
 {
     public static class ConsoleHelper
     {
-        public static void WriteValidationResult(this IConsole console, ValidationResult validationResult)
+        public static void WriteValidationResult(this TextWriter writer, ValidationResult validationResult)
         {
             var consoleColor = Console.ForegroundColor;
 
-            if (console is SystemConsole) {
+            if (writer == Console.Out || writer == Console.Error) {
                 if (validationResult.Level == ValidationRuleLevel.Information) {
                     Console.ForegroundColor = ConsoleColor.Cyan;
                 }
@@ -25,11 +24,11 @@ namespace Fluxzy.Cli.Commands
             }
 
             try {
-                console.WriteLine(
+                writer.WriteLine(
                     $@"[{validationResult.Level} {validationResult.SenderName}] {validationResult.Message}");
             }
             finally {
-                if (console is SystemConsole) {
+                if (writer == Console.Out || writer == Console.Error) {
                     Console.ForegroundColor = consoleColor;
                 }
             }

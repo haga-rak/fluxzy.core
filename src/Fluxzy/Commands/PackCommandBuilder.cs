@@ -4,6 +4,7 @@ using System;
 using System.CommandLine;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Fluxzy.Cli.Commands
 {
@@ -17,11 +18,15 @@ namespace Fluxzy.Cli.Commands
             var outputFileArgument = BuildOutputFileArgument();
             var outputFileFormatOption = BuildOutputFileFormatOption();
 
-            command.Add(inputDirectoryArgument);
-            command.Add(outputFileArgument);
-            command.Add(outputFileFormatOption);
+            command.Arguments.Add(inputDirectoryArgument);
+            command.Arguments.Add(outputFileArgument);
+            command.Options.Add(outputFileFormatOption);
 
-            command.SetHandler(async (directory, outputFile, format) => {
+            command.SetAction(async (parseResult, cancellationToken) => {
+                var directory = parseResult.GetRequiredValue(inputDirectoryArgument);
+                var outputFile = parseResult.GetRequiredValue(outputFileArgument);
+                var format = parseResult.GetValue(outputFileFormatOption);
+
                 if (!directory.Exists)
                     throw new InvalidOperationException($"Directory does not exists {directory.FullName}");
 
@@ -34,7 +39,7 @@ namespace Fluxzy.Cli.Commands
                 using var outputFileStream = outputFile.Create();
 
                 await packager.Pack(directory.FullName, outputFileStream, null);
-            }, inputDirectoryArgument, outputFileArgument, outputFileFormatOption);
+            });
 
             return command;
         }
@@ -42,10 +47,10 @@ namespace Fluxzy.Cli.Commands
         private static Argument<DirectoryInfo> BuildInputDirectoryOption()
         {
             var argument = new Argument<DirectoryInfo>(
-                "input-directory",
-                description: "a fluxzy folder result to export",
-                parse: t => new DirectoryInfo(t.Tokens.First().Value)) {
-                Arity = ArgumentArity.ExactlyOne
+                "input-directory") {
+                Description = "a fluxzy folder result to export",
+                Arity = ArgumentArity.ExactlyOne,
+                CustomParser = t => new DirectoryInfo(t.Tokens.First().Value)
             };
 
             return argument;
@@ -54,10 +59,10 @@ namespace Fluxzy.Cli.Commands
         private static Argument<FileInfo> BuildOutputFileArgument()
         {
             var argument = new Argument<FileInfo>(
-                "output-file",
-                description: "a fluxzy folder result to export",
-                parse: t => new FileInfo(t.Tokens.First().Value)) {
-                Arity = ArgumentArity.ExactlyOne
+                "output-file") {
+                Description = "a fluxzy folder result to export",
+                Arity = ArgumentArity.ExactlyOne,
+                CustomParser = t => new FileInfo(t.Tokens.First().Value)
             };
 
             return argument;
@@ -66,13 +71,12 @@ namespace Fluxzy.Cli.Commands
         private static Option<string> BuildOutputFileFormatOption()
         {
             var option = new Option<string>(
-                "f",
-                description: "The output file format among fluxzy, har and saz",
-                getDefaultValue: () => null!) {
+                "-f") {
+                Description = "The output file format among fluxzy, har and saz",
                 Arity = ArgumentArity.ExactlyOne
             };
 
-            option.AddAlias("--format");
+            option.Aliases.Add("--format");
 
             return option;
         }

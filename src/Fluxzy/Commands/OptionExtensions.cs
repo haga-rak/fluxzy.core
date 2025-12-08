@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Linq;
 
 namespace Fluxzy.Cli.Commands
@@ -14,13 +13,11 @@ namespace Fluxzy.Cli.Commands
             return options.OfType<Option<T>>().First(t => t.Name == name);
         }
 
-        public static T Value<T>(this InvocationContext context, string name)
+        public static T Value<T>(this ParseResult parseResult, string name)
         {
-            var command = context.ParseResult.CommandResult.Command;
+            parseResult.
 
-            var option = command.Options.Get<T>(name);
-
-            return (T) context.ParseResult.GetValueForOption(option)!;
+            return parseResult.CommandResult.GetRequiredValue<T>(name);
         }
     }
 }
