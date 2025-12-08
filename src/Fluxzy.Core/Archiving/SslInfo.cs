@@ -4,6 +4,8 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients.Ssl.BouncyCastle;
+using Fluxzy.Extensions;
+#pragma warning disable SYSLIB0058
 
 namespace Fluxzy
 {
@@ -13,11 +15,13 @@ namespace Fluxzy
     public class SslInfo
     {
         /// <summary>
-        ///     Building  from OsDefault
+        ///     Building  from Schannel
         /// </summary>
         /// <param name="sslStream"></param>
-        public SslInfo(SslStream sslStream)
+        /// <param name="dumpCertificate">export full certificate in ssl info</param>
+        public SslInfo(SslStream sslStream, bool dumpCertificate)
         {
+            NegotiatedCipherSuite = sslStream.NegotiatedCipherSuite;
             CipherAlgorithm = sslStream.CipherAlgorithm;
             HashAlgorithm = sslStream.HashAlgorithm;
             KeyExchangeAlgorithm = sslStream.KeyExchangeAlgorithm.ToString();
@@ -27,13 +31,20 @@ namespace Fluxzy
             LocalCertificateIssuer = sslStream.LocalCertificate?.Issuer;
             LocalCertificateSubject = sslStream.LocalCertificate?.Subject;
             SslProtocol = sslStream.SslProtocol;
+
+            if (dumpCertificate)
+            {
+                RemoteCertificatePem = sslStream.RemoteCertificate?.ToPem();
+                LocalCertificatePem = sslStream.RemoteCertificate?.ToPem();
+            }
         }
 
         /// <summary>
         ///     Building from BouncyCastle
         /// </summary>
         /// <param name="clientProtocol"></param>
-        internal SslInfo(FluxzyClientProtocol clientProtocol)
+        /// <param name="dumpCertificate"></param>
+        internal SslInfo(FluxzyClientProtocol clientProtocol, bool dumpCertificate)
         {
 //#if NET6_0
 //            CipherAlgorithm = ((System.Net.Security.TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite).ToString(); 
@@ -46,12 +57,23 @@ namespace Fluxzy
                     out var localSubject, out var localIssuer)) {
                 LocalCertificateIssuer = localIssuer;
                 LocalCertificateSubject = localSubject;
+
+                if (dumpCertificate) {
+                    LocalCertificatePem = clientProtocol.SessionParameters.LocalCertificate
+                                                        .ToPem();
+                }
+
             }
 
             if (BcCertificateHelper.ReadInfo(clientProtocol.SessionParameters.PeerCertificate,
                     out var remoteSubject, out var remoteIssuer)) {
                 RemoteCertificateIssuer = remoteIssuer;
                 RemoteCertificateSubject = remoteSubject;
+
+                if (dumpCertificate) {
+                    RemoteCertificatePem = clientProtocol.SessionParameters.PeerCertificate
+                                                        .ToPem();
+                }
             }
 
             KeyExchangeAlgorithm = string.Empty;
@@ -61,7 +83,9 @@ namespace Fluxzy
         public SslInfo(
             SslProtocols sslProtocol, string? remoteCertificateIssuer, string? remoteCertificateSubject,
             string? localCertificateSubject, string? localCertificateIssuer, string negotiatedApplicationProtocol,
-            string keyExchangeAlgorithm, HashAlgorithmType hashAlgorithm, CipherAlgorithmType cipherAlgorithm)
+            string keyExchangeAlgorithm, HashAlgorithmType hashAlgorithm, 
+            CipherAlgorithmType cipherAlgorithm, TlsCipherSuite negotiatedCipherSuite,
+            string ? localCertificatePem, string ? remoteCertificatePem)
         {
             SslProtocol = sslProtocol;
             RemoteCertificateIssuer = remoteCertificateIssuer;
@@ -72,6 +96,9 @@ namespace Fluxzy
             KeyExchangeAlgorithm = keyExchangeAlgorithm;
             HashAlgorithm = hashAlgorithm;
             CipherAlgorithm = cipherAlgorithm;
+            NegotiatedCipherSuite = negotiatedCipherSuite;
+            LocalCertificatePem = localCertificatePem;
+            RemoteCertificatePem = remoteCertificatePem;
         }
 
         public SslProtocols SslProtocol { get; }
@@ -95,5 +122,11 @@ namespace Fluxzy
         public byte[]? RemoteCertificate { get; set; }
 
         public byte[]? LocalCertificate { get; set; }
+
+        public TlsCipherSuite NegotiatedCipherSuite { get;  }
+
+        public string? LocalCertificatePem { get;  }
+
+        public string? RemoteCertificatePem { get;  }
     }
 }

@@ -214,6 +214,13 @@ namespace Fluxzy
         [JsonInclude]
         public bool ServeH2 { get; internal set; }
 
+        /// <summary>
+        ///     When set to true, the server certificate will be exported as PEM in the SSL connection information.
+        ///     This is useful for diagnostics or auditing purposes.
+        /// </summary>
+        [JsonInclude]
+        public bool ExportCertificateInSslInfo { get; internal set; }
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption) {

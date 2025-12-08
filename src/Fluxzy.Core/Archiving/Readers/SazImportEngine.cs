@@ -155,7 +155,7 @@ namespace Fluxzy.Readers
                         "HTTP/1.1",
                         SazConnectBodyUtility.GetKeyExchange(responseBodyString) ?? string.Empty,
                         HashAlgorithmType.Sha384,
-                        CipherAlgorithmType.Aes256
+                        CipherAlgorithmType.Aes256, default, default, default
                     );
                     
                     var connectConnectionInfo = new ConnectionInfo(

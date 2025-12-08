@@ -503,5 +503,17 @@ namespace Fluxzy
             ServeH2 = value;
             return this;
         }
+
+        /// <summary>
+        ///     When set to true, the server certificate will be exported as PEM in the SSL connection information.
+        ///     This is useful for diagnostics or auditing purposes.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetExportCertificateInSslInfo(bool value)
+        {
+            ExportCertificateInSslInfo = value;
+            return this;
+        }
     }
 }
