@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -23,8 +24,12 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             var crypto = new FluxzyCrypto();
 
+            var skipRemoteCertificateValidation = builderOptions.ContextSkipRemoteCertificateValidation;
+
             var tlsAuthentication = 
-                new FluxzyTlsAuthentication(crypto, builderOptions.GetBouncyCastleClientCertificateInfo());
+                new FluxzyTlsAuthentication(crypto, 
+                    builderOptions.GetBouncyCastleClientCertificateInfo(),
+                    builderOptions.TargetHost, skipRemoteCertificateValidation);
 
 
             var fingerPrintEnforcer = new FingerPrintTlsExtensionsEnforcer();

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
+using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules;
 using Fluxzy.Writers;
@@ -26,6 +27,8 @@ namespace Fluxzy.Core
             Exchange exchange, ITimingProvider timingProvider)
         {
             // Filling client error
+
+            var extraHeaders = new StringBuilder();
 
             if (exchange.Metrics.ResponseBodyEnd == default) {
                 exchange.Metrics.ResponseBodyEnd = timingProvider.Instant();
@@ -95,7 +98,12 @@ namespace Fluxzy.Core
             }
 
             if (!exchange.ClientErrors.Any()) {
-                exchange.ClientErrors.Add(new ClientError(0, "A generic error has occured") {
+
+                extraHeaders.Append($"x-fluxzy-error-code: 0\r\n");
+                extraHeaders.Append($"x-fluxzy-error-message: {ExceptionUtils.SanitizeHeaderValue(ex.Message)}\r\n");
+                
+
+                exchange.ClientErrors.Add(new ClientError(0, ex.Message) {
                     ExceptionMessage = ex.Message
                 });
             }
@@ -127,6 +135,12 @@ namespace Fluxzy.Core
                     var header = string.Format(ConnectionErrorConstants.Generic502,
                         messageBinary.Length);
 
+                    if (extraHeaders.Length > 0) {
+                        header = header.Insert(
+                            header.IndexOf("\r\n\r\n", StringComparison.Ordinal),
+                            extraHeaders.ToString());
+                    }
+
                     exchange.Response.Header = new ResponseHeader(
                         header.AsMemory(),
                         exchange.Authority.Secure, true);
@@ -144,6 +158,13 @@ namespace Fluxzy.Core
                         exchange.Authority,
                         exchange.ClientErrors,
                         ex);
+
+                    if (extraHeaders.Length > 0)
+                    {
+                        header = header.Insert(
+                            header.IndexOf("\r\n\r\n", StringComparison.Ordinal),
+                            extraHeaders.ToString());
+                    }
 
                     exchange.Response.Header = new ResponseHeader(
                         header.AsMemory(),

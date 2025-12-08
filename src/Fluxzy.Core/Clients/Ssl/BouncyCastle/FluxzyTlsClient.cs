@@ -46,7 +46,6 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         private readonly List<ServerName> _serverNames;
         private readonly IList<ProtocolName> _protocolNames;
 
-
     public FluxzyTlsClient(
             SslConnectionBuilderOptions builderOptions,
             TlsAuthentication tlsAuthentication,
