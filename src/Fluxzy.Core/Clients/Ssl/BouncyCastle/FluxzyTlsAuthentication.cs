@@ -75,20 +75,15 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
         {
             // Check Subject Alternative Names first
             var sanExtension = cert.GetSubjectAlternativeNames();
+
             if (sanExtension != null)
             {
                 foreach (var san in sanExtension)
                 {
-                    var entry = (IList)san;
-                    int type = (int)entry[0];
-
-                    // Type 2 = DNS name
-                    if (type == 2)
-                    {
-                        string dnsName = (string)entry[1];
-                        if (MatchesHostname(dnsName, hostname))
-                            return true;
-                    }
+                    var entry = san;
+                    string dnsName = (string) entry[1];
+                    if (MatchesHostname(dnsName, hostname))
+                        return true;
                 }
             }
 

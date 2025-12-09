@@ -52,5 +52,27 @@ namespace Fluxzy.Tests.Cases
 
             Assert.Equal(528, (int) response.StatusCode);
         }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Validate_With_Ip_Address(bool useBouncyCastle)
+        {
+            var setting = FluxzySetting.CreateLocalRandomPort();
+
+            setting.UseBouncyCastle = useBouncyCastle;
+
+            await using var proxy = new Proxy(setting);
+
+            var endPoints = proxy.Run();
+
+            var httpClient = HttpClientUtility.CreateHttpClient(endPoints, setting);
+
+            var response = await httpClient.GetAsync("https://1.1.1.1");
+
+             _ = await response.Content.ReadAsStringAsync();
+
+            Assert.NotEqual(528, (int) response.StatusCode);
+        }
     }
 }
