@@ -11,30 +11,43 @@ namespace Fluxzy.Tests.Cli
     public class WithRuleInjectHtmlTag : WithRuleOptionBase
     {
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task Validate_Inject_Flat_Text(bool useCompression)
+        [CombinatorialData]
+        public async Task Validate_Inject_Flat_Text(
+            [CombinatorialValues(true, false)]
+            bool useCompression,
+            [CombinatorialValues(true, false)]
+            bool useHttp11
+            )
         {
+            var testUrl = $"{TestConstants.TestDomain}";
+            
+            var action = useHttp11 ? "ForceHttp11Action" : "NoOpAction";
+
             // Arrange
-            var yamlContent = """
-                               rules:
-                               - filter:
-                                   typeKind: anyFilter
-                                 action :
-                                   typeKind: InjectHtmlTagAction
-                                   tag: head
-                                   htmlContent: '<style>body { background-color: red !important; }</style>'
-                               """;
+            var yamlContent = $$$"""
+                                 rules:
+                                 - filter:
+                                     typeKind: anyFilter
+                                   actions :
+                                     - typeKind: InjectHtmlTagAction
+                                       tag: head
+                                       htmlContent: '<style>body { background-color: red !important; }</style>'
+                                     - typeKind: {{{action}}}
+                                 """;
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, TestConstants.TestDomainPage);
+            for (int i = 0; i < 2; i++) {
 
-            // Act
-            using var response = await Exec(yamlContent, requestMessage, automaticDecompression: useCompression);
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, testUrl);
 
-            var responseBody = await response.Content.ReadAsStringAsync();
+                // Act
+                using var response = await Exec(yamlContent, requestMessage, automaticDecompression: useCompression);
 
-            // Assert
-            Assert.True(responseBody.Contains("<style>body { background-color:", StringComparison.Ordinal));
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.True(responseBody.Contains("<style>body { background-color:", StringComparison.Ordinal));
+            }
+
         }
 
         [Theory]
