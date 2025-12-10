@@ -147,9 +147,10 @@ namespace Fluxzy.Certificates
             RSA privateKey, string cnName)
         {
             var randomGenerator = new Random();
+            var isIpAddress = IPAddress.TryParse(cnName, out var ipAddress);
 
             var certificateRequest = new CertificateRequest(
-                $"CN=*.{cnName}",
+                isIpAddress ? $"CN={cnName}" : $"CN=*.{cnName}",
                 privateKey,
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
@@ -159,8 +160,14 @@ namespace Fluxzy.Certificates
             }
 
             var alternativeName = new SubjectAlternativeNameBuilder();
-            alternativeName.AddDnsName(cnName);
-            alternativeName.AddDnsName($"*.{cnName}");
+
+            if (isIpAddress) {
+                alternativeName.AddIpAddress(ipAddress!);
+            }
+            else {
+                alternativeName.AddDnsName(cnName);
+                alternativeName.AddDnsName($"*.{cnName}");
+            }
 
             certificateRequest.CertificateExtensions.Add(alternativeName.Build());
 
@@ -208,9 +215,10 @@ namespace Fluxzy.Certificates
             ECDsa privateKey, string cnName)
         {
             var randomGenerator = new Random();
+            var isIpAddress = IPAddress.TryParse(cnName, out var ipAddress);
 
             var certificateRequest = new CertificateRequest(
-                $"CN=*.{cnName}",
+                isIpAddress ? $"CN={cnName}" : $"CN=*.{cnName}",
                 privateKey,
                 HashAlgorithmName.SHA256);
 
@@ -220,8 +228,13 @@ namespace Fluxzy.Certificates
 
             var alternativeName = new SubjectAlternativeNameBuilder();
 
-            alternativeName.AddDnsName(cnName);
-            alternativeName.AddDnsName($"*.{cnName}");
+            if (isIpAddress) {
+                alternativeName.AddIpAddress(ipAddress!);
+            }
+            else {
+                alternativeName.AddDnsName(cnName);
+                alternativeName.AddDnsName($"*.{cnName}");
+            }
 
             certificateRequest.CertificateExtensions.Add(alternativeName.Build());
 
