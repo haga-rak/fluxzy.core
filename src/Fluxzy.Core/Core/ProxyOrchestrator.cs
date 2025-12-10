@@ -443,19 +443,18 @@ namespace Fluxzy.Core
                         if (compressionType != CompressionType.None)
                         {
                             exchange.Response.Header.RemoveHeader("content-encoding");
-                            exchange.Response.Header.RemoveHeader("content-length");
-                            exchange.Response.Header.ContentLength = -1;
                         }
+
+                        // Body substitution changes content length, so we must remove
+                        // Content-Length and use chunked transfer encoding instead
+                        exchange.Response.Header.RemoveHeader("content-length");
+                        exchange.Response.Header.ContentLength = -1;
                     }
 
                     if (exchange.Response.Header.ContentLength == -1 &&
-                        responseBodyStream != null &&
-                        exchange.HttpVersion == "HTTP/2")
-                    // HTTP2 servers are allowed to send response body
-                    // without specifying a content-length or transfer-encoding chunked.
-                    // In case content-length is not present, we force transfer-encoding chunked 
-                    // in order to inform HTTP/1.1 receiver of the content body end
-
+                        responseBodyStream != null)
+                    // When content-length is not present (either from HTTP/2 server or due to body substitution),
+                    // we force transfer-encoding chunked to inform the downstream receiver of the content body end
                     {
                         exchange.Response.Header.ForceTransferChunked();
                     }
