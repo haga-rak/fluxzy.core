@@ -19,7 +19,7 @@ namespace Fluxzy.Tests.Cli
             bool useHttp11
             )
         {
-            var testUrl = $"{TestConstants.TestDomain}";
+            var testUrl = TestConstants.TestDomainPage;
             
             var action = useHttp11 ? "ForceHttp11Action" : "NoOpAction";
 
