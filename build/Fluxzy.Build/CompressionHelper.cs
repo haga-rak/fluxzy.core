@@ -23,12 +23,14 @@ namespace Fluxzy.Build
         
         public static void CreateCompressed(string inputDirectory, string outputFile)
         {
+            // Always create zip for all platforms
+            CreateZip(inputDirectory, outputFile);
+
+            // Additionally create tar.gz for non-Windows platforms (macOS and Linux)
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 CreateTarGz(inputDirectory, outputFile);
             }
-            
-            CreateZip(inputDirectory, outputFile);
         }
         
         internal static void CreateTarGz(string inputDirectory, string outputFile)
