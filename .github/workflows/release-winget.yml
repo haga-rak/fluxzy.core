@@ -16,7 +16,7 @@ on:
 jobs:
   publish-winget:
     name: "Publish to Winget"
-    runs-on: windows-latest
+    runs-on: self-hosted
 
     steps:
     - name: Determine release tag
