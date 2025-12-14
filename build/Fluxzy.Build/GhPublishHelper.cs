@@ -132,23 +132,43 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
                 throw new InvalidOperationException($"Tag {tagName} does not exists." +
                                                     $"NuGet package has to be published before adding assets");
 
+            // Get existing assets to skip already uploaded files
+            var existingAssets = await client.Repository.Release.GetAllAssets(_repositoryId, release.Id);
+            var existingAssetNames = existingAssets.Select(a => a.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
             foreach (var fileInfo in fileInfos)
             {
+                if (existingAssetNames.Contains(fileInfo.Name))
+                {
+                    Console.WriteLine($"Skipping {fileInfo.Name} - already exists");
+                    continue;
+                }
+
                 using var stream = fileInfo.OpenRead();
 
                 var assetUpload = new ReleaseAssetUpload(fileInfo.Name,
                     "application/octet-stream", stream, null);
 
                 await client.Repository.Release.UploadAsset(release, assetUpload);
+                Console.WriteLine($"Uploaded {fileInfo.Name}");
 
                 if (addHash)
                 {
+                    var hashFileName = $"{fileInfo.Name}.sha256";
+
+                    if (existingAssetNames.Contains(hashFileName))
+                    {
+                        Console.WriteLine($"Skipping {hashFileName} - already exists");
+                        continue;
+                    }
+
                     using var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(HashHelper.GetWinGetHash(fileInfo)));
 
-                    var hashPayload = new ReleaseAssetUpload($"{fileInfo.Name}.sha256",
+                    var hashPayload = new ReleaseAssetUpload(hashFileName,
                         "text/plain", memoryStream, null);
 
                     await client.Repository.Release.UploadAsset(release, hashPayload);
+                    Console.WriteLine($"Uploaded {hashFileName}");
                 }
             }
 
