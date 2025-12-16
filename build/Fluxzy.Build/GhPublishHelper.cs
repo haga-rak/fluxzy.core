@@ -132,16 +132,19 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
                 throw new InvalidOperationException($"Tag {tagName} does not exists." +
                                                     $"NuGet package has to be published before adding assets");
 
-            // Get existing assets to skip already uploaded files
+            // Get existing assets to check for duplicates
             var existingAssets = await client.Repository.Release.GetAllAssets(_repositoryId, release.Id);
-            var existingAssetNames = existingAssets.Select(a => a.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             foreach (var fileInfo in fileInfos)
             {
-                if (existingAssetNames.Contains(fileInfo.Name))
+                // Delete existing asset with same name if present
+                var existingAsset = existingAssets.FirstOrDefault(a =>
+                    string.Equals(a.Name, fileInfo.Name, StringComparison.OrdinalIgnoreCase));
+
+                if (existingAsset != null)
                 {
-                    Console.WriteLine($"Skipping {fileInfo.Name} - already exists");
-                    continue;
+                    Console.WriteLine($"Deleting existing asset: {existingAsset.Name}");
+                    await client.Repository.Release.DeleteAsset(_repositoryId, existingAsset.Id);
                 }
 
                 using var stream = fileInfo.OpenRead();
@@ -150,16 +153,19 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
                     "application/octet-stream", stream, null);
 
                 await client.Repository.Release.UploadAsset(release, assetUpload);
-                Console.WriteLine($"Uploaded {fileInfo.Name}");
 
                 if (addHash)
                 {
                     var hashFileName = $"{fileInfo.Name}.sha256";
 
-                    if (existingAssetNames.Contains(hashFileName))
+                    // Delete existing hash file if present
+                    var existingHashAsset = existingAssets.FirstOrDefault(a =>
+                        string.Equals(a.Name, hashFileName, StringComparison.OrdinalIgnoreCase));
+
+                    if (existingHashAsset != null)
                     {
-                        Console.WriteLine($"Skipping {hashFileName} - already exists");
-                        continue;
+                        Console.WriteLine($"Deleting existing asset: {existingHashAsset.Name}");
+                        await client.Repository.Release.DeleteAsset(_repositoryId, existingHashAsset.Id);
                     }
 
                     using var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(HashHelper.GetWinGetHash(fileInfo)));
@@ -168,7 +174,6 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
                         "text/plain", memoryStream, null);
 
                     await client.Repository.Release.UploadAsset(release, hashPayload);
-                    Console.WriteLine($"Uploaded {hashFileName}");
                 }
             }
 
