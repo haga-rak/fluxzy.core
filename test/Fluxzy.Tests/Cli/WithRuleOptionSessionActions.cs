@@ -15,6 +15,18 @@ namespace Fluxzy.Tests.Cli
 {
     public class WithRuleOptionSessionActions : WithRuleOptionBase
     {
+        private HttpClient SecondaryHttpClient {
+            get
+            {
+                var httpClient = new HttpClient(new HttpClientHandler() {
+                    UseProxy = true,
+                    Proxy = Client!.WebProxy
+                });
+
+                return httpClient;
+            }
+        }
+
         [Fact]
         public async Task CaptureSession_CapturesCookies()
         {
@@ -35,7 +47,7 @@ namespace Fluxzy.Tests.Cli
                 $"https://{TestConstants.HttpBinHost}/cookies/set/sessionId/captured123");
 
             // Act
-            using var response1 = await Exec(yamlContent, requestMessage1, false);
+            using var response1 = await Exec(yamlContent, requestMessage1, allowAutoRedirect: true);
             await response1.Content.ReadAsStringAsync();
 
             // Assert - Cookie should be set
@@ -71,7 +83,7 @@ namespace Fluxzy.Tests.Cli
             var requestMessage2 = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies");
 
-            using var response2 = await Client!.Client.SendAsync(requestMessage2);
+            using var response2 = await SecondaryHttpClient.SendAsync(requestMessage2);
             var responseBody = await response2.Content.ReadAsStringAsync();
 
             var cookies = GetCookies(responseBody);
@@ -106,15 +118,17 @@ namespace Fluxzy.Tests.Cli
             using var response1 = await Exec(yamlContent, requestMessage1, false);
             await response1.Content.ReadAsStringAsync();
 
-            // Add a client-side cookie
-            CookieContainer.Add(new Cookie("clientCookie", "fromClient", "/", TestConstants.HttpBinHostDomainOnly));
+            var requestMessage2 = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies/set/clientCookie/fromClient");
+
+            using var response2 = await SecondaryHttpClient.SendAsync(requestMessage2);
 
             // Second request - should have both cookies
-            var requestMessage2 = new HttpRequestMessage(HttpMethod.Get,
+            var requestMessage3 = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies");
 
-            using var response2 = await Client!.Client.SendAsync(requestMessage2);
-            var responseBody = await response2.Content.ReadAsStringAsync();
+            using var response3 = await SecondaryHttpClient.SendAsync(requestMessage3);
+            var responseBody = await response3.Content.ReadAsStringAsync();
 
             var cookies = GetCookies(responseBody);
 
@@ -183,7 +197,7 @@ namespace Fluxzy.Tests.Cli
             var requestMessage2 = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies");
 
-            using var response2 = await Client!.Client.SendAsync(requestMessage2);
+            using var response2 = await SecondaryHttpClient.SendAsync(requestMessage2);
             var responseBody = await response2.Content.ReadAsStringAsync();
 
             var cookies = GetCookies(responseBody);
@@ -219,7 +233,7 @@ namespace Fluxzy.Tests.Cli
             var requestMessage1 = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies/set/toClear/value");
 
-            using var response1 = await Exec(yamlContent, requestMessage1, false);
+            using var response1 = await Exec(yamlContent, requestMessage1, allowAutoRedirect: true);
             await response1.Content.ReadAsStringAsync();
 
             // Assert
@@ -255,7 +269,7 @@ namespace Fluxzy.Tests.Cli
             var requestMessage2 = new HttpRequestMessage(HttpMethod.Get,
                 $"https://{TestConstants.HttpBinHost}/cookies");
 
-            using var response2 = await Client!.Client.SendAsync(requestMessage2);
+            using var response2 = await SecondaryHttpClient.SendAsync(requestMessage2);
             var responseBody = await response2.Content.ReadAsStringAsync();
 
             var cookies = GetCookies(responseBody);
