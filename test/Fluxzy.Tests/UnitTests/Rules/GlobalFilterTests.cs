@@ -80,8 +80,8 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new(new HasAnyCookieOnRequestFilter(), r => { }, false),
                 new(new GetFilter(), r => r.Method = HttpMethod.Get, true),
                 new(new GetFilter(), r => r.Method = HttpMethod.Delete, false),
-                new(new AbsoluteUriFilter("smartizy.com"), r => { }, true),
-                new(new AbsoluteUriFilter("smartzzizy.com"), r => { }, false)
+                new(new AbsoluteUriFilter("fluxzy.io"), r => { }, true),
+                new(new AbsoluteUriFilter("fluxxzzzzy.io"), r => { }, false)
             };
 
             foreach (var host in testedHosts)

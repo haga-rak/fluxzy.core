@@ -14,7 +14,7 @@ namespace Fluxzy.Tests.UnitTests.RsBuffer
         public async Task CheckAroundBufferLimit(int expectedSize)
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
-            var url = "https://sandbox.smartizy.com/ip";
+            var url = "https://sandbox.fluxzy.io/ip";
 
             var dummyHeaderName = ComputeProvisionalHeaderLength(url, out var headerSize);
 

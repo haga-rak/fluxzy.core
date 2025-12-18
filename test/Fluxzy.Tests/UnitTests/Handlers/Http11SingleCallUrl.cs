@@ -94,7 +94,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://sandbox.smartizy.com/content-produce-unpredictable/130000/130000"
+                "https://sandbox.fluxzy.io/content-produce-unpredictable/130000/130000"
             );
 
             var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);

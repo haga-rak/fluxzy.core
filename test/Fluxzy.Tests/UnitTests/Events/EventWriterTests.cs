@@ -54,7 +54,7 @@ namespace Fluxzy.Tests.UnitTests.Events
         {
             var maxTimeoutSeconds = TimeoutConstants.Short; 
             var fluxzySetting = FluxzySetting.CreateDefault(IPAddress.Loopback, 0);
-            var url = "https://sandbox.smartizy.com/global-health-check"; 
+            var url = "https://sandbox.fluxzy.io/global-health-check"; 
 
             await using (var proxy = new Proxy(fluxzySetting)) {
                 var taskCompletionSource = new TaskCompletionSource();
@@ -91,7 +91,7 @@ namespace Fluxzy.Tests.UnitTests.Events
         {
             var maxTimeoutSeconds = TimeoutConstants.Short; 
             var fluxzySetting = FluxzySetting.CreateDefault(IPAddress.Loopback, 0);
-            var url = "https://sandbox.smartizy.com/global-health-check"; 
+            var url = "https://sandbox.fluxzy.io/global-health-check"; 
 
             await using (var proxy = new Proxy(fluxzySetting)) {
                 var taskCompletionSource = new TaskCompletionSource();

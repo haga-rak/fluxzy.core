@@ -49,7 +49,7 @@ namespace Fluxzy.Tests
 
             var hosts = new[] {
                 TestConstants.Http2Host,
-                "https://httpmill.smartizy.com:5001"
+                "https://sandbox.fluxzy.io:5001"
             };
 
             var random = new Random(9);
@@ -248,7 +248,7 @@ namespace Fluxzy.Tests
                 out var cancellationTokenSource);
 
             try {
-                var response = await httpClient.GetAsync("https://sandbox.smartizy.com/protocol",
+                var response = await httpClient.GetAsync("https://sandbox.fluxzy.io/protocol",
                     cancellationTokenSource.Token);
 
                 var responseString = await response.Content.ReadAsStringAsync(
@@ -393,7 +393,7 @@ namespace Fluxzy.Tests
 
             var httpClient = new HttpClient(messageHandler);
 
-            var response = await httpClient.GetAsync("https://sandbox.smartizy.com:5001/protocol",
+            var response = await httpClient.GetAsync("https://sandbox.fluxzy.io:5001/protocol",
                 cancellationTokenSource.Token);
 
             var responseString = await response.Content.ReadAsStringAsync(
@@ -441,7 +441,7 @@ namespace Fluxzy.Tests
 
             var httpClient = new HttpClient(messageHandler);
 
-            var response = await httpClient.GetAsync("https://sandbox.smartizy.com:5001/protocol",
+            var response = await httpClient.GetAsync("https://sandbox.fluxzy.io:5001/protocol",
                 cancellationTokenSource.Token);
 
             var responseString = await response.Content.ReadAsStringAsync(
@@ -486,7 +486,7 @@ namespace Fluxzy.Tests
 
             var httpClient = new HttpClient(messageHandler);
 
-            var response = await httpClient.PostAsync("https://sandbox.smartizy.com/content-control/sha256",
+            var response = await httpClient.PostAsync("https://sandbox.fluxzy.io/content-control/sha256",
                 new StringContent("random posted string", Encoding.UTF8),
                 cancellationTokenSource.Token);
 
@@ -522,7 +522,7 @@ namespace Fluxzy.Tests
                 var longSuffix = new string('a', 6 * 1024);
 
                 var response = await httpClient.GetAsync(
-                    "https://sandbox.smartizy.com:5001/protocol?query=" + longSuffix,
+                    "https://sandbox.fluxzy.io:5001/protocol?query=" + longSuffix,
                     cancellationTokenSource.Token);
 
                 await response.Content.ReadAsStringAsync(

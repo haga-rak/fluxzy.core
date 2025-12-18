@@ -18,7 +18,7 @@ namespace Fluxzy.Tests.Cli
                                rules:
                                - filter:
                                    typeKind: HostFilter
-                                   pattern: 'sandbox.(?<FOO>[a-z]+).com'
+                                   pattern: 'sandbox.(?<FOO>[a-z]+).io'
                                    operation: regex
                                  actions :
                                    - typeKind: setVariableAction
@@ -39,7 +39,7 @@ namespace Fluxzy.Tests.Cli
 
             // Assert
             Assert.True(response.Headers.TryGetValues("Passed", out var headerValue));
-            Assert.Equal("smartizyBAR", headerValue.First().ToString());
+            Assert.Equal("fluxzyBAR", headerValue.First().ToString());
         }
 
     }
