@@ -7,17 +7,17 @@ namespace Fluxzy.Tests._Fixtures
 {
     public static class TestConstants
     {
-        public const string Http11Host = "https://sandbox.smartizy.com";
-        public const string Http2Host = "https://sandbox.smartizy.com:5001";
-        public const string PlainHttp11 = "http://sandbox.smartizy.com:8899";
-        public const string WssHost = "wss://sandbox.smartizy.com:5001";
+        public const string Http11Host = "https://sandbox.fluxzy.io";
+        public const string Http2Host = "https://sandbox.fluxzy.io:5001";
+        public const string PlainHttp11 = "http://sandbox.fluxzy.io:8899";
+        public const string WssHost = "wss://sandbox.fluxzy.io:5001";
 
         public const string HttpBinHost = "registry.2befficient.io:40300";
         public const string HttpBinHostDomainOnly  = "registry.2befficient.io";
 
-        public const string TestDomain = "https://sandbox.smartizy.com/ip";
-        public const string TestDomainHost = "sandbox.smartizy.com";
-        public const string TestDomainPage = "https://sandbox.smartizy.com/swagger/index.html";
+        public const string TestDomain = "https://sandbox.fluxzy.io/ip";
+        public const string TestDomainHost = "sandbox.fluxzy.io";
+        public const string TestDomainPage = "https://sandbox.fluxzy.io/swagger/index.html";
 
         public static string GetHost(string protocol)
         {

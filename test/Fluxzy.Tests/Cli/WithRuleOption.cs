@@ -31,7 +31,7 @@ namespace Fluxzy.Tests.Cli
                 rules:
                 - filter:
                     typeKind: absoluteUriFilter
-                    pattern: https://sandbox.smartizy.com/this-can-be-a-real-directory
+                    pattern: https://sandbox.fluxzy.io/this-can-be-a-real-directory
                   actions:
                   - typeKind: MockedResponseAction
                     response:
@@ -49,7 +49,7 @@ namespace Fluxzy.Tests.Cli
             await using var fluxzyInstance = await commandLineHost.Run();
             using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://sandbox.smartizy.com/this-can-be-a-real-directory");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://sandbox.fluxzy.io/this-can-be-a-real-directory");
 
             requestMessage.Headers.Add("User-Agent", "Unit test");
 

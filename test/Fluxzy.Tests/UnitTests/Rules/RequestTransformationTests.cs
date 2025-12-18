@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/global-health-check"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/global-health-check"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 
@@ -33,7 +33,9 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var response = await client.PostAsync(url, postContent);
             response.EnsureSuccessStatusCode();
 
-            var checkResult = JsonSerializer.Deserialize<HealthCheckResult>(await response.Content.ReadAsStringAsync(),
+            var rawResponseString = await response.Content.ReadAsStringAsync();
+
+            var checkResult = JsonSerializer.Deserialize<HealthCheckResult>(rawResponseString,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             
             Assert.Equal(5, checkResult!.RequestContent.Length);
@@ -51,7 +53,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/global-health-check"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/global-health-check"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 
@@ -78,7 +80,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/global-health-check"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/global-health-check"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 

@@ -79,7 +79,7 @@ rules:
 rules:
 - filter:
     typeKind: hostFilter
-    pattern: (?<myvar>[^.]+)\.smartizy\.com
+    pattern: (?<myvar>[^.]+)\.fluxzy\.io
     operation: regex
   actions: 
   - typeKind: FileAppendAction
@@ -134,7 +134,7 @@ rules:
 
             Assert.NotNull(exchange.ResponseHeader);
             Assert.True(File.Exists("token-file.txt"), "File does not exists");
-            Assert.Equal("sandbox.smartizy.com --> "  + "a_bearer_token", File.ReadAllLines("token-file.txt").First());
+            Assert.Equal("sandbox.fluxzy.io --> "  + "a_bearer_token", File.ReadAllLines("token-file.txt").First());
         }
 
         [Fact]

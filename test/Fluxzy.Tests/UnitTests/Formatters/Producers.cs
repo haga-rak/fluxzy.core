@@ -13,10 +13,10 @@ namespace Fluxzy.Tests.UnitTests.Formatters
     public class Producers : FormatterTestBase
     {
         [Theory]
-        [InlineData("https://sandbox.smartizy.com/?a=1&b=2&c=3")]
+        [InlineData("https://sandbox.fluxzy.io/?a=1&b=2&c=3")]
         [InlineData(TestConstants.TestDomain)]
-        [InlineData("https://sandbox.smartizy.com/?a=&b=2&c=3")]
-        [InlineData("https://sandbox.smartizy.com/?a=1%201&b=2&c=3")]
+        [InlineData("https://sandbox.fluxzy.io/?a=&b=2&c=3")]
+        [InlineData("https://sandbox.fluxzy.io/?a=1%201&b=2&c=3")]
         public async Task QueryString(string url)
         {
             var producer = new QueryStringProducer();
@@ -254,8 +254,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
         
         [Theory]
-        [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
-        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        [InlineData("https://sandbox.fluxzy.io/global-health-check", true)]
+        [InlineData("https://sandbox.fluxzy.io/content-produce/0/0", false)]
         public async Task ResponseBodySummaryProducer(string url, bool match)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -284,8 +284,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
         
         [Theory]
-        [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
-        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        [InlineData("https://sandbox.fluxzy.io/global-health-check", true)]
+        [InlineData("https://sandbox.fluxzy.io/content-produce/0/0", false)]
         [InlineData(TestConstants.TestDomain, false)]
         public async Task ResponseBodyJsonProducer(string url, bool match)
         {
@@ -311,8 +311,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
         
         [Theory]
-        [InlineData("https://sandbox.smartizy.com/global-health-check", true)]
-        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        [InlineData("https://sandbox.fluxzy.io/global-health-check", true)]
+        [InlineData("https://sandbox.fluxzy.io/content-produce/0/0", false)]
         public async Task ResponseTextContentProducer(string url, bool match)
         {
             var randomFile = GetRegisteredRandomFile();
@@ -336,7 +336,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         }
         [Theory]
         [InlineData("https://registry.2befficient.io:40300/cookies/set/abc/def", true)]
-        [InlineData("https://sandbox.smartizy.com/content-produce/0/0", false)]
+        [InlineData("https://sandbox.fluxzy.io/content-produce/0/0", false)]
         public async Task SetCookieProducer(string url, bool match)
         {
             var randomFile = GetRegisteredRandomFile();

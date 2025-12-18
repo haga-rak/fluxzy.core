@@ -61,7 +61,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
-                    new HostFilter("sandbox.smartizy.com")
+                    new HostFilter("sandbox.fluxzy.io")
                 ));
 
             var endPoint = proxy.Run().First();
@@ -142,7 +142,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
-                    new HostFilter("sandbox.smartizy.com")
+                    new HostFilter("sandbox.fluxzy.io")
                 ));
 
             var endPoint = proxy.Run().First();
@@ -197,7 +197,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var newRequestHeader =
                 "GET /global-health-check HTTP/1.1\r\n" +
-                "host: sandbox.smartizy.com\r\n" +
+                "host: sandbox.fluxzy.io\r\n" +
                 "x-header-added: value\r\n" +
                 "\r\n";
 
@@ -206,7 +206,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
-                    new HostFilter("sandbox.smartizy.com")
+                    new HostFilter("sandbox.fluxzy.io")
                 ));
 
             var endPoint = proxy.Run().First();
@@ -241,7 +241,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             var checkResult = await response.GetCheckResult();
 
             Assert.Equal(200, (int)response.StatusCode);
-            Assert.Equal(payloadLength, checkResult.RequestContent.Length);
+            Assert.Equal(payloadLength, checkResult.RequestContent.Length ?? 0);
 
             await proxy.WaitUntilDone();
         }
@@ -258,7 +258,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var newRequestHeader =
                 "GET /global-health-check HTTP/1.1\r\n" +
-                "host: sandbox.smartizy.com\r\n" +
+                "host: sandbox.fluxzy.io\r\n" +
                 "Connection: close\r\n" +
                 "Transfer-encoding: chunked\r\n" +
                 "x-header-added: value\r\n" +
@@ -269,7 +269,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
-                    new HostFilter("sandbox.smartizy.com")
+                    new HostFilter("sandbox.fluxzy.io")
                 ));
 
             var endPoint = proxy.Run().First();
@@ -328,7 +328,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
-                    new HostFilter("sandbox.smartizy.com")
+                    new HostFilter("sandbox.fluxzy.io")
                 ));
 
             var endPoint = proxy.Run().First();
@@ -392,7 +392,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new BreakPointAction(),
-                    new HostFilter("sandbox.smartizy.com")
+                    new HostFilter("sandbox.fluxzy.io")
                 ));
 
             var endPoint = proxy.Run().First();

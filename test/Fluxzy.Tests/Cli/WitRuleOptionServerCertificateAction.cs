@@ -24,7 +24,7 @@ namespace Fluxzy.Tests.Cli
             var certificateProvider = new CertificateProvider(Certificate.LoadFromPkcs12(tempFile.FullName),
                 new InMemoryCertificateCache());
 
-            var certificateData = certificateProvider.GetCertificateBytes("sandbox.smartizy.com");
+            var certificateData = certificateProvider.GetCertificateBytes("sandbox.fluxzy.io");
             var serverCertificateFile = GetTempFile();
             await File.WriteAllBytesAsync(serverCertificateFile.FullName, certificateData);
 
@@ -33,7 +33,7 @@ namespace Fluxzy.Tests.Cli
                                rules:
                                - filter:
                                    typeKind: HostFilter
-                                   pattern: sandbox.smartizy.com
+                                   pattern: sandbox.fluxzy.io
                                    operation: contains
                                  action :
                                    typeKind: useCertificateAction

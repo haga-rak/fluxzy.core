@@ -42,7 +42,7 @@ namespace Fluxzy.Tests.UnitTests.Substitutions
 
             using var httpClient = HttpClientUtility.CreateHttpClient(endPoints, setting);
 
-            var response = await httpClient.PostAsync("https://sandbox.smartizy.com/global-health-check",
+            var response = await httpClient.PostAsync("https://sandbox.fluxzy.io/global-health-check",
                 new ByteArrayContent(new byte[initialPayloadSize]), cancellationTokenSource.Token);
 
             var body = await response.Content.ReadAsStringAsync(cancellationTokenSource.Token);

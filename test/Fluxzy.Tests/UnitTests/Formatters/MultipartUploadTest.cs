@@ -22,7 +22,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
                 { new ByteArrayContent(fakeBuffer), "file", "image.png" }
             };
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://sandbox.smartizy.com/global-health-check")
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://sandbox.fluxzy.io/global-health-check")
             {
                 Content = content
             };

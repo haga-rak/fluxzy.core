@@ -15,8 +15,8 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         [Theory]
         [InlineData(TestConstants.TestDomain, true, true)]
         [InlineData(TestConstants.TestDomain, false, true)]
-        [InlineData("https://sandbox.smartizy.com/swagger/index.html", false, true)]
-        [InlineData("https://sandbox.smartizy.com/swagger/index.html", true, true)]
+        [InlineData("https://sandbox.fluxzy.io/swagger/index.html", false, true)]
+        [InlineData("https://sandbox.fluxzy.io/swagger/index.html", true, true)]
         public async Task SaveResponseBodyAction(string url, bool decode, bool pass)
         {
             var randomFile = GetRegisteredRandomFile();

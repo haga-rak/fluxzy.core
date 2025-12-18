@@ -21,7 +21,7 @@ namespace Fluxzy.Tests.Cli
 {
     public class CliWebSockets
     {
-        [Fact(Skip = "Websocket test server is not stable on sandbox.smartizy.com")]
+        [Fact(Skip = "Websocket test server is not stable on sandbox.fluxzy.io")]
         public async Task Run_Cli_For_Web_Socket_Tests()
         {
             // Arrange 

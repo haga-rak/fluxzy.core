@@ -28,7 +28,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new AddRequestHeaderAction(
                         headerName, headerValue),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 
@@ -72,7 +72,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new UpdateRequestHeaderAction(
                         headerName, headerNewValue),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 
@@ -119,7 +119,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                     {
                         AddIfMissing = true
                     },
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 
@@ -163,7 +163,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new UpdateRequestHeaderAction(
                         headerName, headerNewValue),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 
@@ -205,7 +205,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new DeleteRequestHeaderAction(headerName),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 
@@ -244,7 +244,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
             proxy.StartupSetting.AddAlterationRules(
                 new Rule(
                     new ChangeRequestMethodAction("PATCH"),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 

@@ -26,7 +26,7 @@ namespace Fluxzy.Tests.Cases
                         (_, _, _, _) => true;
                 });
 
-            var url = "http://sandbox.smartizy.com:8899/ip";
+            var url = "http://sandbox.fluxzy.io:8899/ip";
 
             for (int i = 0; i < 6; i++) {
                 var response = await client.GetAsync(url);

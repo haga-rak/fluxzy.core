@@ -26,7 +26,7 @@ namespace Fluxzy.Tests.Cli
                                """;
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get,
-                $"https://sandbox.smartizy.com:{invalidPortNumber}/ip");
+                $"https://sandbox.fluxzy.io:{invalidPortNumber}/ip");
 
             // Act
             using var response = await Exec(yamlContent, requestMessage, allowAutoRedirect: false);

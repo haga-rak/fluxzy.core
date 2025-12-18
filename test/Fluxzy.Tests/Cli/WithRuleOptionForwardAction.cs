@@ -10,10 +10,10 @@ namespace Fluxzy.Tests.Cli
     public class WithRuleOptionForwardAction : WithRuleOptionBase
     {
         [Theory]
-        [InlineData("http://sandbox.smartizy.com:8899")]
-        [InlineData("http://sandbox.smartizy.com:8899/")]
-        [InlineData("https://sandbox.smartizy.com")]
-        [InlineData("https://sandbox.smartizy.com/")]
+        [InlineData("http://sandbox.fluxzy.io:8899")]
+        [InlineData("http://sandbox.fluxzy.io:8899/")]
+        [InlineData("https://sandbox.fluxzy.io")]
+        [InlineData("https://sandbox.fluxzy.io/")]
         public async Task Validate(string urlHost)
         {
             // Arrange
@@ -34,7 +34,7 @@ namespace Fluxzy.Tests.Cli
             var responseText = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("HTTP/1.0", responseText);
+            Assert.Equal("HTTP/1.1", responseText);
         }
     }
 }
