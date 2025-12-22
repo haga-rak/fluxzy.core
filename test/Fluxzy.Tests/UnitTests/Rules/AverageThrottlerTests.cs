@@ -54,7 +54,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var bodySize = 1024 * 16 * delaySeconds + 1024;
 
-            var url = $"https://sandbox.smartizy.com/content-produce/{bodySize}/{bodySize}";
+            var url = $"https://sandbox.fluxzy.io/content-produce/{bodySize}/{bodySize}";
 
             var watch = Stopwatch.StartNew();
 

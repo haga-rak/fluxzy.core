@@ -16,7 +16,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
         public async Task ResponseBodyStartSample()
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
-            var expectedResponse = "HTTP/1.0" + "Hello";
+            var expectedResponse = "HTTP/1.1" + "Hello";
 
             setting.ConfigureRule().WhenAny()
                    .TransformResponse((_, originalContent) => Task.FromResult(originalContent + "Hello"));
@@ -25,7 +25,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/protocol"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 
@@ -42,7 +42,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
         public async Task ResponseBodyNoChange()
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
-            var expectedResponse = "HTTP/1.0";
+            var expectedResponse = "HTTP/1.1";
 
             setting.ConfigureRule().WhenAny()
                    .TransformResponse(async (_, originalContent) =>  (BodyContent?) null); // Return null to keep the original content without change
@@ -51,7 +51,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/protocol"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 
@@ -76,7 +76,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/protocol"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 
@@ -92,7 +92,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
         [Fact]
         public async Task ResponseBodySampleString()
         {
-            var expectedResponse = "http/1.0";
+            var expectedResponse = "http/1.1";
 
             var fluxzySetting = FluxzySetting.CreateLocalRandomPort();
             fluxzySetting.ConfigureRule().WhenAny()
@@ -103,7 +103,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/protocol"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
 
@@ -130,7 +130,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/protocol"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
 
@@ -158,7 +158,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/protocol"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, fluxzySetting);
 
@@ -179,7 +179,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
         public async Task ResponseBodyWithEncoding(DecompressionMethods method)
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
-            var expectedResponse = "HTTP/1.0" + "Hello";
+            var expectedResponse = "HTTP/1.1" + "Hello";
 
             setting.ConfigureRule().WhenAny()
                    .Do(new TransformResponseBodyAction(async (_, bodyReader) => {
@@ -191,7 +191,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol";
+            var url = $"https://sandbox.fluxzy.io/protocol";
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting, 
                 configureHandler: httpClientHandler => {
@@ -223,7 +223,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol";
+            var url = $"https://sandbox.fluxzy.io/protocol";
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting, 
                 configureHandler: httpClientHandler => {
@@ -254,7 +254,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
 
             var endPoints = proxy.Run();
 
-            var url = $"https://sandbox.smartizy.com/protocol"; // return "HTTP/1.0"
+            var url = $"https://sandbox.fluxzy.io/protocol"; // return "HTTP/1.0"
 
             using var client = HttpClientUtility.CreateHttpClient(endPoints, setting);
 

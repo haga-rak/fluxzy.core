@@ -1,0 +1,172 @@
+name: Publish to Homebrew
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to publish (e.g., v1.31.24.27401-cli). Leave empty to use latest stable CLI release.'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (generate formula without pushing to tap)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  publish-homebrew:
+    name: "Publish to Homebrew"
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Determine release tag
+      id: release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        if [ -n "${{ inputs.release_tag }}" ]; then
+          tag="${{ inputs.release_tag }}"
+        else
+          # Get latest CLI release (tags ending with -cli, excluding pre-releases)
+          tag=$(gh release list --repo ${{ github.repository }} --limit 50 --json tagName,isPrerelease \
+            | jq -r '.[] | select(.isPrerelease == false) | select(.tagName | endswith("-cli")) | .tagName' \
+            | head -1)
+        fi
+
+        if [ -z "$tag" ]; then
+          echo "Error: No suitable release tag found"
+          exit 1
+        fi
+
+        # Extract version from tag (v1.31.24.27401-cli -> 1.31.24.27401)
+        version=$(echo "$tag" | sed 's/^v//' | sed 's/-cli$//')
+
+        echo "tag=$tag" >> $GITHUB_OUTPUT
+        echo "version=$version" >> $GITHUB_OUTPUT
+
+        echo "Release tag: $tag"
+        echo "Full version: $version"
+
+    - name: Download macOS release assets
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        tag="${{ steps.release.outputs.tag }}"
+        version="${{ steps.release.outputs.version }}"
+
+        # Create temp directory for downloads
+        mkdir -p ./homebrew-assets
+
+        # Download macOS tar.gz assets
+        echo "Downloading fluxzy-cli-$version-osx-x64.tar.gz..."
+        gh release download "$tag" --repo ${{ github.repository }} --pattern "fluxzy-cli-$version-osx-x64.tar.gz" --dir "./homebrew-assets"
+
+        echo "Downloading fluxzy-cli-$version-osx-arm64.tar.gz..."
+        gh release download "$tag" --repo ${{ github.repository }} --pattern "fluxzy-cli-$version-osx-arm64.tar.gz" --dir "./homebrew-assets"
+
+        # List downloaded files
+        ls -la ./homebrew-assets
+
+    - name: Calculate SHA256 hashes
+      id: hashes
+      shell: bash
+      run: |
+        version="${{ steps.release.outputs.version }}"
+
+        hash_x64=$(sha256sum "./homebrew-assets/fluxzy-cli-$version-osx-x64.tar.gz" | awk '{print $1}')
+        hash_arm64=$(sha256sum "./homebrew-assets/fluxzy-cli-$version-osx-arm64.tar.gz" | awk '{print $1}')
+
+        echo "hash_x64=$hash_x64" >> $GITHUB_OUTPUT
+        echo "hash_arm64=$hash_arm64" >> $GITHUB_OUTPUT
+
+        echo "SHA256 x64: $hash_x64"
+        echo "SHA256 ARM64: $hash_arm64"
+
+    - name: Generate Homebrew formula
+      id: formula
+      shell: bash
+      run: |
+        version="${{ steps.release.outputs.version }}"
+        tag="${{ steps.release.outputs.tag }}"
+        hash_x64="${{ steps.hashes.outputs.hash_x64 }}"
+        hash_arm64="${{ steps.hashes.outputs.hash_arm64 }}"
+
+        url_base="https://github.com/${{ github.repository }}/releases/download/$tag"
+
+        mkdir -p ./formula-output
+
+        cat > ./formula-output/fluxzy.rb << 'FORMULA_EOF'
+class Fluxzy < Formula
+  desc "MITM engine for intercepting, recording, and altering HTTP/1.1, H2, and WebSocket traffic"
+  homepage "https://www.fluxzy.io"
+  license "EUPL-1.2"
+  version "VERSION_PLACEHOLDER"
+
+  on_macos do
+    on_intel do
+      url "URL_X64_PLACEHOLDER"
+      sha256 "HASH_X64_PLACEHOLDER"
+    end
+
+    on_arm do
+      url "URL_ARM64_PLACEHOLDER"
+      sha256 "HASH_ARM64_PLACEHOLDER"
+    end
+  end
+
+  def install
+    bin.install "fluxzy"
+  end
+
+  test do
+    assert_match "fluxzy", shell_output("#{bin}/fluxzy --version")
+  end
+end
+FORMULA_EOF
+
+        # Replace placeholders
+        sed -i "s|VERSION_PLACEHOLDER|$version|g" ./formula-output/fluxzy.rb
+        sed -i "s|URL_X64_PLACEHOLDER|$url_base/fluxzy-cli-$version-osx-x64.tar.gz|g" ./formula-output/fluxzy.rb
+        sed -i "s|URL_ARM64_PLACEHOLDER|$url_base/fluxzy-cli-$version-osx-arm64.tar.gz|g" ./formula-output/fluxzy.rb
+        sed -i "s|HASH_X64_PLACEHOLDER|$hash_x64|g" ./formula-output/fluxzy.rb
+        sed -i "s|HASH_ARM64_PLACEHOLDER|$hash_arm64|g" ./formula-output/fluxzy.rb
+
+        echo "Generated formula:"
+        cat ./formula-output/fluxzy.rb
+
+    - name: Upload formula artifact (dry run)
+      if: inputs.dry_run
+      uses: actions/upload-artifact@v4
+      with:
+        name: homebrew-formula
+        path: ./formula-output/
+        retention-days: 7
+
+    - name: Push formula to tap repository
+      if: ${{ !inputs.dry_run }}
+      shell: bash
+      env:
+        HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      run: |
+        version="${{ steps.release.outputs.version }}"
+
+        # Configure git
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Clone the tap repository
+        git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/haga-rak/homebrew-fluxzy.git" tap-repo
+
+        # Copy the formula
+        mkdir -p tap-repo/Formula
+        cp ./formula-output/fluxzy.rb tap-repo/Formula/fluxzy.rb
+
+        # Commit and push
+        cd tap-repo
+        git add Formula/fluxzy.rb
+        git commit -m "Update fluxzy to version $version"
+        git push origin main
+
+        echo "Formula pushed to homebrew-fluxzy tap"

@@ -27,7 +27,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new AddResponseHeaderAction(
                         headerName, headerValue),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 
@@ -69,7 +69,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new UpdateResponseHeaderAction(
                         headerName, headerValue),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 
@@ -109,7 +109,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new UpdateResponseHeaderAction(
                         headerName, headerValue),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 
@@ -148,7 +148,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new DeleteResponseHeaderAction(
                         headerName),
-                    new HostFilter("sandbox.smartizy.com")));
+                    new HostFilter("sandbox.fluxzy.io")));
 
             var endPoint = proxy.Run().First();
 

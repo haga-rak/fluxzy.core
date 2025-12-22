@@ -87,7 +87,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://sandbox.smartizy.com:5001/content-produce/1000/1000"
+                "https://sandbox.fluxzy.io:5001/content-produce/1000/1000"
             );
 
             var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
@@ -105,7 +105,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
             var requestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
-                "https://sandbox.smartizy.com/ip"
+                "https://sandbox.fluxzy.io/ip"
             );
 
             var response = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
@@ -119,8 +119,8 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         public async Task Get_ConcurrentDemand(SslProvider sslProvider)
         {
             var urls = new[] {
-                "https://sandbox.smartizy.com:5001/content-produce/40000/40000", // H1.1 H2 url
-                "https://sandbox.smartizy.com/content-produce/40000/40000", // H1 only url
+                "https://sandbox.fluxzy.io:5001/content-produce/40000/40000", // H1.1 H2 url
+                "https://sandbox.fluxzy.io/content-produce/40000/40000", // H1 only url
             };
 
             using var handler = new FluxzyDefaultHandler(sslProvider);

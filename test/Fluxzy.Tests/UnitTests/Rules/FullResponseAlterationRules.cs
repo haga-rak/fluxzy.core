@@ -27,7 +27,7 @@ namespace Fluxzy.Tests.UnitTests.Rules
                 new Rule(
                     new MockedResponseAction(new MockedResponseContent(403,
                         BodyContent.CreateFromString(bodyString))),
-                    new HostFilter("sandbox.smartizy.com")
+                    new HostFilter("sandbox.fluxzy.io")
                 ));
 
             var endPoint = proxy.Run().First();

@@ -16,11 +16,13 @@ namespace Fluxzy.Tests.Cli.Scaffolding
             bool allowAutoRedirect = true, CookieContainer? cookieContainer = null,
             bool automaticDecompression = false, NetworkCredential  ? proxyCredential = null)
         {
+            WebProxy = proxyCredential == null
+                    ? new WebProxy($"http://{remoteHost}:{port}")
+                    : new WebProxy($"http://{remoteHost}:{port}", false, null, proxyCredential)
+                ;
+
             _clientHandler = new HttpClientHandler {
-                Proxy = proxyCredential == null ? 
-                    new WebProxy($"http://{remoteHost}:{port}") :
-                    new WebProxy($"http://{remoteHost}:{port}", false, null, proxyCredential)
-                ,
+                Proxy = WebProxy,
                 UseProxy = true,
                 AllowAutoRedirect = allowAutoRedirect, 
                 ServerCertificateCustomValidationCallback = (_, certificate2, arg3, _) => {
@@ -41,6 +43,8 @@ namespace Fluxzy.Tests.Cli.Scaffolding
 
             Client = new HttpClient(_clientHandler);
         }
+
+        public WebProxy WebProxy { get; set; }
 
         public X509Chain? ServerChain { get; private set; }
 

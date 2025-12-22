@@ -14,7 +14,7 @@ namespace Fluxzy.Tests.UnitTests.Formatters
         public async Task ProducerFactoryCreate()
         {
             var randomFile = GetRegisteredRandomFile();
-            var url = "https://sandbox.smartizy.com/ip?a=1&b=2&c=3";
+            var url = "https://sandbox.fluxzy.io/ip?a=1&b=2&c=3";
 
             await QuickArchiveBuilder.MakeQuickArchiveGet(url, randomFile);
 

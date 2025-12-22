@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Fluxzy.Rules.Session;
 
 namespace Fluxzy.Rules
 {
@@ -19,6 +20,7 @@ namespace Fluxzy.Rules
 
         private readonly Dictionary<string, string> _systemVariables;
         private readonly Dictionary<string, string> _userSetVariables = new();
+        private SessionStore? _sessionStore;
 
         public VariableContext()
         {
@@ -26,6 +28,12 @@ namespace Fluxzy.Rules
                                           .ToDictionary(k =>
                                               "env." + k.Key!, v => v.Value?.ToString() ?? string.Empty)!;
         }
+
+        /// <summary>
+        /// Get the session store for this proxy instance.
+        /// Used by session capture/replay actions to store and retrieve session data.
+        /// </summary>
+        public SessionStore SessionStore => _sessionStore ??= new SessionStore();
 
         public bool TryGet(string key, out string? value)
         {

@@ -10,7 +10,7 @@ namespace Fluxzy.Tests.Cli
                                                          rules:
                                                          - filter:
                                                              typeKind: HostFilter
-                                                             pattern: sandbox.smartizy.com
+                                                             pattern: sandbox.fluxzy.io
                                                          """;
 
         protected override void ConfigurePass(HttpRequestMessage requestMessage)
