@@ -24,6 +24,19 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
 - CLI binaries are available as assets or downloadable via [this page](https://www.fluxzy.io/download#cli). 
 - Docker images are available at [Docker Hub](https://hub.docker.com/r/fluxzy/fluxzy).
 
+**CLI Installation**
+
+Windows (winget):
+```
+winget install Fluxzy.Fluxzy
+```
+
+macOS (Homebrew):
+```
+brew tap haga-rak/fluxzy
+brew install fluxzy
+```
+
 ";
 
         public static async Task<GhPublishHelper> Create(string token, string userName, string repositoryName)
