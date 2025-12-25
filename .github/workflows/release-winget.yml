@@ -16,7 +16,7 @@ on:
 jobs:
   publish-winget:
     name: "Publish to Winget"
-    runs-on: self-hosted
+    runs-on: [self-hosted, Windows]
 
     steps:
     - name: Determine release tag
@@ -48,7 +48,7 @@ jobs:
         Write-Host "Full version: $version"
         Write-Host "Winget version: $wingetVersion"
 
-    - name: Download release assets
+    - name: Download release asset
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,46 +56,29 @@ jobs:
         $tag = "${{ steps.release.outputs.tag }}"
         $version = "${{ steps.release.outputs.version }}"
 
-        # Create temp directory for downloads
         New-Item -ItemType Directory -Force -Path "./winget-assets"
 
-        # Download Windows assets
-        $assets = @(
-          "fluxzy-cli-$version-win-x64.zip",
-          "fluxzy-cli-$version-win-x86.zip",
-          "fluxzy-cli-$version-win-arm64.zip"
-        )
+        $asset = "fluxzy-cli-$version-win-x64.zip"
+        Write-Host "Downloading $asset..."
+        gh release download $tag --repo ${{ github.repository }} --pattern $asset --dir "./winget-assets"
 
-        foreach ($asset in $assets) {
-          Write-Host "Downloading $asset..."
-          gh release download $tag --repo ${{ github.repository }} --pattern $asset --dir "./winget-assets"
-        }
-
-        # List downloaded files
         Get-ChildItem "./winget-assets"
 
-    - name: Calculate SHA256 hashes
+    - name: Calculate SHA256 hash
       id: hashes
       shell: pwsh
       run: |
         $version = "${{ steps.release.outputs.version }}"
 
         $hashX64 = (Get-FileHash "./winget-assets/fluxzy-cli-$version-win-x64.zip" -Algorithm SHA256).Hash
-        $hashX86 = (Get-FileHash "./winget-assets/fluxzy-cli-$version-win-x86.zip" -Algorithm SHA256).Hash
-        $hashArm64 = (Get-FileHash "./winget-assets/fluxzy-cli-$version-win-arm64.zip" -Algorithm SHA256).Hash
 
         Write-Output "hash_x64=$hashX64" >> $env:GITHUB_OUTPUT
-        Write-Output "hash_x86=$hashX86" >> $env:GITHUB_OUTPUT
-        Write-Output "hash_arm64=$hashArm64" >> $env:GITHUB_OUTPUT
 
         Write-Host "SHA256 x64: $hashX64"
-        Write-Host "SHA256 x86: $hashX86"
-        Write-Host "SHA256 ARM64: $hashArm64"
 
     - name: Install wingetcreate
       shell: pwsh
       run: |
-        # Install wingetcreate
         Invoke-WebRequest -Uri https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
 
     - name: Create and submit Winget manifest
@@ -109,36 +92,26 @@ jobs:
         $dryRun = "${{ inputs.dry_run }}"
 
         $urlBase = "https://github.com/${{ github.repository }}/releases/download/$tag"
-
         $urlX64 = "$urlBase/fluxzy-cli-$version-win-x64.zip"
-        $urlX86 = "$urlBase/fluxzy-cli-$version-win-x86.zip"
-        $urlArm64 = "$urlBase/fluxzy-cli-$version-win-arm64.zip"
 
         Write-Host "Creating Winget manifest for version $wingetVersion"
-        Write-Host "URLs:"
-        Write-Host "  x64: $urlX64"
-        Write-Host "  x86: $urlX86"
-        Write-Host "  ARM64: $urlArm64"
-
-        $args = @(
-          "update",
-          "Fluxzy.Fluxzy",
-          "--version", $wingetVersion,
-          "--urls", "$urlX64|x64", "$urlX86|x86", "$urlArm64|arm64"
-        )
+        Write-Host "URL x64: $urlX64"
 
         if ($dryRun -eq "true") {
           Write-Host "Dry run mode - validating manifest only"
-          # In dry run, just create the manifest locally without submitting
-          $args += @("--out", "./manifest-output")
-          & ./wingetcreate.exe @args
+          ./wingetcreate.exe update Fluxzy.Fluxzy `
+            --version $wingetVersion `
+            --urls $urlX64 `
+            --out ./manifest-output
 
           Write-Host "Generated manifest files:"
           Get-ChildItem "./manifest-output" -Recurse
         } else {
-          # Submit PR to winget-pkgs
-          $args += @("--token", $env:WINGET_GITHUB_TOKEN, "--submit")
-          & ./wingetcreate.exe @args
+          ./wingetcreate.exe update Fluxzy.Fluxzy `
+            --version $wingetVersion `
+            --urls $urlX64 `
+            --token $env:WINGET_GITHUB_TOKEN `
+            --submit
         }
 
     - name: Upload manifest artifacts
