@@ -91,6 +91,20 @@ More use cases are available in [examples directory](./examples/). The main docu
 |macOS |  [![osx64](https://fluxzy.io/misc/badge/cli/Osx64)  ![osxArm64](https://fluxzy.io/misc/badge/cli/OsxArm64)](https://www.fluxzy.io/download#cli)   | 
 | Linux |  [![linux64](https://fluxzy.io/misc/badge/cli/Linux64)  ![linuxArm64](https://fluxzy.io/misc/badge/cli/LinuxArm64)](https://www.fluxzy.io/download#cli)   |
 
+#### CLI Installation
+
+**Windows (winget):**
+```bash
+winget install Fluxzy.Fluxzy
+```
+
+**macOS (Homebrew):**
+```bash
+brew tap haga-rak/fluxzy
+brew install fluxzy
+```
+
+Alternatively, you can download the binaries directly from the [releases page](https://github.com/haga-rak/fluxzy.core/releases) or [fluxzy.io](https://www.fluxzy.io/download#cli).
 
 <details>
     <summary><code>fluxzy</code> root commands</summary>
