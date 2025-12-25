@@ -16,7 +16,12 @@ on:
 jobs:
   publish-winget:
     name: "Publish to Winget"
-    runs-on: self-hosted
+    strategy:
+      matrix:
+        osversion: [Windows]
+        ostype: ['self-hosted']
+      fail-fast: false
+    runs-on: ${{ matrix.osversion }}    
 
     steps:
     - name: Determine release tag
