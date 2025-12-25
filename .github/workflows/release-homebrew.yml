@@ -16,7 +16,7 @@ on:
 jobs:
   publish-homebrew:
     name: "Publish to Homebrew"
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux]
 
     steps:
     - name: Determine release tag
@@ -56,7 +56,8 @@ jobs:
         tag="${{ steps.release.outputs.tag }}"
         version="${{ steps.release.outputs.version }}"
 
-        # Create temp directory for downloads
+        # Clean up and create temp directory for downloads
+        rm -rf ./homebrew-assets
         mkdir -p ./homebrew-assets
 
         # Download macOS tar.gz assets
@@ -95,36 +96,37 @@ jobs:
 
         url_base="https://github.com/${{ github.repository }}/releases/download/$tag"
 
+        rm -rf ./formula-output
         mkdir -p ./formula-output
 
-        cat > ./formula-output/fluxzy.rb << 'FORMULA_EOF'
-class Fluxzy < Formula
-  desc "MITM engine for intercepting, recording, and altering HTTP/1.1, H2, and WebSocket traffic"
-  homepage "https://www.fluxzy.io"
-  license "EUPL-1.2"
-  version "VERSION_PLACEHOLDER"
+        cat << 'FORMULA_EOF' | sed 's/^        //' > ./formula-output/fluxzy.rb
+        class Fluxzy < Formula
+          desc "MITM engine for intercepting, recording, and altering HTTP/1.1, H2, and WebSocket traffic"
+          homepage "https://www.fluxzy.io"
+          license "EUPL-1.2"
+          version "VERSION_PLACEHOLDER"
 
-  on_macos do
-    on_intel do
-      url "URL_X64_PLACEHOLDER"
-      sha256 "HASH_X64_PLACEHOLDER"
-    end
+          on_macos do
+            on_intel do
+              url "URL_X64_PLACEHOLDER"
+              sha256 "HASH_X64_PLACEHOLDER"
+            end
 
-    on_arm do
-      url "URL_ARM64_PLACEHOLDER"
-      sha256 "HASH_ARM64_PLACEHOLDER"
-    end
-  end
+            on_arm do
+              url "URL_ARM64_PLACEHOLDER"
+              sha256 "HASH_ARM64_PLACEHOLDER"
+            end
+          end
 
-  def install
-    bin.install "fluxzy"
-  end
+          def install
+            bin.install "fluxzy"
+          end
 
-  test do
-    assert_match "fluxzy", shell_output("#{bin}/fluxzy --version")
-  end
-end
-FORMULA_EOF
+          test do
+            assert_match "fluxzy", shell_output("#{bin}/fluxzy --version")
+          end
+        end
+        FORMULA_EOF
 
         # Replace placeholders
         sed -i "s|VERSION_PLACEHOLDER|$version|g" ./formula-output/fluxzy.rb
@@ -156,6 +158,9 @@ FORMULA_EOF
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+        # Clean up any existing tap-repo directory from previous runs
+        rm -rf tap-repo
+
         # Clone the tap repository
         git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/haga-rak/homebrew-fluxzy.git" tap-repo
 
@@ -163,10 +168,13 @@ FORMULA_EOF
         mkdir -p tap-repo/Formula
         cp ./formula-output/fluxzy.rb tap-repo/Formula/fluxzy.rb
 
-        # Commit and push
+        # Commit and push (only if there are changes)
         cd tap-repo
         git add Formula/fluxzy.rb
-        git commit -m "Update fluxzy to version $version"
-        git push origin main
-
-        echo "Formula pushed to homebrew-fluxzy tap"
+        if git diff --cached --quiet; then
+          echo "No changes to commit - formula is already up to date"
+        else
+          git commit -m "Update fluxzy to version $version"
+          git push origin main
+          echo "Formula pushed to homebrew-fluxzy tap"
+        fi
