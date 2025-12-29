@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using Fluxzy.Clients.H11;
 using Fluxzy.Core;
 using Fluxzy.Utils;
+using Fluxzy.Utils.ProcessTracking;
 using MessagePack;
 
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Local (Used by serialization)
@@ -50,10 +51,10 @@ namespace Fluxzy
             IsWebSocket = exchange.IsWebSocket;
             WebSocketMessages = exchange.WebSocketMessages;
             ClientErrors = exchange.ClientErrors;
-            KnownAuthority = exchange.KnownAuthority; 
+            KnownAuthority = exchange.KnownAuthority;
             KnownPort = exchange.KnownPort;
             Secure = exchange.Authority.Secure;
-            
+            ProcessInfo = exchange.ProcessInfo;
         }
 
         /// <summary>
@@ -76,6 +77,7 @@ namespace Fluxzy
         /// <param name="knownAuthority"></param>
         /// <param name="knownPort"></param>
         /// <param name="secure"></param>
+        /// <param name="processInfo"></param>
         [JsonConstructor]
         public ExchangeInfo(
             int id, int connectionId, string httpVersion,
@@ -83,7 +85,8 @@ namespace Fluxzy
             ExchangeMetrics metrics,
             string egressIp, bool pending, string? comment, HashSet<Tag>? tags,
             bool isWebSocket, List<WsMessage> webSocketMessages,
-            Agent? agent, List<ClientError> clientErrors, string knownAuthority, int knownPort, bool secure)
+            Agent? agent, List<ClientError> clientErrors, string knownAuthority, int knownPort, bool secure,
+            ProcessInfo? processInfo = null)
         {
             Id = id;
             ConnectionId = connectionId;
@@ -102,6 +105,7 @@ namespace Fluxzy
             Tags = tags ?? new HashSet<Tag>();
             KnownPort = knownPort;
             Secure = secure;
+            ProcessInfo = processInfo;
         }
 
         /// <summary>
@@ -272,11 +276,18 @@ namespace Fluxzy
         public Agent? Agent { get; private set; }
 
         /// <summary>
-        ///  Contains a list of transport errors that occurred during the exchange. 
+        ///  Contains a list of transport errors that occurred during the exchange.
         /// </summary>
         [Key(16)]
         public List<ClientError> ClientErrors { get; private set; }
-        
+
+        /// <summary>
+        ///     Information about the local process that initiated this exchange.
+        ///     Null if process tracking is disabled or the connection is not from localhost.
+        /// </summary>
+        [Key(17)]
+        public ProcessInfo? ProcessInfo { get; private set; }
+
         /// <summary>
         /// The string representation of this exchange
         /// </summary>

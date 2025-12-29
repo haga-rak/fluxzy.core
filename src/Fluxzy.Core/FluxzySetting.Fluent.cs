@@ -515,5 +515,18 @@ namespace Fluxzy
             ExportCertificateInSslInfo = value;
             return this;
         }
+
+        /// <summary>
+        ///     Enable or disable process tracking for localhost connections.
+        ///     When enabled, Fluxzy will attempt to identify the local process
+        ///     that initiated each connection using the source port.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetEnableProcessTracking(bool value)
+        {
+            EnableProcessTracking = value;
+            return this;
+        }
     }
 }
