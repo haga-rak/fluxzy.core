@@ -1,6 +1,6 @@
 {
   "networkSettings": {
-    "ja3FingerPrint": "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,5-10-35-51-23-43-18-0-27-17513-11-16-65281-13-45-65037,4588-29-23-24,0",
+    "ja3FingerPrint": "772,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,23-16-17613-51-65281-45-27-5-43-13-35-65037-0-18-11-10,4588-29-23-24,0",
     "greaseMode": true,
     "overrideClientExtensionsValues": null,
     "signatureAlgorithms": [
@@ -39,12 +39,12 @@
       }
     ],
     "removeDefaultValues": true,
-    "initialWindowSize": null
+    "initialWindowSize": 15728640
   },
   "headers": [
     {
       "name": "sec-ch-ua",
-      "value": "\"Microsoft Edge\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\""
+      "value": "\"Not;A=Brand\";v=\"99\", \"Google Chrome\";v=\"139\", \"Chromium\";v=\"139\""
     },
     {
       "name": "sec-ch-ua-mobile",
@@ -60,7 +60,7 @@
     },
     {
       "name": "User-Agent",
-      "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+      "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
     },
     {
       "name": "Accept",

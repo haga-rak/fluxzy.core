@@ -10,7 +10,7 @@ Evaluation scope defines the timing where this filter will be applied.
 
 {.alert .alert-info}
 :::
-**responseHeaderReceivedFromRemote** This scope occurs the moment fluxzy has done parsing the response header.
+**requestHeaderReceivedFromClient** This scope occurs the moment fluxzy parsed the request header receiveid from client
 :::
 
 ### YAML configuration name

@@ -38,7 +38,8 @@
         "value": 262144
       }
     ],
-    "removeDefaultValues": true
+    "removeDefaultValues": true,
+    "initialWindowSize": null
   },
   "headers": [
     {
