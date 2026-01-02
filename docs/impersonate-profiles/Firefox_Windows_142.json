@@ -1,6 +1,6 @@
 {
   "networkSettings": {
-    "ja3FingerPrint": "772,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-34-51-43-13-45-28-27-65037,4588-29-23-24-25-256-257,0",
+    "ja3FingerPrint": "772,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-34-18-51-43-13-45-28-27-65037,4588-29-23-24-25-256-257,0",
     "greaseMode": false,
     "overrideClientExtensionsValues": null,
     "signatureAlgorithms": [
@@ -16,7 +16,11 @@
       515,
       513
     ],
-    "earlySharedGroups": null
+    "earlySharedGroups": [
+      4588,
+      29,
+      23
+    ]
   },
   "h2Settings": {
     "settings": [
@@ -30,20 +34,20 @@
       },
       {
         "identifier": 4,
-        "value": 6291456
+        "value": 131072
       },
       {
-        "identifier": 6,
-        "value": 262144
+        "identifier": 5,
+        "value": 16384
       }
     ],
     "removeDefaultValues": true,
-    "initialWindowSize": null
+    "initialWindowSize": 12582912
   },
   "headers": [
     {
       "name": "User-Agent",
-      "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0"
+      "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0"
     },
     {
       "name": "Accept",

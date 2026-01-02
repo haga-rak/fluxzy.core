@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Rules.Session;
 using Xunit;
@@ -156,6 +157,133 @@ namespace Fluxzy.Tests.UnitTests.Session
 
             // Assert
             Assert.Equal(10, store.Count);
+        }
+
+        [Fact]
+        public void GetSessionsForDomainWithParents_ExactMatch_ReturnsSession()
+        {
+            // Arrange
+            var store = new SessionStore();
+            var session = store.GetOrCreateSession("github.com");
+            session.SetCookie("test", "value");
+
+            // Act
+            var results = store.GetSessionsForDomainWithParents("github.com").ToList();
+
+            // Assert
+            Assert.Single(results);
+            Assert.Same(session, results[0]);
+        }
+
+        [Fact]
+        public void GetSessionsForDomainWithParents_SubdomainMatchesParent()
+        {
+            // Arrange - Cookie stored under parent domain "github.com"
+            var store = new SessionStore();
+            var parentSession = store.GetOrCreateSession("github.com");
+            parentSession.SetCookie("sessionId", "abc123");
+
+            // Act - Request for subdomain "api.github.com"
+            var results = store.GetSessionsForDomainWithParents("api.github.com").ToList();
+
+            // Assert - Should find the parent domain session
+            Assert.Single(results);
+            Assert.Same(parentSession, results[0]);
+        }
+
+        [Fact]
+        public void GetSessionsForDomainWithParents_ReturnsExactAndParent()
+        {
+            // Arrange - Both subdomain and parent have sessions
+            var store = new SessionStore();
+            var parentSession = store.GetOrCreateSession("github.com");
+            parentSession.SetCookie("parentCookie", "parentValue");
+
+            var subdomainSession = store.GetOrCreateSession("api.github.com");
+            subdomainSession.SetCookie("subdomainCookie", "subdomainValue");
+
+            // Act
+            var results = store.GetSessionsForDomainWithParents("api.github.com").ToList();
+
+            // Assert - Should return both, exact match first
+            Assert.Equal(2, results.Count);
+            Assert.Same(subdomainSession, results[0]); // Exact match first
+            Assert.Same(parentSession, results[1]); // Parent domain second
+        }
+
+        [Fact]
+        public void GetSessionsForDomainWithParents_DeepSubdomain_MatchesAllParents()
+        {
+            // Arrange - Multiple levels of parent domains
+            var store = new SessionStore();
+            var rootSession = store.GetOrCreateSession("github.com");
+            rootSession.SetCookie("rootCookie", "rootValue");
+
+            var midSession = store.GetOrCreateSession("api.github.com");
+            midSession.SetCookie("midCookie", "midValue");
+
+            // Act - Request for deep subdomain
+            var results = store.GetSessionsForDomainWithParents("v1.api.github.com").ToList();
+
+            // Assert - Should find both parent domains
+            Assert.Equal(2, results.Count);
+            Assert.Same(midSession, results[0]); // api.github.com
+            Assert.Same(rootSession, results[1]); // github.com
+        }
+
+        [Fact]
+        public void GetSessionsForDomainWithParents_NoMatch_ReturnsEmpty()
+        {
+            // Arrange
+            var store = new SessionStore();
+            store.GetOrCreateSession("other.com");
+
+            // Act
+            var results = store.GetSessionsForDomainWithParents("github.com").ToList();
+
+            // Assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public void GetSessionsForDomainWithParents_TldOnly_ReturnsEmpty()
+        {
+            // Arrange
+            var store = new SessionStore();
+
+            // Act - Single label domain shouldn't have parent lookups
+            var results = store.GetSessionsForDomainWithParents("com").ToList();
+
+            // Assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public void GetSessionsForDomainWithParents_NullOrEmpty_ReturnsEmpty()
+        {
+            // Arrange
+            var store = new SessionStore();
+            store.GetOrCreateSession("github.com");
+
+            // Act & Assert
+            Assert.Empty(store.GetSessionsForDomainWithParents(null!).ToList());
+            Assert.Empty(store.GetSessionsForDomainWithParents("").ToList());
+        }
+
+        [Fact]
+        public void GetSessionsForDomainWithParents_CaseInsensitive()
+        {
+            // Arrange
+            var store = new SessionStore();
+            var session = store.GetOrCreateSession("GitHub.COM");
+            session.SetCookie("test", "value");
+
+            // Act
+            var results = store.GetSessionsForDomainWithParents("api.github.com").ToList();
+
+            // Assert
+            Assert.Single(results);
+            Assert.Same(session, results[0]);
         }
     }
 }

@@ -56,7 +56,7 @@ Install NuGet package `Fluxzy.Core`
 ```bash
 dotnet add package Fluxzy.Core
 ```
-Create a top-level statement console app, with .NET 6.0 or above:
+Create a top-level statement console app, with .NET 10.0 or above:
 
 ```csharp	
 // Creating settings
@@ -260,7 +260,7 @@ curl -x 127.0.0.1:44344 https://www.fluxzy.io
 
 ### Requirements
 
-- .NET 8.0 SDK  
+- .NET 10.0 SDK  
 - Git Bash (required on Windows)  
 - `libpcap` or an equivalent packet capture library (tests that collect PCAP files or install certificates require elevated privileges)  
 - No IDE is required to build the application. For reference, the project has been developed and tested using Visual Studio 2022 and JetBrains Rider on Windows, macOS, and Linux

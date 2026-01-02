@@ -30,6 +30,7 @@ The following table describes the customizable properties available for this act
 | clientCertificate.thumbPrint | string | Thumbprint of a certificate available on user store (hex format) |  |
 | clientCertificate.pkcs12File | string | Path to a PKCS#12 certificate |  |
 | clientCertificate.pkcs12Password | string | Certificate passphrase when Pkcs12File is defined |  |
+| alwaysSendClientCertificate | boolean |  | false |
 
 :::
 ### Example of usage

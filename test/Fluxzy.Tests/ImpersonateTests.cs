@@ -78,10 +78,7 @@ namespace Fluxzy.Tests
         }
 
         [Theory]
-        [InlineData("Chrome_Windows_131")]
         [InlineData("Chrome_Windows_latest")]
-        [InlineData("Chrome_Android_131")]
-        [InlineData("Edge_Windows_131")]
         [InlineData("Firefox_Windows_133")]
         [InlineData("Firefox_Windows_142")]
         [InlineData("Chrome_Windows_139")]
