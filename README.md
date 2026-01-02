@@ -6,11 +6,11 @@
 
 [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core)
 [![Fluxzy.Core](https://img.shields.io/nuget/v/Fluxzy.Core.svg?label=Fluxzy.Core.Pcap&logo=nuget)](https://www.nuget.org/packages/Fluxzy.Core.Pcap)
-[![Docker Image Version](https://img.shields.io/docker/v/fluxzy/fluxzy?label=docker&color=7155ab)](https://hub.docker.com/r/fluxzy/fluxzy)
 [![build](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml/badge.svg)](https://github.com/haga-rak/fluxzy.core/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/haga-rak/fluxzy.core/graph/badge.svg?token=AD5R7Q1FHJ)](https://codecov.io/gh/haga-rak/fluxzy.core)
-[![gitter](https://img.shields.io/badge/docs-latest-b36567)](https://docs.fluxzy.io/documentation/core/introduction.html)
-
+[![Docker Image Version](https://img.shields.io/docker/v/fluxzy/fluxzy?label=docker&color=7155ab)](https://hub.docker.com/r/fluxzy/fluxzy)
+[![Homebrew](https://img.shields.io/badge/homebrew-fluxzy-FBB040?logo=homebrew&logoColor=white)](https://github.com/haga-rak/homebrew-fluxzy)
+[![WinGet](https://img.shields.io/badge/winget-Fluxzy.Fluxzy-0078D4?logo=windows&logoColor=white)](https://github.com/microsoft/winget-pkgs/tree/master/manifests/f/Fluxzy/Fluxzy)
 
 [Features](#-key-features) | [Quick usage (.NET)](#-usage) | [Quick usage (CLI)](#using-cli)  | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
 
