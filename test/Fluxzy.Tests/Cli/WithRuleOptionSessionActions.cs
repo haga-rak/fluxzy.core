@@ -278,6 +278,94 @@ namespace Fluxzy.Tests.Cli
             Assert.True(cookies.ContainsKey("crossDomain"));
         }
 
+        [Fact]
+        public async Task CaptureSession_CapturesRequestCookies()
+        {
+            // Arrange - Test CaptureRequestCookies option for capturing cookies from request headers
+            // This is useful when proxy is inserted into an ongoing session
+            var yamlContent = $"""
+                               rules:
+                               - filter:
+                                   typeKind: HostFilter
+                                   pattern: {TestConstants.HttpBinHostDomainOnly}
+                                   operation: endsWith
+                                 actions:
+                                   - typeKind: captureSessionAction
+                                     captureCookies: true
+                                     captureRequestCookies: true
+                                   - typeKind: applySessionAction
+                                     applyCookies: true
+                               """;
+
+            // First request - send with a Cookie header (simulating ongoing session)
+            var requestMessage1 = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies");
+            requestMessage1.Headers.Add("Cookie", "existingSession=capturedFromRequest; anotherCookie=value123");
+
+            using var response1 = await Exec(yamlContent, requestMessage1, false);
+            var responseBody1 = await response1.Content.ReadAsStringAsync();
+
+            // Verify first request received the cookies we sent
+            var cookies1 = GetCookies(responseBody1);
+            Assert.True(cookies1.ContainsKey("existingSession"));
+            Assert.Equal("capturedFromRequest", cookies1["existingSession"]);
+
+            // Second request - should have captured cookies applied from session store
+            var requestMessage2 = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies");
+
+            using var response2 = await SecondaryHttpClient.SendAsync(requestMessage2);
+            var responseBody2 = await response2.Content.ReadAsStringAsync();
+
+            var cookies2 = GetCookies(responseBody2);
+
+            // Assert - cookies from first request should be captured and applied
+            Assert.True(cookies2.ContainsKey("existingSession"));
+            Assert.Equal("capturedFromRequest", cookies2["existingSession"]);
+            Assert.True(cookies2.ContainsKey("anotherCookie"));
+            Assert.Equal("value123", cookies2["anotherCookie"]);
+        }
+
+        [Fact]
+        public async Task CaptureSession_RequestCookies_SetCookieTakesPrecedence()
+        {
+            // Arrange - Test that Set-Cookie response takes precedence over request Cookie header
+            var yamlContent = $"""
+                               rules:
+                               - filter:
+                                   typeKind: HostFilter
+                                   pattern: {TestConstants.HttpBinHostDomainOnly}
+                                   operation: endsWith
+                                 actions:
+                                   - typeKind: captureSessionAction
+                                     captureCookies: true
+                                     captureRequestCookies: true
+                                   - typeKind: applySessionAction
+                                     applyCookies: true
+                               """;
+
+            // First request - send with Cookie header, but also receive Set-Cookie for same name
+            var requestMessage1 = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies/set/overwrittenCookie/fromSetCookie");
+            requestMessage1.Headers.Add("Cookie", "overwrittenCookie=fromRequest");
+
+            using var response1 = await Exec(yamlContent, requestMessage1, false);
+            await response1.Content.ReadAsStringAsync();
+
+            // Second request - should have Set-Cookie value, not request Cookie value
+            var requestMessage2 = new HttpRequestMessage(HttpMethod.Get,
+                $"https://{TestConstants.HttpBinHost}/cookies");
+
+            using var response2 = await SecondaryHttpClient.SendAsync(requestMessage2);
+            var responseBody2 = await response2.Content.ReadAsStringAsync();
+
+            var cookies2 = GetCookies(responseBody2);
+
+            // Assert - Set-Cookie value should take precedence
+            Assert.True(cookies2.ContainsKey("overwrittenCookie"));
+            Assert.Equal("fromSetCookie", cookies2["overwrittenCookie"]);
+        }
+
         private static Dictionary<string, string> GetCookies(string responseBody)
         {
             var httpBinCookieResult = JsonSerializer.Deserialize<HttpBinCookieResult>(responseBody)!;

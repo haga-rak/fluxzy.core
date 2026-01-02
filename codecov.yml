@@ -43,3 +43,5 @@ ignore:
   - "src/Fluxzy.Core/Utils/ProcessTracking/LinuxProcessHelper.cs"
   - "src/Fluxzy.Core/Utils/ProcessTracking/MacOsProcessHelper.cs"
   - "src/Fluxzy.Core/Utils/ProcessTracking/MacOsNativeMethods.cs"
+  - "src/Fluxzy.Core/Core/H2DownStreamPipe.cs"
+  - "src/Fluxzy.Core/Core/ServerStreamWorker.cs"
