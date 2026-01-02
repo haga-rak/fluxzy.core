@@ -51,12 +51,12 @@ namespace Fluxzy.Utils.ProcessTracking
         private static int? GetProcessIdFromPortWindows(int localPort)
         {
             const int afInet = 2; // AF_INET (IPv4)
-            const int tcpTableOwnerPidConnections = 4;
+            const int tcpTableOwnerPidAll = 5; // TCP_TABLE_OWNER_PID_ALL (listeners + connections)
 
             // First call to get required buffer size
             var bufferSize = 0;
             var result = WindowsNativeMethods.GetExtendedTcpTable(
-                IntPtr.Zero, ref bufferSize, false, afInet, tcpTableOwnerPidConnections, 0);
+                IntPtr.Zero, ref bufferSize, false, afInet, tcpTableOwnerPidAll, 0);
 
             if (result != WindowsNativeMethods.ErrorInsufficientBuffer && result != WindowsNativeMethods.NoError)
                 return null;
@@ -72,7 +72,7 @@ namespace Fluxzy.Utils.ProcessTracking
                 {
                     var tablePtr = handle.AddrOfPinnedObject();
                     result = WindowsNativeMethods.GetExtendedTcpTable(
-                        tablePtr, ref bufferSize, false, afInet, tcpTableOwnerPidConnections, 0);
+                        tablePtr, ref bufferSize, false, afInet, tcpTableOwnerPidAll, 0);
 
                     if (result != WindowsNativeMethods.NoError)
                         return null;
