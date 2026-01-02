@@ -18,7 +18,9 @@ namespace Fluxzy.Utils.ProcessTracking
         public static readonly ProcessTracker Instance = new();
 
         private readonly ConcurrentDictionary<int, CachedProcessInfo> _cache = new();
-        private static readonly TimeSpan CacheValidityDuration = TimeSpan.FromSeconds(30);
+
+        private static TimeSpan CacheValidityDuration =>
+            TimeSpan.FromSeconds(FluxzySharedSetting.ProcessTrackerCacheSeconds);
 
         private sealed class CachedProcessInfo
         {
