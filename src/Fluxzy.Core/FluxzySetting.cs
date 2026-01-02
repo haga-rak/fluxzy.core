@@ -221,6 +221,14 @@ namespace Fluxzy
         [JsonInclude]
         public bool ExportCertificateInSslInfo { get; internal set; }
 
+        /// <summary>
+        ///     When enabled, Fluxzy will attempt to identify the local process
+        ///     that initiated each connection using the source port.
+        ///     Only works for localhost connections. Default is false.
+        /// </summary>
+        [JsonInclude]
+        public bool EnableProcessTracking { get; internal set; }
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption) {

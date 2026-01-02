@@ -10,6 +10,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Rules;
+using Fluxzy.Utils.ProcessTracking;
 
 namespace Fluxzy.Core
 {
@@ -195,6 +196,12 @@ namespace Fluxzy.Core
         }
 
         public Agent? Agent { get; set; }
+
+        /// <summary>
+        ///     Information about the local process that initiated this exchange.
+        ///     Null if process tracking is disabled or the connection is not from localhost.
+        /// </summary>
+        public ProcessInfo? ProcessInfo { get; set; }
 
         public List<ClientError> ClientErrors { get; } = new();
 

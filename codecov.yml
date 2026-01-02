@@ -40,3 +40,6 @@ ignore:
   - "src/Fluxzy.Core/Misc/Streams/DebugFileStream.cs"
   - "src/Fluxzy/ArgsHelper.cs"
   - "src/Fluxzy.Core/Misc/Traces/**"
+  - "src/Fluxzy.Core/Utils/ProcessTracking/LinuxProcessHelper.cs"
+  - "src/Fluxzy.Core/Utils/ProcessTracking/MacOsProcessHelper.cs"
+  - "src/Fluxzy.Core/Utils/ProcessTracking/MacOsNativeMethods.cs"

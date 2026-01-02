@@ -101,5 +101,12 @@ namespace Fluxzy
         /// </summary>
         public static int RawCaptureLingerDelayBeforeTearDownMillis { get; set; } =
             EnvironmentUtility.GetInt32("RAW_CAPTURE_LINGER_DELAY_BEFORE_TEARDOWN", 200);
+
+        /// <summary>
+        ///     The cache validity duration in seconds for process tracking information.
+        ///     Can be set by environment variable FLUXZY_PROCESS_TRACKER_CACHE_SECONDS.
+        /// </summary>
+        public static int ProcessTrackerCacheSeconds { get; set; } =
+            EnvironmentUtility.GetInt32("FLUXZY_PROCESS_TRACKER_CACHE_SECONDS", 30);
     }
 }

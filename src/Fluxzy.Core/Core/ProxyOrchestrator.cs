@@ -14,6 +14,7 @@ using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
+using Fluxzy.Utils.ProcessTracking;
 using Fluxzy.Writers;
 using Org.BouncyCastle.Tls;
 
@@ -197,9 +198,16 @@ namespace Fluxzy.Core
             {
                 var userAgentValue = exchange.GetRequestHeaderValue("User-Agent");
 
-                // Solve user agent 
+                // Solve user agent
                 exchange.Agent = Agent.Create(userAgentValue ?? string.Empty, localEndPoint.Address,
                     _proxyRuntimeSetting.UserAgentProvider);
+            }
+
+            // Collect process info if enabled and connection is from localhost
+            if (_proxyRuntimeSetting.StartupSetting.EnableProcessTracking
+                && IPAddress.IsLoopback(remoteEndPoint.Address))
+            {
+                exchange.ProcessInfo = ProcessTracker.Instance.GetProcessInfo(remoteEndPoint.Port);
             }
 
             var shouldCloseDownStreamConnection = await InternalProcessExchange(exchange,
