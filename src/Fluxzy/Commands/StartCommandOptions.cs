@@ -412,5 +412,18 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
+        public static Option CreateEnableProcessTrackingOption()
+        {
+            var option = new Option<bool>(
+                "--enable-process-tracking",
+                "Enable tracking of the local process that initiated each request. " +
+                "Only works for connections originating from localhost.");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
     }
 }
