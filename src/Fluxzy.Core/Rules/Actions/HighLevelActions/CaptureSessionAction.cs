@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
+using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Formatters.Producers.Responses;
 using Fluxzy.Rules.Session;
 
@@ -17,7 +19,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     /// </summary>
     [ActionMetadata(
         "Capture session data from responses. Captures Set-Cookie headers and optionally " +
-        "other headers like Authorization. Stored data can be replayed using ApplySessionAction.")]
+        "other headers like Authorization. Can also capture cookies from request headers for " +
+        "intercepting ongoing sessions. Stored data can be replayed using ApplySessionAction.")]
     public class CaptureSessionAction : Action
     {
         public CaptureSessionAction()
@@ -32,6 +35,14 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         /// </summary>
         [ActionDistinctive(Description = "Capture cookies from Set-Cookie response headers")]
         public bool CaptureCookies { get; set; }
+
+        /// <summary>
+        /// Whether to capture cookies from Cookie request headers.
+        /// This is useful when the proxy is inserted into an ongoing web session
+        /// where cookies are already set in the browser. Default is false.
+        /// </summary>
+        [ActionDistinctive(Description = "Capture cookies from Cookie request headers (for ongoing sessions)")]
+        public bool CaptureRequestCookies { get; set; }
 
         /// <summary>
         /// List of response header names to capture (e.g., "Authorization", "X-Auth-Token").
@@ -93,6 +104,28 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
                                 sessionData.SetCookie(cookie.Name, cookie.Value, cookie.Path, expires, storageDomain);
                             }
+                        }
+                    }
+                }
+            }
+
+            // Capture cookies from Cookie request headers (passive capture for ongoing sessions)
+            if (CaptureRequestCookies)
+            {
+                var requestHeaders = exchange.GetRequestHeaders().ToList();
+                var requestCookies = HttpHelper.ReadRequestCookies(
+                    requestHeaders.Select(h => (GenericHeaderField)h));
+
+                if (requestCookies.Any())
+                {
+                    var sessionData = sessionStore.GetOrCreateSession(requestDomain);
+
+                    foreach (var cookie in requestCookies)
+                    {
+                        // Only add if not already present (Set-Cookie takes precedence)
+                        if (!sessionData.Cookies.ContainsKey(cookie.Name))
+                        {
+                            sessionData.SetCookie(cookie.Name, cookie.Value, path: null, expires: null, domain: requestDomain);
                         }
                     }
                 }
@@ -171,6 +204,14 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                 {
                     CaptureCookies = true,
                     CaptureHeaders = new List<string> { "Authorization", "X-CSRF-Token", "X-Auth-Token" }
+                });
+
+            yield return new ActionExample(
+                "Capture cookies from request headers (for ongoing sessions)",
+                new CaptureSessionAction
+                {
+                    CaptureCookies = true,
+                    CaptureRequestCookies = true
                 });
         }
     }
