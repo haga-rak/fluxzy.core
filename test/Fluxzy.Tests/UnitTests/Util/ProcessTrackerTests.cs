@@ -77,7 +77,7 @@ namespace Fluxzy.Tests.UnitTests.Util
         }
 
         [Fact]
-        public void GetProcessInfo_MultipleCallsForSamePort_ReturnsSameResult()
+        public void GetProcessInfo_MultipleCallsForSamePort_ReturnsCachedResult()
         {
             if (!IsSupportedPlatform)
                 return;
@@ -94,17 +94,45 @@ namespace Fluxzy.Tests.UnitTests.Util
 
             Assert.NotNull(result1);
             Assert.NotNull(result2);
-            Assert.Equal(result1.ProcessId, result2.ProcessId);
-            Assert.Equal(result1.ProcessPath, result2.ProcessPath);
+
+            // Cache should return the exact same instance
+            Assert.Same(result1, result2);
         }
 
         [Fact]
-        public void GetProcessInfo_AfterListenerStopped_ReturnsNull()
+        public void GetProcessInfo_ReturnsProcessArguments()
+        {
+            if (!IsSupportedPlatform)
+                return;
+
+            using var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+
+            var localPort = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+            var tracker = ProcessTracker.Instance;
+            var processInfo = tracker.GetProcessInfo(localPort);
+
+            Assert.NotNull(processInfo);
+
+            // The test runner should have command line arguments
+            // Note: ProcessArguments may be null on some platforms if access is denied
+            // but on Windows running our own process, it should work
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Assert.NotNull(processInfo.ProcessArguments);
+                Assert.NotEmpty(processInfo.ProcessArguments);
+            }
+        }
+
+        [Fact]
+        public void GetProcessInfo_AfterListenerStopped_ReturnsCachedThenNull()
         {
             if (!IsSupportedPlatform)
                 return;
 
             int localPort;
+            ProcessInfo? cachedInfo;
 
             using (var listener = new TcpListener(IPAddress.Loopback, 0))
             {
@@ -112,16 +140,32 @@ namespace Fluxzy.Tests.UnitTests.Util
                 localPort = ((IPEndPoint)listener.LocalEndpoint).Port;
 
                 var tracker = ProcessTracker.Instance;
-                var processInfo = tracker.GetProcessInfo(localPort);
+                cachedInfo = tracker.GetProcessInfo(localPort);
 
-                Assert.NotNull(processInfo);
+                Assert.NotNull(cachedInfo);
             }
 
-            // Listener is now stopped
+            // Listener is now stopped, but cache should still return the cached value
             var trackerAfter = ProcessTracker.Instance;
             var processInfoAfter = trackerAfter.GetProcessInfo(localPort);
 
-            Assert.Null(processInfoAfter);
+            // Cache returns same instance even after listener stopped
+            Assert.Same(cachedInfo, processInfoAfter);
+        }
+
+        [Fact]
+        public void GetProcessInfo_UnusedPort_ReturnsNull()
+        {
+            if (!IsSupportedPlatform)
+                return;
+
+            // Use a port that's very unlikely to be in use and not cached
+            var unusedPort = 59999;
+
+            var tracker = ProcessTracker.Instance;
+            var processInfo = tracker.GetProcessInfo(unusedPort);
+
+            Assert.Null(processInfo);
         }
     }
 }

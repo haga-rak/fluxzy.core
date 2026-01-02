@@ -13,10 +13,11 @@ namespace Fluxzy.Utils.ProcessTracking
     {
         [JsonConstructor]
         [SerializationConstructor]
-        public ProcessInfo(int processId, string? processPath)
+        public ProcessInfo(int processId, string? processPath, string? processArguments = null)
         {
             ProcessId = processId;
             ProcessPath = processPath;
+            ProcessArguments = processArguments;
         }
 
         /// <summary>
@@ -30,5 +31,11 @@ namespace Fluxzy.Utils.ProcessTracking
         /// </summary>
         [Key(1)]
         public string? ProcessPath { get; }
+
+        /// <summary>
+        /// The command-line arguments of the process, or null if they cannot be determined.
+        /// </summary>
+        [Key(2)]
+        public string? ProcessArguments { get; }
     }
 }

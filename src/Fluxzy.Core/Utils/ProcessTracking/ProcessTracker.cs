@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -20,7 +21,41 @@ namespace Fluxzy.Utils.ProcessTracking
         /// </summary>
         public static readonly ProcessTracker Instance = new();
 
+        private readonly ConcurrentDictionary<int, CachedProcessInfo> _cache = new();
+        private static readonly TimeSpan CacheValidityDuration = TimeSpan.FromSeconds(30);
+
+        private sealed class CachedProcessInfo
+        {
+            public required ProcessInfo Info { get; init; }
+            public required DateTime CachedAt { get; init; }
+        }
+
         public ProcessInfo? GetProcessInfo(int localPort)
+        {
+            var now = DateTime.UtcNow;
+
+            // Check cache first
+            if (_cache.TryGetValue(localPort, out var cached))
+            {
+                if (now - cached.CachedAt < CacheValidityDuration)
+                    return cached.Info;
+
+                // Expired, remove from cache
+                _cache.TryRemove(localPort, out _);
+            }
+
+            // Cache miss or expired - fetch fresh data
+            var result = GetProcessInfoInternal(localPort);
+
+            if (result != null)
+            {
+                _cache[localPort] = new CachedProcessInfo { Info = result, CachedAt = now };
+            }
+
+            return result;
+        }
+
+        private static ProcessInfo? GetProcessInfoInternal(int localPort)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return GetProcessInfoWindows(localPort);
@@ -45,7 +80,8 @@ namespace Fluxzy.Utils.ProcessTracking
                 return null;
 
             var processPath = GetProcessPathWindows(pid.Value);
-            return new ProcessInfo(pid.Value, processPath);
+            var processArguments = GetProcessArgumentsWindows(pid.Value);
+            return new ProcessInfo(pid.Value, processPath, processArguments);
         }
 
         private static int? GetProcessIdFromPortWindows(int localPort)
@@ -169,6 +205,77 @@ namespace Fluxzy.Utils.ProcessTracking
             }
         }
 
+        private static string? GetProcessArgumentsWindows(int processId)
+        {
+            const int processQueryInformation = 0x0400;
+            const int processVmRead = 0x0010;
+
+            var processHandle = WindowsNativeMethods.OpenProcess(
+                processQueryInformation | processVmRead, false, processId);
+
+            if (processHandle == IntPtr.Zero)
+                return null;
+
+            try
+            {
+                // Get process basic information to find PEB address
+                var pbi = new WindowsNativeMethods.ProcessBasicInformation();
+                var status = WindowsNativeMethods.NtQueryInformationProcess(
+                    processHandle, 0, ref pbi, Marshal.SizeOf(pbi), out _);
+
+                if (status != 0)
+                    return null;
+
+                // Read PEB to get RTL_USER_PROCESS_PARAMETERS address
+                var pebBuffer = new byte[IntPtr.Size];
+                if (!WindowsNativeMethods.ReadProcessMemory(
+                    processHandle,
+                    pbi.PebBaseAddress + (Environment.Is64BitProcess ? 0x20 : 0x10),
+                    pebBuffer, pebBuffer.Length, out _))
+                    return null;
+
+                var processParametersAddress = Environment.Is64BitProcess
+                    ? BitConverter.ToInt64(pebBuffer, 0)
+                    : BitConverter.ToInt32(pebBuffer, 0);
+
+                // Read CommandLine UNICODE_STRING (offset 0x70 for 64-bit, 0x40 for 32-bit)
+                var unicodeStringOffset = Environment.Is64BitProcess ? 0x70 : 0x40;
+                var unicodeStringBuffer = new byte[Environment.Is64BitProcess ? 16 : 8];
+                if (!WindowsNativeMethods.ReadProcessMemory(
+                    processHandle,
+                    new IntPtr(processParametersAddress + unicodeStringOffset),
+                    unicodeStringBuffer, unicodeStringBuffer.Length, out _))
+                    return null;
+
+                // Parse UNICODE_STRING structure (Length, MaxLength, Buffer pointer)
+                var length = BitConverter.ToUInt16(unicodeStringBuffer, 0);
+                var bufferAddress = Environment.Is64BitProcess
+                    ? BitConverter.ToInt64(unicodeStringBuffer, 8)
+                    : BitConverter.ToInt32(unicodeStringBuffer, 4);
+
+                if (length == 0 || bufferAddress == 0)
+                    return null;
+
+                // Read the actual command line string
+                var commandLineBuffer = new byte[length];
+                if (!WindowsNativeMethods.ReadProcessMemory(
+                    processHandle,
+                    new IntPtr(bufferAddress),
+                    commandLineBuffer, commandLineBuffer.Length, out _))
+                    return null;
+
+                return Encoding.Unicode.GetString(commandLineBuffer);
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                WindowsNativeMethods.CloseHandle(processHandle);
+            }
+        }
+
         private static class WindowsNativeMethods
         {
             public const int NoError = 0;
@@ -198,6 +305,33 @@ namespace Fluxzy.Utils.ProcessTracking
                 int dwFlags,
                 StringBuilder lpExeName,
                 ref int lpdwSize);
+
+            [DllImport("ntdll.dll")]
+            public static extern int NtQueryInformationProcess(
+                IntPtr processHandle,
+                int processInformationClass,
+                ref ProcessBasicInformation processInformation,
+                int processInformationLength,
+                out int returnLength);
+
+            [DllImport("kernel32.dll", SetLastError = true)]
+            public static extern bool ReadProcessMemory(
+                IntPtr hProcess,
+                IntPtr lpBaseAddress,
+                byte[] lpBuffer,
+                int dwSize,
+                out int lpNumberOfBytesRead);
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct ProcessBasicInformation
+            {
+                public IntPtr Reserved1;
+                public IntPtr PebBaseAddress;
+                public IntPtr Reserved2_0;
+                public IntPtr Reserved2_1;
+                public IntPtr UniqueProcessId;
+                public IntPtr Reserved3;
+            }
         }
 
         #endregion
@@ -219,7 +353,8 @@ namespace Fluxzy.Utils.ProcessTracking
                 return null;
 
             var processPath = GetProcessPathLinux(pid.Value);
-            return new ProcessInfo(pid.Value, processPath);
+            var processArguments = GetProcessArgumentsLinux(pid.Value);
+            return new ProcessInfo(pid.Value, processPath, processArguments);
         }
 
         private static long? FindSocketInodeForPort(int localPort)
@@ -427,6 +562,32 @@ namespace Fluxzy.Utils.ProcessTracking
             }
         }
 
+        private static string? GetProcessArgumentsLinux(int processId)
+        {
+            var cmdlinePath = $"/proc/{processId}/cmdline";
+
+            try
+            {
+                if (!File.Exists(cmdlinePath))
+                    return null;
+
+                var content = File.ReadAllText(cmdlinePath);
+                if (string.IsNullOrEmpty(content))
+                    return null;
+
+                // Arguments are separated by null bytes, replace with spaces
+                return content.Replace('\0', ' ').Trim();
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+
         #endregion
 
         #region macOS Implementation
@@ -446,7 +607,8 @@ namespace Fluxzy.Utils.ProcessTracking
                 if (ProcessOwnsPortMacOs(pid, localPort))
                 {
                     var processPath = GetProcessPathMacOs(pid);
-                    return new ProcessInfo(pid, processPath);
+                    var processArguments = GetProcessArgumentsMacOs(pid);
+                    return new ProcessInfo(pid, processPath, processArguments);
                 }
             }
 
@@ -643,6 +805,85 @@ namespace Fluxzy.Utils.ProcessTracking
             }
         }
 
+        private static string? GetProcessArgumentsMacOs(int pid)
+        {
+            // Use sysctl to get process arguments
+            var mib = new int[] { MacOsNativeMethods.CTL_KERN, MacOsNativeMethods.KERN_PROCARGS2, pid };
+
+            // First call to get size
+            var size = IntPtr.Zero;
+            if (MacOsNativeMethods.sysctl(mib, 3, IntPtr.Zero, ref size, IntPtr.Zero, IntPtr.Zero) != 0)
+                return null;
+
+            if (size == IntPtr.Zero || size.ToInt64() <= 0)
+                return null;
+
+            var buffer = new byte[size.ToInt64()];
+            var bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+
+            try
+            {
+                var bufferSize = new IntPtr(buffer.Length);
+                if (MacOsNativeMethods.sysctl(mib, 3, bufferHandle.AddrOfPinnedObject(), ref bufferSize, IntPtr.Zero, IntPtr.Zero) != 0)
+                    return null;
+
+                // Parse KERN_PROCARGS2 format:
+                // First 4 bytes: argc (number of arguments)
+                // Then: executable path (null-terminated)
+                // Then: arguments (null-separated)
+                // Then: environment variables (null-separated)
+
+                if (buffer.Length < 4)
+                    return null;
+
+                var argc = BitConverter.ToInt32(buffer, 0);
+                if (argc <= 0)
+                    return null;
+
+                // Find the start of executable path (after argc)
+                var offset = 4;
+
+                // Skip any leading nulls
+                while (offset < buffer.Length && buffer[offset] == 0)
+                    offset++;
+
+                // Skip executable path
+                while (offset < buffer.Length && buffer[offset] != 0)
+                    offset++;
+
+                // Skip null terminator after executable path
+                while (offset < buffer.Length && buffer[offset] == 0)
+                    offset++;
+
+                // Now collect arguments
+                var args = new StringBuilder();
+                var argCount = 0;
+
+                while (offset < buffer.Length && argCount < argc)
+                {
+                    var argStart = offset;
+                    while (offset < buffer.Length && buffer[offset] != 0)
+                        offset++;
+
+                    if (offset > argStart)
+                    {
+                        if (args.Length > 0)
+                            args.Append(' ');
+                        args.Append(Encoding.UTF8.GetString(buffer, argStart, offset - argStart));
+                        argCount++;
+                    }
+
+                    offset++; // Skip null terminator
+                }
+
+                return args.Length > 0 ? args.ToString() : null;
+            }
+            finally
+            {
+                bufferHandle.Free();
+            }
+        }
+
         private static class MacOsNativeMethods
         {
             public const int PROC_ALL_PIDS = 1;
@@ -652,6 +893,9 @@ namespace Fluxzy.Utils.ProcessTracking
             public const int PROC_FDINFO_SIZE = 8; // sizeof(proc_fdinfo)
             public const int SOCKET_FDINFO_SIZE = 808; // sizeof(socket_fdinfo)
             public const int PROC_PIDPATHINFO_MAXSIZE = 4096;
+
+            public const int CTL_KERN = 1;
+            public const int KERN_PROCARGS2 = 49;
 
             [DllImport("libproc.dylib")]
             public static extern int proc_listpids(int type, uint typeinfo, IntPtr buffer, int buffersize);
@@ -664,6 +908,9 @@ namespace Fluxzy.Utils.ProcessTracking
 
             [DllImport("libproc.dylib")]
             public static extern int proc_pidpath(int pid, IntPtr buffer, uint buffersize);
+
+            [DllImport("libc.dylib")]
+            public static extern int sysctl(int[] name, int namelen, IntPtr oldp, ref IntPtr oldlenp, IntPtr newp, IntPtr newlen);
         }
 
         #endregion
