@@ -104,7 +104,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             // Capture specified headers from response
             if (CaptureHeaders?.Any() == true)
             {
-                var responseHeaders = exchange.GetResponseHeaders();
+                var responseHeaders = exchange.GetResponseHeaders()?.ToList();
                 if (responseHeaders != null)
                 {
                     foreach (var headerName in CaptureHeaders)
@@ -120,7 +120,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                 }
 
                 // Also capture from request headers (useful for Authorization that's sent by client)
-                var requestHeaders = exchange.GetRequestHeaders();
+                var requestHeaders = exchange.GetRequestHeaders().ToList();
                 foreach (var headerName in CaptureHeaders)
                 {
                     var matchingHeader = requestHeaders
