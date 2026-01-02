@@ -51,9 +51,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
             if (exchange == null)
                 return default;
 
-            var domain = context.Authority.HostName;
+            var requestDomain = context.Authority.HostName;
             var sessionStore = context.VariableContext.SessionStore;
-            var sessionData = sessionStore.GetOrCreateSession(domain);
 
             // Capture cookies from Set-Cookie headers
             if (CaptureCookies)
@@ -68,6 +67,10 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     {
                         if (SetCookieItem.TryParse(header.Value.Span.ToString(), out var cookie) && cookie != null)
                         {
+                            // Determine storage domain: use cookie's Domain attribute if present, otherwise request host
+                            var storageDomain = NormalizeCookieDomain(cookie.Domain) ?? requestDomain;
+                            var sessionData = sessionStore.GetOrCreateSession(storageDomain);
+
                             // Check if cookie is being deleted (expired or max-age=0)
                             var isExpired = cookie.MaxAge.HasValue && cookie.MaxAge.Value <= 0;
                             var isPastExpired = cookie.Expired != default && DateTime.Now > cookie.Expired;
@@ -88,12 +91,15 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                                     expires = DateTime.UtcNow.AddSeconds(cookie.MaxAge.Value);
                                 }
 
-                                sessionData.SetCookie(cookie.Name, cookie.Value, cookie.Path, expires);
+                                sessionData.SetCookie(cookie.Name, cookie.Value, cookie.Path, expires, storageDomain);
                             }
                         }
                     }
                 }
             }
+
+            // For header capture, use request domain
+            var sessionDataForHeaders = sessionStore.GetOrCreateSession(requestDomain);
 
             // Capture specified headers from response
             if (CaptureHeaders?.Any() == true)
@@ -108,7 +114,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
                         if (matchingHeader != null)
                         {
-                            sessionData.SetHeader(headerName, matchingHeader.Value.Span.ToString());
+                            sessionDataForHeaders.SetHeader(headerName, matchingHeader.Value.Span.ToString());
                         }
                     }
                 }
@@ -122,14 +128,27 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
                     if (matchingHeader != null)
                     {
-                        sessionData.SetHeader(headerName, matchingHeader.Value.Span.ToString());
+                        sessionDataForHeaders.SetHeader(headerName, matchingHeader.Value.Span.ToString());
                     }
                 }
+
+                sessionDataForHeaders.LastUpdated = DateTime.UtcNow;
             }
 
-            sessionData.LastUpdated = DateTime.UtcNow;
-
             return default;
+        }
+
+        /// <summary>
+        /// Normalizes a cookie domain by removing leading dot if present.
+        /// Returns null if domain is null or empty.
+        /// </summary>
+        private static string? NormalizeCookieDomain(string? domain)
+        {
+            if (string.IsNullOrWhiteSpace(domain))
+                return null;
+
+            // Remove leading dot (e.g., ".github.com" -> "github.com")
+            return domain.TrimStart('.');
         }
 
         public override IEnumerable<ActionExample> GetExamples()
