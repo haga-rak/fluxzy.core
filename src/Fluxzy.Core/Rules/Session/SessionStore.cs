@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Fluxzy.Rules.Session
 {
@@ -74,5 +75,40 @@ namespace Fluxzy.Rules.Session
         /// Get the number of stored sessions
         /// </summary>
         public int Count => _sessions.Count;
+
+        /// <summary>
+        /// Get all sessions that match the domain or its parent domains.
+        /// For example, for "api.github.com", returns sessions for "api.github.com" and "github.com".
+        /// Sessions are returned in order from most specific (exact match) to least specific (parent domains).
+        /// </summary>
+        public IEnumerable<SessionData> GetSessionsForDomainWithParents(string domain)
+        {
+            if (string.IsNullOrEmpty(domain))
+                yield break;
+
+            // First try exact match
+            if (_sessions.TryGetValue(domain, out var exactSession))
+            {
+                yield return exactSession;
+            }
+
+            // Then check parent domains
+            var parts = domain.Split('.');
+
+            // Skip if already at TLD level (e.g., "com") or no subdomain
+            if (parts.Length <= 2)
+                yield break;
+
+            // Try each parent domain (e.g., for "api.github.com", try "github.com")
+            for (var i = 1; i < parts.Length - 1; i++)
+            {
+                var parentDomain = string.Join(".", parts, i, parts.Length - i);
+
+                if (_sessions.TryGetValue(parentDomain, out var parentSession))
+                {
+                    yield return parentSession;
+                }
+            }
+        }
     }
 }

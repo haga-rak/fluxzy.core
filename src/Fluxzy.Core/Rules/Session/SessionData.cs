@@ -44,12 +44,13 @@ namespace Fluxzy.Rules.Session
         /// <summary>
         /// Add or update a cookie
         /// </summary>
-        public void SetCookie(string name, string value, string? path = null, DateTime? expires = null)
+        public void SetCookie(string name, string value, string? path = null, DateTime? expires = null, string? domain = null)
         {
             var cookie = new SessionCookie(name, value)
             {
                 Path = path,
-                Expires = expires
+                Expires = expires,
+                Domain = domain
             };
 
             Cookies.AddOrUpdate(name, cookie, (_, _) => cookie);

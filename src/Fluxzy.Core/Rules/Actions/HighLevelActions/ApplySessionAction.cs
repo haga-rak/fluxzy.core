@@ -10,6 +10,7 @@ using Fluxzy.Clients.Headers;
 using Fluxzy.Core;
 using Fluxzy.Core.Breakpoints;
 using Fluxzy.Formatters.Producers.Requests;
+using Fluxzy.Rules.Session;
 
 namespace Fluxzy.Rules.Actions.HighLevelActions
 {
@@ -73,17 +74,31 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
 
             var targetDomain = SourceDomain?.EvaluateVariable(context) ?? context.Authority.HostName;
             var sessionStore = context.VariableContext.SessionStore;
-            var sessionData = sessionStore.GetSession(targetDomain);
 
-            if (sessionData == null)
+            // Get sessions for this domain and parent domains (e.g., api.github.com AND github.com)
+            var matchingSessions = sessionStore.GetSessionsForDomainWithParents(targetDomain).ToList();
+
+            if (!matchingSessions.Any())
                 return default;
 
-            // Apply cookies
-            if (ApplyCookies && sessionData.Cookies.Any())
+            // Apply cookies from all matching sessions (merge from parent domains)
+            if (ApplyCookies)
             {
-                sessionData.RemoveExpiredCookies();
+                // Collect all cookies from matching sessions
+                // Parent domain cookies are added first, then overwritten by more specific domain cookies
+                var allSessionCookies = new Dictionary<string, SessionCookie>(StringComparer.OrdinalIgnoreCase);
 
-                if (!sessionData.Cookies.Any())
+                // Process in reverse order so more specific domains override parent domains
+                foreach (var sessionData in matchingSessions.AsEnumerable().Reverse())
+                {
+                    sessionData.RemoveExpiredCookies();
+                    foreach (var cookie in sessionData.Cookies.Values.Where(c => !c.IsExpired()))
+                    {
+                        allSessionCookies[cookie.Name] = cookie;
+                    }
+                }
+
+                if (!allSessionCookies.Any())
                     return default;
 
                 string cookieValue;
@@ -112,7 +127,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                         }
 
                         // Override/add session cookies
-                        foreach (var sessionCookie in sessionData.Cookies.Values.Where(c => !c.IsExpired()))
+                        foreach (var sessionCookie in allSessionCookies.Values)
                         {
                             mergedCookies[sessionCookie.Name] = sessionCookie.Value;
                         }
@@ -123,7 +138,8 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                     else
                     {
                         // No existing cookies, just use session cookies
-                        cookieValue = sessionData.GetCookieHeaderValue();
+                        cookieValue = string.Join("; ", allSessionCookies.Values.Select(c =>
+                            $"{HttpUtility.UrlEncode(c.Name)}={HttpUtility.UrlEncode(c.Value)}"));
                     }
 
                     // Remove existing and add merged
@@ -133,16 +149,18 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
                 else
                 {
                     // Replace entirely with session cookies
-                    cookieValue = sessionData.GetCookieHeaderValue();
+                    cookieValue = string.Join("; ", allSessionCookies.Values.Select(c =>
+                        $"{HttpUtility.UrlEncode(c.Name)}={HttpUtility.UrlEncode(c.Value)}"));
                     context.RequestHeaderAlterations.Add(new HeaderAlterationDelete("Cookie"));
                     context.RequestHeaderAlterations.Add(new HeaderAlterationAdd("Cookie", cookieValue));
                 }
             }
 
-            // Apply headers
-            if (ApplyHeaders && sessionData.Headers.Any())
+            // Apply headers (only from exact domain match for headers)
+            var exactSessionData = matchingSessions.FirstOrDefault();
+            if (ApplyHeaders && exactSessionData?.Headers.Any() == true)
             {
-                foreach (var (headerName, headerValue) in sessionData.Headers)
+                foreach (var (headerName, headerValue) in exactSessionData.Headers)
                 {
                     if (MergeWithExisting)
                     {
