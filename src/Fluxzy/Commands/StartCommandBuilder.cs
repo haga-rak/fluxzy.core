@@ -87,6 +87,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateProxyBuffer());
             command.AddOption(StartCommandOptions.CreateMaxConnectionPerHost());
             command.AddOption(StartCommandOptions.CreateCounterOption());
+            command.AddOption(StartCommandOptions.CreateEnableProcessTrackingOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -123,6 +124,7 @@ namespace Fluxzy.Cli.Commands
             var proxyMode = invocationContext.Value<ProxyMode>("mode");
             var modeReversePort = invocationContext.Value<int?>("mode-reverse-port");
             var proxyBasicAuthCredential = invocationContext.Value<NetworkCredential?>("proxy-auth-basic");
+            var enableProcessTracking = invocationContext.Value<bool>("enable-process-tracking");
 
             if (trace) {
                 D.EnableTracing = true;
@@ -274,6 +276,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.SetDisableCertificateCache(noCertCache);
             proxyStartUpSetting.OutOfProcCapture = outOfProcCapture;
             proxyStartUpSetting.UseBouncyCastle = bouncyCastle;
+            proxyStartUpSetting.SetEnableProcessTracking(enableProcessTracking);
 
             var certificateProvider = new CertificateProvider(proxyStartUpSetting.CaCertificate,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));
