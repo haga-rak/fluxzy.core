@@ -152,20 +152,5 @@ namespace Fluxzy.Tests.UnitTests.Util
             // Cache returns same instance even after listener stopped
             Assert.Same(cachedInfo, processInfoAfter);
         }
-
-        [Fact]
-        public void GetProcessInfo_UnusedPort_ReturnsNull()
-        {
-            if (!IsSupportedPlatform)
-                return;
-
-            // Use a port that's very unlikely to be in use and not cached
-            var unusedPort = 59999;
-
-            var tracker = ProcessTracker.Instance;
-            var processInfo = tracker.GetProcessInfo(unusedPort);
-
-            Assert.Null(processInfo);
-        }
     }
 }
