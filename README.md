@@ -16,11 +16,22 @@
 
 </div>
 
-<i>A [fast](https://fluxzy.io/resources/blogs/performance-benchmark-fluxzy-mitmproxy-mitmdump-squid) and fully streamed MITM tool to intercept, record, and modify HTTP/1, HTTP/2, and WebSocket traffic, whether in plain or secured with TLS.</i>
+<i>A [fast](https://fluxzy.io/resources/blogs/performance-benchmark-fluxzy-mitmproxy-mitmdump-squid) and fully streamed MITM proxy to intercept, record, and modify HTTP/1, HTTP/2, and WebSocket traffic, whether in plain or secured with TLS.</i>
 
-Fluxzy is a man-in-the-middle (MITM) proxy that acts as both client and server, enabling interception and modification of HTTP/1, HTTP/2, and WebSocket traffic. It’s designed for high performance, using full streaming to minimize overhead, while response bodies exceeding the initial buffer are fully stored in memory for inspection. Fluxzy supports configuration-driven setups through rule files, allowing easy reuse and switching of configurations between CLI, .NET applications, and the Fluxzy Desktop application without additional effort.
+Fluxzy is a man-in-the-middle (MITM) proxy that acts as both client and server, enabling interception and modification of HTTP/1, HTTP/2, and WebSocket traffic. It's designed for high performance, using full streaming to minimize overhead, while response bodies exceeding the initial buffer are fully stored in memory for inspection. Fluxzy supports configuration-driven setups through rule files, allowing easy reuse and switching of configurations between CLI, .NET applications, and the Fluxzy Desktop application without additional effort.
 
 Fluxzy can be used as a CLI tool, a Docker container or a .NET library and is used under the hood by [Fluxzy Desktop](https://www.fluxzy.io/download) which is a cross-platform HTTP debugger.
+
+### Supported Proxy Protocols
+
+| Protocol | Description |
+|----------|-------------|
+| **HTTP CONNECT** | Standard forward proxy tunneling for HTTPS traffic |
+| **SOCKS5** | Full SOCKS5 support with no-auth and username/password authentication (RFC 1928) |
+| **Reverse Proxy** | Secure (TLS) and plain HTTP modes for backend service proxying |
+| **System Proxy** | Transparent system-wide interception via OS proxy settings |
+
+Protocol detection is automatic: clients can connect using either HTTP CONNECT or SOCKS5 on the same listening port.
 
 ## ⚙️ Key Features
 
