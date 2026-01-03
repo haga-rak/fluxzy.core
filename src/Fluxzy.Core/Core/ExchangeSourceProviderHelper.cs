@@ -12,7 +12,7 @@ namespace Fluxzy.Core
             ProxyAuthenticationMethod proxyAuthenticationMethod, IExchangeContextBuilder contextBuilder)
         {
             if (!setting.ReverseMode)
-                return new FromProxyConnectSourceProvider(
+                return new ProtocolDetectingSourceProvider(
                     secureConnectionUpdater, idProvider,
                     proxyAuthenticationMethod, contextBuilder);
             
