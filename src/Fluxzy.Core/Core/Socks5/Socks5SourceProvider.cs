@@ -60,17 +60,24 @@ namespace Fluxzy.Core.Socks5
         {
             var receivedFromProxy = ITimingProvider.Default.Instant();
 
-            // 1. Read greeting (first byte 0x05 already consumed, we read NMETHODS and METHODS)
+            // 1. Read and validate version byte (prepended by ProtocolDetectingSourceProvider)
+            var versionByte = new byte[1];
+            var versionRead = await stream.ReadAsync(versionByte, token).ConfigureAwait(false);
+
+            if (versionRead != 1 || versionByte[0] != Socks5Constants.Version)
+                throw new Socks5ProtocolException($"Invalid SOCKS version: {(versionRead == 0 ? "EOF" : versionByte[0].ToString())}");
+
+            // 2. Read greeting (NMETHODS and METHODS)
             var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, token).ConfigureAwait(false);
 
-            // 2. Select and respond with auth method
+            // 3. Select and respond with auth method
             var selectedMethod = _authAdapter.SelectAuthMethod(methods);
             await Socks5ProtocolHandler.WriteMethodSelectionAsync(stream, selectedMethod, token).ConfigureAwait(false);
 
             if (selectedMethod == Socks5Constants.AuthNoAcceptable)
                 return null;
 
-            // 3. Handle authentication if required
+            // 4. Handle authentication if required
             if (selectedMethod == Socks5Constants.AuthUsernamePassword)
             {
                 var (username, password) = await Socks5ProtocolHandler.ReadUsernamePasswordAsync(stream, token)
@@ -83,10 +90,10 @@ namespace Fluxzy.Core.Socks5
                     return null;
             }
 
-            // 4. Read connect request
+            // 5. Read connect request
             var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, token).ConfigureAwait(false);
 
-            // 5. Validate command (only CONNECT supported)
+            // 6. Validate command (only CONNECT supported)
             if (request.Command != Socks5Constants.CmdConnect)
             {
                 await Socks5ProtocolHandler.WriteErrorReplyAsync(
@@ -94,13 +101,13 @@ namespace Fluxzy.Core.Socks5
                 return null;
             }
 
-            // 6. Create authority from the request
+            // 7. Create authority from the request
             var authority = new Authority(request.DestinationAddress, request.DestinationPort, true);
 
-            // 7. Create exchange context
+            // 8. Create exchange context
             var exchangeContext = await _contextBuilder.Create(authority, true).ConfigureAwait(false);
 
-            // 8. Send success reply before establishing the tunnel
+            // 9. Send success reply before establishing the tunnel
             await Socks5ProtocolHandler.WriteReplyAsync(
                 stream,
                 Socks5Constants.RepSucceeded,
@@ -109,10 +116,10 @@ namespace Fluxzy.Core.Socks5
                 request.DestinationPort,
                 token).ConfigureAwait(false);
 
-            // 9. Create synthetic header for the SOCKS5 connection
+            // 10. Create synthetic header for the SOCKS5 connection
             var syntheticHeaderText = CreateSyntheticConnectHeader(request);
 
-            // 10. Handle blind mode (no decryption)
+            // 11. Handle blind mode (no decryption)
             if (exchangeContext.BlindMode)
             {
                 var blindExchange = Exchange.CreateUntrackedExchange(
@@ -134,7 +141,7 @@ namespace Fluxzy.Core.Socks5
                     blindExchange);
             }
 
-            // 11. Perform TLS upgrade if not blind mode
+            // 12. Perform TLS upgrade if not blind mode
             var certStart = ITimingProvider.Default.Instant();
             var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
                 stream, authority.HostName, exchangeContext, token).ConfigureAwait(false);
@@ -167,11 +174,14 @@ namespace Fluxzy.Core.Socks5
                 exchange);
         }
 
-        private static readonly string Socks5ResponseHeader = "SOCKS5/1.0 200 Connection established\r\n\r\n";
+        private static readonly string Socks5ResponseHeader =
+            "HTTP/1.1 200 Connection Established\r\n" +
+            "X-Fluxzy-Protocol: SOCKS5\r\n" +
+            "\r\n";
 
         private static string CreateSyntheticConnectHeader(Socks5Request request)
         {
-            return $"CONNECT {request.DestinationAddress}:{request.DestinationPort} SOCKS5/1.0\r\n" +
+            return $"CONNECT {request.DestinationAddress}:{request.DestinationPort} HTTP/1.1\r\n" +
                    $"Host: {request.DestinationAddress}:{request.DestinationPort}\r\n" +
                    $"X-Socks5-Address-Type: {GetAddressTypeName(request.AddressType)}\r\n" +
                    "\r\n";

@@ -14,12 +14,20 @@ namespace Fluxzy.Tests.Cli.Scaffolding
         public ProxiedHttpClient(
             int port, string remoteHost = "127.0.0.1",
             bool allowAutoRedirect = true, CookieContainer? cookieContainer = null,
-            bool automaticDecompression = false, NetworkCredential  ? proxyCredential = null)
+            bool automaticDecompression = false, NetworkCredential  ? proxyCredential = null,
+            bool useSock5 = false)
         {
             WebProxy = proxyCredential == null
                     ? new WebProxy($"http://{remoteHost}:{port}")
                     : new WebProxy($"http://{remoteHost}:{port}", false, null, proxyCredential)
                 ;
+
+            if (useSock5) {
+
+                WebProxy = proxyCredential == null
+                    ? new WebProxy($"socks5://{remoteHost}:{port}")
+                    : new WebProxy($"socks5://{remoteHost}:{port}", false, null, proxyCredential);
+            }
 
             _clientHandler = new HttpClientHandler {
                 Proxy = WebProxy,
