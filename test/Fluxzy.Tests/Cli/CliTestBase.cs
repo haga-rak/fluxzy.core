@@ -15,7 +15,8 @@ namespace Fluxzy.Tests.Cli
 {
     public class CliTestBase
     {
-        protected async Task Run_Cli_Output(string proto, CaptureType rawCap, bool @out, bool rule)
+        protected async Task Run_Cli_Output(string proto, CaptureType rawCap, 
+            bool @out, bool rule, bool useSock5 = false)
         {
             // Arrange 
 
@@ -63,7 +64,8 @@ namespace Fluxzy.Tests.Cli
 
             await using (var fluxzyInstance = await commandLineHost.Run(30))
             {
-                using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort);
+                using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort,
+                    useSock5: useSock5);
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post,
                     $"{TestConstants.GetHost(proto)}/global-health-check");
