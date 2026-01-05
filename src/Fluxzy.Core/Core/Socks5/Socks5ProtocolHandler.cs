@@ -159,7 +159,7 @@ namespace Fluxzy.Core.Socks5
                     if (await ReadExactAsync(stream, domainBytes, token).ConfigureAwait(false) != domainLen)
                         throw new Socks5ProtocolException("Failed to read domain name");
 
-                    address = Encoding.ASCII.GetString(domainBytes);
+                    address = Encoding.ASCII.GetString(domainBytes).Trim('\0');
                     rawAddress = new byte[1 + domainLen];
                     rawAddress[0] = domainLen;
                     Buffer.BlockCopy(domainBytes, 0, rawAddress, 1, domainLen);
