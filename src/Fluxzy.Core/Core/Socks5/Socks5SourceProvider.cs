@@ -108,11 +108,30 @@ namespace Fluxzy.Core.Socks5
             var exchangeContext = await _contextBuilder.Create(authority, true).ConfigureAwait(false);
 
             // 9. Send success reply before establishing the tunnel
+            // Some SOCKS5 clients don't support domain name replies, so resolve to IP if needed
+            var replyAddressType = request.AddressType;
+            var replyRawAddress = request.RawAddress;
+
+            if (request.AddressType == Socks5Constants.AddrTypeDomain)
+            {
+                var addresses = await Dns.GetHostAddressesAsync(request.DestinationAddress, token)
+                    .ConfigureAwait(false);
+
+                if (addresses.Length > 0)
+                {
+                    var resolvedAddress = addresses[0];
+                    replyRawAddress = resolvedAddress.GetAddressBytes();
+                    replyAddressType = resolvedAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
+                        ? Socks5Constants.AddrTypeIPv6
+                        : Socks5Constants.AddrTypeIPv4;
+                }
+            }
+
             await Socks5ProtocolHandler.WriteReplyAsync(
                 stream,
                 Socks5Constants.RepSucceeded,
-                request.AddressType,
-                request.RawAddress,
+                replyAddressType,
+                replyRawAddress,
                 request.DestinationPort,
                 token).ConfigureAwait(false);
 
