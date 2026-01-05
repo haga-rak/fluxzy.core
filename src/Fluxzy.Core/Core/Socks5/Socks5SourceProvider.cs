@@ -125,6 +125,11 @@ namespace Fluxzy.Core.Socks5
                         ? Socks5Constants.AddrTypeIPv6
                         : Socks5Constants.AddrTypeIPv4;
                 }
+                else {
+                    // If resolution fails, fall back to IPv4 with
+                    replyRawAddress = new byte[Socks5Constants.IPv4AddressLength];
+                    replyAddressType = Socks5Constants.AddrTypeIPv4;
+                }
             }
 
             await Socks5ProtocolHandler.WriteReplyAsync(
