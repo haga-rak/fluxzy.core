@@ -199,18 +199,26 @@ namespace Fluxzy.Readers
                 return length;
 
             var responseBodyPath = DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId);
-            var fileInfo = new FileInfo(responseBodyPath);
 
-            if (!fileInfo.Exists) {
+            try {
+                var fileInfo = new FileInfo(responseBodyPath);
+
+                if (!fileInfo.Exists) {
+                    return 0;
+                }
+
+                if (!EnableFileBodyInfoCaching)
+                {
+                    return fileInfo.Length;
+                }
+
+                return _lengthCaching[cacheKey] = fileInfo.Length;
+            }
+            catch (IOException)
+            {
+                // in  cases, the file may be locked by another process
                 return 0;
             }
-
-            if (!EnableFileBodyInfoCaching)
-            {
-                return fileInfo.Length;
-            }
-
-            return _lengthCaching[cacheKey] = fileInfo.Length;
         }
 
         public Stream? GetRequestWebsocketContent(int exchangeId, int messageId)
@@ -246,13 +254,19 @@ namespace Fluxzy.Readers
 
         public Stream? GetResponseBody(int exchangeId)
         {
-            var requestContentPath = DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId);
+            try {
+                var requestContentPath = DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId);
 
-            if (!File.Exists(requestContentPath)) {
+                if (!File.Exists(requestContentPath)) {
+                    return null;
+                }
+
+                return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            }
+            catch (IOException) {
+                // in  cases, the file may be locked by another process
                 return null;
             }
-
-            return File.Open(requestContentPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         public Stream? GetDecodedRequestBody(int exchangeId)
@@ -287,9 +301,16 @@ namespace Fluxzy.Readers
 
         public bool HasResponseBody(int exchangeId)
         {
-            var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId));
+            try {
+                var fileInfo = new FileInfo(DirectoryArchiveHelper.GetContentResponsePath(BaseDirectory, exchangeId));
 
-            return fileInfo.Exists && fileInfo.Length > 0;
+                return fileInfo.Exists && fileInfo.Length > 0;
+            }
+            catch (IOException)
+            {
+                // in  cases, the file may be locked by another process
+                return false;
+            }
         }
 
         public bool HasCapture(int connectionId)
