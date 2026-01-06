@@ -88,6 +88,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateMaxConnectionPerHost());
             command.AddOption(StartCommandOptions.CreateCounterOption());
             command.AddOption(StartCommandOptions.CreateEnableProcessTrackingOption());
+            command.AddOption(StartCommandOptions.CreateNoAndroidEmulatorOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -125,6 +126,7 @@ namespace Fluxzy.Cli.Commands
             var modeReversePort = invocationContext.Value<int?>("mode-reverse-port");
             var proxyBasicAuthCredential = invocationContext.Value<NetworkCredential?>("proxy-auth-basic");
             var enableProcessTracking = invocationContext.Value<bool>("enable-process-tracking");
+            var noAndroidEmulator = invocationContext.Value<bool>("no-android-emulator");
 
             if (trace) {
                 D.EnableTracing = true;
@@ -277,6 +279,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.OutOfProcCapture = outOfProcCapture;
             proxyStartUpSetting.UseBouncyCastle = bouncyCastle;
             proxyStartUpSetting.SetEnableProcessTracking(enableProcessTracking);
+            proxyStartUpSetting.SetIncludeAndroidEmulatorHost(!noAndroidEmulator);
 
             var certificateProvider = new CertificateProvider(proxyStartUpSetting.CaCertificate,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));

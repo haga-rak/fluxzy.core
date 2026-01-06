@@ -16,7 +16,7 @@
             "commandName": "Project",
             "environmentVariables": {
             },
-            "commandLineArgs": "start -k"
+            "commandLineArgs": "start -k --lany -t"
         },
         "launch (debug rule)": {
             "commandName": "Project",

@@ -528,5 +528,19 @@ namespace Fluxzy
             EnableProcessTracking = value;
             return this;
         }
+
+        /// <summary>
+        ///     Enable or disable inclusion of Android emulator host (10.0.2.2) in IsSelfFilter.
+        ///     When enabled, the IsSelfFilter will also consider 10.0.2.2 as a local address.
+        ///     This is useful when Fluxzy is used with Android emulators where 10.0.2.2
+        ///     represents the host machine from within the emulator. Default is true.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetIncludeAndroidEmulatorHost(bool value)
+        {
+            IncludeAndroidEmulatorHost = value;
+            return this;
+        }
     }
 }

@@ -425,5 +425,18 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
+        public static Option CreateNoAndroidEmulatorOption()
+        {
+            var option = new Option<bool>(
+                "--no-android-emulator",
+                "Disable inclusion of Android emulator host (10.0.2.2) in self detection. " +
+                "By default, Fluxzy considers 10.0.2.2 as a local address for Android emulator compatibility.");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
     }
 }
