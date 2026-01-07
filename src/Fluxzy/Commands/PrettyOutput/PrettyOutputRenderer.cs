@@ -40,6 +40,10 @@ namespace Fluxzy.Cli.Commands.PrettyOutput
         private readonly HashSet<int> _activeConnectionIds = new();
         private readonly object _connectionLock = new();
 
+        // Track processed exchanges to avoid duplicates
+        private readonly HashSet<int> _processedExchangeIds = new();
+        private readonly object _exchangeLock = new();
+
         public PrettyOutputRenderer(
             FluxzySetting setting,
             int maxRows,
@@ -124,16 +128,31 @@ namespace Fluxzy.Cli.Commands.PrettyOutput
 
         private void OnExchangeUpdated(object? sender, ExchangeUpdateEventArgs e)
         {
-            // Only process completed exchanges
-            if (e.UpdateType != ArchiveUpdateType.AfterResponse)
+            // Process exchanges when we have response header (for redirects like 302) or full response
+            if (e.UpdateType != ArchiveUpdateType.AfterResponseHeader &&
+                e.UpdateType != ArchiveUpdateType.AfterResponse)
                 return;
 
             var info = e.ExchangeInfo;
+
+            // Skip if no status code yet
+            if (info.StatusCode == 0)
+                return;
+
+            // Avoid duplicate entries - only process each exchange once
+            lock (_exchangeLock)
+            {
+                if (!_processedExchangeIds.Add(info.Id))
+                    return;
+            }
+
             var metrics = info.Metrics;
 
-            var responseTime = metrics.ResponseBodyEnd > metrics.ReceivedFromProxy
+            var responseTime = metrics.ResponseBodyEnd > metrics.ReceivedFromProxy && metrics.ResponseBodyEnd != default
                 ? (metrics.ResponseBodyEnd - metrics.ReceivedFromProxy).TotalMilliseconds
-                : 0;
+                : metrics.ResponseHeaderEnd > metrics.ReceivedFromProxy && metrics.ResponseHeaderEnd != default
+                    ? (metrics.ResponseHeaderEnd - metrics.ReceivedFromProxy).TotalMilliseconds
+                    : 0;
 
             var entry = new ExchangeDisplayEntry
             {
@@ -237,6 +256,10 @@ namespace Fluxzy.Cli.Commands.PrettyOutput
                                 {
                                     _scrollOffset = 0;
                                     _autoScroll = true;
+                                }
+                                lock (_exchangeLock)
+                                {
+                                    _processedExchangeIds.Clear();
                                 }
                                 break;
                         }
