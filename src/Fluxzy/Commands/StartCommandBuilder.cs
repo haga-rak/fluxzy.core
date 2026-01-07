@@ -20,6 +20,7 @@ using Fluxzy.Extensions;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
 using Fluxzy.Utils.NativeOps.SystemProxySetup;
+using Fluxzy.Cli.Commands.PrettyOutput;
 
 namespace Fluxzy.Cli.Commands
 {
@@ -89,6 +90,8 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateCounterOption());
             command.AddOption(StartCommandOptions.CreateEnableProcessTrackingOption());
             command.AddOption(StartCommandOptions.CreateNoAndroidEmulatorOption());
+            command.AddOption(StartCommandOptions.CreatePrettyOutputOption());
+            command.AddOption(StartCommandOptions.CreatePrettyMaxRowsOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -127,6 +130,8 @@ namespace Fluxzy.Cli.Commands
             var proxyBasicAuthCredential = invocationContext.Value<NetworkCredential?>("proxy-auth-basic");
             var enableProcessTracking = invocationContext.Value<bool>("enable-process-tracking");
             var noAndroidEmulator = invocationContext.Value<bool>("no-android-emulator");
+            var prettyOutput = invocationContext.Value<bool>("pretty");
+            var prettyMaxRows = invocationContext.Value<int>("pretty-max-rows");
 
             if (trace) {
                 D.EnableTracing = true;
@@ -303,6 +308,8 @@ namespace Fluxzy.Cli.Commands
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider,
                                  new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider,
                                  externalCancellationSource: linkedTokenSource)) {
+
+
                     var endPoints = proxy.Run();
 
                     invocationContext.BindingContext.Console
@@ -315,24 +322,55 @@ namespace Fluxzy.Cli.Commands
                             $"Registered as system proxy on {setting.BoundHost}:{setting.ListenPort}");
                     }
 
-                    invocationContext.Console.Out.WriteLine("Ready to process connections, Ctrl+C to exit.");
+                    if (prettyOutput)
+                    {
+                        await using var renderer = new PrettyOutputRenderer(
+                            proxyStartUpSetting, prettyMaxRows, cancellationToken);
+                        renderer.SubscribeToProxy(proxy);
 
-                    try {
-                        await Task.Delay(-1, cancellationToken);
-                    }
-                    catch (OperationCanceledException) {
-                    }
-                    finally {
-                        if (registerAsSystemProxy) {
-                            try {
-                                await systemProxyManager.UnRegister();
-                            }
-                            catch (Exception ex) {
-                                invocationContext.Console.Error.WriteLine(
-                                    $"Failed to unregister as system proxy : {ex.Message}");
-                            }
+                        try
+                        {
+                            await renderer.RunAsync();
+                        }
+                        catch (OperationCanceledException) {
+                        }
+                        finally {
+                            renderer.UnsubscribeFromProxy(proxy);
+                            if (registerAsSystemProxy) {
+                                try {
+                                    await systemProxyManager.UnRegister();
+                                }
+                                catch (Exception ex) {
+                                    invocationContext.Console.Error.WriteLine(
+                                        $"Failed to unregister as system proxy : {ex.Message}");
+                                }
 
-                            invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
+                                invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        invocationContext.Console.Out.WriteLine("Ready to process connections, Ctrl+C to exit.");
+
+                        try
+                        {
+                            await Task.Delay(-1, cancellationToken);
+                        }
+                        catch (OperationCanceledException) {
+                        }
+                        finally {
+                            if (registerAsSystemProxy) {
+                                try {
+                                    await systemProxyManager.UnRegister();
+                                }
+                                catch (Exception ex) {
+                                    invocationContext.Console.Error.WriteLine(
+                                        $"Failed to unregister as system proxy : {ex.Message}");
+                                }
+
+                                invocationContext.Console.Out.WriteLine("Unregistered as system proxy");
+                            }
                         }
                     }
                 }

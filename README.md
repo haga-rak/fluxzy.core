@@ -12,7 +12,7 @@
 [![Homebrew](https://img.shields.io/badge/homebrew-fluxzy-FBB040?logo=homebrew&logoColor=white)](https://github.com/haga-rak/homebrew-fluxzy)
 [![WinGet](https://img.shields.io/badge/winget-Fluxzy.Fluxzy-0078D4?logo=windows&logoColor=white)](https://github.com/microsoft/winget-pkgs/tree/master/manifests/f/Fluxzy/Fluxzy)
 
-[Features](#-key-features) | [Quick usage (.NET)](#-usage) | [Quick usage (CLI)](#using-cli)  | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
+[Features](#-key-features) | [Quick usage (CLI)](#using-the-cli) | [Quick usage (.NET)](#integrate-with-a-net-application) | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
 
 </div>
 
@@ -60,41 +60,9 @@ You can browse this [dedicated search page](https://www.fluxzy.io/rule/find/) to
 
 ## 📘 Usage
 
-### Integrate with a .NET application
-
-Install NuGet package `Fluxzy.Core` 
-
-```bash
-dotnet add package Fluxzy.Core
-```
-Create a top-level statement console app, with .NET 10.0 or above:
-
-```csharp	
-// Creating settings
-var fluxzySetting = FluxzySetting
-    .CreateDefault(IPAddress.Any, 44344);
-
-// configure rules
-fluxzySetting
-    .ConfigureRule()
-    .WhenAny()
-    .Do(new AddResponseHeaderAction("x-fluxzy", "Captured by Fluxzy"))
-    .WhenAll(new JsonResponseFilter(), new StatusCodeSuccessFilter())
-    .Do(new MockedResponseAction(MockedResponseContent.CreateFromPlainText("Not allowed to return JSON", 403, "text/plain")));
-
-// Create proxy instance and run it
-await using var proxy = new Proxy(fluxzySetting);
-var endpoints = proxy.Run();
-
-Console.WriteLine($"Fluxzy is running on {endpoints.First().Address}:{endpoints.First().Port}");
-Console.WriteLine("Press any key to stop the proxy and exit...");
-Console.ReadKey();
-```
-
-More use cases are available in [examples directory](./examples/). The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io). 
-
-
 ### Using the CLI
+
+![Fluxzy CLI Pretty Output](assets/fluxzy-pretty-cli-preview.png)
 
 | Fluxzy CLI | Version |
 | --- | --- |
@@ -144,42 +112,55 @@ Usage:
   fluxzy start [options]
 
 Options:
-  -l, --listen-interface <listen-interface>    Set up the binding addresses. Default value is "127.0.0.1:44344" which
-                                               will listen to localhost on port 44344. 0.0.0.0 to listen on all
-                                               interface with the default port. Use port 0 to let OS assign a random
-                                               available port. Accepts multiple values. [default: 127.0.0.1:44344]
-  --llo                                        Listen on localhost address with default port. Same as -l
-                                               127.0.0.1/44344 [default: False]
-  --lany                                       Listen on all interfaces with default port (44344) [default: False]
-  -o, --output-file <output-file>              Output the captured traffic to an archive file []
-  -d, --dump-folder <dump-folder>              Output the captured traffic to folder
-  -r, --rule-file <rule-file>                  Use a fluxzy rule file. See more at :
-                                               https://www.fluxzy.io/resources/documentation/the-rule-file
-  -sp, --system-proxy                          Try to register fluxzy as system proxy when started [default: False]
-  -b, --bouncy-castle                          Use Bouncy Castle as SSL/TLS provider [default: False]
-  -c, --include-dump                           Include tcp dumps on captured output [default: False]
-  -ss, --skip-ssl-decryption                   Disable ssl traffic decryption [default: False]
-  -t, --trace                                  Output trace on stdout [default: False]
-  -i, --install-cert                           Install root CA in current cert store if absent (require higher
-                                               privilege) [default: False]
-  --no-cert-cache                              Don't cache generated certificate on file system [default: False]
-  --cert-file <cert-file>                      Substitute the default CA certificate with a compatible PKCS#12 (p12,
-                                               pfx) root CA certificate for SSL decryption
-  --cert-password <cert-password>              Set the password of certfile if any
-  -R, --rule-stdin                             Read rule from stdin
-  --parse-ua                                   Parse user agent [default: False]
-  --use-502                                    Use 502 status code for upstream error instead of 528. [default: False]
-  --external-capture                           Indicates that the raw capture will be done by an external process
-                                               [default: False]
-  --mode <Regular|ReversePlain|ReverseSecure>  Set proxy mode [default: Regular]
-  --mode-reverse-port <mode-reverse-port>      Set the remote authority port when --mode ReverseSecure or --mode
-                                               ReversePlain is set []
-  --proxy-auth-basic <proxy-auth-basic>        Require a basic authentication. Username and password shall be provided
-                                               in this format: username:password. Values can be provided in a percent
-                                               encoded format. []
-  --request-buffer <request-buffer>            Set the default request buffer []
-  -n, --max-capture-count <max-capture-count>  Exit after a specified count of exchanges []
-  -?, -h, --help                               Show help and usage information
+  --llo                                                Listen on localhost address with default port. Same as -l
+                                                       127.0.0.1/44344 [default: False]
+  --lany                                               Listen on all interfaces with default port (44344) [default: False]
+  -l, --listen-interface <listen-interface>            Set up the binding addresses. Default value is "127.0.0.1:44344" which
+                                                       will listen to localhost on port 44344. 0.0.0.0 to listen on all
+                                                       interface with the default port. Use port 0 to let OS assign a random
+                                                       available port. Accepts multiple values. [default: 127.0.0.1:44344]
+  -o, --output-file <output-file>                      Output the captured traffic to an archive file []
+  -d, --dump-folder <dump-folder>                      Output the captured traffic to folder
+  -r, --rule-file <rule-file>                          Use a fluxzy rule file. See more at :
+                                                       https://www.fluxzy.io/resources/documentation/the-rule-file
+  -R, --rule-stdin                                     Read rule from stdin
+  -sp, --system-proxy                                  Try to register fluxzy as system proxy when started [default: False]
+  -k, --insecure                                       Skip remote certificate validation globally. Use
+                                                       `SkipRemoteCertificateValidationAction` for specific host only
+                                                       [default: False]
+  -ss, --skip-ssl-decryption                           Disable ssl traffic decryption [default: False]
+  -b, --bouncy-castle                                  Use Bouncy Castle as SSL/TLS provider [default: False]
+  -c, --include-dump                                   Include tcp dumps on captured output [default: False]
+  --external-capture                                   Indicates that the raw capture will be done by an external process
+                                                       [default: False]
+  -t, --trace                                          Output trace on stdout [default: False]
+  -i, --install-cert                                   Install root CA in current cert store if absent (require higher
+                                                       privilege) [default: False]
+  --no-cert-cache                                      Don't cache generated certificate on file system [default: False]
+  --cert-file <cert-file>                              Substitute the default CA certificate with a compatible PKCS#12 (p12,
+                                                       pfx) root CA certificate for SSL decryption
+  --cert-password <cert-password>                      Set the password of certfile if any
+  --parse-ua                                           Parse user agent [default: False]
+  --use-502                                            Use 502 status code for upstream error instead of 528. [default: False]
+  --mode <Regular|ReversePlain|ReverseSecure>          Set proxy mode [default: Regular]
+  --mode-reverse-port <mode-reverse-port>              Set the remote authority port when --mode ReverseSecure or --mode
+                                                       ReversePlain is set []
+  --proxy-auth-basic <proxy-auth-basic>                Require a basic authentication. Username and password shall be
+                                                       provided in this format: username:password. Values can be provided in
+                                                       a percent encoded format. []
+  --request-buffer <request-buffer>                    Set the default request buffer []
+  --max-upstream-connection <max-upstream-connection>  Maximum connection per upstream host [default: 16]
+  -n, --max-capture-count <max-capture-count>          Exit after a specified count of exchanges []
+  --enable-process-tracking                            Enable tracking of the local process that initiated each request. Only
+                                                       works for connections originating from localhost. [default: False]
+  --no-android-emulator                                Disable inclusion of Android emulator host (10.0.2.2) in self
+                                                       detection. By default, Fluxzy considers 10.0.2.2 as a local address
+                                                       for Android emulator compatibility. [default: False]
+  -p, --pretty                                         Enable interactive pretty output with live exchange table and
+                                                       statistics panel [default: False]
+  --pretty-max-rows <pretty-max-rows>                  Maximum number of exchanges to keep in the pretty output buffer
+                                                       [default: 2000]
+  -?, -h, --help                                       Show help and usage information
 ```  
 </details>
 
@@ -252,6 +233,47 @@ More command and options are available, including [exporting to HAR](https://www
 By default, fluxzy will bind to `127.0.0.1:44344`.
 
 </details>
+
+### Integrate with a .NET application
+
+Install NuGet package `Fluxzy.Core`
+
+```bash
+dotnet add package Fluxzy.Core
+```
+Create a top-level statement console app, with .NET 10.0 or above:
+
+```csharp
+// Creating settings
+var fluxzySetting = FluxzySetting
+    .CreateDefault(IPAddress.Any, 44344);
+
+// configure rules
+fluxzySetting
+    .ConfigureRule()
+    .WhenAny()
+    .Do(new AddResponseHeaderAction("x-fluxzy", "Captured by Fluxzy"))
+    .WhenAll(new JsonResponseFilter(), new StatusCodeSuccessFilter())
+    .Do(new MockedResponseAction(MockedResponseContent.CreateFromPlainText("Not allowed to return JSON", 403, "text/plain")));
+    .When(new HtmlResponseFilter()) 
+    .Do(new TransformResponseBodyAction(async (transformContext, bodyReader) => {
+        var content = await bodyReader.ConsumeAsString();
+
+        // Use bodyReader.ConsumeAsStream() to avoid reading the body into memory
+        // and process it as a stream
+
+        return new BodyContent(content.ToUpperInvariant());
+    }));
+// Create proxy instance and run it
+await using var proxy = new Proxy(fluxzySetting);
+var endpoints = proxy.Run();
+
+Console.WriteLine($"Fluxzy is running on {endpoints.First().Address}:{endpoints.First().Port}");
+Console.WriteLine("Press any key to stop the proxy and exit...");
+Console.ReadKey();
+```
+
+More use cases are available in [examples directory](./examples/). The main documentation is available at [docs.fluxzy.io](https://docs.fluxzy.io).
 
 ### Using docker container
 
