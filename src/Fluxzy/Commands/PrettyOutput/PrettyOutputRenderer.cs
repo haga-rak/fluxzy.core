@@ -473,7 +473,7 @@ namespace Fluxzy.Cli.Commands.PrettyOutput
 
                 table.AddRow(
                     entry.Id.ToString(),
-                    entry.Timestamp.ToString("HH:mm:ss.fff"),
+                    entry.Timestamp.ToLocalTime().ToString("HH:mm:ss.fff"),
                     methodMarkup,
                     Markup.Escape(entry.Host),
                     Markup.Escape(entry.Path),
