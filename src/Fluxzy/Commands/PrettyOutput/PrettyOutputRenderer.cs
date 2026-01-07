@@ -392,6 +392,7 @@ namespace Fluxzy.Cli.Commands.PrettyOutput
             var table = new Table()
                 .Border(TableBorder.Simple)
                 .BorderColor(Color.Grey)
+                .AddColumn(new TableColumn("ID").Width(6).RightAligned())
                 .AddColumn(new TableColumn("TIME").Width(12))
                 .AddColumn(new TableColumn("METHOD").Width(7))
                 .AddColumn(new TableColumn("HOST").Width(30))
@@ -471,6 +472,7 @@ namespace Fluxzy.Cli.Commands.PrettyOutput
                 var methodMarkup = FormatMethod(entry.Method);
 
                 table.AddRow(
+                    entry.Id.ToString(),
                     entry.Timestamp.ToString("HH:mm:ss.fff"),
                     methodMarkup,
                     Markup.Escape(entry.Host),
