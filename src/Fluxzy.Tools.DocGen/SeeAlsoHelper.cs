@@ -119,6 +119,22 @@ namespace Fluxzy.Tools.DocGen
                 new() {
                     typeof(MountCertificateAuthorityAction), typeof(MountWelcomePageAction)
                 });
+
+            ActionCategories.Add(
+                new() {
+                    typeof(AbortAction), 
+                    typeof(RejectAction), 
+                    typeof(RejectWithMessageAction),
+                    typeof(RejectWithStatusCodeAction),
+                    typeof(MockedResponseAction)
+                });
+
+            ActionCategories.Add(
+                new() {
+                    typeof(ApplySessionAction), 
+                    typeof(CaptureSessionAction), 
+                    typeof(ClearSessionAction)
+                });
         }
 
         public static IEnumerable<Type> GetSeeAlsoFilters(Type type)
