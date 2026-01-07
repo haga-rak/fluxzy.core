@@ -438,5 +438,30 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
+        public static Option CreatePrettyOutputOption()
+        {
+            var option = new Option<bool>(
+                "--pretty",
+                "Enable interactive pretty output with live exchange table and statistics panel");
+
+            option.AddAlias("-p");
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
+        public static Option CreatePrettyMaxRowsOption()
+        {
+            var option = new Option<int>(
+                "--pretty-max-rows",
+                "Maximum number of exchanges to keep in the pretty output buffer");
+
+            option.SetDefaultValue(2000);
+            option.Arity = ArgumentArity.ExactlyOne;
+
+            return option;
+        }
     }
 }

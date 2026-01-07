@@ -33,6 +33,7 @@ ignore:
   - "src/Fluxzy.Core.Pcap.Cli/**"
   - "src/Fluxzy.Extensions/**"
   - "src/Fluxzy.Tools.DocGen/**"
+  - "src/Fluxzy/Commands/PrettyOutput/**"
 
 # Ignore debugging code 
   - "src/Fluxzy.Core/Clients/H2Logger.cs"
