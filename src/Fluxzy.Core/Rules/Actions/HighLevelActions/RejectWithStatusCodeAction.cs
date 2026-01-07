@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Net;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
@@ -18,6 +19,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         "The response body will contain the standard reason phrase for the status code.")]
     public class RejectWithStatusCodeAction : Action
     {
+        [JsonConstructor]
         public RejectWithStatusCodeAction()
         {
         }

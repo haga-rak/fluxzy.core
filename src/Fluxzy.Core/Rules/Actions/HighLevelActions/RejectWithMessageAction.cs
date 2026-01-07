@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
@@ -17,6 +18,7 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
         "Supports text/plain, text/html, and application/json content types.")]
     public class RejectWithMessageAction : Action
     {
+        [JsonConstructor]
         public RejectWithMessageAction()
         {
         }
