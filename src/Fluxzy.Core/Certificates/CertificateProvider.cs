@@ -65,18 +65,27 @@ namespace Fluxzy.Certificates
             var cnName = GetRootDomain(rootDomain);
 
             if (_solveCertificateRepository.TryGetValue(cnName, out var value)) {
-                return value;
+                if (!IsCertificateExpired(value))
+                    return value;
+
+                // Certificate is expired, need to regenerate under lock
             }
 
             lock (string.Intern(cnName)) {
                 if (_solveCertificateRepository.TryGetValue(cnName, out value)) {
-                    return value;
+                    if (!IsCertificateExpired(value))
+                        return value;
+
+                    // Remove expired certificate from in-memory caches
+                    _solveCertificateRepository.TryRemove(cnName, out var expiredCert);
+                    _certificateRepository.TryRemove(cnName, out _);
+                    expiredCert?.Dispose();
                 }
 
                 var lazyCertificate =
                     _certificateRepository.GetOrAdd(cnName, new Lazy<byte[]>(() =>
                             _certCache.Load(_rootCertificate.SerialNumber!, cnName,
-                                rootDomain => BuildCertificateForRootDomain(_rootCertificate, _privateKey, rootDomain)),
+                                rD => BuildCertificateForRootDomain(_rootCertificate, _privateKey, rD)),
                         true));
 
                 var val = lazyCertificate.Value;
@@ -87,6 +96,12 @@ namespace Fluxzy.Certificates
 
                 return r;
             }
+        }
+
+        private static bool IsCertificateExpired(X509Certificate2 certificate)
+        {
+            // Use a 1-minute buffer before actual expiration to avoid edge cases
+            return certificate.NotAfter <= DateTime.UtcNow.AddMinutes(1);
         }
 
         public void Dispose()
