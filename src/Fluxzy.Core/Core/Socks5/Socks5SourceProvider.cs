@@ -43,7 +43,7 @@ namespace Fluxzy.Core.Socks5
         {
             try
             {
-                return await InternalInitClientConnection(stream, localEndpoint, remoteEndPoint, token)
+                return await InternalInitClientConnection(stream, buffer.Memory, localEndpoint, remoteEndPoint, token)
                     .ConfigureAwait(false);
             }
             catch (Socks5ProtocolException)
@@ -54,6 +54,7 @@ namespace Fluxzy.Core.Socks5
 
         private async ValueTask<ExchangeSourceInitResult?> InternalInitClientConnection(
             Stream stream,
+            Memory<byte> workBuffer,
             IPEndPoint localEndpoint,
             IPEndPoint remoteEndPoint,
             CancellationToken token)
@@ -61,18 +62,17 @@ namespace Fluxzy.Core.Socks5
             var receivedFromProxy = ITimingProvider.Default.Instant();
 
             // 1. Read and validate version byte (prepended by ProtocolDetectingSourceProvider)
-            var versionByte = new byte[1];
-            var versionRead = await stream.ReadAsync(versionByte, token).ConfigureAwait(false);
+            var versionRead = await stream.ReadAsync(workBuffer.Slice(0, 1), token).ConfigureAwait(false);
 
-            if (versionRead != 1 || versionByte[0] != Socks5Constants.Version)
-                throw new Socks5ProtocolException($"Invalid SOCKS version: {(versionRead == 0 ? "EOF" : versionByte[0].ToString())}");
+            if (versionRead != 1 || workBuffer.Span[0] != Socks5Constants.Version)
+                throw new Socks5ProtocolException($"Invalid SOCKS version: {(versionRead == 0 ? "EOF" : workBuffer.Span[0].ToString())}");
 
             // 2. Read greeting (NMETHODS and METHODS)
-            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, token).ConfigureAwait(false);
+            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, workBuffer, token).ConfigureAwait(false);
 
             // 3. Select and respond with auth method
             var selectedMethod = _authAdapter.SelectAuthMethod(methods);
-            await Socks5ProtocolHandler.WriteMethodSelectionAsync(stream, selectedMethod, token).ConfigureAwait(false);
+            await Socks5ProtocolHandler.WriteMethodSelectionAsync(stream, selectedMethod, workBuffer, token).ConfigureAwait(false);
 
             if (selectedMethod == Socks5Constants.AuthNoAcceptable)
                 return null;
@@ -80,7 +80,7 @@ namespace Fluxzy.Core.Socks5
             // 4. Handle authentication if required
             if (selectedMethod == Socks5Constants.AuthUsernamePassword)
             {
-                var (username, password) = await Socks5ProtocolHandler.ReadUsernamePasswordAsync(stream, token)
+                var (username, password) = await Socks5ProtocolHandler.ReadUsernamePasswordAsync(stream, workBuffer, token)
                     .ConfigureAwait(false);
 
                 var authValid = _authAdapter.ValidateCredentials(localEndpoint, remoteEndPoint, username, password);
@@ -91,13 +91,13 @@ namespace Fluxzy.Core.Socks5
             }
 
             // 5. Read connect request
-            var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, token).ConfigureAwait(false);
+            var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, workBuffer, token).ConfigureAwait(false);
 
             // 6. Validate command (only CONNECT supported)
             if (request.Command != Socks5Constants.CmdConnect)
             {
                 await Socks5ProtocolHandler.WriteErrorReplyAsync(
-                    stream, Socks5Constants.RepCommandNotSupported, token).ConfigureAwait(false);
+                    stream, Socks5Constants.RepCommandNotSupported, workBuffer, token).ConfigureAwait(false);
                 return null;
             }
 
@@ -126,8 +126,8 @@ namespace Fluxzy.Core.Socks5
                         : Socks5Constants.AddrTypeIPv4;
                 }
                 else {
-                    // If resolution fails, fall back to IPv4 with
-                    replyRawAddress = new byte[Socks5Constants.IPv4AddressLength];
+                    // If resolution fails, fall back to IPv4 with zero address
+                    replyRawAddress = ZeroIPv4Address;
                     replyAddressType = Socks5Constants.AddrTypeIPv4;
                 }
             }
@@ -138,6 +138,7 @@ namespace Fluxzy.Core.Socks5
                 replyAddressType,
                 replyRawAddress,
                 request.DestinationPort,
+                workBuffer,
                 token).ConfigureAwait(false);
 
             // 10. Create synthetic header for the SOCKS5 connection
@@ -202,6 +203,8 @@ namespace Fluxzy.Core.Socks5
             "HTTP/1.1 200 Connection Established\r\n" +
             "X-Fluxzy-Protocol: SOCKS5\r\n" +
             "\r\n";
+
+        private static readonly byte[] ZeroIPv4Address = new byte[Socks5Constants.IPv4AddressLength];
 
         private static string CreateSyntheticConnectHeader(Socks5Request request)
         {

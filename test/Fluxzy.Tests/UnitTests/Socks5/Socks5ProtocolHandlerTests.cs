@@ -14,6 +14,9 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 {
     public class Socks5ProtocolHandlerTests
     {
+        // Shared work buffer for tests - simulates RsBuffer.Memory
+        private readonly byte[] _workBuffer = new byte[1024];
+
         [Fact]
         public async Task ReadGreeting_SingleNoAuthMethod_ReturnsSingleMethod()
         {
@@ -22,7 +25,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             using var stream = new MemoryStream(data);
 
             // Act
-            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, CancellationToken.None);
+            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Single(methods);
@@ -37,7 +40,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             using var stream = new MemoryStream(data);
 
             // Act
-            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, CancellationToken.None);
+            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Equal(2, methods.Length);
@@ -53,7 +56,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             using var stream = new MemoryStream(data);
 
             // Act
-            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, CancellationToken.None);
+            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(stream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Empty(methods);
@@ -67,7 +70,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 
             // Act
             await Socks5ProtocolHandler.WriteMethodSelectionAsync(
-                stream, Socks5Constants.AuthNoAuth, CancellationToken.None);
+                stream, Socks5Constants.AuthNoAuth, _workBuffer, CancellationToken.None);
 
             // Assert
             var result = stream.ToArray();
@@ -84,13 +87,31 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 
             // Act
             await Socks5ProtocolHandler.WriteMethodSelectionAsync(
-                stream, Socks5Constants.AuthUsernamePassword, CancellationToken.None);
+                stream, Socks5Constants.AuthUsernamePassword, _workBuffer, CancellationToken.None);
 
             // Assert
             var result = stream.ToArray();
             Assert.Equal(2, result.Length);
             Assert.Equal(Socks5Constants.Version, result[0]);
             Assert.Equal(Socks5Constants.AuthUsernamePassword, result[1]);
+        }
+
+        [Fact]
+        public async Task WriteMethodSelection_NonStandardMethod_WritesCorrectBytes()
+        {
+            // Arrange - test fallback path for non-standard auth methods
+            using var stream = new MemoryStream();
+            byte nonStandardMethod = 0x80; // Custom method not in pre-allocated set
+
+            // Act
+            await Socks5ProtocolHandler.WriteMethodSelectionAsync(
+                stream, nonStandardMethod, _workBuffer, CancellationToken.None);
+
+            // Assert
+            var result = stream.ToArray();
+            Assert.Equal(2, result.Length);
+            Assert.Equal(Socks5Constants.Version, result[0]);
+            Assert.Equal(nonStandardMethod, result[1]);
         }
 
         [Fact]
@@ -113,7 +134,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 
             // Act
             var (resultUser, resultPass) = await Socks5ProtocolHandler.ReadUsernamePasswordAsync(
-                stream, CancellationToken.None);
+                stream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Equal(username, resultUser);
@@ -165,7 +186,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             using var stream = new MemoryStream(data);
 
             // Act
-            var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, CancellationToken.None);
+            var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Equal(Socks5Constants.CmdConnect, request.Command);
@@ -193,7 +214,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             using var stream = new MemoryStream(data);
 
             // Act
-            var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, CancellationToken.None);
+            var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Equal(Socks5Constants.CmdConnect, request.Command);
@@ -220,7 +241,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             using var stream = new MemoryStream(data);
 
             // Act
-            var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, CancellationToken.None);
+            var request = await Socks5ProtocolHandler.ReadRequestAsync(stream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Equal(Socks5Constants.CmdConnect, request.Command);
@@ -243,6 +264,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
                 Socks5Constants.AddrTypeIPv4,
                 bindAddress,
                 1080,
+                _workBuffer,
                 CancellationToken.None);
 
             // Assert
@@ -261,6 +283,33 @@ namespace Fluxzy.Tests.UnitTests.Socks5
         }
 
         [Fact]
+        public async Task WriteReply_IPv6Address_WritesCorrectBytes()
+        {
+            // Arrange
+            using var stream = new MemoryStream();
+            var ipv6 = IPAddress.Parse("::1");
+            var bindAddress = ipv6.GetAddressBytes();
+
+            // Act
+            await Socks5ProtocolHandler.WriteReplyAsync(
+                stream,
+                Socks5Constants.RepSucceeded,
+                Socks5Constants.AddrTypeIPv6,
+                bindAddress,
+                443,
+                _workBuffer,
+                CancellationToken.None);
+
+            // Assert
+            var result = stream.ToArray();
+            Assert.Equal(22, result.Length); // 4 header + 16 IPv6 + 2 port
+            Assert.Equal(Socks5Constants.Version, result[0]);
+            Assert.Equal(Socks5Constants.RepSucceeded, result[1]);
+            Assert.Equal(0x00, result[2]); // RSV
+            Assert.Equal(Socks5Constants.AddrTypeIPv6, result[3]);
+        }
+
+        [Fact]
         public async Task WriteErrorReply_CommandNotSupported_WritesCorrectBytes()
         {
             // Arrange
@@ -270,6 +319,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             await Socks5ProtocolHandler.WriteErrorReplyAsync(
                 stream,
                 Socks5Constants.RepCommandNotSupported,
+                _workBuffer,
                 CancellationToken.None);
 
             // Assert
@@ -277,6 +327,11 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             Assert.Equal(10, result.Length);
             Assert.Equal(Socks5Constants.Version, result[0]);
             Assert.Equal(Socks5Constants.RepCommandNotSupported, result[1]);
+            // Verify zero address is written
+            Assert.Equal(0, result[4]);
+            Assert.Equal(0, result[5]);
+            Assert.Equal(0, result[6]);
+            Assert.Equal(0, result[7]);
         }
 
         [Fact]
@@ -288,7 +343,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 
             // Act & Assert
             await Assert.ThrowsAsync<Socks5ProtocolException>(
-                () => Socks5ProtocolHandler.ReadRequestAsync(stream, CancellationToken.None).AsTask());
+                () => Socks5ProtocolHandler.ReadRequestAsync(stream, _workBuffer, CancellationToken.None).AsTask());
         }
 
         [Fact]
@@ -300,7 +355,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 
             // Act & Assert
             await Assert.ThrowsAsync<Socks5ProtocolException>(
-                () => Socks5ProtocolHandler.ReadUsernamePasswordAsync(stream, CancellationToken.None).AsTask());
+                () => Socks5ProtocolHandler.ReadUsernamePasswordAsync(stream, _workBuffer, CancellationToken.None).AsTask());
         }
     }
 }
