@@ -102,6 +102,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No020.HotReloadRule
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No021.SessionCaptureAndReplay", "examples\Samples.No021.SessionCaptureAndReplay\Samples.No021.SessionCaptureAndReplay.csproj", "{E6BBC6C7-A37D-F243-63B1-BB73555EE4DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.No022.RejectRequests", "examples\Samples.No022.RejectRequests\Samples.No022.RejectRequests.csproj", "{8DD7D9EB-A54B-7C5D-ADF4-2447FF9A7CC4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -228,6 +230,10 @@ Global
 		{E6BBC6C7-A37D-F243-63B1-BB73555EE4DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6BBC6C7-A37D-F243-63B1-BB73555EE4DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6BBC6C7-A37D-F243-63B1-BB73555EE4DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DD7D9EB-A54B-7C5D-ADF4-2447FF9A7CC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DD7D9EB-A54B-7C5D-ADF4-2447FF9A7CC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DD7D9EB-A54B-7C5D-ADF4-2447FF9A7CC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DD7D9EB-A54B-7C5D-ADF4-2447FF9A7CC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -260,6 +266,7 @@ Global
 		{F51A9B94-B477-2535-6E66-6DC0E1FC4C86} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{927528F5-01A1-20D3-E67F-190BE1229CAB} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 		{E6BBC6C7-A37D-F243-63B1-BB73555EE4DE} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
+		{8DD7D9EB-A54B-7C5D-ADF4-2447FF9A7CC4} = {30657256-C907-42C2-B7B2-DA4FD8D0E412}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82E271CB-7073-4A6C-8FF6-6DA616720D3A}
