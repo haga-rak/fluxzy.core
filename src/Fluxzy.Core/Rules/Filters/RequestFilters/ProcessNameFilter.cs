@@ -47,10 +47,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             IExchange? exchange,
             IFilteringContext? filteringContext)
         {
-            if (exchange is not Exchange internalExchange)
-                return false;
-
-            var processInfo = internalExchange.ProcessInfo;
+            var processInfo = exchange?.ProcessInfo;
 
             if (processInfo?.ProcessPath == null)
                 return false;
