@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Fluxzy.Core;
+using Fluxzy.Misc;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -27,6 +28,9 @@ namespace Fluxzy.Rules.Filters.RequestFilters
         {
             ProcessNames = processNames.ToList();
         }
+
+        public override Guid Identifier =>  
+            (nameof(ProcessNameFilter) + string.Join("^", ProcessNames) + Inverted).GetMd5Guid();
 
         [FilterDistinctive(Description = "List of process names to match")]
         public List<string> ProcessNames { get; set; } = new();
