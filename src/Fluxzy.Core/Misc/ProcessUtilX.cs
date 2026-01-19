@@ -51,19 +51,24 @@ namespace Fluxzy.Misc
             return processRunResult.StandardOutputMessage?.Trim('\r', '\n');
         }
         
-        
         public static async Task<Process> RunElevatedSudoALinux(
             string commandName, string[] args, bool redirectStdOut,
             string askPasswordPrompt, bool redirectStandardError = false)
         {
-            var tasks = AskPassBinaries
+            var askPassBinaries = AskPassBinaries;
+
+            if (Environment.GetEnvironmentVariable("FLUXZY_ASKPASS") is { } providedAskPassVariables) {
+                askPassBinaries = new[] { providedAskPassVariables }.Concat(askPassBinaries).ToArray();
+            }
+
+            var tasks = askPassBinaries
                 .Select(binary => GetExecutablePath(binary));
             
             var results = await Task.WhenAll(tasks);
             var result = results.FirstOrDefault(x => x != null) ?? 
                          throw new Exception(
                              $"No askpass binary found. Must install one of the following:" +
-                             $" {string.Join(", ", AskPassBinaries)}");
+                             $" {string.Join(", ", askPassBinaries)}");
             
             var execCommandName = "sudo";
             var preArgs = new List<string>() { "-A", "-E", "-p", $"{askPasswordPrompt}", commandName };
