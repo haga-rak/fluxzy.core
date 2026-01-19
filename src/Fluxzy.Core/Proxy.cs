@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
@@ -15,6 +16,7 @@ using Fluxzy.Clients.Ssl;
 using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Core;
+using Fluxzy.Misc;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
@@ -38,6 +40,7 @@ namespace Fluxzy
         private readonly ProxyRuntimeSetting _runTimeSetting;
         private volatile int _currentConcurrentCount;
         private bool _disposed;
+        private List<ProxyDiscoveryService>? _discoveryServices;
         private bool _halted;
         private Task? _loopTask;
         private bool _started;
@@ -178,6 +181,24 @@ namespace Fluxzy
         {
             InternalDispose();
 
+            // Dispose discovery services
+            if (_discoveryServices != null)
+            {
+                foreach (var service in _discoveryServices)
+                {
+                    try
+                    {
+                        await service.DisposeAsync().ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // Ignore disposal errors for discovery services
+                    }
+                }
+
+                _discoveryServices = null;
+            }
+
             try {
                 if (_loopTask != null) {
                     await _loopTask.ConfigureAwait(false); // Wait for main loop to end
@@ -190,7 +211,7 @@ namespace Fluxzy
                 }
             }
             catch (Exception) {
-                // Loop task exception 
+                // Loop task exception
             }
         }
 
@@ -291,7 +312,94 @@ namespace Fluxzy
 
             EndPoints = endPoints;
 
+            if (StartupSetting.EnableDiscoveryService) {
+                StartDiscoveryServices(endPoints);
+            }
+
             return endPoints;
+        }
+
+        private void StartDiscoveryServices(IReadOnlyCollection<IPEndPoint> endPoints)
+        {
+            var lanAddresses = endPoints
+                .Where(ep => ep.AddressFamily == AddressFamily.InterNetwork)
+                .Where(ep => !IPAddress.IsLoopback(ep.Address))
+                .Select(ep => (Address: ep.Address, Port: ep.Port))
+                .Distinct()
+                .ToList();
+
+            if (lanAddresses.Count == 0)
+                return;
+
+            lanAddresses = lanAddresses.SelectMany(s => {
+                if (s.Address.Equals(IPAddress.Any)) {
+
+                    var allIPv4 = IpUtility.GetAllLocalIps()
+                                           .Where(i => i.AddressFamily == AddressFamily.InterNetwork)
+                                           .Where(ep => !IPAddress.IsLoopback(ep))
+                                           .Select(i => i.MapToIPv4());
+
+                    return allIPv4.Select(ip => (Address: ip, Port: s.Port));
+                }
+
+
+                if (s.Address.Equals(IPAddress.IPv6Any)) {
+
+                    var allIpV6 = IpUtility.GetAllLocalIps()
+                                           .Where(ep => !IPAddress.IsLoopback(ep))
+                                           .Where(i => i.AddressFamily == AddressFamily.InterNetworkV6);
+
+                    return allIpV6.Select(ip => (Address: ip, Port: s.Port));
+                }
+
+                return new[] { s };
+
+            }).ToList();
+
+
+            var startupSettingString = BuildStartupSettingString();
+            var fluxzyVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
+
+            _discoveryServices = new List<ProxyDiscoveryService>();
+
+            foreach (var (address, port) in lanAddresses)
+            {
+                var options = new MdnsAnnouncerOptions
+                {
+                    ServiceName = "Fluxzy",
+                    ProxyPort = port,
+                    HostIpAddress = address.ToString(),
+                    FluxzyVersion = fluxzyVersion,
+                    FluxzyStartupSetting = startupSettingString
+                };
+
+                try
+                {
+                    var service = new ProxyDiscoveryService(options);
+                    service.StartAsync().GetAwaiter().GetResult();
+                    _discoveryServices.Add(service);
+                }
+                catch
+                {
+                    // Ignore failures for individual addresses - mDNS is optional
+                }
+            }
+        }
+
+        private string BuildStartupSettingString()
+        {
+            var parts = new List<string>();
+
+            if (StartupSetting.GlobalSkipSslDecryption)
+                parts.Add("NoSSL");
+
+            if (StartupSetting.UseBouncyCastle)
+                parts.Add("BC");
+
+            if (StartupSetting.ServeH2)
+                parts.Add("H2");
+
+            return parts.Count > 0 ? string.Join(",", parts) : "Default";
         }
 
         /// <summary>

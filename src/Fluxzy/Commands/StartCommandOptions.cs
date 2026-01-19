@@ -463,5 +463,18 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
+        public static Option CreateEnableDiscoveryOption()
+        {
+            var option = new Option<bool>(
+                "--enable-discovery",
+                "Enable mDNS discovery service to announce the proxy on the local network. " +
+                "Allows clients to discover the proxy automatically.");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
     }
 }
