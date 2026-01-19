@@ -323,12 +323,38 @@ namespace Fluxzy
             var lanAddresses = endPoints
                 .Where(ep => ep.AddressFamily == AddressFamily.InterNetwork)
                 .Where(ep => !IPAddress.IsLoopback(ep.Address))
-                .Select(ep => (Address: ep.Address.ToString(), Port: ep.Port))
+                .Select(ep => (Address: ep.Address, Port: ep.Port))
                 .Distinct()
                 .ToList();
 
             if (lanAddresses.Count == 0)
                 return;
+
+            lanAddresses = lanAddresses.SelectMany(s => {
+                if (s.Address.Equals(IPAddress.Any)) {
+
+                    var allIPv4 = IpUtility.GetAllLocalIps()
+                                           .Where(i => i.AddressFamily == AddressFamily.InterNetwork)
+                                           .Where(ep => !IPAddress.IsLoopback(ep))
+                                           .Select(i => i.MapToIPv4());
+
+                    return allIPv4.Select(ip => (Address: ip, Port: s.Port));
+                }
+
+
+                if (s.Address.Equals(IPAddress.IPv6Any)) {
+
+                    var allIpV6 = IpUtility.GetAllLocalIps()
+                                           .Where(ep => !IPAddress.IsLoopback(ep))
+                                           .Where(i => i.AddressFamily == AddressFamily.InterNetworkV6);
+
+                    return allIpV6.Select(ip => (Address: ip, Port: s.Port));
+                }
+
+                return new[] { s };
+
+            }).ToList();
+
 
             var startupSettingString = BuildStartupSettingString();
             var fluxzyVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
@@ -341,7 +367,7 @@ namespace Fluxzy
                 {
                     ServiceName = "Fluxzy",
                     ProxyPort = port,
-                    HostIpAddress = address,
+                    HostIpAddress = address.ToString(),
                     FluxzyVersion = fluxzyVersion,
                     FluxzyStartupSetting = startupSettingString
                 };
