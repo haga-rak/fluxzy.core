@@ -542,5 +542,18 @@ namespace Fluxzy
             IncludeAndroidEmulatorHost = value;
             return this;
         }
+
+        /// <summary>
+        ///     Enable or disable the mDNS discovery service.
+        ///     When enabled, Fluxzy will announce its presence on the local network,
+        ///     allowing clients to discover the proxy automatically.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetEnableDiscoveryService(bool value)
+        {
+            EnableDiscoveryService = value;
+            return this;
+        }
     }
 }

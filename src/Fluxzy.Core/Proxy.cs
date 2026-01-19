@@ -312,8 +312,9 @@ namespace Fluxzy
 
             EndPoints = endPoints;
 
-            // Start mDNS discovery services for LAN announcement
-            StartDiscoveryServices(endPoints);
+            if (StartupSetting.EnableDiscoveryService) {
+                StartDiscoveryServices(endPoints);
+            }
 
             return endPoints;
         }

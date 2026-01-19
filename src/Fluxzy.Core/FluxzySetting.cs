@@ -237,6 +237,13 @@ namespace Fluxzy
         [JsonInclude]
         public bool IncludeAndroidEmulatorHost { get; internal set; } = true;
 
+        /// <summary>
+        ///     When enabled, Fluxzy will announce its presence on the local network via mDNS.
+        ///     This allows clients to discover the proxy automatically. Default is false.
+        /// </summary>
+        [JsonInclude]
+        public bool EnableDiscoveryService { get; internal set; }
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption) {
