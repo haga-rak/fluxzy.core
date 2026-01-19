@@ -55,5 +55,9 @@ View definition of [ClearSessionAction](https://docs.fluxzy.io/api/Fluxzy.Rules.
 
 ### See also
 
-This action has no related action
+The following actions are related to this action: 
+
+ - [applySessionAction](applySessionAction)
+ - [captureSessionAction](captureSessionAction)
+ - [clearSessionAction](clearSessionAction)
 

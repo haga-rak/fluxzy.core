@@ -2,7 +2,7 @@
 
 ### Description
 
-Capture session data from responses. Captures Set-Cookie headers and optionally other headers like Authorization. Stored data can be replayed using ApplySessionAction.
+Capture session data from responses. Captures Set-Cookie headers and optionally other headers like Authorization. Can also capture cookies from request headers for intercepting ongoing sessions. Stored data can be replayed using ApplySessionAction.
 
 ### Evaluation scope
 
@@ -68,6 +68,20 @@ rules:
 ```
 
 
+Capture cookies from request headers (for ongoing sessions).
+
+```yaml
+rules:
+- filter:
+    typeKind: AnyFilter
+  actions:
+  - typeKind: CaptureSessionAction
+    captureCookies: true
+    captureRequestCookies: true
+    captureHeaders: []
+```
+
+
 
 ### .NET reference
 
@@ -75,5 +89,9 @@ View definition of [CaptureSessionAction](https://docs.fluxzy.io/api/Fluxzy.Rule
 
 ### See also
 
-This action has no related action
+The following actions are related to this action: 
+
+ - [applySessionAction](applySessionAction)
+ - [captureSessionAction](captureSessionAction)
+ - [clearSessionAction](clearSessionAction)
 

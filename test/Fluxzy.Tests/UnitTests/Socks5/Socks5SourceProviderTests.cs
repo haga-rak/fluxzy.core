@@ -20,6 +20,9 @@ namespace Fluxzy.Tests.UnitTests.Socks5
         private static readonly IPEndPoint LocalEndPoint = new(IPAddress.Loopback, 1080);
         private static readonly IPEndPoint RemoteEndPoint = new(IPAddress.Loopback, 12345);
 
+        // Shared work buffer for tests - simulates RsBuffer.Memory
+        private readonly byte[] _workBuffer = new byte[1024];
+
         [Fact]
         public async Task ProtocolDetection_Socks5FirstByte_DetectsSocks5()
         {
@@ -86,17 +89,17 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             await duplexStream.ReadAsync(firstByte);
             Assert.Equal(Socks5Constants.Version, firstByte[0]);
 
-            // Read greeting
-            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(duplexStream, CancellationToken.None);
+            // Read greeting using workBuffer
+            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(duplexStream, _workBuffer, CancellationToken.None);
             Assert.Single(methods);
             Assert.Equal(Socks5Constants.AuthNoAuth, methods[0]);
 
-            // Write method selection
+            // Write method selection using workBuffer
             await Socks5ProtocolHandler.WriteMethodSelectionAsync(
-                duplexStream, Socks5Constants.AuthNoAuth, CancellationToken.None);
+                duplexStream, Socks5Constants.AuthNoAuth, _workBuffer, CancellationToken.None);
 
-            // Read request
-            var socks5Request = await Socks5ProtocolHandler.ReadRequestAsync(duplexStream, CancellationToken.None);
+            // Read request using workBuffer
+            var socks5Request = await Socks5ProtocolHandler.ReadRequestAsync(duplexStream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Equal(Socks5Constants.CmdConnect, socks5Request.Command);
@@ -144,18 +147,18 @@ namespace Fluxzy.Tests.UnitTests.Socks5
             var firstByte = new byte[1];
             await duplexStream.ReadAsync(firstByte);
 
-            // Read greeting
-            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(duplexStream, CancellationToken.None);
+            // Read greeting using workBuffer
+            var methods = await Socks5ProtocolHandler.ReadGreetingAsync(duplexStream, _workBuffer, CancellationToken.None);
             Assert.Single(methods);
             Assert.Equal(Socks5Constants.AuthUsernamePassword, methods[0]);
 
-            // Write method selection
+            // Write method selection using workBuffer
             await Socks5ProtocolHandler.WriteMethodSelectionAsync(
-                duplexStream, Socks5Constants.AuthUsernamePassword, CancellationToken.None);
+                duplexStream, Socks5Constants.AuthUsernamePassword, _workBuffer, CancellationToken.None);
 
-            // Read auth
+            // Read auth using workBuffer
             var (readUsername, readPassword) = await Socks5ProtocolHandler.ReadUsernamePasswordAsync(
-                duplexStream, CancellationToken.None);
+                duplexStream, _workBuffer, CancellationToken.None);
 
             // Assert
             Assert.Equal(username, readUsername);
@@ -188,7 +191,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 
             using var stream = new MemoryStream(request);
 
-            var socks5Request = await Socks5ProtocolHandler.ReadRequestAsync(stream, CancellationToken.None);
+            var socks5Request = await Socks5ProtocolHandler.ReadRequestAsync(stream, _workBuffer, CancellationToken.None);
 
             Assert.Equal(Socks5Constants.CmdConnect, socks5Request.Command);
             Assert.Equal(Socks5Constants.AddrTypeIPv4, socks5Request.AddressType);
@@ -213,7 +216,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 
             using var stream = new MemoryStream(request);
 
-            var socks5Request = await Socks5ProtocolHandler.ReadRequestAsync(stream, CancellationToken.None);
+            var socks5Request = await Socks5ProtocolHandler.ReadRequestAsync(stream, _workBuffer, CancellationToken.None);
 
             Assert.Equal(Socks5Constants.CmdConnect, socks5Request.Command);
             Assert.Equal(Socks5Constants.AddrTypeIPv6, socks5Request.AddressType);
@@ -234,7 +237,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
 
             using var stream = new MemoryStream(request);
 
-            var socks5Request = await Socks5ProtocolHandler.ReadRequestAsync(stream, CancellationToken.None);
+            var socks5Request = await Socks5ProtocolHandler.ReadRequestAsync(stream, _workBuffer, CancellationToken.None);
 
             // BIND command (0x02) is not CONNECT (0x01)
             Assert.Equal(Socks5Constants.CmdBind, socks5Request.Command);
@@ -252,6 +255,7 @@ namespace Fluxzy.Tests.UnitTests.Socks5
                 Socks5Constants.AddrTypeIPv4,
                 new byte[] { 0, 0, 0, 0 },
                 0,
+                _workBuffer,
                 CancellationToken.None);
 
             var result = stream.ToArray();
