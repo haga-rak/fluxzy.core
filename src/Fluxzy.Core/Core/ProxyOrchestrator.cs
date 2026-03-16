@@ -537,7 +537,7 @@ namespace Fluxzy.Core
 
                     try
                     {
-                        await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, shouldCloseConnectionToDownStream, exchange.StreamIdentifier, token)
+                        await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, shouldCloseConnectionToDownStream, exchange.StreamIdentifier, exchange.Request.Header.Method, token)
                                             .ConfigureAwait(false);
                     }
                     catch (Exception ex)

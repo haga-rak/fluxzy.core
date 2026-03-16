@@ -160,6 +160,25 @@ namespace Fluxzy.Core
             await _writeChannel.Writer.WriteAsync(buffer.AsMemory().Slice(0, writtenLength), token);
         }
 
+        private void HandleWindowUpdate(ref H2FrameReadResult frame)
+        {
+            var windowSizeIncrement = frame.GetWindowUpdateFrame().WindowSizeIncrement;
+            if (frame.StreamIdentifier == 0) {
+                _overallWindowSizeHolder.UpdateWindowSize(windowSizeIncrement);
+            }
+            else if (_currentStreams.TryGetValue(frame.StreamIdentifier, out var streamWorker)) {
+                streamWorker.UpdateWindowSize(windowSizeIncrement);
+            }
+        }
+
+        private static byte[] BuildPingAck(ref H2FrameReadResult frame)
+        {
+            var opaqueData = frame.GetPingFrame().OpaqueData;
+            var pingResponse = new byte[9 + 8];
+            new PingFrame(opaqueData, HeaderFlags.Ack).Write(pingResponse);
+            return pingResponse;
+        }
+
         private void OnGoAwayReceived(int lastStreamId, H2ErrorCode errorCode)
         {
             _goAwayReceived = true;
@@ -212,7 +231,26 @@ namespace Fluxzy.Core
                         continue;
                     }
 
-                    // 
+                    if (frame.BodyType == H2FrameType.WindowUpdate) {
+                        HandleWindowUpdate(ref frame);
+                        continue;
+                    }
+
+                    if (frame.BodyType == H2FrameType.RstStream) {
+                        if (_currentStreams.TryGetValue(frame.StreamIdentifier, out var rstWorker)) {
+                            CheckoutServerStreamWorker(rstWorker);
+                        }
+                        continue;
+                    }
+
+                    if (frame.BodyType == H2FrameType.Ping) {
+                        // Respond with PING ACK echoing the 8-byte opaque data
+                        var pingResponse = BuildPingAck(ref frame);
+                        await _writeChannel.Writer.WriteAsync(pingResponse, token);
+                        continue;
+                    }
+
+                    //
 
                     if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker)) {
                         worker = new ServerStreamWorker(frame.StreamIdentifier, _headerEncoder,
@@ -294,6 +332,7 @@ namespace Fluxzy.Core
                     while (_writeChannel.Reader.TryRead(out var buffer)) {
                         await _writeStream.WriteAsync(buffer, token);
                     }
+                    await _writeStream.FlushAsync(token);
                 }
             }
             catch (Exception ex) {
@@ -313,25 +352,30 @@ namespace Fluxzy.Core
             using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_mainLoopToken, token);
             var combinedToken = combinedTokenSource.Token;
 
-            var exchange = await _exchangeChannel.Reader.ReadAsync(combinedToken);
-
-            return exchange;
+            try {
+                var exchange = await _exchangeChannel.Reader.ReadAsync(combinedToken);
+                return exchange;
+            }
+            catch (ChannelClosedException) {
+                return null;
+            }
         }
 
         public async ValueTask WriteResponseHeader(
-            ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, CancellationToken token)
+            ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, ReadOnlyMemory<char> requestMethod, CancellationToken token)
         {
             using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_mainLoopToken, token);
             var combinedToken = combinedTokenSource.Token;
-
-            var hasBody = responseHeader.HasResponseBody("GET", out _);
+            
+            var hasBody = responseHeader.HasResponseBody(requestMethod.Span, out _);
 
             var payload = _headerEncoder.Encode(
                 new HeaderEncodingJob(responseHeader.GetHttp11Header(),
                     streamIdentifier, 0),
                 buffer, !hasBody);
 
-            await _writeChannel.Writer.WriteAsync(payload, combinedToken);
+            var copy = payload.ToArray();
+            await _writeChannel.Writer.WriteAsync(copy, combinedToken);
         }
 
         public async ValueTask WriteResponseBody(Stream responseBodyStream, 
@@ -370,17 +414,12 @@ namespace Fluxzy.Core
                         }
 
                         var bodySize = Math.Min(toWrite, _h2StreamSetting.MaxFrameSizeAllowed);
-                        var writable = readBuffer.AsMemory().Slice(offset, bodySize);
 
-                        rsBuffer.Ensure(bodySize + 9);
-
+                        var frameBuffer = new byte[bodySize + 9];
                         new DataFrame(HeaderFlags.None, bodySize, sendStreamIdentifier)
-                            .WriteHeaderOnly(rsBuffer.Memory.Span, bodySize);
-
-                        writable
-                            .Slice(0, bodySize).CopyTo(rsBuffer.Memory.Slice(9, bodySize));
-                    
-                        await _writeChannel.Writer.WriteAsync(rsBuffer.Memory.Slice(0, bodySize + 9), combinedToken);
+                            .WriteHeaderOnly(frameBuffer, bodySize);
+                        readBuffer.AsSpan(offset, bodySize).CopyTo(frameBuffer.AsSpan(9));
+                        await _writeChannel.Writer.WriteAsync(frameBuffer, combinedToken);
 
                         offset += bodySize;
                         read -= bodySize;
@@ -388,10 +427,11 @@ namespace Fluxzy.Core
                 }
 
                 // Send end stream
+                var endFrameBuffer = new byte[9];
                 new DataFrame(HeaderFlags.EndStream, 0, sendStreamIdentifier)
-                    .WriteHeaderOnly(rsBuffer.Memory.Span, 0);
+                    .WriteHeaderOnly(endFrameBuffer, 0);
 
-                await _writeChannel.Writer.WriteAsync(rsBuffer.Memory.Slice(0, 9), combinedToken);
+                await _writeChannel.Writer.WriteAsync(endFrameBuffer, combinedToken);
 
             }
             finally {
