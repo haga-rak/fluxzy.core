@@ -18,7 +18,7 @@ namespace Fluxzy.Core
     internal class SecureConnectionUpdater
     {
         private static readonly List<SslApplicationProtocol> H11Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 };
-        private static readonly List<SslApplicationProtocol> H11AndH2Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 , SslApplicationProtocol.Http2 };
+        private static readonly List<SslApplicationProtocol> H11AndH2Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http2, SslApplicationProtocol.Http11 };
         
 
         private readonly ICertificateProvider _certificateProvider;
