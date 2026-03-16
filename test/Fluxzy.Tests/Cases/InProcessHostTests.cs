@@ -203,3 +203,148 @@ public class InProcessHostTrailerTests
         Assert.Equal("a1b2c3d4", checksum!.First());
     }
 }
+
+public class InProcessHostHttp11TrailerTests
+{
+    /// <summary>
+    /// Full HTTP/1.1 integration test: Kestrel sends response trailers via chunked encoding,
+    /// Fluxzy proxies them over HTTP/1.1, client receives them via TrailingHeaders.
+    /// </summary>
+    [Fact]
+    public async Task ResponseTrailers_ForwardedThroughProxy_Http11()
+    {
+        await using var setup = await ProxiedHostSetup.Create(
+            configureRoutes: app =>
+            {
+                app.MapPost("/with-trailers", async (HttpContext ctx) =>
+                {
+                    ctx.Response.DeclareTrailer("grpc-status");
+                    ctx.Response.DeclareTrailer("grpc-message");
+
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.ContentType = "text/plain";
+
+                    await ctx.Response.WriteAsync("Hello with trailers");
+                    await ctx.Response.Body.FlushAsync();
+
+                    ctx.Response.AppendTrailer("grpc-status", "0");
+                    ctx.Response.AppendTrailer("grpc-message", "OK");
+                });
+            });
+        // No httpVersion override → defaults to HTTP/1.1
+
+        var content = new StringContent("test body", Encoding.UTF8, "text/plain");
+        var response = await setup.Client.PostAsync("/with-trailers", content);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        // Read body first (trailers are available only after body is consumed)
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Equal("Hello with trailers", body);
+
+        // Verify trailing headers arrived through the HTTP/1.1 proxy
+        Assert.True(response.TrailingHeaders.TryGetValues("grpc-status", out var grpcStatus),
+            "grpc-status trailer should be present");
+        Assert.Equal("0", grpcStatus!.First());
+
+        Assert.True(response.TrailingHeaders.TryGetValues("grpc-message", out var grpcMessage),
+            "grpc-message trailer should be present");
+        Assert.Equal("OK", grpcMessage!.First());
+    }
+
+    /// <summary>
+    /// HTTP/1.1: response without trailers still works correctly.
+    /// </summary>
+    [Fact]
+    public async Task ResponseWithoutTrailers_StillWorks_Http11()
+    {
+        await using var setup = await ProxiedHostSetup.Create();
+
+        var response = await setup.Client.GetAsync("/hello");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("Hello from Kestrel!", doc.RootElement.GetProperty("message").GetString());
+
+        Assert.Empty(response.TrailingHeaders);
+    }
+
+    /// <summary>
+    /// HTTP/1.1: single trailer field forwarded correctly through proxy.
+    /// </summary>
+    [Fact]
+    public async Task SingleResponseTrailer_ForwardedCorrectly_Http11()
+    {
+        await using var setup = await ProxiedHostSetup.Create(
+            configureRoutes: app =>
+            {
+                app.MapGet("/single-trailer", async (HttpContext ctx) =>
+                {
+                    ctx.Response.DeclareTrailer("x-checksum");
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.ContentType = "application/octet-stream";
+
+                    await ctx.Response.Body.WriteAsync(new byte[] { 1, 2, 3, 4 });
+                    await ctx.Response.Body.FlushAsync();
+
+                    ctx.Response.AppendTrailer("x-checksum", "a1b2c3d4");
+                });
+            });
+
+        var response = await setup.Client.GetAsync("/single-trailer");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var bodyBytes = await response.Content.ReadAsByteArrayAsync();
+        Assert.Equal(new byte[] { 1, 2, 3, 4 }, bodyBytes);
+
+        Assert.True(response.TrailingHeaders.TryGetValues("x-checksum", out var checksum));
+        Assert.Equal("a1b2c3d4", checksum!.First());
+    }
+
+    /// <summary>
+    /// HTTP/1.1: multiple trailer fields forwarded correctly.
+    /// </summary>
+    [Fact]
+    public async Task MultipleResponseTrailers_ForwardedCorrectly_Http11()
+    {
+        await using var setup = await ProxiedHostSetup.Create(
+            configureRoutes: app =>
+            {
+                app.MapPost("/multi-trailers", async (HttpContext ctx) =>
+                {
+                    ctx.Response.DeclareTrailer("x-field-a");
+                    ctx.Response.DeclareTrailer("x-field-b");
+                    ctx.Response.DeclareTrailer("x-field-c");
+
+                    ctx.Response.StatusCode = 200;
+                    ctx.Response.ContentType = "text/plain";
+
+                    await ctx.Response.WriteAsync("body content");
+                    await ctx.Response.Body.FlushAsync();
+
+                    ctx.Response.AppendTrailer("x-field-a", "alpha");
+                    ctx.Response.AppendTrailer("x-field-b", "beta");
+                    ctx.Response.AppendTrailer("x-field-c", "gamma");
+                });
+            });
+
+        var content = new StringContent("request", Encoding.UTF8, "text/plain");
+        var response = await setup.Client.PostAsync("/multi-trailers", content);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Equal("body content", body);
+
+        Assert.True(response.TrailingHeaders.TryGetValues("x-field-a", out var a));
+        Assert.Equal("alpha", a!.First());
+
+        Assert.True(response.TrailingHeaders.TryGetValues("x-field-b", out var b));
+        Assert.Equal("beta", b!.First());
+
+        Assert.True(response.TrailingHeaders.TryGetValues("x-field-c", out var c));
+        Assert.Equal("gamma", c!.First());
+    }
+}

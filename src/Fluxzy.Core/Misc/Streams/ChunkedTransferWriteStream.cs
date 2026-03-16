@@ -2,10 +2,12 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Clients.H2.Encoder;
 
 namespace Fluxzy.Misc.Streams
 {
@@ -99,13 +101,38 @@ namespace Fluxzy.Misc.Streams
 
         public ValueTask WriteEof()
         {
+            return WriteEof(null);
+        }
+
+        public ValueTask WriteEof(List<HeaderField>? trailers)
+        {
             if (!_eof) {
                 _eof = true;
+
+                if (trailers != null && trailers.Count > 0) {
+                    return WriteEofWithTrailersAsync(trailers);
+                }
 
                 return _innerStream.WriteAsync(ChunkTerminator);
             }
 
             return default;
+        }
+
+        private async ValueTask WriteEofWithTrailersAsync(List<HeaderField> trailers)
+        {
+            // Write "0\r\n" (final chunk, no data)
+            await _innerStream.WriteAsync(
+                new byte[] { (byte)'0', (byte)'\r', (byte)'\n' }).ConfigureAwait(false);
+
+            // Write each trailer field as "name: value\r\n"
+            foreach (var field in trailers) {
+                var line = Encoding.ASCII.GetBytes($"{field.Name}: {field.Value}\r\n");
+                await _innerStream.WriteAsync(line).ConfigureAwait(false);
+            }
+
+            // Terminate with empty line
+            await _innerStream.WriteAsync(LineTerminator).ConfigureAwait(false);
         }
     }
 }

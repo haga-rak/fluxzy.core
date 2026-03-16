@@ -109,14 +109,20 @@ namespace Fluxzy.Core
                 throw new FluxzyException("Down stream has already been closed");
 
             var stream = _writeStream;
+            ChunkedTransferWriteStream? chunkedWriter = null;
 
             if (chunked) {
-                stream =
-                    new ChunkedTransferWriteStream(stream);
+                chunkedWriter = new ChunkedTransferWriteStream(stream);
+                stream = chunkedWriter;
             }
 
             await responseBodyStream.CopyDetailed(stream, rsBuffer.Buffer, _ => { }, token).ConfigureAwait(false);
-            (stream as ChunkedTransferWriteStream)?.WriteEof();
+
+            if (chunkedWriter != null) {
+                // After body is drained, trailers are available on the Response object
+                await chunkedWriter.WriteEof(responseForTrailers?.Trailers).ConfigureAwait(false);
+            }
+
             await stream.FlushAsync(CancellationToken.None).ConfigureAwait(false);
         }
 
