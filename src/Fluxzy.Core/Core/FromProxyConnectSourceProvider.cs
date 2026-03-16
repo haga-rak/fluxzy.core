@@ -134,13 +134,23 @@ namespace Fluxzy.Core
                 exchange.Metrics.CreateCertStart = certStart;
                 exchange.Metrics.CreateCertEnd = certEnd;
 
-                // TLS
+                // Select downstream pipe based on negotiated protocol
 
-                return
-                    new(false,
-                        new ExchangeSourceInitResult
-                            (new Http11DownStreamPipe(_idProvider, authority,
-                                authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder), exchange));
+                IDownStreamPipe downStreamPipe;
+
+                if (authenticateResult.NegotiatedApplicationProtocol == System.Net.Security.SslApplicationProtocol.Http2) {
+                    var h2Pipe = new H2DownStreamPipe(_idProvider, authority,
+                        authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
+
+                    await h2Pipe.Init(buffer);
+                    downStreamPipe = h2Pipe;
+                }
+                else {
+                    downStreamPipe = new Http11DownStreamPipe(_idProvider, authority,
+                        authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
+                }
+
+                return new(false, new ExchangeSourceInitResult(downStreamPipe, exchange));
             }
 
             // Plain request 

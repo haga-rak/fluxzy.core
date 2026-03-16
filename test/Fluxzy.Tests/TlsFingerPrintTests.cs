@@ -64,7 +64,7 @@ namespace Fluxzy.Tests
                     setting.UseBouncyCastleSslEngine();
                     setting.AddAlterationRulesForAny(new SetJa3FingerPrintAction(expectedJa3));
 
-                    if (string.Equals(Environment.GetEnvironmentVariable("DevSettings"), "true",
+                    if (false && string.Equals(Environment.GetEnvironmentVariable("DevSettings"), "true",
                             StringComparison.OrdinalIgnoreCase))
                     {
                         // for local testing

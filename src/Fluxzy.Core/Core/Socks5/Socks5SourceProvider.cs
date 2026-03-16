@@ -189,14 +189,24 @@ namespace Fluxzy.Core.Socks5
             exchange.Metrics.CreateCertStart = certStart;
             exchange.Metrics.CreateCertEnd = certEnd;
 
-            return new ExchangeSourceInitResult(
-                new Http11DownStreamPipe(
-                    _idProvider,
-                    authority,
-                    authenticateResult.InStream,
-                    authenticateResult.OutStream,
-                    _contextBuilder),
-                exchange);
+            IDownStreamPipe downStreamPipe;
+
+            if (authenticateResult.NegotiatedApplicationProtocol == System.Net.Security.SslApplicationProtocol.Http2) {
+                var h2Pipe = new H2DownStreamPipe(
+                    _idProvider, authority,
+                    authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
+
+                using var rsBuffer = RsBuffer.Allocate(1024);
+                await h2Pipe.Init(rsBuffer);
+                downStreamPipe = h2Pipe;
+            }
+            else {
+                downStreamPipe = new Http11DownStreamPipe(
+                    _idProvider, authority,
+                    authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
+            }
+
+            return new ExchangeSourceInitResult(downStreamPipe, exchange);
         }
 
         private static readonly string Socks5ResponseHeader =

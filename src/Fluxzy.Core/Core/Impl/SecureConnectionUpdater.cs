@@ -18,7 +18,7 @@ namespace Fluxzy.Core
     internal class SecureConnectionUpdater
     {
         private static readonly List<SslApplicationProtocol> H11Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 };
-        private static readonly List<SslApplicationProtocol> H11AndH2Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11 , SslApplicationProtocol.Http2 };
+        private static readonly List<SslApplicationProtocol> H11AndH2Protocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http2, SslApplicationProtocol.Http11 };
         
 
         private readonly ICertificateProvider _certificateProvider;
@@ -106,16 +106,20 @@ namespace Fluxzy.Core
                     };
             }
 
-            return new SecureConnectionUpdateResult(true, secureStream, secureStream);
+            return new SecureConnectionUpdateResult(true, secureStream, secureStream, secureStream.NegotiatedApplicationProtocol);
         }
     }
 
-    internal record SecureConnectionUpdateResult(bool IsSsl, Stream InStream, Stream OutStream)
+    internal record SecureConnectionUpdateResult(
+        bool IsSsl, Stream InStream, Stream OutStream,
+        SslApplicationProtocol NegotiatedApplicationProtocol = default)
     {
         public bool IsSsl { get; } = IsSsl;
-        
+
         public Stream InStream { get; } = InStream;
 
         public Stream OutStream { get; } = OutStream;
+
+        public SslApplicationProtocol NegotiatedApplicationProtocol { get; } = NegotiatedApplicationProtocol;
     }
 }

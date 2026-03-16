@@ -113,7 +113,7 @@ namespace Fluxzy.Core
 
             int? notified = null;
 
-            if (_unNotifiedWindowSize > _h2StreamSetting.Local.WindowSize) {
+            if (_unNotifiedWindowSize > (_h2StreamSetting.Local.WindowSize / 2)) {
 
                 notified = _unNotifiedWindowSize;
                 _unNotifiedWindowSize = 0;
@@ -156,6 +156,11 @@ namespace Fluxzy.Core
             };
 
             return exchange;
+        }
+
+        public void UpdateWindowSize(int windowSizeIncrement)
+        {
+            _streamWindowSizeHolder.UpdateWindowSize(windowSizeIncrement);
         }
 
         public async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)

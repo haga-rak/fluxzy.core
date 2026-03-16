@@ -1,7 +1,9 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -45,7 +47,7 @@ namespace Fluxzy.Core
         public async ValueTask Operate(
             TcpClient client, RsBuffer buffer, bool closeImmediately, CancellationToken token)
         {
-            Exchange? lastExchange = null;
+            var lastExchangeHolder = new ExchangeHolder();
 
             IDownStreamPipe? downStreamPipe = null;
 
@@ -108,53 +110,21 @@ namespace Fluxzy.Core
                 downStreamPipe = exchangeSourceInitResult.DownStreamPipe;
                 var provisionalExchange = exchangeSourceInitResult.ProvisionalExchange;
 
-                var processedProvisional = false;
-
-                while (true)
-                {
-                    using var exchangeScope = new ExchangeScope();
-
-                    Exchange? exchange = null;
-
-                    try
-                    {
-                        if (!processedProvisional)
-                        {
-                            exchange = provisionalExchange;
-                            processedProvisional = true;
-                        }
-                        else
-                        {
-                            exchange = await downStreamPipe.ReadNextExchange(buffer, exchangeScope, token)
-                                                           .ConfigureAwait(false);
-                        }
-
-                        lastExchange = exchange;
-                    }
-                    catch (IOException ex)
-                    {
-                        // Downstream close the underlying connection
-
-                        if (D.EnableTracing)
-                        {
-                            var message = $"Error from {client.Client.RemoteEndPoint}";
-                            D.TraceException(ex, message);
-                        }
-
-                        return;
-                    }
-
-                    if (exchange == null)
-                    {
-                        return;
-                    }
-
-                    var shouldCloseDownStreamConnection = await EnterProcessExchange(buffer, closeImmediately, token, exchange, remoteEndPoint, downStreamClientAddress, localEndPoint, localEndPointsAddress, downStreamPipe, callerTokenSource);
-
-                    if (shouldCloseDownStreamConnection)
-                    {
-                        return;
-                    }
+                if (downStreamPipe.SupportsMultiplexing) {
+                    await OperateMultiplexed(
+                        buffer, closeImmediately, token,
+                        provisionalExchange, downStreamPipe,
+                        remoteEndPoint, downStreamClientAddress,
+                        localEndPoint, localEndPointsAddress,
+                        callerTokenSource);
+                }
+                else {
+                    await OperateSequential(
+                        buffer, closeImmediately, token,
+                        provisionalExchange, downStreamPipe,
+                        remoteEndPoint, downStreamClientAddress,
+                        localEndPoint, localEndPointsAddress,
+                        callerTokenSource, client, lastExchangeHolder);
                 }
             }
             catch (Exception ex)
@@ -172,7 +142,7 @@ namespace Fluxzy.Core
 
                 var handleResult = await
                     ConnectionErrorHandler.HandleGenericException(ex, downStreamPipe,
-                        lastExchange, buffer, _archiveWriter, ITimingProvider.Default, token);
+                        lastExchangeHolder.Exchange, buffer, _archiveWriter, ITimingProvider.Default, token);
 
                 if (!handleResult)
                 {
@@ -182,6 +152,171 @@ namespace Fluxzy.Core
             finally
             {
                 downStreamPipe?.Dispose();
+            }
+        }
+
+        private async ValueTask OperateSequential(
+            RsBuffer buffer, bool closeImmediately, CancellationToken token,
+            Exchange? provisionalExchange, IDownStreamPipe downStreamPipe,
+            IPEndPoint remoteEndPoint, string downStreamClientAddress,
+            IPEndPoint localEndPoint, string localEndPointsAddress,
+            CancellationTokenSource callerTokenSource, TcpClient client,
+            ExchangeHolder lastExchangeHolder)
+        {
+            var processedProvisional = false;
+
+            while (true)
+            {
+                using var exchangeScope = new ExchangeScope();
+
+                Exchange? exchange = null;
+
+                try
+                {
+                    if (!processedProvisional)
+                    {
+                        exchange = provisionalExchange;
+                        processedProvisional = true;
+                    }
+                    else
+                    {
+                        exchange = await downStreamPipe.ReadNextExchange(buffer, exchangeScope, token)
+                                                       .ConfigureAwait(false);
+                    }
+
+                    lastExchangeHolder.Exchange = exchange;
+                }
+                catch (IOException ex)
+                {
+                    if (D.EnableTracing)
+                    {
+                        var message = $"Error from {client.Client.RemoteEndPoint}";
+                        D.TraceException(ex, message);
+                    }
+
+                    return;
+                }
+
+                if (exchange == null)
+                {
+                    return;
+                }
+
+                var shouldCloseDownStreamConnection = await EnterProcessExchange(
+                    buffer, closeImmediately, token, exchange,
+                    remoteEndPoint, downStreamClientAddress,
+                    localEndPoint, localEndPointsAddress,
+                    downStreamPipe, callerTokenSource);
+
+                if (shouldCloseDownStreamConnection)
+                {
+                    return;
+                }
+            }
+        }
+
+        private async ValueTask OperateMultiplexed(
+            RsBuffer buffer, bool closeImmediately, CancellationToken token,
+            Exchange? provisionalExchange, IDownStreamPipe downStreamPipe,
+            IPEndPoint remoteEndPoint, string downStreamClientAddress,
+            IPEndPoint localEndPoint, string localEndPointsAddress,
+            CancellationTokenSource callerTokenSource)
+        {
+            var activeTasks = new List<Task>();
+            var processedProvisional = false;
+
+            while (true)
+            {
+                Exchange? exchange = null;
+
+                try
+                {
+                    if (!processedProvisional)
+                    {
+                        exchange = provisionalExchange;
+                        processedProvisional = true;
+                    }
+                    else
+                    {
+                        using var exchangeScope = new ExchangeScope();
+                        exchange = await downStreamPipe.ReadNextExchange(buffer, exchangeScope, token)
+                                                       .ConfigureAwait(false);
+                    }
+                }
+                catch (IOException)
+                {
+                    break;
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+
+                if (exchange == null)
+                {
+                    break;
+                }
+
+                // Skip the provisional CONNECT/SOCKS5 exchange (Unprocessed = true)
+                if (exchange.Unprocessed)
+                {
+                    continue;
+                }
+
+                // Prune completed tasks
+                activeTasks.RemoveAll(t => t.IsCompleted);
+
+                var task = ProcessExchangeMultiplexed(
+                    exchange, closeImmediately, token,
+                    remoteEndPoint, downStreamClientAddress,
+                    localEndPoint, localEndPointsAddress,
+                    downStreamPipe, callerTokenSource);
+
+                activeTasks.Add(task);
+            }
+
+            // Wait for all in-flight exchanges to complete before returning
+            // (the caller will dispose the pipe after this)
+            if (activeTasks.Count > 0)
+            {
+                await Task.WhenAll(activeTasks).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ProcessExchangeMultiplexed(
+            Exchange exchange, bool closeImmediately, CancellationToken token,
+            IPEndPoint remoteEndPoint, string downStreamClientAddress,
+            IPEndPoint localEndPoint, string localEndPointsAddress,
+            IDownStreamPipe downStreamPipe, CancellationTokenSource callerTokenSource)
+        {
+            using var exchangeBuffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
+
+            try
+            {
+                await EnterProcessExchange(
+                    exchangeBuffer, closeImmediately, token, exchange,
+                    remoteEndPoint, downStreamClientAddress,
+                    localEndPoint, localEndPointsAddress,
+                    downStreamPipe, callerTokenSource);
+            }
+            catch (Exception ex)
+            {
+                if (ex is OperationCanceledException)
+                {
+                    return;
+                }
+
+                // Per-exchange error: try to send an error response for this stream only
+                try
+                {
+                    await ConnectionErrorHandler.HandleGenericException(
+                        ex, downStreamPipe, exchange, exchangeBuffer,
+                        _archiveWriter, ITimingProvider.Default, token);
+                }
+                catch
+                {
+                    // Swallow — one stream's error must not kill the connection
+                }
             }
         }
 
@@ -537,7 +672,7 @@ namespace Fluxzy.Core
 
                     try
                     {
-                        await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, shouldCloseConnectionToDownStream, exchange.StreamIdentifier, token)
+                        await downStreamPipe.WriteResponseHeader(exchange.Response.Header!, buffer, shouldCloseConnectionToDownStream, exchange.StreamIdentifier, exchange.Request.Header.Method, token)
                                             .ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -700,5 +835,10 @@ namespace Fluxzy.Core
                 }
             }
         }
+    }
+
+    internal class ExchangeHolder
+    {
+        public Exchange? Exchange { get; set; }
     }
 }
