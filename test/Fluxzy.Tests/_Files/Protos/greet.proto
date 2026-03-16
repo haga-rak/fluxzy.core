@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "Fluxzy.Tests.GrpcServices";
+
+package grpctest;
+
+service Greeter {
+  rpc SayHello (HelloRequest) returns (HelloReply);
+  rpc SayHelloServerStream (HelloRequest) returns (stream HelloReply);
+  rpc SayHelloClientStream (stream HelloRequest) returns (HelloReply);
+  rpc SayHelloBidiStream (stream HelloRequest) returns (stream HelloReply);
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloReply {
+  string message = 1;
+}
