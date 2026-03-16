@@ -44,7 +44,7 @@ namespace Fluxzy.Tests._Fixtures
                     await socket.ConnectAsync(normalized, cancellationToken);
 
                     var stream = new NetworkStream(socket, ownsSocket: true);
-                    await PerformSocks5Handshake(stream, context.DnsEndPoint, cancellationToken);
+                    await PerformSocks5HandshakeAsync(stream, context.DnsEndPoint, cancellationToken);
 
                     return stream;
                 },
@@ -75,7 +75,7 @@ namespace Fluxzy.Tests._Fixtures
             return endPoint;
         }
 
-        private static async Task PerformSocks5Handshake(
+        public static async Task PerformSocks5HandshakeAsync(
             Stream stream, DnsEndPoint target, CancellationToken cancellationToken)
         {
             // 1. Greeting: version 5, 1 method (no auth)

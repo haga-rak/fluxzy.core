@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
@@ -13,12 +14,22 @@ using Xunit;
 
 namespace Fluxzy.Tests.Cli
 {
+    public enum ProxyConnectionType
+    {
+        Http11Proxy = 0,
+        Socks5 = 1,
+        Socks5WithH2 = 2
+    }
+
     public class CliTestBase
     {
-        protected async Task Run_Cli_Output(string proto, CaptureType rawCap, 
-            bool @out, bool rule, bool useSock5 = false)
+        protected async Task Run_Cli_Output(string proto, CaptureType rawCap,
+            bool @out, bool rule, ProxyConnectionType connectionType = ProxyConnectionType.Http11Proxy)
         {
-            // Arrange 
+            // Arrange
+
+            var useSock5 = connectionType >= ProxyConnectionType.Socks5;
+            var serveH2 = connectionType == ProxyConnectionType.Socks5WithH2;
 
             var rootDir = $"ab0{Guid.NewGuid()}";
 
@@ -37,6 +48,9 @@ namespace Fluxzy.Tests.Cli
 
             if (proto.EndsWith("-bc"))
                 commandLine += " --bouncy-castle";
+
+            if (serveH2)
+                commandLine += " --serve-h2 --insecure";
 
             if (rule)
             {
@@ -65,7 +79,7 @@ namespace Fluxzy.Tests.Cli
             await using (var fluxzyInstance = await commandLineHost.Run(30))
             {
                 using var proxiedHttpClient = new ProxiedHttpClient(fluxzyInstance.ListenPort,
-                    useSock5: useSock5);
+                    useSock5: useSock5, socks5WithH2: serveH2);
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post,
                     $"{TestConstants.GetHost(proto)}/global-health-check");
