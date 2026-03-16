@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -33,8 +34,9 @@ namespace Fluxzy.Core
         private readonly Channel<ReadOnlyMemory<byte>> _writeChannel =
                         Channel.CreateUnbounded<ReadOnlyMemory<byte>>();
         
-        private readonly Dictionary<int, ServerStreamWorker> _currentStreams = new();
+        private readonly ConcurrentDictionary<int, ServerStreamWorker> _currentStreams = new();
         private readonly HeaderEncoder _headerEncoder;
+        private readonly SemaphoreSlim _headerEncodeLock = new SemaphoreSlim(1, 1);
         private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting();
         private readonly WindowSizeHolder _overallWindowSizeHolder;
         private readonly H2Logger _logger;
@@ -187,7 +189,7 @@ namespace Fluxzy.Core
 
         private void CheckoutServerStreamWorker(ServerStreamWorker streamWorker)
         {
-            _currentStreams.Remove(streamWorker.StreamIdentifier);
+            _currentStreams.TryRemove(streamWorker.StreamIdentifier, out _);
             streamWorker.Dispose();
         }
 
@@ -256,7 +258,7 @@ namespace Fluxzy.Core
                         worker = new ServerStreamWorker(frame.StreamIdentifier, _headerEncoder,
                             _overallWindowSizeHolder, _h2StreamSetting, _logger);
 
-                        _currentStreams.Add(frame.StreamIdentifier, worker);
+                        _currentStreams.TryAdd(frame.StreamIdentifier, worker);
                     }
 
                     if (frame.BodyType == H2FrameType.PushPromise) {
@@ -369,12 +371,22 @@ namespace Fluxzy.Core
             
             var hasBody = responseHeader.HasResponseBody(requestMethod.Span, out _);
 
-            var payload = _headerEncoder.Encode(
-                new HeaderEncodingJob(responseHeader.GetHttp11Header(),
-                    streamIdentifier, 0),
-                buffer, !hasBody);
+            byte[] copy;
 
-            var copy = payload.ToArray();
+            await _headerEncodeLock.WaitAsync(combinedToken);
+
+            try {
+                var payload = _headerEncoder.Encode(
+                    new HeaderEncodingJob(responseHeader.GetHttp11Header(),
+                        streamIdentifier, 0),
+                    buffer, !hasBody);
+
+                copy = payload.ToArray();
+            }
+            finally {
+                _headerEncodeLock.Release();
+            }
+
             await _writeChannel.Writer.WriteAsync(copy, combinedToken);
         }
 
@@ -446,6 +458,8 @@ namespace Fluxzy.Core
 
         public bool CanWrite => !_writeHalted;
 
+        public bool SupportsMultiplexing => true;
+
         public void Dispose()
         {
             if (_disposed)
@@ -463,6 +477,7 @@ namespace Fluxzy.Core
             }
 
             _overallWindowSizeHolder.Dispose();
+            _headerEncodeLock.Dispose();
         }
     }
 }

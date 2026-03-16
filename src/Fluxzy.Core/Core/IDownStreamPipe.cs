@@ -23,5 +23,7 @@ namespace Fluxzy.Core
         (Stream ReadStream, Stream WriteStream) AbandonPipe();
 
         bool CanWrite { get; }
+
+        bool SupportsMultiplexing { get; }
     }
 }

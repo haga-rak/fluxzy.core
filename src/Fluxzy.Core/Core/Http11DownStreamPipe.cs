@@ -136,6 +136,8 @@ namespace Fluxzy.Core
 
         public bool CanWrite => _writeStream != null;
 
+        public bool SupportsMultiplexing => false;
+
         public static Stream SetChunkedBody(RequestHeader plainHeader, Stream plainStream)
         {
             Stream bodyStream;
