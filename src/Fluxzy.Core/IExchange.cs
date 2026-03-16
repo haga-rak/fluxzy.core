@@ -43,5 +43,9 @@ namespace Fluxzy
         IEnumerable<HeaderFieldInfo> GetRequestHeaders();
 
         IEnumerable<HeaderFieldInfo>? GetResponseHeaders();
+
+        IEnumerable<HeaderFieldInfo>? GetRequestTrailers();
+
+        IEnumerable<HeaderFieldInfo>? GetResponseTrailers();
     }
 }

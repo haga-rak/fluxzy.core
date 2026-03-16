@@ -434,7 +434,7 @@ namespace Fluxzy.Core
         }
 
         public async ValueTask WriteResponseBody(Stream responseBodyStream,
-            RsBuffer rsBuffer, bool chunked, int streamIdentifier, CancellationToken token)
+            RsBuffer rsBuffer, bool chunked, int streamIdentifier, Response? responseForTrailers, CancellationToken token)
         {
             // take care of window size
             if (!_currentStreams.TryGetValue(streamIdentifier, out var worker)) {
@@ -480,18 +480,48 @@ namespace Fluxzy.Core
                     }
                 }
 
-                // Send end stream — 9 bytes, rent from pool
-                var endFrameBuffer = ArrayPool<byte>.Shared.Rent(9);
-                new DataFrame(HeaderFlags.EndStream, 0, sendStreamIdentifier)
-                    .WriteHeaderOnly(endFrameBuffer, 0);
+                // Read trailers lazily — they are set by StreamWorker after the body pipe completes
+                var trailers = responseForTrailers?.Trailers;
 
-                await _writeChannel.Writer.WriteAsync(
-                    new PooledFrame(endFrameBuffer, 9, true), token);
+                if (trailers != null && trailers.Count > 0) {
+                    // Send trailers as HEADERS frame with EndStream
+                    await WriteResponseTrailers(trailers, rsBuffer, sendStreamIdentifier, token);
+                }
+                else {
+                    // Send end stream — 9 bytes, rent from pool
+                    var endFrameBuffer = ArrayPool<byte>.Shared.Rent(9);
+                    new DataFrame(HeaderFlags.EndStream, 0, sendStreamIdentifier)
+                        .WriteHeaderOnly(endFrameBuffer, 0);
 
+                    await _writeChannel.Writer.WriteAsync(
+                        new PooledFrame(endFrameBuffer, 9, true), token);
+                }
             }
             finally {
                 ArrayPool<byte>.Shared.Return(readBuffer);
             }
+        }
+
+        private async ValueTask WriteResponseTrailers(
+            List<HeaderField> trailers, RsBuffer buffer, int streamIdentifier, CancellationToken token)
+        {
+            byte[] pooledArray;
+            int length;
+
+            await _headerEncodeLock.WaitAsync(token);
+
+            try {
+                var payload = _headerEncoder.EncodeTrailers(trailers, buffer, streamIdentifier);
+
+                length = payload.Length;
+                pooledArray = ArrayPool<byte>.Shared.Rent(length);
+                payload.CopyTo(pooledArray);
+            }
+            finally {
+                _headerEncodeLock.Release();
+            }
+
+            await _writeChannel.Writer.WriteAsync(new PooledFrame(pooledArray, length, true), token);
         }
 
         public (Stream ReadStream, Stream WriteStream) AbandonPipe()

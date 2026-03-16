@@ -103,7 +103,7 @@ namespace Fluxzy.Core
             }
         }
 
-        public async ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, int _, CancellationToken token)
+        public async ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, int _, Response? responseForTrailers, CancellationToken token)
         {
             if (_writeStream == null)
                 throw new FluxzyException("Down stream has already been closed");
