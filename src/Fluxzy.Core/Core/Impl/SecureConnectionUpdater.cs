@@ -106,16 +106,20 @@ namespace Fluxzy.Core
                     };
             }
 
-            return new SecureConnectionUpdateResult(true, secureStream, secureStream);
+            return new SecureConnectionUpdateResult(true, secureStream, secureStream, secureStream.NegotiatedApplicationProtocol);
         }
     }
 
-    internal record SecureConnectionUpdateResult(bool IsSsl, Stream InStream, Stream OutStream)
+    internal record SecureConnectionUpdateResult(
+        bool IsSsl, Stream InStream, Stream OutStream,
+        SslApplicationProtocol NegotiatedApplicationProtocol = default)
     {
         public bool IsSsl { get; } = IsSsl;
-        
+
         public Stream InStream { get; } = InStream;
 
         public Stream OutStream { get; } = OutStream;
+
+        public SslApplicationProtocol NegotiatedApplicationProtocol { get; } = NegotiatedApplicationProtocol;
     }
 }

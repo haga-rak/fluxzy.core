@@ -92,6 +92,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateNoAndroidEmulatorOption());
             command.AddOption(StartCommandOptions.CreatePrettyOutputOption());
             command.AddOption(StartCommandOptions.CreatePrettyMaxRowsOption());
+            command.AddOption(StartCommandOptions.CreateServeH2Option());
             command.AddOption(StartCommandOptions.CreateEnableDiscoveryOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
@@ -133,6 +134,7 @@ namespace Fluxzy.Cli.Commands
             var noAndroidEmulator = invocationContext.Value<bool>("no-android-emulator");
             var prettyOutput = invocationContext.Value<bool>("pretty");
             var prettyMaxRows = invocationContext.Value<int>("pretty-max-rows");
+            var serveH2 = invocationContext.Value<bool>("serve-h2");
             var enableDiscovery = invocationContext.Value<bool>("enable-discovery");
 
             if (trace) {
@@ -287,6 +289,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.UseBouncyCastle = bouncyCastle;
             proxyStartUpSetting.SetEnableProcessTracking(enableProcessTracking);
             proxyStartUpSetting.SetIncludeAndroidEmulatorHost(!noAndroidEmulator);
+            proxyStartUpSetting.SetServeH2(serveH2);
             proxyStartUpSetting.SetEnableDiscoveryService(enableDiscovery);
 
             var certificateProvider = new CertificateProvider(proxyStartUpSetting.CaCertificate,

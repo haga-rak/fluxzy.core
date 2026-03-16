@@ -464,6 +464,19 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
+        public static Option CreateServeH2Option()
+        {
+            var option = new Option<bool>(
+                "--serve-h2",
+                "Enable HTTP/2 on the proxy's client-facing (downstream) side. " +
+                "When enabled, clients that support HTTP/2 over TLS will use it to communicate with the proxy.");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
         public static Option CreateEnableDiscoveryOption()
         {
             var option = new Option<bool>(

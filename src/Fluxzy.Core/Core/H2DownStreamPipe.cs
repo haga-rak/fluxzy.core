@@ -80,7 +80,7 @@ namespace Fluxzy.Core
 
         public async Task Init(RsBuffer buffer)
         {
-            // Make announcement to the client
+            // Read the client connection preface
 
             var prefaceMemory = buffer.Memory.Slice(0, H2Constants.Preface.Length);
 
@@ -90,11 +90,44 @@ namespace Fluxzy.Core
                 throw new FluxzyException("Invalid preface received");
             }
 
+            // Send server connection preface (SETTINGS frame)
+            await SendServerSettingsAsync();
+
             _readLoop = ReadLoop(_mainLoopToken);
             _writeLoop = WriteLoop(_mainLoopToken);
+        }
 
-            // validate announcement 
-            // adjust settings 
+        private async Task SendServerSettingsAsync()
+        {
+            var written = BuildServerSettingsFrame(out var settingBuffer);
+            await _writeStream.WriteAsync(settingBuffer.AsMemory(0, written), _mainLoopToken);
+            await _writeStream.FlushAsync(_mainLoopToken);
+        }
+
+        private int BuildServerSettingsFrame(out byte[] buffer)
+        {
+            buffer = new byte[512];
+            var written = 0;
+
+            var headerCount = 9;
+            var totalSettingCount = 0;
+
+            foreach (var (settingIdentifier, value) in _h2StreamSetting.GetAnnouncementSettings()) {
+                written += SettingFrame.WriteMultipleBody(
+                    buffer.AsSpan(written + headerCount), settingIdentifier, value);
+                totalSettingCount++;
+            }
+
+            written += SettingFrame.WriteMultipleHeader(buffer.AsSpan(), totalSettingCount);
+
+            var windowSizeAnnounced = _h2StreamSetting.Local.WindowSize - 65535;
+
+            if (windowSizeAnnounced != 0) {
+                var windowFrame = new WindowUpdateFrame(windowSizeAnnounced, 0);
+                written += windowFrame.Write(buffer.AsSpan(written));
+            }
+
+            return written;
         }
 
         private async ValueTask WriteRstStream(int streamIdentifier, H2ErrorCode errorCode, CancellationToken token)
@@ -246,7 +279,6 @@ namespace Fluxzy.Core
                 }
             }
             catch (Exception ex) {
-
                 throw;
             }
             finally  {
@@ -265,7 +297,6 @@ namespace Fluxzy.Core
                 }
             }
             catch (Exception ex) {
-                // stream is closed. 
                 throw;
             }
             finally {
@@ -293,14 +324,12 @@ namespace Fluxzy.Core
             using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_mainLoopToken, token);
             var combinedToken = combinedTokenSource.Token;
 
-            var downStreamIdentifier = streamIdentifier + 1;
-
-            var endStream = responseHeader.HasResponseBody("GET", out _);
+            var hasBody = responseHeader.HasResponseBody("GET", out _);
 
             var payload = _headerEncoder.Encode(
                 new HeaderEncodingJob(responseHeader.GetHttp11Header(),
-                    downStreamIdentifier, 0),
-                buffer, endStream);
+                    streamIdentifier, 0),
+                buffer, !hasBody);
 
             await _writeChannel.Writer.WriteAsync(payload, combinedToken);
         }
@@ -318,7 +347,7 @@ namespace Fluxzy.Core
             using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_mainLoopToken, token);
             var combinedToken = combinedTokenSource.Token;
 
-            var sendStreamIdentifier = streamIdentifier + 1;
+            var sendStreamIdentifier = streamIdentifier;
 
             var readBuffer = ArrayPool<byte>.Shared.Rent(_h2StreamSetting.MaxFrameSizeAllowed + 9);
 
