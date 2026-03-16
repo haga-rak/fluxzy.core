@@ -283,12 +283,26 @@ namespace Fluxzy.Misc.Streams
 
         /// <summary>
         ///     Reads trailer headers (or just the terminating CRLF) after the final 0-length chunk.
-        ///     Format: "name: value\r\n" lines terminated by an empty "\r\n" line.
+        ///     Optimized: the common case (no trailers) is a single 2-byte read with zero allocations.
         /// </summary>
         private async ValueTask ParseTrailersAsync(CancellationToken ct)
         {
-            List<HeaderField>? trailerList = null;
+            // Fast path: read 2 bytes (same cost as old code). If \r\n → no trailers.
+            await _innerStream.ReadExactAsync(_lengthHolderBytes.AsMemory(0, 2), ct)
+                              .ConfigureAwait(false);
+
+            if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+                return; // Common case: no trailers — zero extra allocations
+
+            // Rare path: trailers present. Seed line builder with the 2 bytes already read.
+            var trailerList = new List<HeaderField>();
             var lineBuilder = new StringBuilder();
+
+            for (var i = 0; i < 2; i++)
+            {
+                if (_lengthHolderBytes[i] != 0x0A && _lengthHolderBytes[i] != 0x0D)
+                    lineBuilder.Append((char)_lengthHolderBytes[i]);
+            }
 
             while (true)
             {
@@ -299,43 +313,43 @@ namespace Fluxzy.Misc.Streams
 
                 if (b == 0x0D) // CR
                 {
-                    // Read LF
                     await _innerStream.ReadExactAsync(_singleByte, ct).ConfigureAwait(false);
 
                     if (lineBuilder.Length == 0)
-                        break; // Empty line = end of trailers (or no trailers at all)
+                        break; // Empty line = end of trailers
 
-                    var line = lineBuilder.ToString();
-                    lineBuilder.Clear();
-
-                    var colonIdx = line.IndexOf(':');
-
-                    if (colonIdx > 0)
-                    {
-                        trailerList ??= new List<HeaderField>();
-                        trailerList.Add(new HeaderField(
-                            line.Substring(0, colonIdx).Trim(),
-                            line.Substring(colonIdx + 1).Trim()));
-                    }
+                    ParseAndAddTrailerLine(lineBuilder, trailerList);
                 }
-                else if (b != 0x0A) // skip stray LFs
+                else if (b != 0x0A)
                 {
                     lineBuilder.Append((char)b);
                 }
             }
 
-            if (trailerList != null)
+            if (trailerList.Count > 0)
                 Trailers = trailerList;
         }
 
         /// <summary>
-        ///     Sync version of trailer parsing.
+        ///     Sync version of trailer parsing. Same fast-path optimization.
         /// </summary>
         private void ParseTrailers()
         {
-            List<HeaderField>? trailerList = null;
+            // Fast path: read 2 bytes. If \r\n → no trailers.
+            _innerStream.ReadExact(new Span<byte>(_lengthHolderBytes, 0, 2));
+
+            if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+                return;
+
+            var trailerList = new List<HeaderField>();
             var lineBuilder = new StringBuilder();
             Span<byte> single = _singleByte;
+
+            for (var i = 0; i < 2; i++)
+            {
+                if (_lengthHolderBytes[i] != 0x0A && _lengthHolderBytes[i] != 0x0D)
+                    lineBuilder.Append((char)_lengthHolderBytes[i]);
+            }
 
             while (true)
             {
@@ -351,18 +365,7 @@ namespace Fluxzy.Misc.Streams
                     if (lineBuilder.Length == 0)
                         break;
 
-                    var line = lineBuilder.ToString();
-                    lineBuilder.Clear();
-
-                    var colonIdx = line.IndexOf(':');
-
-                    if (colonIdx > 0)
-                    {
-                        trailerList ??= new List<HeaderField>();
-                        trailerList.Add(new HeaderField(
-                            line.Substring(0, colonIdx).Trim(),
-                            line.Substring(colonIdx + 1).Trim()));
-                    }
+                    ParseAndAddTrailerLine(lineBuilder, trailerList);
                 }
                 else if (b != 0x0A)
                 {
@@ -370,8 +373,23 @@ namespace Fluxzy.Misc.Streams
                 }
             }
 
-            if (trailerList != null)
+            if (trailerList.Count > 0)
                 Trailers = trailerList;
+        }
+
+        private static void ParseAndAddTrailerLine(StringBuilder lineBuilder, List<HeaderField> trailerList)
+        {
+            var line = lineBuilder.ToString();
+            lineBuilder.Clear();
+
+            var colonIdx = line.IndexOf(':');
+
+            if (colonIdx > 0)
+            {
+                trailerList.Add(new HeaderField(
+                    line.Substring(0, colonIdx).Trim(),
+                    line.Substring(colonIdx + 1).Trim()));
+            }
         }
     }
 }
