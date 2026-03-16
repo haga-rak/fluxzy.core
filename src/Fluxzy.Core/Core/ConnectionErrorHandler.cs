@@ -225,7 +225,7 @@ namespace Fluxzy.Core
             exchange.Metrics.ResponseHeaderEnd = timingProvider.Instant();
             exchange.Metrics.ResponseBodyStart = timingProvider.Instant();
 
-            await downStreamPipe.WriteResponseBody(exchange.Response.Body, buffer, false, exchange.StreamIdentifier, token);
+            await downStreamPipe.WriteResponseBody(exchange.Response.Body, buffer, false, exchange.StreamIdentifier, exchange.Response, token);
 
             if (exchange.Metrics.ResponseBodyEnd == default)
             {

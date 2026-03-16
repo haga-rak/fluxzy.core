@@ -1,11 +1,13 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Clients.H2.Encoder;
 
 namespace Fluxzy.Misc.Streams
 {
@@ -27,6 +29,11 @@ namespace Fluxzy.Misc.Streams
             _innerStream = innerStream;
             _closeOnDone = closeOnDone;
         }
+
+        /// <summary>
+        ///     Trailer fields parsed after the final 0-length chunk (HTTP/1.1 chunked trailers).
+        /// </summary>
+        public List<HeaderField>? Trailers { get; private set; }
 
         public override bool CanRead => true;
 
@@ -125,10 +132,10 @@ namespace Fluxzy.Misc.Streams
 
                 if (chunkSize == 0)
                 {
-                    // Final chunk - read terminating CRLF
+                    // Final chunk — parse trailers or consume terminating CRLF
                     if (!_closeOnDone)
                     {
-                        await _innerStream.ReadExactAsync(textBufferBytes.Slice(0, 2), cancellationToken).ConfigureAwait(false);
+                        await ParseTrailersAsync(cancellationToken).ConfigureAwait(false);
                     }
                     return 0;
                 }
@@ -228,10 +235,10 @@ namespace Fluxzy.Misc.Streams
 
                 if (chunkSize == 0)
                 {
-                    // Final chunk - read terminating CRLF
+                    // Final chunk — parse trailers or consume terminating CRLF
                     if (!_closeOnDone)
                     {
-                        _innerStream.ReadExact(new Span<byte>(_lengthHolderBytes, 0, 2));
+                        ParseTrailers();
                     }
                     return 0;
                 }
@@ -272,6 +279,117 @@ namespace Fluxzy.Misc.Streams
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new NotSupportedException();
+        }
+
+        /// <summary>
+        ///     Reads trailer headers (or just the terminating CRLF) after the final 0-length chunk.
+        ///     Optimized: the common case (no trailers) is a single 2-byte read with zero allocations.
+        /// </summary>
+        private async ValueTask ParseTrailersAsync(CancellationToken ct)
+        {
+            // Fast path: read 2 bytes (same cost as old code). If \r\n → no trailers.
+            await _innerStream.ReadExactAsync(_lengthHolderBytes.AsMemory(0, 2), ct)
+                              .ConfigureAwait(false);
+
+            if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+                return; // Common case: no trailers — zero extra allocations
+
+            // Rare path: trailers present. Seed line builder with the 2 bytes already read.
+            var trailerList = new List<HeaderField>();
+            var lineBuilder = new StringBuilder();
+
+            for (var i = 0; i < 2; i++)
+            {
+                if (_lengthHolderBytes[i] != 0x0A && _lengthHolderBytes[i] != 0x0D)
+                    lineBuilder.Append((char)_lengthHolderBytes[i]);
+            }
+
+            while (true)
+            {
+                if (!await _innerStream.ReadExactAsync(_singleByte, ct).ConfigureAwait(false))
+                    break;
+
+                var b = _singleByte[0];
+
+                if (b == 0x0D) // CR
+                {
+                    await _innerStream.ReadExactAsync(_singleByte, ct).ConfigureAwait(false);
+
+                    if (lineBuilder.Length == 0)
+                        break; // Empty line = end of trailers
+
+                    ParseAndAddTrailerLine(lineBuilder, trailerList);
+                }
+                else if (b != 0x0A)
+                {
+                    lineBuilder.Append((char)b);
+                }
+            }
+
+            if (trailerList.Count > 0)
+                Trailers = trailerList;
+        }
+
+        /// <summary>
+        ///     Sync version of trailer parsing. Same fast-path optimization.
+        /// </summary>
+        private void ParseTrailers()
+        {
+            // Fast path: read 2 bytes. If \r\n → no trailers.
+            _innerStream.ReadExact(new Span<byte>(_lengthHolderBytes, 0, 2));
+
+            if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+                return;
+
+            var trailerList = new List<HeaderField>();
+            var lineBuilder = new StringBuilder();
+            Span<byte> single = _singleByte;
+
+            for (var i = 0; i < 2; i++)
+            {
+                if (_lengthHolderBytes[i] != 0x0A && _lengthHolderBytes[i] != 0x0D)
+                    lineBuilder.Append((char)_lengthHolderBytes[i]);
+            }
+
+            while (true)
+            {
+                if (_innerStream.Read(single) <= 0)
+                    break;
+
+                var b = single[0];
+
+                if (b == 0x0D) // CR
+                {
+                    _innerStream.ReadExact(single); // LF
+
+                    if (lineBuilder.Length == 0)
+                        break;
+
+                    ParseAndAddTrailerLine(lineBuilder, trailerList);
+                }
+                else if (b != 0x0A)
+                {
+                    lineBuilder.Append((char)b);
+                }
+            }
+
+            if (trailerList.Count > 0)
+                Trailers = trailerList;
+        }
+
+        private static void ParseAndAddTrailerLine(StringBuilder lineBuilder, List<HeaderField> trailerList)
+        {
+            var line = lineBuilder.ToString();
+            lineBuilder.Clear();
+
+            var colonIdx = line.IndexOf(':');
+
+            if (colonIdx > 0)
+            {
+                trailerList.Add(new HeaderField(
+                    line.Substring(0, colonIdx).Trim(),
+                    line.Substring(colonIdx + 1).Trim()));
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Fluxzy.Core
 
         ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, ReadOnlyMemory<char> requestMethod, CancellationToken token);
 
-        ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, int streamIdentifier, CancellationToken token);
+        ValueTask WriteResponseBody(Stream responseBodyStream, RsBuffer rsBuffer, bool chunked, int streamIdentifier, Response? responseForTrailers, CancellationToken token);
 
         (Stream ReadStream, Stream WriteStream) AbandonPipe();
 

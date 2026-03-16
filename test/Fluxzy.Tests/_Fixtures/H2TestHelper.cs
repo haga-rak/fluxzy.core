@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -185,6 +186,25 @@ namespace Fluxzy.Tests._Fixtures
             return buffer;
         }
 
+        /// <summary>
+        /// Builds an H2 HEADERS frame containing HPACK-encoded trailer fields
+        /// with EndStream + EndHeaders flags set.
+        /// </summary>
+        public static byte[] BuildTrailerHeadersFrame(
+            HPackEncoder encoder, int streamId, IList<HeaderField> trailerFields)
+        {
+            var encodedBuffer = new byte[4096];
+            var encoded = encoder.EncodeFields(trailerFields, encodedBuffer);
+
+            var flags = HeaderFlags.EndStream | HeaderFlags.EndHeaders;
+
+            var frameBuffer = new byte[9 + encoded.Length];
+            H2Frame.Write(frameBuffer.AsSpan(), encoded.Length, H2FrameType.Headers, flags, streamId);
+            encoded.CopyTo(frameBuffer.AsSpan(9));
+
+            return frameBuffer;
+        }
+
         public static H2FrameReadResult ParseFrame(byte[] headerBuffer, byte[] bodyBuffer)
         {
             var frame = new H2Frame(headerBuffer.AsSpan());
@@ -289,6 +309,18 @@ namespace Fluxzy.Tests._Fixtures
         public async Task SendDataFrame(int streamId, byte[] data, bool endStream)
         {
             var frameBuffer = H2FrameHelper.BuildDataFrame(streamId, data, endStream);
+            await Pipe.ClientWriteStream.WriteAsync(frameBuffer, Token);
+            await Pipe.ClientWriteStream.FlushAsync(Token);
+        }
+
+        /// <summary>
+        /// Sends a trailing HEADERS frame with EndStream + EndHeaders flags,
+        /// containing HPACK-encoded trailer fields.
+        /// </summary>
+        public async Task SendTrailerHeadersFrame(int streamId, IList<HeaderField> trailerFields)
+        {
+            var frameBuffer = H2FrameHelper.BuildTrailerHeadersFrame(
+                _clientEncoder, streamId, trailerFields);
             await Pipe.ClientWriteStream.WriteAsync(frameBuffer, Token);
             await Pipe.ClientWriteStream.FlushAsync(Token);
         }

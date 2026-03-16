@@ -87,7 +87,7 @@ namespace Fluxzy.Clients.H2.Encoder
                     if (readen <= 0)
                         break;
 
-                    // this leads to unboxing which is very costly 
+                    // this leads to unboxing which is very costly
                     // to meditate
 
                     _tempEntries.Add(tableEntry);
@@ -100,6 +100,27 @@ namespace Fluxzy.Clients.H2.Encoder
             finally {
                 _tempEntries.Clear();
             }
+        }
+
+        /// <summary>
+        ///     Decode HPACK-encoded bytes into raw header fields without HTTP/1.1 conversion.
+        ///     Used for HTTP trailers which have no pseudo-headers.
+        /// </summary>
+        public List<HeaderField> DecodeTrailerFields(ReadOnlySpan<byte> headerContent)
+        {
+            var result = new List<HeaderField>();
+
+            while (headerContent.Length > 0) {
+                var tableEntry = ReadNextField(headerContent, out var bytesRead);
+
+                if (bytesRead <= 0)
+                    break;
+
+                result.Add(tableEntry);
+                headerContent = headerContent.Slice(bytesRead);
+            }
+
+            return result;
         }
 
         private HeaderField ReadNextField(in ReadOnlySpan<byte> buffer, out int bytesReaden)

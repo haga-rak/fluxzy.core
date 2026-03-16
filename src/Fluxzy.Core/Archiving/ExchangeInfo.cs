@@ -55,6 +55,8 @@ namespace Fluxzy
             KnownPort = exchange.KnownPort;
             Secure = exchange.Authority.Secure;
             ProcessInfo = exchange.ProcessInfo;
+            RequestTrailers = exchange.Request.Trailers?.Select(h => (HeaderFieldInfo) h).ToList();
+            ResponseTrailers = exchange.Response?.Trailers?.Select(h => (HeaderFieldInfo) h).ToList();
         }
 
         /// <summary>
@@ -231,6 +233,16 @@ namespace Fluxzy
             return ResponseHeader?.Headers;
         }
 
+        public IEnumerable<HeaderFieldInfo>? GetRequestTrailers()
+        {
+            return RequestTrailers;
+        }
+
+        public IEnumerable<HeaderFieldInfo>? GetResponseTrailers()
+        {
+            return ResponseTrailers;
+        }
+
         /// <summary>
         /// The HTTP status code. If no response has been received: 0.
         /// </summary>
@@ -287,6 +299,18 @@ namespace Fluxzy
         /// </summary>
         [Key(17)]
         public ProcessInfo? ProcessInfo { get; private set; }
+
+        /// <summary>
+        ///     HTTP trailer fields received after the request body.
+        /// </summary>
+        [Key(18)]
+        public List<HeaderFieldInfo>? RequestTrailers { get; private set; }
+
+        /// <summary>
+        ///     HTTP trailer fields received after the response body.
+        /// </summary>
+        [Key(19)]
+        public List<HeaderFieldInfo>? ResponseTrailers { get; private set; }
 
         /// <summary>
         /// The string representation of this exchange

@@ -29,6 +29,7 @@ namespace Fluxzy.Clients.H2
         private Memory<byte> _headerBuffer;
 
         private bool _noBodyStream;
+        private bool _responseHeadersComplete;
 
         private int _totalBodyReceived;
 
@@ -249,6 +250,12 @@ namespace Fluxzy.Clients.H2
             _exchange.Metrics.TotalReceived += headerFrame.BodyLength;
             _exchange.Metrics.ResponseHeaderLength += headerFrame.BodyLength;
 
+            if (_responseHeadersComplete) {
+                // This is a trailing HEADERS frame (after body data)
+                ReceiveTrailerFragmentFromConnection(headerFrame.Data, headerFrame.EndHeaders);
+                return;
+            }
+
             if (_exchange.Metrics.ResponseHeaderStart == default)
                 _exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant();
 
@@ -262,6 +269,12 @@ namespace Fluxzy.Clients.H2
         {
             _exchange.Metrics.TotalReceived += continuationFrame.BodyLength;
             _exchange.Metrics.ResponseHeaderLength += continuationFrame.BodyLength;
+
+            if (_responseHeadersComplete) {
+                ReceiveTrailerFragmentFromConnection(continuationFrame.Data, continuationFrame.EndHeaders);
+                return;
+            }
+
             ReceiveHeaderFragmentFromConnection(continuationFrame.Data, continuationFrame.EndHeaders);
         }
 
@@ -300,9 +313,48 @@ namespace Fluxzy.Clients.H2
                         new HeaderField(headerName, headerValue));
                 }
 
+                _responseHeadersComplete = true;
+                _totalHeaderReceived = 0; // Reset for possible trailer accumulation
+
                 _logger.Trace(StreamIdentifier, "Releasing semaphore");
 
                 _headerReceivedSemaphore.Release();
+            }
+        }
+
+        private void ReceiveTrailerFragmentFromConnection(
+            ReadOnlyMemory<byte> buffer,
+            bool lastHeaderFragment)
+        {
+            if (_headerBuffer.IsEmpty)
+                _headerBuffer = new byte[Parent.Context.Setting.MaxHeaderSize];
+
+            buffer.CopyTo(_headerBuffer.Slice(_totalHeaderReceived));
+            _totalHeaderReceived += buffer.Length;
+
+            if (lastHeaderFragment) {
+                // Decode trailer fields directly (no HTTP/1.1 status line)
+                var trailerFields = Parent.Context.HeaderEncoder.Decoder.DecodeTrailerFields(
+                    _headerBuffer.Slice(0, _totalHeaderReceived).Span);
+
+                _exchange.Response.Trailers = trailerFields;
+
+                _logger.Trace(StreamIdentifier,
+                    () => $"Response trailers received: {trailerFields.Count} fields");
+
+                // Trailers always signal end of stream — complete the body pipe and exchange
+                if (_exchange.Metrics.ResponseBodyEnd == default)
+                    _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+
+                try {
+                    _pipeResponseBody.Writer.Complete();
+                }
+                catch {
+                    // Pipe may already be completed
+                }
+
+                _exchange.ExchangeCompletionSource.TrySetResult(false);
+                Parent.NotifyDispose(this);
             }
         }
         

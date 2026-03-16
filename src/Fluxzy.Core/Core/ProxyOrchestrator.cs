@@ -704,7 +704,8 @@ namespace Fluxzy.Core
 
                             await downStreamPipe.WriteResponseBody(
                                 responseBodyStream,
-                                buffer, chunked, exchange.StreamIdentifier, token).ConfigureAwait(false);
+                                buffer, chunked, exchange.StreamIdentifier,
+                                exchange.Response, token).ConfigureAwait(false);
                         }
                         catch (Exception ex)
                         {

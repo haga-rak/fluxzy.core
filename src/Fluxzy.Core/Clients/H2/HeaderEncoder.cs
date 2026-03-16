@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Misc.ResizableBuffers;
 
@@ -56,6 +57,43 @@ namespace Fluxzy.Clients.H2
             var res = Decoder.Decode(encodedBuffer.Span, destinationBuffer.Span);
 
             return destinationBuffer.Slice(0, res.Length);
+        }
+
+        /// <summary>
+        ///     Encode trailer fields and packetize as HEADERS frame(s) with EndStream.
+        /// </summary>
+        public ReadOnlyMemory<byte> EncodeTrailers(
+            IList<HeaderField> trailers, RsBuffer destinationBuffer, int streamIdentifier)
+        {
+            var encodedMaxLength = 0;
+
+            foreach (var t in trailers) {
+                encodedMaxLength += (t.Name.Length + t.Value.Length + 64) * 2;
+            }
+
+            if (encodedMaxLength == 0)
+                encodedMaxLength = 64;
+
+            byte[]? heapBuffer = null;
+
+            try {
+                var buffer = encodedMaxLength < 1024
+                    ? stackalloc byte[encodedMaxLength]
+                    : heapBuffer = ArrayPool<byte>.Shared.Rent(encodedMaxLength);
+
+                var encodedHeader = Encoder.EncodeFields(trailers, buffer);
+
+                var res = Packetizer.PacketizeHeader(
+                    encodedHeader, destinationBuffer.Buffer,
+                    true, streamIdentifier,
+                    _streamSetting.Remote.MaxFrameSize, 0);
+
+                return destinationBuffer.Memory.Slice(0, res.Length);
+            }
+            finally {
+                if (heapBuffer != null)
+                    ArrayPool<byte>.Shared.Return(heapBuffer);
+            }
         }
     }
 }

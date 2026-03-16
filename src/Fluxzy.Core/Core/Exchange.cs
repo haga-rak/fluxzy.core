@@ -195,6 +195,16 @@ namespace Fluxzy.Core
             return Response.Header?.Headers.Select(t => (HeaderFieldInfo) t);
         }
 
+        public IEnumerable<HeaderFieldInfo>? GetRequestTrailers()
+        {
+            return Request.Trailers?.Select(t => (HeaderFieldInfo) t);
+        }
+
+        public IEnumerable<HeaderFieldInfo>? GetResponseTrailers()
+        {
+            return Response.Trailers?.Select(t => (HeaderFieldInfo) t);
+        }
+
         public Agent? Agent { get; set; }
 
         /// <summary>
@@ -292,6 +302,11 @@ namespace Fluxzy.Core
 
         public Stream? Body { get; set; }
 
+        /// <summary>
+        ///     HTTP trailer fields received after the request body.
+        /// </summary>
+        public List<HeaderField>? Trailers { get; set; }
+
         public override string ToString()
         {
             return Header.ToString();
@@ -303,6 +318,11 @@ namespace Fluxzy.Core
         public ResponseHeader? Header { get; set; }
 
         public Stream? Body { get; set; }
+
+        /// <summary>
+        ///     HTTP trailer fields received after the response body.
+        /// </summary>
+        public List<HeaderField>? Trailers { get; set; }
 
         public override string ToString()
         {
