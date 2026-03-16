@@ -445,13 +445,14 @@ namespace Fluxzy.Core
 
             var sendStreamIdentifier = streamIdentifier;
 
-            var readBuffer = ArrayPool<byte>.Shared.Rent(_h2StreamSetting.MaxFrameSizeAllowed + 9);
+            var remoteMaxFrameSize = _h2StreamSetting.Remote.MaxFrameSize;
+            var readBuffer = ArrayPool<byte>.Shared.Rent(remoteMaxFrameSize + 9);
 
             try {
                 int read;
 
                 while ((read = await responseBodyStream
-                           .ReadAsync(readBuffer.AsMemory().Slice(0, _h2StreamSetting.MaxFrameSizeAllowed), token)) > 0)
+                           .ReadAsync(readBuffer.AsMemory().Slice(0, remoteMaxFrameSize), token)) > 0)
                 {
                     int offset = 0;
 
@@ -465,7 +466,7 @@ namespace Fluxzy.Core
                             return;
                         }
 
-                        var bodySize = Math.Min(toWrite, _h2StreamSetting.MaxFrameSizeAllowed);
+                        var bodySize = Math.Min(toWrite, remoteMaxFrameSize);
 
                         // Rent from pool — WriteLoop returns it after writing
                         var frameBuffer = ArrayPool<byte>.Shared.Rent(bodySize + 9);
