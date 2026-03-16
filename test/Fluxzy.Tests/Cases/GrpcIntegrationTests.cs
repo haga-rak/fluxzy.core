@@ -137,8 +137,8 @@ public class GrpcIntegrationTests
         await using var setup = await GrpcProxiedSetup.Create();
         var client = new Greeter.GreeterClient(setup.Channel);
 
-        // Use a message close to the default H2 max frame size (16KB) to stress gRPC framing
-        var largeName = new string('A', 12 * 1024);
+        // Create a name larger than default H2 frame size (16KB) to validate frame splitting
+        var largeName = new string('A', 32 * 1024);
         var reply = await client.SayHelloAsync(new HelloRequest { Name = largeName });
 
         Assert.Equal($"Hello {largeName}", reply.Message);
