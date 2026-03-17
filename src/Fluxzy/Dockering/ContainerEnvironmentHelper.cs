@@ -86,6 +86,17 @@ namespace Fluxzy.Cli.Dockering
                 finalArgs.Add($"{modeReversePort}");
             }
 
+            if (environmentProvider.TryGetEnvironmentVariable("FLUXZY_PROTO_DIRS", out var protoDirs)) {
+                var dirs = protoDirs.Split(
+                    new[] { global::System.IO.Path.PathSeparator },
+                    StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var dir in dirs) {
+                    finalArgs.Add("--proto-dir");
+                    finalArgs.Add(dir);
+                }
+            }
+
             if (environmentProvider.TryGetEnvironmentVariable("FLUXZY_EXTRA_ARGS", out var extraArgs)) {
                 finalArgs.AddRange(ArgsHelper.SplitArgs(extraArgs));
             }

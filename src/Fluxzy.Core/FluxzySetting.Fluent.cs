@@ -544,6 +544,17 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     Add a directory containing .proto files for gRPC/protobuf decoding.
+        /// </summary>
+        /// <param name="directory"></param>
+        /// <returns></returns>
+        public FluxzySetting AddProtoDirectory(string directory)
+        {
+            ProtoDirectories.Add(directory);
+            return this;
+        }
+
+        /// <summary>
         ///     Enable or disable the mDNS discovery service.
         ///     When enabled, Fluxzy will announce its presence on the local network,
         ///     allowing clients to discover the proxy automatically.

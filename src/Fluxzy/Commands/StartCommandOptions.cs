@@ -477,6 +477,19 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
+        public static Option CreateProtoDirectoryOption()
+        {
+            var option = new Option<List<string>>(
+                "--proto-dir",
+                "Directories containing .proto files for gRPC/protobuf decoding. Accepts multiple values.");
+
+            option.Arity = ArgumentArity.OneOrMore;
+            option.AllowMultipleArgumentsPerToken = true;
+            option.SetDefaultValue(new List<string>());
+
+            return option;
+        }
+
         public static Option CreateEnableDiscoveryOption()
         {
             var option = new Option<bool>(
