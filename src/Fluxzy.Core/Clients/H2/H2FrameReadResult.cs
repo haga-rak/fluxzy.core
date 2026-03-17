@@ -40,17 +40,22 @@ namespace Fluxzy.Clients.H2
         public bool TryReadNextSetting(out SettingFrame settingFrame, ref int index)
         {
             if (BodyLength == 0 && index == 0) {
-                settingFrame = new SettingFrame(_bodyBytes.Span.Slice(index), Flags);
-                index += 1;
 
-                // ACK frame
+                if ((Flags & HeaderFlags.Ack) != 0) {
+                    // ACK frame
+                    settingFrame = new SettingFrame(true);
+                    index += 1;
+                    return true;
+                }
 
-                return true;
+                // Empty SETTINGS frame (no ACK, no payload) — valid per RFC 7540
+                settingFrame = default;
+                return false;
             }
 
             settingFrame = default;
 
-            if (BodyLength - index < 4)
+            if (BodyLength - index < 6)
                 return false;
 
             settingFrame = new SettingFrame(_bodyBytes.Span.Slice(index), Flags);

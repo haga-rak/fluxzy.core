@@ -142,7 +142,8 @@ namespace Fluxzy.Core
                     var h2Pipe = new H2DownStreamPipe(_idProvider, authority,
                         authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
 
-                    await h2Pipe.Init(buffer);
+                    using var rsBuffer = RsBuffer.Allocate(1024);
+                    await h2Pipe.Init(rsBuffer);
                     downStreamPipe = h2Pipe;
                 }
                 else {
