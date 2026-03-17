@@ -27,7 +27,7 @@ public class GrpcRemoteEndpointTests
         $"-import-path {ProtoDir} -import-path {ProtoDir}/google -proto hello.proto -proto grpcbin.proto";
 
     private static async Task<(string stdout, string stderr, int exitCode)> RunGrpcurl(
-        string proxyAddress, string args)
+        string proxyAddress, string args, int timeoutSeconds = 30)
     {
         var psi = new ProcessStartInfo
         {
@@ -42,13 +42,21 @@ public class GrpcRemoteEndpointTests
         psi.Environment["https_proxy"] = proxyAddress;
 
         using var process = Process.Start(psi)!;
+        using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
-        var stdout = await process.StandardOutput.ReadToEndAsync();
-        var stderr = await process.StandardError.ReadToEndAsync();
+        try {
+            var stdout = await process.StandardOutput.ReadToEndAsync(cts.Token);
+            var stderr = await process.StandardError.ReadToEndAsync(cts.Token);
 
-        await process.WaitForExitAsync();
+            await process.WaitForExitAsync(cts.Token);
 
-        return (stdout, stderr, process.ExitCode);
+            return (stdout, stderr, process.ExitCode);
+        }
+        catch (OperationCanceledException) {
+            try { process.Kill(entireProcessTree: true); } catch { }
+
+            return ("", $"grpcurl timed out after {timeoutSeconds}s", -1);
+        }
     }
 
     private static async Task<(Proxy proxy, string proxyUrl)> CreateProxy(
