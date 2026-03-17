@@ -144,12 +144,12 @@ namespace Fluxzy.Core
                 return new (H2ErrorCode.ProtocolError, 0, null);
             }
 
-            await _requestBodyPipe.Writer.WriteAsync(buffer.Memory.Slice(0, length), token);
+            await _requestBodyPipe.Writer.WriteAsync(buffer.Memory.Slice(0, length), token).ConfigureAwait(false);
 
             if (endStream)
             {
                 _endStream = true;
-                await _requestBodyPipe.Writer.CompleteAsync();
+                await _requestBodyPipe.Writer.CompleteAsync().ConfigureAwait(false);
             }
 
             _unNotifiedWindowSize += length;
@@ -194,7 +194,7 @@ namespace Fluxzy.Core
                 bodyStream = _requestBodyPipe.Reader.AsStream();
             }
 
-            var context = await contextBuilder.Create(authority, secure);
+            var context = await contextBuilder.Create(authority, secure).ConfigureAwait(false);
 
             var exchange = new Exchange(idProvider, context, authority, requestHeader, bodyStream, "h2",
                 receivedFromProxy) {
@@ -227,7 +227,23 @@ namespace Fluxzy.Core
                                             .BookWindowSize(streamWindow, cancellationToken)
                                             .ConfigureAwait(false);
 
+            // Refund the difference back to the stream window if overall granted less
+            var streamRefund = streamWindow - overallWindow;
+
+            if (streamRefund > 0) {
+                _streamWindowSizeHolder.UpdateWindowSize(streamRefund);
+            }
+
             return overallWindow;
+        }
+
+        public void RefundWindowSize(int amount)
+        {
+            if (amount <= 0)
+                return;
+
+            _streamWindowSizeHolder.UpdateWindowSize(amount);
+            _overallWindowSizeHolder.UpdateWindowSize(amount);
         }
 
         public void Dispose()
