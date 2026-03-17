@@ -347,8 +347,6 @@ namespace Fluxzy.Clients.H2
 
                                 count++;
 
-                                // await _baseStream.FlushAsync(token);
-                                // _lastActivity = ITimingProvider.Default.Instant();
                                 writeTask.OnComplete(null);
                             }
                             catch (Exception ex) when (ex is SocketException || ex is IOException) {
@@ -357,9 +355,12 @@ namespace Fluxzy.Clients.H2
                                 throw;
                             }
                         }
+
+                        await _baseStream.FlushAsync(token).ConfigureAwait(false);
+                        _lastActivity = ITimingProvider.Default.Instant();
                     }
                     else {
-                        // async wait 
+                        // async wait
                         if (!token.IsCancellationRequested
                             && !await _writerChannel.Reader.WaitToReadAsync(token))
                             break;

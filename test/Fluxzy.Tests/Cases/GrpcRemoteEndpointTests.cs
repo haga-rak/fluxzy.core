@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
@@ -12,14 +13,21 @@ namespace Fluxzy.Tests.Cases;
 
 /// <summary>
 /// Integration tests that use grpcurl to call remote gRPC endpoints (grpcb.in)
-/// through a Fluxzy proxy in tunnel mode (SkipSslTunneling).
+/// through a Fluxzy proxy in full MITM mode.
+/// Proto files are provided to avoid gRPC reflection (bidirectional streaming).
 /// </summary>
 public class GrpcRemoteEndpointTests
 {
     private const string GrpcBinHost = "grpcb.in:9001";
 
+    private static string ProtoDir =>
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Cases", "proto");
+
+    private static string ProtoArgs =>
+        $"-import-path {ProtoDir} -import-path {ProtoDir}/google -proto hello.proto -proto grpcbin.proto";
+
     private static async Task<(string stdout, string stderr, int exitCode)> RunGrpcurl(
-        string proxyAddress, string args)
+        string proxyAddress, string args, int timeoutSeconds = 30)
     {
         var psi = new ProcessStartInfo
         {
@@ -34,13 +42,21 @@ public class GrpcRemoteEndpointTests
         psi.Environment["https_proxy"] = proxyAddress;
 
         using var process = Process.Start(psi)!;
+        using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
-        var stdout = await process.StandardOutput.ReadToEndAsync();
-        var stderr = await process.StandardError.ReadToEndAsync();
+        try {
+            var stdout = await process.StandardOutput.ReadToEndAsync(cts.Token);
+            var stderr = await process.StandardError.ReadToEndAsync(cts.Token);
 
-        await process.WaitForExitAsync();
+            await process.WaitForExitAsync(cts.Token);
 
-        return (stdout, stderr, process.ExitCode);
+            return (stdout, stderr, process.ExitCode);
+        }
+        catch (OperationCanceledException) {
+            try { process.Kill(entireProcessTree: true); } catch { }
+
+            return ("", $"grpcurl timed out after {timeoutSeconds}s", -1);
+        }
     }
 
     private static async Task<(Proxy proxy, string proxyUrl)> CreateProxy(
@@ -49,10 +65,10 @@ public class GrpcRemoteEndpointTests
         var setting = FluxzySetting.CreateLocalRandomPort();
         setting.SetServeH2(true);
 
-        // Skip SSL tunneling: the proxy acts as a transparent TCP tunnel for TLS,
-        // letting grpcurl negotiate H2/TLS directly with grpcb.in.
+        // Full MITM mode: proxy terminates TLS and re-encrypts.
+        // Skip remote certificate validation so the proxy can connect to grpcb.in.
         setting.AddAlterationRules(
-            new SkipSslTunnelingAction(), AnyFilter.Default);
+            new SkipRemoteCertificateValidationAction(), AnyFilter.Default);
 
         configure?.Invoke(setting);
 
@@ -77,7 +93,7 @@ public class GrpcRemoteEndpointTests
         await using (proxy)
         {
             var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
-                $"-insecure -d \"{{\\\"greeting\\\": \\\"fluxzy\\\"}}\" {GrpcBinHost} hello.HelloService/SayHello");
+                $"-insecure {ProtoArgs} -d \"{{\\\"greeting\\\": \\\"fluxzy\\\"}}\" {GrpcBinHost} hello.HelloService/SayHello");
 
             Assert.True(exitCode == 0, $"grpcurl failed with exit code {exitCode}. stderr: {stderr}");
 
@@ -96,7 +112,7 @@ public class GrpcRemoteEndpointTests
         await using (proxy)
         {
             var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
-                $"-insecure -d \"{{\\\"f_string\\\": \\\"test-value\\\"}}\" {GrpcBinHost} grpcbin.GRPCBin/DummyUnary");
+                $"-insecure {ProtoArgs} -d \"{{\\\"f_string\\\": \\\"test-value\\\"}}\" {GrpcBinHost} grpcbin.GRPCBin/DummyUnary");
 
             Assert.True(exitCode == 0, $"grpcurl failed with exit code {exitCode}. stderr: {stderr}");
 
@@ -115,7 +131,7 @@ public class GrpcRemoteEndpointTests
         await using (proxy)
         {
             var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
-                $"-insecure {GrpcBinHost} grpcbin.GRPCBin/Empty");
+                $"-insecure {ProtoArgs} {GrpcBinHost} grpcbin.GRPCBin/Empty");
 
             Assert.True(exitCode == 0, $"grpcurl failed with exit code {exitCode}. stderr: {stderr}");
 
@@ -134,7 +150,7 @@ public class GrpcRemoteEndpointTests
         await using (proxy)
         {
             var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
-                $"-insecure {GrpcBinHost} grpcbin.GRPCBin/Index");
+                $"-insecure {ProtoArgs} {GrpcBinHost} grpcbin.GRPCBin/Index");
 
             Assert.True(exitCode == 0, $"grpcurl failed with exit code {exitCode}. stderr: {stderr}");
 
@@ -153,7 +169,7 @@ public class GrpcRemoteEndpointTests
         await using (proxy)
         {
             var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
-                $"-insecure -d \"{{\\\"greeting\\\": \\\"stream-test\\\"}}\" {GrpcBinHost} hello.HelloService/LotsOfReplies");
+                $"-insecure {ProtoArgs} -d \"{{\\\"greeting\\\": \\\"stream-test\\\"}}\" {GrpcBinHost} hello.HelloService/LotsOfReplies");
 
             Assert.True(exitCode == 0, $"grpcurl failed with exit code {exitCode}. stderr: {stderr}");
 
@@ -171,7 +187,7 @@ public class GrpcRemoteEndpointTests
         {
             // Request a specific gRPC error code (NOT_FOUND = 5)
             var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
-                $"-insecure -d \"{{\\\"code\\\": 5}}\" {GrpcBinHost} grpcbin.GRPCBin/SpecificError");
+                $"-insecure {ProtoArgs} -d \"{{\\\"code\\\": 5}}\" {GrpcBinHost} grpcbin.GRPCBin/SpecificError");
 
             // grpcurl returns non-zero exit code on gRPC errors
             Assert.NotEqual(0, exitCode);
@@ -187,7 +203,7 @@ public class GrpcRemoteEndpointTests
         await using (proxy)
         {
             var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
-                $"-insecure {GrpcBinHost} list");
+                $"-insecure {ProtoArgs} {GrpcBinHost} list");
 
             Assert.True(exitCode == 0, $"grpcurl list failed. stderr: {stderr}");
             Assert.Contains("hello.HelloService", stdout);
@@ -203,7 +219,7 @@ public class GrpcRemoteEndpointTests
         await using (proxy)
         {
             var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
-                $"-insecure {GrpcBinHost} describe hello.HelloService");
+                $"-insecure {ProtoArgs} {GrpcBinHost} describe hello.HelloService");
 
             Assert.True(exitCode == 0, $"grpcurl describe failed. stderr: {stderr}");
             Assert.Contains("SayHello", stdout);

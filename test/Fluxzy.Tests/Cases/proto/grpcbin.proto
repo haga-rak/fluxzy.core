@@ -1,0 +1,30 @@
+syntax = "proto3";
+package grpcbin;
+
+import "google/protobuf/empty.proto";
+
+service GRPCBin {
+  rpc Index (google.protobuf.Empty) returns (IndexResponse);
+  rpc DummyUnary (DummyMessage) returns (DummyMessage);
+  rpc Empty (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc SpecificError (SpecificErrorRequest) returns (google.protobuf.Empty);
+}
+
+message IndexResponse {
+  string description = 1;
+  repeated Endpoint endpoints = 2;
+}
+
+message Endpoint {
+  string path = 1;
+  string description = 2;
+}
+
+message DummyMessage {
+  string f_string = 1;
+  int32 f_int32 = 2;
+}
+
+message SpecificErrorRequest {
+  int32 code = 1;
+}

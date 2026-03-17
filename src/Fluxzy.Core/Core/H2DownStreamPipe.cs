@@ -246,6 +246,11 @@ namespace Fluxzy.Core
                         break;
                     }
 
+                    if (frame.IsEmpty) {
+                        // EOF — peer closed the connection
+                        break;
+                    }
+
                     if (frame.BodyType == H2FrameType.Settings) {
                         var sendAck = H2Helper.ProcessSettingFrame(_h2StreamSetting, frame);
 

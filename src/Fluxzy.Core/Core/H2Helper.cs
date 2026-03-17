@@ -28,18 +28,19 @@ namespace Fluxzy.Core
             H2StreamSetting streamSetting, H2FrameReadResult frame)
         {
             var indexer = 0;
-            var sendAck = false;
+            var isAckFrame = false;
 
             while (frame.TryReadNextSetting(out var settingFrame, ref indexer)) {
-                var needAck = ProcessIncomingSettingFrame(streamSetting, ref settingFrame);
-                sendAck = sendAck || needAck;
+                if (settingFrame.Ack) {
+                    isAckFrame = true;
+                }
+                else {
+                    ProcessIncomingSettingFrame(streamSetting, ref settingFrame);
+                }
             }
 
-            if (sendAck) {
-                return true;
-            }
-
-            return false;
+            // Per RFC 7540 Section 6.5: always ACK non-ACK SETTINGS frames
+            return !isAckFrame;
         }
 
         public static bool ProcessIncomingSettingFrame(H2StreamSetting setting, ref SettingFrame settingFrame)
