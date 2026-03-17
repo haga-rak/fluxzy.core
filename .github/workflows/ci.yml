@@ -32,6 +32,23 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 10.0.x
+    - name: Install grpcurl (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        GRPCURL_VERSION="1.9.3"
+        curl -sSL "https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_x86_64.tar.gz" | sudo tar xz -C /usr/local/bin grpcurl
+        grpcurl --version
+    - name: Install grpcurl (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $version = "1.9.3"
+        $url = "https://github.com/fullstorydev/grpcurl/releases/download/v${version}/grpcurl_${version}_windows_x86_64.zip"
+        Invoke-WebRequest -Uri $url -OutFile grpcurl.zip
+        Expand-Archive -Path grpcurl.zip -DestinationPath "$env:RUNNER_TOOL_CACHE\grpcurl" -Force
+        echo "$env:RUNNER_TOOL_CACHE\grpcurl" | Out-File -Append -FilePath $env:GITHUB_PATH
+        & "$env:RUNNER_TOOL_CACHE\grpcurl\grpcurl.exe" --version
     - name: On validate main
       shell: bash
       env:
