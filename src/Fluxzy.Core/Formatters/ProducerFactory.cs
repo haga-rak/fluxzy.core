@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Fluxzy.Formatters.Producers.Grpc;
 using Fluxzy.Formatters.Producers.Requests;
 using Fluxzy.Formatters.Producers.Responses;
 
@@ -10,6 +11,7 @@ namespace Fluxzy.Formatters
     public class ProducerFactory
     {
         private static readonly List<IFormattingProducer<FormattingResult>> RequestProducers = new() {
+            new RequestProtobufProducer(),
             new RequestJsonBodyProducer(),
             new MultipartFormContentProducer(),
             new FormUrlEncodedProducer(),
@@ -27,6 +29,7 @@ namespace Fluxzy.Formatters
             new ResponseBodySummaryProducer(),
             new WsMessageProducer(),
             new ImageResultProducer(),
+            new ResponseProtobufProducer(),
             new ResponseBodyJsonProducer(),
             new SetCookieProducer(),
             new ResponseTextContentProducer(),

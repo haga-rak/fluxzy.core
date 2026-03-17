@@ -94,6 +94,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreatePrettyMaxRowsOption());
             command.AddOption(StartCommandOptions.CreateServeH2Option());
             command.AddOption(StartCommandOptions.CreateEnableDiscoveryOption());
+            command.AddOption(StartCommandOptions.CreateProtoDirectoryOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -136,6 +137,7 @@ namespace Fluxzy.Cli.Commands
             var prettyMaxRows = invocationContext.Value<int>("pretty-max-rows");
             var serveH2 = invocationContext.Value<bool>("serve-h2");
             var enableDiscovery = invocationContext.Value<bool>("enable-discovery");
+            var protoDirectories = invocationContext.Value<List<string>>("proto-dir");
 
             if (trace) {
                 D.EnableTracing = true;
@@ -291,6 +293,12 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.SetIncludeAndroidEmulatorHost(!noAndroidEmulator);
             proxyStartUpSetting.SetServeH2(serveH2);
             proxyStartUpSetting.SetEnableDiscoveryService(enableDiscovery);
+
+            if (protoDirectories != null) {
+                foreach (var dir in protoDirectories) {
+                    proxyStartUpSetting.AddProtoDirectory(dir);
+                }
+            }
 
             var certificateProvider = new CertificateProvider(proxyStartUpSetting.CaCertificate,
                 noCertCache ? new InMemoryCertificateCache() : new FileSystemCertificateCache(proxyStartUpSetting));

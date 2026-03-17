@@ -244,6 +244,12 @@ namespace Fluxzy
         [JsonInclude]
         public bool EnableDiscoveryService { get; internal set; }
 
+        /// <summary>
+        ///     Directories containing .proto files for gRPC/protobuf decoding in formatters.
+        /// </summary>
+        [JsonInclude]
+        public List<string> ProtoDirectories { get; internal set; } = new();
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption) {
