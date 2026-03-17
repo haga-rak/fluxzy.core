@@ -283,17 +283,36 @@ namespace Fluxzy.Misc.Streams
 
         /// <summary>
         ///     Reads trailer headers (or just the terminating CRLF) after the final 0-length chunk.
-        ///     Optimized: the common case (no trailers) is a single 2-byte read with zero allocations.
+        ///     Non-async fast path: when the 2-byte read completes synchronously and yields \r\n,
+        ///     no async state machine is allocated at all.
         /// </summary>
-        private async ValueTask ParseTrailersAsync(CancellationToken ct)
+        private ValueTask ParseTrailersAsync(CancellationToken ct)
         {
-            // Fast path: read 2 bytes (same cost as old code). If \r\n → no trailers.
-            await _innerStream.ReadExactAsync(_lengthHolderBytes.AsMemory(0, 2), ct)
-                              .ConfigureAwait(false);
+            var readTask = _innerStream.ReadExactAsync(_lengthHolderBytes.AsMemory(0, 2), ct);
+
+            if (readTask.IsCompletedSuccessfully) {
+                // Synchronous completion — check for common case inline
+                if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+                    return default; // No trailers — zero overhead
+
+                return ParseTrailersSlowPathAsync(ct);
+            }
+
+            return AwaitReadThenCheckTrailersAsync(readTask, ct);
+        }
+
+        private async ValueTask AwaitReadThenCheckTrailersAsync(ValueTask<bool> readTask, CancellationToken ct)
+        {
+            await readTask.ConfigureAwait(false);
 
             if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
-                return; // Common case: no trailers — zero extra allocations
+                return;
 
+            await ParseTrailersSlowPathAsync(ct).ConfigureAwait(false);
+        }
+
+        private async ValueTask ParseTrailersSlowPathAsync(CancellationToken ct)
+        {
             // Rare path: trailers present. Seed line builder with the 2 bytes already read.
             var trailerList = new List<HeaderField>();
             var lineBuilder = new StringBuilder();
