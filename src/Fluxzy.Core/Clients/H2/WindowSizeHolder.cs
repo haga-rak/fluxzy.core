@@ -54,8 +54,9 @@ namespace Fluxzy.Clients.H2
 
         /// <summary>
         /// Adds (or subtracts) to the available window size, saturating at int.MaxValue.
-        /// Uses lock-free CAS for the value; acquires lock only to signal waiters.
-        /// Wakes waiters only when we cross from 0 to &gt; 0 to avoid needless stampedes.
+        /// Uses lock-free CAS for the value; acquires lock only to signal ONE waiter.
+        /// Wakes a single waiter when we cross from 0 to &gt; 0; that waiter cascades
+        /// to the next if window remains after booking, avoiding thundering herd.
         /// </summary>
         public void UpdateWindowSize(int windowSizeIncrement)
         {
@@ -80,35 +81,41 @@ namespace Fluxzy.Clients.H2
                     break;
             }
 
-            // Signal waiters if we crossed from ≤0 to >0.
+            // Signal ONE waiter if we crossed from ≤0 to >0.
             if (before <= 0 && after > 0)
             {
-                List<TaskCompletionSource<bool>>? toRelease = null;
+                WakeOneWaiter();
+            }
+        }
 
-                lock (_sync)
-                {
-                    if (_waiters.Count > 0)
-                    {
-                        toRelease = new List<TaskCompletionSource<bool>>(_waiters.Count);
-                        foreach (var w in _waiters)
-                            toRelease.Add(w);
-                        _waiters.Clear();
-                    }
-                }
+        /// <summary>
+        /// Dequeues and completes the first waiter in FIFO order.
+        /// Called when window becomes available so exactly one waiter wakes up.
+        /// After that waiter books its share, it cascades to the next if window remains.
+        /// </summary>
+        private void WakeOneWaiter()
+        {
+            TaskCompletionSource<bool>? toRelease = null;
 
-                // Complete outside lock.
-                if (toRelease is not null)
+            lock (_sync)
+            {
+                if (_waiters.Count > 0)
                 {
-                    foreach (var tcs in toRelease)
-                        tcs.TrySetResult(true);
+                    toRelease = _waiters.First!.Value;
+                    _waiters.RemoveFirst();
                 }
             }
+
+            // Complete outside lock to avoid holding lock during continuation.
+            toRelease?.TrySetResult(true);
         }
 
         /// <summary>
         /// Attempts to book up to requestedLength bytes of window.
         /// Returns 0 if canceled or if requestedLength == 0.
         /// Fast path is lock-free (CAS); slow path uses lock for waiter queue only.
+        /// After a successful booking, cascades a wake to the next waiter if
+        /// window remains, ensuring fair progress without thundering herd.
         /// </summary>
         public async ValueTask<int> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
         {
@@ -128,6 +135,11 @@ namespace Fluxzy.Clients.H2
                         if (Interlocked.CompareExchange(ref _availableWindowSize, current - grant, current) == current)
                         {
                             _logger.Trace(this, -grant);
+
+                            // Cascade: if window remains after our booking, wake the next waiter.
+                            if (current - grant > 0)
+                                WakeOneWaiter();
+
                             return grant;
                         }
                         continue; // CAS failed (concurrent modification), retry fast path.
@@ -149,6 +161,10 @@ namespace Fluxzy.Clients.H2
                         if (Interlocked.CompareExchange(ref _availableWindowSize, current - grant, current) == current)
                         {
                             _logger.Trace(this, -grant);
+
+                            if (current - grant > 0)
+                                WakeOneWaiter();
+
                             return grant;
                         }
                         // CAS failed — another thread modified the value concurrently.

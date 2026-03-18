@@ -35,7 +35,11 @@ namespace Fluxzy.Core
         private readonly ConcurrentDictionary<int, ServerStreamWorker> _currentStreams = new();
         private readonly HeaderEncoder _headerEncoder;
         private readonly object _headerEncodeLock = new();
-        private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting();
+        private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting() {
+            Local = new () {
+                SettingsMaxConcurrentStreams = 256
+            }
+        };
         private readonly WindowSizeHolder _overallWindowSizeHolder;
         private readonly H2Logger _logger;
         private readonly CancellationToken _mainLoopToken;
@@ -391,6 +395,13 @@ namespace Fluxzy.Core
 
             _ringBuffer.Write(payload.Span);
 
+            if (!hasBody) {
+                // No body will follow — clean up the stream worker now.
+                if (_currentStreams.TryRemove(streamIdentifier, out var worker)) {
+                    worker.Dispose();
+                }
+            }
+
             return default;
         }
 
@@ -457,6 +468,11 @@ namespace Fluxzy.Core
             }
             else {
                 WriteEndStream(sendStreamIdentifier);
+            }
+
+            // Stream is fully complete — clean up the worker.
+            if (_currentStreams.TryRemove(sendStreamIdentifier, out var completedWorker)) {
+                completedWorker.Dispose();
             }
         }
 
