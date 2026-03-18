@@ -595,9 +595,11 @@ namespace Fluxzy.Core
                     }
 
                     if (exchange.Response.Header.ContentLength == -1 &&
-                        responseBodyStream != null)
+                        responseBodyStream != null &&
+                        !downStreamPipe.SupportsMultiplexing)
                     // When content-length is not present (either from HTTP/2 server or due to body substitution),
-                    // we force transfer-encoding chunked to inform the downstream receiver of the content body end
+                    // we force transfer-encoding chunked to inform the HTTP/1.1 downstream receiver of the content body end.
+                    // H2 downstream has its own framing and must not receive transfer-encoding (RFC 7540 §8.1.2.2).
                     {
                         exchange.Response.Header.ForceTransferChunked();
                     }

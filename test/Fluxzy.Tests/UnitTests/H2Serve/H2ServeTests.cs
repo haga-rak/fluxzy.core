@@ -6,6 +6,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Tests._Fixtures;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.H2Serve
@@ -31,6 +33,43 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
             using var response = await client.SendAsync(requestMessage);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        /// <summary>
+        /// When the upstream server sends a response without content-length (common with H2 servers),
+        /// the proxy must NOT add transfer-encoding: chunked to the H2 downstream response.
+        /// HTTP/2 forbids transfer-encoding (RFC 7540 §8.1.2.2).
+        /// </summary>
+        [Fact]
+        public async Task H2Downstream_NoTransferEncodingOnStreamedResponse()
+        {
+            await using var setup = await ProxiedHostSetup.Create(
+                configureSetting: setting => setting.SetServeH2(true),
+                configureRoutes: app =>
+                {
+                    // This route writes a response body without setting content-length,
+                    // causing the upstream to omit it. The proxy previously added
+                    // transfer-encoding: chunked which is illegal in H2.
+                    app.MapGet("/streamed", async (HttpContext ctx) =>
+                    {
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.WriteAsync("Hello streamed world");
+                    });
+                },
+                httpVersion: new Version(2, 0));
+
+            var response = await setup.Client.GetAsync("/streamed");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(new Version(2, 0), response.Version);
+
+            // Verify no transfer-encoding header in the H2 response
+            Assert.False(
+                response.Headers.Contains("Transfer-Encoding"),
+                "H2 response must not contain transfer-encoding header");
+
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Hello streamed world", body);
         }
     }
 }
