@@ -37,6 +37,18 @@ namespace Fluxzy.Core
         private bool _disposed;
         private int _unNotifiedWindowSize;
 
+        /// <summary>
+        ///     Pre-booked window credits served to callers without touching holders.
+        ///     Only accessed from the single write-loop task — no synchronization needed.
+        /// </summary>
+        private int _windowBudget;
+
+        /// <summary>
+        ///     Number of frames worth of window to book at once from both holders.
+        ///     Reduces lock contention on the shared overall holder by ~BatchFrames×.
+        /// </summary>
+        private const int BatchFrames = 4;
+
         public ServerStreamWorker(
             int streamIdentifier,
             IHeaderEncoder headerEncoder,
@@ -216,8 +228,18 @@ namespace Fluxzy.Core
             if (requestedBodyLength == 0)
                 return 0;
 
+            // Fast path: serve from pre-booked local budget (zero holder calls).
+            if (_windowBudget >= requestedBodyLength)
+            {
+                _windowBudget -= requestedBodyLength;
+                return requestedBodyLength;
+            }
+
+            // Slow path: book a batch from both holders to replenish the budget.
+            var batchRequest = requestedBodyLength * BatchFrames;
+
             var streamWindow = await _streamWindowSizeHolder
-                                     .BookWindowSize(requestedBodyLength, cancellationToken)
+                                     .BookWindowSize(batchRequest, cancellationToken)
                                      .ConfigureAwait(false);
 
             if (streamWindow == 0)
@@ -234,7 +256,16 @@ namespace Fluxzy.Core
                 _streamWindowSizeHolder.UpdateWindowSize(streamRefund);
             }
 
-            return overallWindow;
+            if (overallWindow == 0)
+                return 0;
+
+            // Add newly booked amount to existing budget and serve the request.
+            _windowBudget += overallWindow;
+
+            var grant = Math.Min(_windowBudget, requestedBodyLength);
+            _windowBudget -= grant;
+
+            return grant;
         }
 
         public void RefundWindowSize(int amount)
@@ -242,8 +273,9 @@ namespace Fluxzy.Core
             if (amount <= 0)
                 return;
 
-            _streamWindowSizeHolder.UpdateWindowSize(amount);
-            _overallWindowSizeHolder.UpdateWindowSize(amount);
+            // Return to local budget — the bytes were already booked from holders.
+            // Budget is drained back to holders on Dispose.
+            _windowBudget += amount;
         }
 
         public void Dispose()
@@ -252,6 +284,14 @@ namespace Fluxzy.Core
                 return;
 
             _disposed = true;
+
+            // Drain pre-booked budget back to both holders so other streams can use it.
+            if (_windowBudget > 0)
+            {
+                _streamWindowSizeHolder.UpdateWindowSize(_windowBudget);
+                _overallWindowSizeHolder.UpdateWindowSize(_windowBudget);
+                _windowBudget = 0;
+            }
 
             _requestBodyPipe?.Writer.Complete();
             _streamWindowSizeHolder.Dispose();
