@@ -1,7 +1,6 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 
 namespace Fluxzy.Clients.H2.Encoder.Utils
@@ -12,34 +11,36 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
         public bool Equals(HeaderField x, HeaderField y)
         {
-            // Header name is case insensitive
+            // Header name is case insensitive, value is ordinal (ASCII)
             return x.Name.Span.Equals(y.Name.Span, StringComparison.OrdinalIgnoreCase) &&
-                   x.Value.Span.Equals(y.Value.Span, StringComparison.InvariantCulture);
+                   x.Value.Span.SequenceEqual(y.Value.Span);
         }
 
         public int GetHashCode(HeaderField obj)
         {
             unchecked {
-                char[]? heapBuffer = null;
+                var nameSpan = obj.Name.Span;
+                var valueSpan = obj.Value.Span;
 
-                try {
-                    Span<char> buffer1 = stackalloc char[obj.Name.Span.Length];
+                // FNV-1a hash over lowercased name + raw value
+                const uint fnvOffset = 2166136261;
+                const uint fnvPrime = 16777619;
 
-                    var buffer2 = obj.Value.Span.Length < 1024
-                        ? stackalloc char[obj.Value.Span.Length]
-                        : heapBuffer =
-                            ArrayPool<char>.Shared.Rent(obj.Value.Span.Length);
+                var hash = fnvOffset;
 
-                    buffer2 = buffer2.Slice(0, obj.Value.Span.Length);
-
-                    obj.Value.Span.ToLowerInvariant(buffer2);
-
-                    return (buffer1.GetHashCodeArray() * 397) ^ buffer2.GetHashCodeArray();
+                for (var i = 0; i < nameSpan.Length; i++) {
+                    // ASCII-lowercase inline (headers are ASCII)
+                    var c = nameSpan[i];
+                    if ((uint)(c - 'A') <= ('Z' - 'A'))
+                        c = (char)(c | 0x20);
+                    hash = (hash ^ c) * fnvPrime;
                 }
-                finally {
-                    if (heapBuffer != null)
-                        ArrayPool<char>.Shared.Return(heapBuffer);
+
+                for (var i = 0; i < valueSpan.Length; i++) {
+                    hash = (hash ^ valueSpan[i]) * fnvPrime;
                 }
+
+                return (int)hash;
             }
         }
     }

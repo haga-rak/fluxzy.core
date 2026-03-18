@@ -1,53 +1,49 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System.Collections.Generic;
+using System;
 using System.Linq;
 
 namespace Fluxzy.Clients.H2.Encoder.HPack
 {
     public class HPackDecodingDynamicTable
     {
-        private readonly Dictionary<int, HeaderField> _entries = new();
+        // Ring buffer for entries (FIFO order: oldest at _head, newest at tail)
+        private HeaderField[] _ring;
+        private int _head;  // index of oldest entry
+        private int _count; // number of live entries
 
         private int _currentMaxSize;
         private int _currentSize;
 
-        private int _internalIndex = -1;
-        private int _oldestElementInternalIndex;
-
         public HPackDecodingDynamicTable(int initialSize)
         {
             _currentMaxSize = initialSize;
+            _ring = new HeaderField[Math.Max(16, initialSize / 32)];
         }
 
         internal H2Logger? Logger { get; set; }
 
-        private int EvictUntil(int toBeRemovedSize)
+        private void EvictUntil(int toBeRemovedSize)
         {
             var evictedSize = 0;
-            int i;
 
-            for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++) {
-                if (!_entries.TryGetValue(i, out var tableEntry)) {
-                    _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
-
-                    return evictedSize;
-                }
-
-                _entries.Remove(i);
-
-                _currentSize -= tableEntry.Size;
-                evictedSize += tableEntry.Size;
+            while (_count > 0 && evictedSize < toBeRemovedSize) {
+                var entry = _ring[_head];
+                _ring[_head] = default; // release reference
+                _currentSize -= entry.Size;
+                evictedSize += entry.Size;
+                _head = (_head + 1) % _ring.Length;
+                _count--;
             }
-
-            _oldestElementInternalIndex = i;
-
-            return evictedSize;
         }
 
         public HeaderField[] GetContent()
         {
-            return _entries.Values.OrderBy(r => r.Name.ToString()).ToArray();
+            var result = new HeaderField[_count];
+            for (var i = 0; i < _count; i++) {
+                result[i] = _ring[(_head + i) % _ring.Length];
+            }
+            return result.OrderBy(r => r.Name.ToString()).ToArray();
         }
 
         public void UpdateMaxSize(int newMaxSize)
@@ -58,13 +54,6 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                 EvictUntil(tobeRemovedSize);
 
             _currentMaxSize = newMaxSize;
-        }
-
-        private int ConvertIndexToInternal(int externalIndex)
-        {
-            var temp = externalIndex - 61 - 1; // Extra -1 because externalIndex starts with 1
-
-            return _entries.Count - 1 - temp + _oldestElementInternalIndex;
         }
 
         /// <summary>
@@ -78,34 +67,57 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
             if (provisionalSize > _currentMaxSize) {
                 var spaceNeeded = provisionalSize - _currentMaxSize;
+                EvictUntil(spaceNeeded);
 
-                var evictedSize = EvictUntil(spaceNeeded);
-
-                // No decoding error.
-                // Inserting element larger than Table MAX SIZE cause the table to be emptied 
-
-                if (evictedSize < spaceNeeded) {
+                // Entry larger than table max size: empty the table
+                if (_currentSize + entry.Size > _currentMaxSize) {
                     _currentSize = 0;
-                    _entries.Clear();
-                    _internalIndex = -1;
-                    _oldestElementInternalIndex = 0;
-
-                    return _internalIndex;
+                    _count = 0;
+                    _head = 0;
+                    return -1;
                 }
             }
 
+            // Grow ring if full
+            if (_count == _ring.Length) {
+                GrowRing();
+            }
+
+            var tail = (_head + _count) % _ring.Length;
+            _ring[tail] = entry;
+            _count++;
             _currentSize += entry.Size;
 
-            _internalIndex += 1;
+            return _count - 1; // return value not used by callers, preserve non-negative on success
+        }
 
-            _entries[_internalIndex] = entry;
+        private void GrowRing()
+        {
+            var newCapacity = _ring.Length * 2;
+            var newRing = new HeaderField[newCapacity];
 
-            return _internalIndex;
+            for (var i = 0; i < _count; i++) {
+                newRing[i] = _ring[(_head + i) % _ring.Length];
+            }
+
+            _ring = newRing;
+            _head = 0;
         }
 
         public bool TryGet(int externalIndex, out HeaderField entry)
         {
-            return _entries.TryGetValue(ConvertIndexToInternal(externalIndex), out entry);
+            // externalIndex: 62 = newest, 63 = second newest, etc.
+            var offset = externalIndex - 62;
+
+            if (offset < 0 || offset >= _count) {
+                entry = default;
+                return false;
+            }
+
+            // offset 0 = newest = tail-1, offset 1 = second newest, ...
+            var ringIndex = (_head + _count - 1 - offset) % _ring.Length;
+            entry = _ring[ringIndex];
+            return true;
         }
     }
 }
