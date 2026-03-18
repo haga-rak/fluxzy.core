@@ -123,7 +123,7 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
 
         public static readonly HashSet<ReadOnlyMemory<char>> NonH2Header =
             new(new[] {
-                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade, AltSvc, Expect, FluxzyLiveEdit
+                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, TransferEncodingVerb, Upgrade, AltSvc, Expect, FluxzyLiveEdit
             }, new SpanCharactersIgnoreCaseComparer());
 
         public static ReadOnlyMemory<char> GetStatusLine(ReadOnlyMemory<char> statusCode)
