@@ -17,7 +17,7 @@ namespace Fluxzy.Core
         private readonly byte[] _buffer;
         private readonly int _capacity;
         private readonly object _lock = new();
-        private readonly SemaphoreSlim _dataReady = new(0, 1);
+        private readonly SemaphoreSlim _dataReady = new(0);
 
         private int _head;          // Next write position (producer-side)
         private int _tail;          // Next read position (consumer-side)
@@ -98,7 +98,7 @@ namespace Fluxzy.Core
                     if (_completed)
                         return false;
 
-                    // Reset signal state under lock so any subsequent Write will re-signal
+                    // Reset signal state under lock so any subsequent Write will re-signal.
                     Interlocked.Exchange(ref _signalState, 0);
                 }
 

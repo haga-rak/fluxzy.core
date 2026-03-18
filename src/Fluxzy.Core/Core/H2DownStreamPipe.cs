@@ -34,7 +34,7 @@ namespace Fluxzy.Core
 
         private readonly ConcurrentDictionary<int, ServerStreamWorker> _currentStreams = new();
         private readonly HeaderEncoder _headerEncoder;
-        private readonly SemaphoreSlim _headerEncodeLock = new SemaphoreSlim(1, 1);
+        private readonly object _headerEncodeLock = new();
         private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting();
         private readonly WindowSizeHolder _overallWindowSizeHolder;
         private readonly H2Logger _logger;
@@ -93,8 +93,8 @@ namespace Fluxzy.Core
             // Send server connection preface (SETTINGS frame)
             await SendServerSettingsAsync().ConfigureAwait(false);
 
-            ReadLoop(_mainLoopToken);
-            WriteLoop(_mainLoopToken);
+            _ = ReadLoop(_mainLoopToken);
+            _ = WriteLoop(_mainLoopToken);
         }
 
         private async Task SendServerSettingsAsync()
@@ -147,7 +147,7 @@ namespace Fluxzy.Core
             _ringBuffer.Write(H2Helper.SettingAckBuffer);
         }
 
-        private async ValueTask NotifyConnectionWindowSizeDecrement(int length, CancellationToken token)
+        private void NotifyConnectionWindowSizeDecrement(int length, CancellationToken token)
         {
             _unNotifiedWindowSize += length;
 
@@ -310,7 +310,7 @@ namespace Fluxzy.Core
 
                             // send window size increment connection level
                             if (bodyLength > 0) {
-                                await NotifyConnectionWindowSizeDecrement(bodyLength, token).ConfigureAwait(false);
+                                NotifyConnectionWindowSizeDecrement(bodyLength, token);
                             }
                         }
                     }
@@ -376,24 +376,22 @@ namespace Fluxzy.Core
             }
         }
 
-        public async ValueTask WriteResponseHeader(
+        public ValueTask WriteResponseHeader(
             ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, ReadOnlyMemory<char> requestMethod, CancellationToken token)
         {
             var hasBody = responseHeader.HasResponseBody(requestMethod.Span, out _);
+            ReadOnlyMemory<byte> payload;
 
-            await _headerEncodeLock.WaitAsync(token).ConfigureAwait(false);
-
-            try {
-                var payload = _headerEncoder.Encode(
+            lock (_headerEncodeLock) {
+                payload = _headerEncoder.Encode(
                     new HeaderEncodingJob(responseHeader.GetHttp11Header(),
                         streamIdentifier, 0),
                     buffer, !hasBody);
+            }
 
-                _ringBuffer.Write(payload.Span);
-            }
-            finally {
-                _headerEncodeLock.Release();
-            }
+            _ringBuffer.Write(payload.Span);
+
+            return default;
         }
 
         public async ValueTask WriteResponseBody(Stream responseBodyStream,
@@ -410,47 +408,41 @@ namespace Fluxzy.Core
 
             var remoteMaxFrameSize = _h2StreamSetting.Remote.MaxFrameSize;
 
-            // Single rent reused across all iterations — returned once at the end
-            var frameBuffer = ArrayPool<byte>.Shared.Rent(remoteMaxFrameSize + 9);
+            rsBuffer.Ensure(remoteMaxFrameSize + 9);
 
-            try {
-                while (true)
+            while (true)
+            {
+                var booked = await worker.BookWindowSize(remoteMaxFrameSize, token).ConfigureAwait(false);
+
+                if (booked == 0)
                 {
-                    var booked = await worker.BookWindowSize(remoteMaxFrameSize, token).ConfigureAwait(false);
-
-                    if (booked == 0)
-                    {
-                        // stream closed
-                        return;
-                    }
-
-                    var bodySize = Math.Min(booked, remoteMaxFrameSize);
-
-                    var read = await responseBodyStream
-                        .ReadAsync(frameBuffer.AsMemory(9, bodySize), token).ConfigureAwait(false);
-
-                    if (read == 0)
-                    {
-                        // EOF — refund booked window and break to send end-stream
-                        worker.RefundWindowSize(booked);
-                        break;
-                    }
-
-                    // Refund unused window if we read less than booked
-                    var refund = booked - read;
-
-                    if (refund > 0) {
-                        worker.RefundWindowSize(refund);
-                    }
-
-                    new DataFrame(HeaderFlags.None, read, sendStreamIdentifier)
-                        .WriteHeaderOnly(frameBuffer, read);
-
-                    _ringBuffer.Write(new ReadOnlySpan<byte>(frameBuffer, 0, read + 9));
+                    // stream closed
+                    return;
                 }
-            }
-            finally {
-                ArrayPool<byte>.Shared.Return(frameBuffer);
+
+                var bodySize = Math.Min(booked, remoteMaxFrameSize);
+
+                var read = await responseBodyStream
+                    .ReadAsync(rsBuffer.Memory.Slice(9, bodySize), token).ConfigureAwait(false);
+
+                if (read == 0)
+                {
+                    // EOF — refund booked window and break to send end-stream
+                    worker.RefundWindowSize(booked);
+                    break;
+                }
+
+                // Refund unused window if we read less than booked
+                var refund = booked - read;
+
+                if (refund > 0) {
+                    worker.RefundWindowSize(refund);
+                }
+
+                new DataFrame(HeaderFlags.None, read, sendStreamIdentifier)
+                    .WriteHeaderOnly(rsBuffer.Buffer, read);
+
+                _ringBuffer.Write(new ReadOnlySpan<byte>(rsBuffer.Buffer, 0, read + 9));
             }
 
             // Return unused budget to holders so other streams can use the window.
@@ -461,7 +453,7 @@ namespace Fluxzy.Core
 
             if (trailers != null && trailers.Count > 0) {
                 // Send trailers as HEADERS frame with EndStream
-                await WriteResponseTrailers(trailers, rsBuffer, sendStreamIdentifier, token).ConfigureAwait(false);
+                WriteResponseTrailers(trailers, rsBuffer, sendStreamIdentifier);
             }
             else {
                 WriteEndStream(sendStreamIdentifier);
@@ -476,18 +468,16 @@ namespace Fluxzy.Core
             _ringBuffer.Write(endFrame);
         }
 
-        private async ValueTask WriteResponseTrailers(
-            List<HeaderField> trailers, RsBuffer buffer, int streamIdentifier, CancellationToken token)
+        private void WriteResponseTrailers(
+            List<HeaderField> trailers, RsBuffer buffer, int streamIdentifier)
         {
-            await _headerEncodeLock.WaitAsync(token).ConfigureAwait(false);
+            ReadOnlyMemory<byte> payload;
 
-            try {
-                var payload = _headerEncoder.EncodeTrailers(trailers, buffer, streamIdentifier);
-                _ringBuffer.Write(payload.Span);
+            lock (_headerEncodeLock) {
+                payload = _headerEncoder.EncodeTrailers(trailers, buffer, streamIdentifier);
             }
-            finally {
-                _headerEncodeLock.Release();
-            }
+
+            _ringBuffer.Write(payload.Span);
         }
 
         public (Stream ReadStream, Stream WriteStream) AbandonPipe()
@@ -516,7 +506,6 @@ namespace Fluxzy.Core
             }
 
             _overallWindowSizeHolder.Dispose();
-            _headerEncodeLock.Dispose();
             _ringBuffer.Dispose();
         }
     }
