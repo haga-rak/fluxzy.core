@@ -65,6 +65,12 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 if (!keepNonForwardableHeader && Http11Constants.NonH2Header.Contains(headerName))
                     continue;
 
+                // transfer-encoding is forbidden in HTTP/2 (RFC 9113 §8.2.2) but must be
+                // kept in NonH2Header-free so HTTP/1.1 forwarding still works.
+                if (!keepNonForwardableHeader &&
+                    headerName.Span.Equals(Http11Constants.TransferEncodingVerb.Span, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 var headerValue = kpValue[1].Trim();
 
                 if (headerName.Span.Equals(Http11Constants.HostVerb.Span, StringComparison.OrdinalIgnoreCase)) {

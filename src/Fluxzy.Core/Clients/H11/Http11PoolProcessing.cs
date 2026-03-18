@@ -44,7 +44,7 @@ namespace Fluxzy.Clients.H11
 
             var headerLength = exchange.Request.Header.WriteHttp11(
                 !exchange.Authority.Secure,
-                buffer, true, true, true);
+                buffer, skipNonForwardableHeader: true, writeExtraHeaderField: true, requestClose: false);
 
             // Sending request header 
 
