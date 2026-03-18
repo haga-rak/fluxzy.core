@@ -356,6 +356,8 @@ namespace Fluxzy.Core
                 }
             }
             catch (Exception ex) {
+                if (DebugContext.EnableDumpStackTraceOn502)
+                    Console.Error.WriteLine($"H2 downstream read loop error ({RequestedAuthority}): {ex}");
                 throw;
             }
             finally  {
@@ -451,7 +453,11 @@ namespace Fluxzy.Core
                 }
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-            catch (Exception) { throw; }
+            catch (Exception ex) {
+                if (DebugContext.EnableDumpStackTraceOn502)
+                    Console.Error.WriteLine($"H2 downstream write loop error ({RequestedAuthority}): {ex}");
+                throw;
+            }
             finally {
                 // Return rented buffers from any remaining channel entries
                 while (_dataChannel.Reader.TryRead(out var remaining))
