@@ -71,5 +71,83 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
             var body = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hello streamed world", body);
         }
+
+        [Theory]
+        [InlineData(2000, 0)]
+        [InlineData(4000, 0)]
+        [InlineData(8000, 0)]
+        [InlineData(2000, 4000)]
+        [InlineData(4000, 4000)]
+        public async Task H2Downstream_LongHeaders(int queryLength, int cookieLength)
+        {
+            var longQuery = "bidder=loopme&gdpr=1&gdpr_consent=" + new string('A', queryLength)
+                + "&gpp=DBAA&gpp_sid=-1&f=i&uid=a4a83c9b-812e-4acf-915e-d910fdf0788f";
+
+            var cookie = cookieLength > 0
+                ? "EuConsent=" + new string('B', cookieLength)
+                : null;
+
+            await using var setup = await ProxiedHostSetup.Create(
+                configureSetting: setting => setting.SetServeH2(true),
+                configureRoutes: app =>
+                {
+                    app.MapGet("/setuid", async (HttpContext ctx) =>
+                    {
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.WriteAsync("OK");
+                    });
+                },
+                httpVersion: new Version(2, 0));
+
+            if (cookie != null)
+                setup.Client.DefaultRequestHeaders.Add("Cookie", cookie);
+
+            var response = await setup.Client.GetAsync($"/setuid?{longQuery}");
+
+            var body = await response.Content.ReadAsStringAsync();
+
+            Assert.True(response.StatusCode == HttpStatusCode.OK,
+                $"Expected OK but got {response.StatusCode}. Body: {body}");
+            Assert.Equal(new Version(2, 0), response.Version);
+            Assert.Equal("OK", body);
+        }
+        /// <summary>
+        /// Exercises Http11PoolProcessing.Process with headers that exceed the default
+        /// 4 KB RsBuffer, ensuring the buffer is resized before writing HTTP/1.1 headers upstream.
+        /// </summary>
+        [Theory]
+        [InlineData(4000, 0)]
+        [InlineData(2000, 4000)]
+        public async Task Http11Upstream_LongHeaders(int queryLength, int cookieLength)
+        {
+            var longQuery = "bidder=loopme&gdpr=1&gdpr_consent=" + new string('A', queryLength)
+                + "&gpp=DBAA&gpp_sid=-1&f=i&uid=a4a83c9b-812e-4acf-915e-d910fdf0788f";
+
+            var cookie = cookieLength > 0
+                ? "EuConsent=" + new string('B', cookieLength)
+                : null;
+
+            await using var setup = await ProxiedHostSetup.Create(
+                configureSetting: setting => setting.SetServeH2(false),
+                configureRoutes: app =>
+                {
+                    app.MapGet("/setuid", async (HttpContext ctx) =>
+                    {
+                        ctx.Response.ContentType = "text/plain";
+                        await ctx.Response.WriteAsync("OK");
+                    });
+                });
+
+            if (cookie != null)
+                setup.Client.DefaultRequestHeaders.Add("Cookie", cookie);
+
+            var response = await setup.Client.GetAsync($"/setuid?{longQuery}");
+
+            var body = await response.Content.ReadAsStringAsync();
+
+            Assert.True(response.StatusCode == HttpStatusCode.OK,
+                $"Expected OK but got {response.StatusCode}. Body: {body}");
+            Assert.Equal("OK", body);
+        }
     }
 }
