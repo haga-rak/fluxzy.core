@@ -202,7 +202,12 @@ namespace Fluxzy.Core
                 bodyStream = Stream.Null; // no response body
             }
             else {
-                _requestBodyPipe = new Pipe(); // TODO configure pipe settings
+                _requestBodyPipe = new Pipe(new PipeOptions(
+                    pool: System.Buffers.MemoryPool<byte>.Shared,
+                    pauseWriterThreshold: _h2StreamSetting.Local.WindowSize,
+                    resumeWriterThreshold: _h2StreamSetting.Local.WindowSize / 2,
+                    minimumSegmentSize: _h2StreamSetting.Local.MaxFrameSize,
+                    useSynchronizationContext: false));
                 bodyStream = _requestBodyPipe.Reader.AsStream();
             }
 
