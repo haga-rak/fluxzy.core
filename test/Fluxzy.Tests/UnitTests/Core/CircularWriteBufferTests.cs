@@ -12,6 +12,38 @@ namespace Fluxzy.Tests.UnitTests.Core
 {
     public class CircularWriteBufferTests
     {
+        /// <summary>
+        ///     Wraps a CircularWriteBuffer with a SemaphoreSlim-based wait mechanism,
+        ///     replicating the old WaitForDataAsync behavior for test consumer loops.
+        /// </summary>
+        private sealed class TestableBuffer : IDisposable
+        {
+            public readonly CircularWriteBuffer Buffer;
+            private readonly SemaphoreSlim _signal = new(0);
+
+            public TestableBuffer(int capacity)
+            {
+                Buffer = new CircularWriteBuffer(capacity, () => {
+                    try { _signal.Release(); } catch (ObjectDisposedException) { }
+                });
+            }
+
+            public async ValueTask<bool> WaitForDataAsync(CancellationToken ct)
+            {
+                while (true) {
+                    if (Buffer.HasData) return true;
+                    if (Buffer.IsCompleted) return false;
+                    await _signal.WaitAsync(ct).ConfigureAwait(false);
+                }
+            }
+
+            public void Dispose()
+            {
+                Buffer.Dispose();
+                _signal.Dispose();
+            }
+        }
+
         private static long HashBytes(ReadOnlyMemory<byte> mem, long hash)
         {
             foreach (var b in mem.ToArray())
@@ -41,14 +73,14 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Write_Then_Read_SingleSegment()
+        public void Write_Then_Read_SingleSegment()
         {
             using var buf = new CircularWriteBuffer(1024);
             var data = new byte[] { 1, 2, 3, 4, 5 };
 
             buf.Write(data);
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
 
             buf.GetReadableRegions(out var seg1, out var seg2, out var total);
 
@@ -64,15 +96,16 @@ namespace Fluxzy.Tests.UnitTests.Core
         }
 
         [Fact]
-        public async Task Write_Empty_Span_Is_Noop()
+        public void Write_Empty_Span_Is_Noop()
         {
             using var buf = new CircularWriteBuffer(64);
 
             buf.Write(ReadOnlySpan<byte>.Empty);
             buf.Complete();
 
-            // Should return false immediately — no data was written
-            Assert.False(await buf.WaitForDataAsync(CancellationToken.None));
+            // No data was written
+            Assert.False(buf.HasData);
+            Assert.True(buf.IsCompleted);
         }
 
         [Fact]
@@ -89,14 +122,14 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Multiple_Writes_Coalesce_Into_Single_Read()
+        public void Multiple_Writes_Coalesce_Into_Single_Read()
         {
             using var buf = new CircularWriteBuffer(1024);
 
             buf.Write(new byte[] { 0xAA, 0xBB });
             buf.Write(new byte[] { 0xCC, 0xDD, 0xEE });
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
 
             buf.GetReadableRegions(out var seg1, out var seg2, out var total);
 
@@ -110,7 +143,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Fill_Exactly_To_Capacity()
+        public void Fill_Exactly_To_Capacity()
         {
             const int cap = 64;
             using var buf = new CircularWriteBuffer(cap);
@@ -118,7 +151,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             var data = Enumerable.Range(0, cap).Select(i => (byte)i).ToArray();
             buf.Write(data);
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
 
             buf.GetReadableRegions(out var seg1, out var seg2, out var total);
 
@@ -132,7 +165,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Wraparound_Produces_Two_Segments()
+        public void Wraparound_Produces_Two_Segments()
         {
             const int cap = 16;
             using var buf = new CircularWriteBuffer(cap);
@@ -142,7 +175,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             buf.Write(first);
 
             // Consume 10 bytes — tail moves to 10, head stays at 12
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
             buf.GetReadableRegions(out _, out _, out var total1);
             Assert.Equal(12, total1);
             buf.Advance(10);
@@ -152,7 +185,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             var second = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 };
             buf.Write(second);
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
 
             buf.GetReadableRegions(out var seg1, out var seg2, out var total2);
 
@@ -172,7 +205,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Write_Exactly_To_End_Resets_Head()
+        public void Write_Exactly_To_End_Resets_Head()
         {
             const int cap = 8;
             using var buf = new CircularWriteBuffer(cap);
@@ -181,7 +214,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             var data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
             buf.Write(data);
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
             buf.GetReadableRegions(out var seg1, out _, out var total);
             Assert.Equal(8, total);
             Assert.Equal(data, seg1.ToArray());
@@ -193,7 +226,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             var data2 = new byte[] { 10, 20, 30 };
             buf.Write(data2);
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
             buf.GetReadableRegions(out seg1, out var seg2, out total);
             Assert.Equal(3, total);
             Assert.Equal(data2, seg1.ToArray());
@@ -205,32 +238,34 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Complete_Empty_Buffer_Returns_False()
+        public void Complete_Empty_Buffer_HasData_False()
         {
             using var buf = new CircularWriteBuffer(64);
 
             buf.Complete();
 
-            Assert.False(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.False(buf.HasData);
+            Assert.True(buf.IsCompleted);
         }
 
         [Fact]
-        public async Task Complete_With_Pending_Data_Returns_True_Then_False()
+        public void Complete_With_Pending_Data_HasData_Then_Empty()
         {
             using var buf = new CircularWriteBuffer(64);
 
             buf.Write(new byte[] { 1, 2, 3 });
             buf.Complete();
 
-            // First wait: data available
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            // Data available
+            Assert.True(buf.HasData);
 
             buf.GetReadableRegions(out var seg1, out _, out var total);
             Assert.Equal(3, total);
             buf.Advance(total);
 
-            // Second wait: completed and empty
-            Assert.False(await buf.WaitForDataAsync(CancellationToken.None));
+            // Completed and empty
+            Assert.False(buf.HasData);
+            Assert.True(buf.IsCompleted);
         }
 
         [Fact]
@@ -254,36 +289,74 @@ namespace Fluxzy.Tests.UnitTests.Core
         }
 
         // ──────────────────────────────────────────────
-        // Cancellation
+        // HasData and IsCompleted properties
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task WaitForData_Cancellation_Throws()
+        public void HasData_False_On_Empty_Buffer()
         {
             using var buf = new CircularWriteBuffer(64);
-            using var cts = new CancellationTokenSource();
-
-            cts.Cancel();
-
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(
-                () => buf.WaitForDataAsync(cts.Token).AsTask());
+            Assert.False(buf.HasData);
         }
 
         [Fact]
-        public async Task WaitForData_Cancel_While_Waiting()
+        public void HasData_True_After_Write()
         {
             using var buf = new CircularWriteBuffer(64);
-            using var cts = new CancellationTokenSource();
+            buf.Write(new byte[] { 1 });
+            Assert.True(buf.HasData);
+        }
 
-            var waitTask = buf.WaitForDataAsync(cts.Token).AsTask();
+        [Fact]
+        public void IsCompleted_False_Initially()
+        {
+            using var buf = new CircularWriteBuffer(64);
+            Assert.False(buf.IsCompleted);
+        }
 
-            // Ensure we're blocked
-            await Task.Delay(50);
-            Assert.False(waitTask.IsCompleted);
+        [Fact]
+        public void IsCompleted_True_After_Complete()
+        {
+            using var buf = new CircularWriteBuffer(64);
+            buf.Complete();
+            Assert.True(buf.IsCompleted);
+        }
 
-            cts.Cancel();
+        // ──────────────────────────────────────────────
+        // OnWrite callback
+        // ──────────────────────────────────────────────
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => waitTask);
+        [Fact]
+        public void OnWrite_Callback_Invoked_On_Write()
+        {
+            var callCount = 0;
+            using var buf = new CircularWriteBuffer(64, () => callCount++);
+
+            buf.Write(new byte[] { 1, 2 });
+            Assert.Equal(1, callCount);
+
+            buf.Write(new byte[] { 3 });
+            Assert.Equal(2, callCount);
+        }
+
+        [Fact]
+        public void OnWrite_Callback_Invoked_On_Complete()
+        {
+            var callCount = 0;
+            using var buf = new CircularWriteBuffer(64, () => callCount++);
+
+            buf.Complete();
+            Assert.Equal(1, callCount);
+        }
+
+        [Fact]
+        public void OnWrite_Callback_Not_Invoked_For_Empty_Write()
+        {
+            var callCount = 0;
+            using var buf = new CircularWriteBuffer(64, () => callCount++);
+
+            buf.Write(ReadOnlySpan<byte>.Empty);
+            Assert.Equal(0, callCount);
         }
 
         // ──────────────────────────────────────────────
@@ -316,7 +389,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             Assert.False(producerDone);
 
             // Consumer drains some data to unblock producer
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
             buf.GetReadableRegions(out _, out _, out var total);
             buf.Advance(total);
 
@@ -353,14 +426,14 @@ namespace Fluxzy.Tests.UnitTests.Core
         [Fact]
         public async Task Consumer_Wakes_When_Producer_Writes()
         {
-            using var buf = new CircularWriteBuffer(1024);
+            using var tb = new TestableBuffer(1024);
 
-            var waitTask = buf.WaitForDataAsync(CancellationToken.None).AsTask();
+            var waitTask = tb.WaitForDataAsync(CancellationToken.None).AsTask();
 
             await Task.Delay(50);
             Assert.False(waitTask.IsCompleted);
 
-            buf.Write(new byte[] { 42 });
+            tb.Buffer.Write(new byte[] { 42 });
 
             var result = await waitTask.WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(result);
@@ -371,7 +444,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Many_ProduceConsume_Cycles_Preserve_Data_Integrity()
+        public void Many_ProduceConsume_Cycles_Preserve_Data_Integrity()
         {
             const int cap = 64;
             const int iterations = 500;
@@ -382,7 +455,7 @@ namespace Fluxzy.Tests.UnitTests.Core
 
                 buf.Write(data);
 
-                Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+                Assert.True(buf.HasData);
                 buf.GetReadableRegions(out var seg1, out var seg2, out var total);
                 Assert.Equal(3, total);
 
@@ -409,15 +482,15 @@ namespace Fluxzy.Tests.UnitTests.Core
             const int producerCount = 8;
             const int messagesPerProducer = 200;
             const int messageSize = 8; // 1 byte tag + 3 byte producer ID + 4 byte seq
-            using var buf = new CircularWriteBuffer(cap);
+            using var tb = new TestableBuffer(cap);
 
             var allReceived = new List<byte[]>();
 
             // Consumer task
             var consumerTask = Task.Run(async () =>
             {
-                while (await buf.WaitForDataAsync(CancellationToken.None)) {
-                    buf.GetReadableRegions(out var seg1, out var seg2, out var total);
+                while (await tb.WaitForDataAsync(CancellationToken.None)) {
+                    tb.Buffer.GetReadableRegions(out var seg1, out var seg2, out var total);
 
                     var flat = new byte[total];
                     seg1.CopyTo(flat);
@@ -425,7 +498,7 @@ namespace Fluxzy.Tests.UnitTests.Core
                     if (!seg2.IsEmpty)
                         seg2.CopyTo(flat.AsMemory(seg1.Length));
 
-                    buf.Advance(total);
+                    tb.Buffer.Advance(total);
 
                     // Parse individual messages from the flat buffer
                     var offset = 0;
@@ -458,12 +531,12 @@ namespace Fluxzy.Tests.UnitTests.Core
                     msg[5] = (byte)((seq >> 8) & 0xFF);
                     msg[6] = (byte)((seq >> 16) & 0xFF);
                     msg[7] = (byte)((seq >> 24) & 0xFF);
-                    buf.Write(msg);
+                    tb.Buffer.Write(msg);
                 }
             })).ToArray();
 
             await Task.WhenAll(producerTasks);
-            buf.Complete();
+            tb.Buffer.Complete();
             await consumerTask.WaitAsync(TimeSpan.FromSeconds(10));
 
             // Verify: every message from every producer was received
@@ -500,7 +573,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             const int cap = 8192;
             const int producerCount = 4;
             const int messagesPerProducer = 300;
-            using var buf = new CircularWriteBuffer(cap);
+            using var tb = new TestableBuffer(cap);
 
             // Each message: [2-byte length][1-byte pid][payload...]
             // The consumer reconstructs messages by reading length-prefixed frames.
@@ -512,8 +585,8 @@ namespace Fluxzy.Tests.UnitTests.Core
                 var reassembly = new byte[cap];
                 var reassemblyLen = 0;
 
-                while (await buf.WaitForDataAsync(CancellationToken.None)) {
-                    buf.GetReadableRegions(out var seg1, out var seg2, out var total);
+                while (await tb.WaitForDataAsync(CancellationToken.None)) {
+                    tb.Buffer.GetReadableRegions(out var seg1, out var seg2, out var total);
 
                     // Append to reassembly buffer
                     seg1.CopyTo(reassembly.AsMemory(reassemblyLen));
@@ -524,7 +597,7 @@ namespace Fluxzy.Tests.UnitTests.Core
                         reassemblyLen += seg2.Length;
                     }
 
-                    buf.Advance(total);
+                    tb.Buffer.Advance(total);
 
                     // Parse complete messages
                     var pos = 0;
@@ -577,12 +650,12 @@ namespace Fluxzy.Tests.UnitTests.Core
                     for (var i = 0; i < payloadSize; i++)
                         frame[3 + i] = pattern;
 
-                    buf.Write(frame);
+                    tb.Buffer.Write(frame);
                 }
             })).ToArray();
 
             await Task.WhenAll(producerTasks);
-            buf.Complete();
+            tb.Buffer.Complete();
             await consumerTask.WaitAsync(TimeSpan.FromSeconds(10));
 
             Assert.Equal(producerCount * messagesPerProducer, allReceived.Count);
@@ -607,14 +680,14 @@ namespace Fluxzy.Tests.UnitTests.Core
             const int msgSize = 13;
             const int cap = msgSize * 2 + 1; // 27 bytes
             const int totalMessages = 1000;
-            using var buf = new CircularWriteBuffer(cap);
+            using var tb = new TestableBuffer(cap);
 
             var received = new List<byte[]>();
 
             var consumerTask = Task.Run(async () =>
             {
-                while (await buf.WaitForDataAsync(CancellationToken.None)) {
-                    buf.GetReadableRegions(out var seg1, out var seg2, out var total);
+                while (await tb.WaitForDataAsync(CancellationToken.None)) {
+                    tb.Buffer.GetReadableRegions(out var seg1, out var seg2, out var total);
 
                     var flat = new byte[total];
                     seg1.CopyTo(flat);
@@ -622,7 +695,7 @@ namespace Fluxzy.Tests.UnitTests.Core
                     if (!seg2.IsEmpty)
                         seg2.CopyTo(flat.AsMemory(seg1.Length));
 
-                    buf.Advance(total);
+                    tb.Buffer.Advance(total);
 
                     var offset = 0;
 
@@ -646,12 +719,12 @@ namespace Fluxzy.Tests.UnitTests.Core
                     for (var j = 0; j < msgSize; j++)
                         msg[j] = (byte)((i + j) & 0xFF);
 
-                    buf.Write(msg);
+                    tb.Buffer.Write(msg);
                 }
             });
 
             await producerTask;
-            buf.Complete();
+            tb.Buffer.Complete();
             await consumerTask.WaitAsync(TimeSpan.FromSeconds(10));
 
             Assert.Equal(totalMessages, received.Count);
@@ -685,12 +758,12 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Advance_Full_Amount_Empties_Buffer()
+        public void Advance_Full_Amount_Empties_Buffer()
         {
             using var buf = new CircularWriteBuffer(64);
             buf.Write(new byte[] { 1, 2, 3, 4 });
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
             buf.GetReadableRegions(out _, out _, out var total);
             buf.Advance(total);
 
@@ -705,12 +778,12 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Partial_Advance_Leaves_Remaining_Data()
+        public void Partial_Advance_Leaves_Remaining_Data()
         {
             using var buf = new CircularWriteBuffer(64);
             buf.Write(new byte[] { 10, 20, 30, 40, 50 });
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
 
             // Advance only 2 bytes
             buf.Advance(2);
@@ -721,18 +794,16 @@ namespace Fluxzy.Tests.UnitTests.Core
         }
 
         // ──────────────────────────────────────────────
-        // WaitForDataAsync fast path (data already present)
+        // HasData returns immediately when data present
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task WaitForData_Returns_Immediately_When_Data_Present()
+        public void HasData_Returns_True_When_Data_Present()
         {
             using var buf = new CircularWriteBuffer(64);
             buf.Write(new byte[] { 1 });
 
-            // Should return synchronously (or very fast)
-            var task = buf.WaitForDataAsync(CancellationToken.None);
-            Assert.True(task.IsCompleted || await task);
+            Assert.True(buf.HasData);
         }
 
         // ──────────────────────────────────────────────
@@ -743,7 +814,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         [InlineData(7, 3, 500)]   // small buffer, small writes, many cycles
         [InlineData(32, 15, 200)] // write nearly half the buffer each time
         [InlineData(100, 99, 50)] // write almost full buffer each time
-        public async Task Repeated_Wraps_Data_Integrity(int capacity, int writeSize, int iterations)
+        public void Repeated_Wraps_Data_Integrity(int capacity, int writeSize, int iterations)
         {
             using var buf = new CircularWriteBuffer(capacity);
 
@@ -755,7 +826,7 @@ namespace Fluxzy.Tests.UnitTests.Core
 
                 buf.Write(data);
 
-                Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+                Assert.True(buf.HasData);
                 buf.GetReadableRegions(out var seg1, out var seg2, out var total);
                 Assert.Equal(writeSize, total);
 
@@ -781,7 +852,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             const int cap = 16384;
             const int totalBytes = 1_000_000;
             const int chunkSize = 997; // prime, forces irregular wrap boundaries
-            using var buf = new CircularWriteBuffer(cap);
+            using var tb = new TestableBuffer(cap);
 
             var sentHash = 0L;
             var receivedHash = 0L;
@@ -789,8 +860,8 @@ namespace Fluxzy.Tests.UnitTests.Core
 
             var consumerTask = Task.Run(async () =>
             {
-                while (await buf.WaitForDataAsync(CancellationToken.None)) {
-                    buf.GetReadableRegions(out var seg1, out var seg2, out var total);
+                while (await tb.WaitForDataAsync(CancellationToken.None)) {
+                    tb.Buffer.GetReadableRegions(out var seg1, out var seg2, out var total);
 
                     receivedHash = HashBytes(seg1, receivedHash);
 
@@ -798,7 +869,7 @@ namespace Fluxzy.Tests.UnitTests.Core
                         receivedHash = HashBytes(seg2, receivedHash);
 
                     totalReceived += total;
-                    buf.Advance(total);
+                    tb.Buffer.Advance(total);
                 }
             });
 
@@ -817,13 +888,13 @@ namespace Fluxzy.Tests.UnitTests.Core
                         seqByte = (byte)((seqByte + 1) & 0xFF);
                     }
 
-                    buf.Write(chunk);
+                    tb.Buffer.Write(chunk);
                     sent += toSend;
                 }
             });
 
             await producerTask;
-            buf.Complete();
+            tb.Buffer.Complete();
             await consumerTask.WaitAsync(TimeSpan.FromSeconds(30));
 
             Assert.Equal(totalBytes, totalReceived);
@@ -835,7 +906,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         // ──────────────────────────────────────────────
 
         [Fact]
-        public async Task Complete_Immediately_After_Write_Does_Not_Lose_Data()
+        public void Complete_Immediately_After_Write_Does_Not_Lose_Data()
         {
             using var buf = new CircularWriteBuffer(256);
             var data = new byte[] { 0xDE, 0xAD, 0xBE, 0xEF };
@@ -843,31 +914,10 @@ namespace Fluxzy.Tests.UnitTests.Core
             buf.Write(data);
             buf.Complete();
 
-            Assert.True(await buf.WaitForDataAsync(CancellationToken.None));
+            Assert.True(buf.HasData);
             buf.GetReadableRegions(out var seg1, out _, out var total);
             Assert.Equal(4, total);
             Assert.Equal(data, seg1.ToArray());
-        }
-
-        // ──────────────────────────────────────────────
-        // Multiple concurrent consumers waiting (edge case)
-        // ──────────────────────────────────────────────
-
-        [Fact]
-        public async Task Multiple_WaitForData_Calls_Both_Resolve()
-        {
-            // This tests that signaling doesn't deadlock even if WaitForDataAsync
-            // is accidentally called from two places (shouldn't happen in prod, but good to verify)
-            using var buf = new CircularWriteBuffer(256);
-
-            var wait1 = buf.WaitForDataAsync(CancellationToken.None).AsTask();
-            var wait2 = buf.WaitForDataAsync(CancellationToken.None).AsTask();
-
-            buf.Write(new byte[] { 1 });
-
-            // At least one should complete
-            var completed = await Task.WhenAny(wait1, wait2).WaitAsync(TimeSpan.FromSeconds(5));
-            Assert.True(await completed);
         }
 
         // ──────────────────────────────────────────────
@@ -879,7 +929,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         {
             const int cap = 32768;
             const int frameCount = 500;
-            using var buf = new CircularWriteBuffer(cap);
+            using var tb = new TestableBuffer(cap);
 
             var allFrames = new List<byte[]>();
 
@@ -888,8 +938,8 @@ namespace Fluxzy.Tests.UnitTests.Core
             {
                 var collected = new List<byte>();
 
-                while (await buf.WaitForDataAsync(CancellationToken.None)) {
-                    buf.GetReadableRegions(out var seg1, out var seg2, out var total);
+                while (await tb.WaitForDataAsync(CancellationToken.None)) {
+                    tb.Buffer.GetReadableRegions(out var seg1, out var seg2, out var total);
 
                     // Simulate writing to stream (just collect bytes)
                     if (seg1.Length > 0)
@@ -898,7 +948,7 @@ namespace Fluxzy.Tests.UnitTests.Core
                     if (!seg2.IsEmpty)
                         collected.AddRange(seg2.ToArray());
 
-                    buf.Advance(total);
+                    tb.Buffer.Advance(total);
                 }
 
                 return collected.ToArray();
@@ -923,13 +973,13 @@ namespace Fluxzy.Tests.UnitTests.Core
                     for (var j = 9; j < frame.Length; j++)
                         frame[j] = (byte)((streamId + i + j) & 0xFF);
 
-                    buf.Write(frame);
+                    tb.Buffer.Write(frame);
                     Interlocked.Add(ref expectedTotal, frame.Length);
                 }
             })).ToArray();
 
             await Task.WhenAll(producers);
-            buf.Complete();
+            tb.Buffer.Complete();
 
             var result = await consumerTask.WaitAsync(TimeSpan.FromSeconds(10));
 

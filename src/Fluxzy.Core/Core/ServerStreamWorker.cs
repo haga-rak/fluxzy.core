@@ -31,7 +31,6 @@ namespace Fluxzy.Core
         private Pipe? _requestBodyPipe;
 
         private readonly WindowSizeHolder _streamWindowSizeHolder;
-        private readonly WindowSizeHolder _overallWindowSizeHolder;
         private readonly H2StreamSetting _h2StreamSetting;
 
         private bool _disposed;
@@ -44,21 +43,19 @@ namespace Fluxzy.Core
         private int _windowBudget;
 
         /// <summary>
-        ///     Number of frames worth of window to book at once from both holders.
-        ///     Reduces lock contention on the shared overall holder by ~BatchFrames×.
+        ///     Number of frames worth of window to book at once from the stream holder.
+        ///     Reduces async calls when the stream window is large.
         /// </summary>
-        private const int BatchFrames = 4;
+        private const int BatchFrames = 2;
 
         public ServerStreamWorker(
             int streamIdentifier,
             IHeaderEncoder headerEncoder,
-            WindowSizeHolder overallWindowSizeHolder,
             H2StreamSetting h2StreamSetting,
             H2Logger logger)
         {
             StreamIdentifier = streamIdentifier;
             _headerEncoder = headerEncoder;
-            _overallWindowSizeHolder = overallWindowSizeHolder;
             _h2StreamSetting = h2StreamSetting;
             _headerBuffer = new byte[h2StreamSetting.MaxHeaderSize];
             _streamWindowSizeHolder = new WindowSizeHolder(logger, h2StreamSetting.Remote.WindowSize, streamIdentifier);
@@ -240,7 +237,7 @@ namespace Fluxzy.Core
                 return requestedBodyLength;
             }
 
-            // Slow path: book a batch from both holders to replenish the budget.
+            // Slow path: book a batch from the stream holder to replenish the budget.
             var batchRequest = requestedBodyLength * BatchFrames;
 
             var streamWindow = await _streamWindowSizeHolder
@@ -250,22 +247,8 @@ namespace Fluxzy.Core
             if (streamWindow == 0)
                 return 0;
 
-            var overallWindow = await _overallWindowSizeHolder
-                                            .BookWindowSize(streamWindow, cancellationToken)
-                                            .ConfigureAwait(false);
-
-            // Refund the difference back to the stream window if overall granted less
-            var streamRefund = streamWindow - overallWindow;
-
-            if (streamRefund > 0) {
-                _streamWindowSizeHolder.UpdateWindowSize(streamRefund);
-            }
-
-            if (overallWindow == 0)
-                return 0;
-
             // Add newly booked amount to existing budget and serve the request.
-            _windowBudget += overallWindow;
+            _windowBudget += streamWindow;
 
             var grant = Math.Min(_windowBudget, requestedBodyLength);
             _windowBudget -= grant;
@@ -278,23 +261,8 @@ namespace Fluxzy.Core
             if (amount <= 0)
                 return;
 
-            // Return to local budget — the bytes were already booked from holders.
-            // Budget is drained back to holders via DrainBudget or on Dispose.
+            // Return to local budget — the bytes were already booked from the stream holder.
             _windowBudget += amount;
-        }
-
-        /// <summary>
-        ///     Returns all pre-booked budget back to both holders so other streams
-        ///     can use the window. Called when the response body write completes.
-        /// </summary>
-        public void DrainBudget()
-        {
-            if (_windowBudget <= 0)
-                return;
-
-            _streamWindowSizeHolder.UpdateWindowSize(_windowBudget);
-            _overallWindowSizeHolder.UpdateWindowSize(_windowBudget);
-            _windowBudget = 0;
         }
 
         public void Dispose()
@@ -303,14 +271,6 @@ namespace Fluxzy.Core
                 return;
 
             _disposed = true;
-
-            // Drain pre-booked budget back to both holders so other streams can use it.
-            if (_windowBudget > 0)
-            {
-                _streamWindowSizeHolder.UpdateWindowSize(_windowBudget);
-                _overallWindowSizeHolder.UpdateWindowSize(_windowBudget);
-                _windowBudget = 0;
-            }
 
             _requestBodyPipe?.Writer.Complete();
             _streamWindowSizeHolder.Dispose();

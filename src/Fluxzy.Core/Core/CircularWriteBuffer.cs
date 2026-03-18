@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Fluxzy.Core
 {
@@ -17,21 +16,45 @@ namespace Fluxzy.Core
         private readonly byte[] _buffer;
         private readonly int _capacity;
         private readonly object _lock = new();
-        private readonly SemaphoreSlim _dataReady = new(0);
+        private readonly Action? _onWrite;
 
         private int _head;          // Next write position (producer-side)
         private int _tail;          // Next read position (consumer-side)
         private int _count;         // Bytes currently in buffer
-        private int _signalState;   // 0 = consumer may be waiting, 1 = signaled
         private bool _completed;
 
-        public CircularWriteBuffer(int capacity)
+        public CircularWriteBuffer(int capacity, Action? onWrite = null)
         {
             if (capacity <= 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity));
 
             _capacity = capacity;
             _buffer = GC.AllocateUninitializedArray<byte>(capacity);
+            _onWrite = onWrite;
+        }
+
+        /// <summary>
+        ///     Whether the buffer has data available to read.
+        /// </summary>
+        public bool HasData
+        {
+            get
+            {
+                lock (_lock)
+                    return _count > 0;
+            }
+        }
+
+        /// <summary>
+        ///     Whether Complete() has been called.
+        /// </summary>
+        public bool IsCompleted
+        {
+            get
+            {
+                lock (_lock)
+                    return _completed;
+            }
         }
 
         /// <summary>
@@ -80,30 +103,7 @@ namespace Fluxzy.Core
             }
 
             // Signal consumer outside the lock
-            SignalConsumer();
-        }
-
-        /// <summary>
-        ///     Wait asynchronously for data to become available.
-        ///     Returns true if data is available, false if the buffer is completed and empty.
-        ///     Single-consumer only.
-        /// </summary>
-        public async ValueTask<bool> WaitForDataAsync(CancellationToken ct)
-        {
-            while (true) {
-                lock (_lock) {
-                    if (_count > 0)
-                        return true;
-
-                    if (_completed)
-                        return false;
-
-                    // Reset signal state under lock so any subsequent Write will re-signal.
-                    Interlocked.Exchange(ref _signalState, 0);
-                }
-
-                await _dataReady.WaitAsync(ct).ConfigureAwait(false);
-            }
+            _onWrite?.Invoke();
         }
 
         /// <summary>
@@ -162,20 +162,12 @@ namespace Fluxzy.Core
                 Monitor.PulseAll(_lock);
             }
 
-            SignalConsumer();
-        }
-
-        private void SignalConsumer()
-        {
-            if (Interlocked.CompareExchange(ref _signalState, 1, 0) == 0) {
-                _dataReady.Release();
-            }
+            _onWrite?.Invoke();
         }
 
         public void Dispose()
         {
             Complete();
-            _dataReady.Dispose();
         }
     }
 }

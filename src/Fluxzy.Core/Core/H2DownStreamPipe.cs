@@ -18,6 +18,20 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
+    internal readonly struct DataFrameEntry
+    {
+        public readonly byte[] RentedBuffer;
+        public readonly int Length;
+        public readonly int FlowControlledBytes;
+
+        public DataFrameEntry(byte[] rentedBuffer, int length, int flowControlledBytes)
+        {
+            RentedBuffer = rentedBuffer;
+            Length = length;
+            FlowControlledBytes = flowControlledBytes;
+        }
+    }
+
     internal class H2DownStreamPipe : IDownStreamPipe
     {
         private readonly Stream _readStream;
@@ -30,7 +44,7 @@ namespace Fluxzy.Core
         private readonly Channel<Exchange> _exchangeChannel =
             Channel.CreateUnbounded<Exchange>();
 
-        private readonly CircularWriteBuffer _ringBuffer = new(RingBufferCapacity);
+        private readonly CircularWriteBuffer _ringBuffer;
 
         private readonly ConcurrentDictionary<int, ServerStreamWorker> _currentStreams = new();
         private readonly HeaderEncoder _headerEncoder;
@@ -40,7 +54,12 @@ namespace Fluxzy.Core
                 SettingsMaxConcurrentStreams = 256
             }
         };
-        private readonly WindowSizeHolder _overallWindowSizeHolder;
+
+        private readonly Channel<DataFrameEntry> _dataChannel;
+        private int _connectionWindow = 65535;
+        private readonly SemaphoreSlim _writeSignal = new(0);
+        private int _writeSignalState;
+
         private readonly H2Logger _logger;
         private readonly CancellationToken _mainLoopToken;
         private readonly CancellationTokenSource _mainLoopTokenSource;
@@ -73,7 +92,9 @@ namespace Fluxzy.Core
 
             _headerEncoder = new HeaderEncoder(hPackEncoder, hPackDecoder, _h2StreamSetting);
             _logger = new H2Logger(requestedAuthority, -1);
-            _overallWindowSizeHolder = new WindowSizeHolder(_logger, _h2StreamSetting.OverallWindowSize, 0);
+            _ringBuffer = new CircularWriteBuffer(RingBufferCapacity, SignalWriteLoop);
+            _dataChannel = Channel.CreateBounded<DataFrameEntry>(
+                new BoundedChannelOptions(256) { SingleReader = true });
             _mainLoopTokenSource = new CancellationTokenSource();
             _mainLoopToken = _mainLoopTokenSource.Token;
         }
@@ -81,6 +102,12 @@ namespace Fluxzy.Core
         public Authority RequestedAuthority { get; }
 
         public bool TunnelOnly { get; set; }
+
+        private void SignalWriteLoop()
+        {
+            if (Interlocked.CompareExchange(ref _writeSignalState, 1, 0) == 0)
+                _writeSignal.Release();
+        }
 
         public async Task Init(RsBuffer buffer)
         {
@@ -173,7 +200,8 @@ namespace Fluxzy.Core
         {
             var windowSizeIncrement = frame.GetWindowUpdateFrame().WindowSizeIncrement;
             if (frame.StreamIdentifier == 0) {
-                _overallWindowSizeHolder.UpdateWindowSize(windowSizeIncrement);
+                Interlocked.Add(ref _connectionWindow, windowSizeIncrement);
+                SignalWriteLoop();
             }
             else if (_currentStreams.TryGetValue(frame.StreamIdentifier, out var streamWorker)) {
                 streamWorker.UpdateWindowSize(windowSizeIncrement);
@@ -266,7 +294,7 @@ namespace Fluxzy.Core
 
                     if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker)) {
                         worker = new ServerStreamWorker(frame.StreamIdentifier, _headerEncoder,
-                            _overallWindowSizeHolder, _h2StreamSetting, _logger);
+                            _h2StreamSetting, _logger);
 
                         _currentStreams.TryAdd(frame.StreamIdentifier, worker);
                     }
@@ -338,26 +366,97 @@ namespace Fluxzy.Core
         private async Task WriteLoop(CancellationToken token)
         {
             try {
-                while (!token.IsCancellationRequested &&
-                       await _ringBuffer.WaitForDataAsync(token).ConfigureAwait(false)) {
+                while (!token.IsCancellationRequested) {
+                    var didWork = false;
 
+                    // Phase 1: Drain ring buffer (control frames, HEADERS — priority, no flow control)
                     _ringBuffer.GetReadableRegions(out var seg1, out var seg2, out var total);
 
-                    if (seg1.Length > 0)
-                        await _writeStream.WriteAsync(seg1, token).ConfigureAwait(false);
+                    if (total > 0) {
+                        if (seg1.Length > 0)
+                            await _writeStream.WriteAsync(seg1, token).ConfigureAwait(false);
 
-                    if (seg2.Length > 0)
-                        await _writeStream.WriteAsync(seg2, token).ConfigureAwait(false);
+                        if (seg2.Length > 0)
+                            await _writeStream.WriteAsync(seg2, token).ConfigureAwait(false);
 
-                    _ringBuffer.Advance(total);
+                        _ringBuffer.Advance(total);
+                        didWork = true;
+                    }
 
-                    await _writeStream.FlushAsync(token).ConfigureAwait(false);
+                    // Phase 2: Drain data channel respecting connection window
+                    // Before each DATA frame, drain the ring buffer to ensure HEADERS
+                    // (written to ring buffer) are always sent before DATA (in channel)
+                    // for the same stream, even when both arrive mid-iteration.
+                    while (_dataChannel.Reader.TryPeek(out var entry)) {
+                        // Interleave: send any pending control/HEADERS frames first
+                        _ringBuffer.GetReadableRegions(out var pri1, out var pri2, out var priTotal);
+
+                        if (priTotal > 0) {
+                            if (pri1.Length > 0)
+                                await _writeStream.WriteAsync(pri1, token).ConfigureAwait(false);
+
+                            if (pri2.Length > 0)
+                                await _writeStream.WriteAsync(pri2, token).ConfigureAwait(false);
+
+                            _ringBuffer.Advance(priTotal);
+                            didWork = true;
+                        }
+
+                        if (entry.FlowControlledBytes > 0) {
+                            var window = Volatile.Read(ref _connectionWindow);
+
+                            if (window < entry.FlowControlledBytes)
+                                break; // connection window exhausted
+
+                            Interlocked.Add(ref _connectionWindow, -entry.FlowControlledBytes);
+                        }
+
+                        _dataChannel.Reader.TryRead(out _); // consume the peeked entry
+
+                        await _writeStream.WriteAsync(
+                            entry.RentedBuffer.AsMemory(0, entry.Length), token).ConfigureAwait(false);
+
+                        ArrayPool<byte>.Shared.Return(entry.RentedBuffer);
+                        didWork = true;
+                    }
+
+                    // Phase 3: Flush
+                    if (didWork)
+                        await _writeStream.FlushAsync(token).ConfigureAwait(false);
+
+                    // Phase 4: Wait for signal
+                    Interlocked.Exchange(ref _writeSignalState, 0);
+
+                    // Double-check all sources before sleeping
+                    _ringBuffer.GetReadableRegions(out _, out _, out var checkTotal);
+
+                    if (checkTotal > 0)
+                        continue;
+
+                    if (_dataChannel.Reader.TryPeek(out _))
+                        continue;
+
+                    // Check termination: both sources completed and empty
+                    if (_ringBuffer.IsCompleted && _dataChannel.Reader.Completion.IsCompleted) {
+                        // Final drain to catch any data that arrived between checks
+                        _ringBuffer.GetReadableRegions(out _, out _, out var lastCheck);
+
+                        if (lastCheck > 0 || _dataChannel.Reader.TryPeek(out _))
+                            continue;
+
+                        break;
+                    }
+
+                    await _writeSignal.WaitAsync(token).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) {
-                throw;
-            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+            catch (Exception) { throw; }
             finally {
+                // Return rented buffers from any remaining channel entries
+                while (_dataChannel.Reader.TryRead(out var remaining))
+                    ArrayPool<byte>.Shared.Return(remaining.RentedBuffer);
+
                 _writeHalted = true;
             }
         }
@@ -415,8 +514,6 @@ namespace Fluxzy.Core
                 throw new FluxzyException($"Invalid Local H2 stream : identifier {streamIdentifier}");
             }
 
-            var sendStreamIdentifier = streamIdentifier;
-
             var remoteMaxFrameSize = _h2StreamSetting.Remote.MaxFrameSize;
 
             rsBuffer.Ensure(remoteMaxFrameSize + 9);
@@ -450,50 +547,57 @@ namespace Fluxzy.Core
                     worker.RefundWindowSize(refund);
                 }
 
-                new DataFrame(HeaderFlags.None, read, sendStreamIdentifier)
+                // Build DATA frame header
+                new DataFrame(HeaderFlags.None, read, streamIdentifier)
                     .WriteHeaderOnly(rsBuffer.Buffer, read);
 
-                _ringBuffer.Write(new ReadOnlySpan<byte>(rsBuffer.Buffer, 0, read + 9));
-            }
+                // Rent buffer, copy frame, enqueue to data channel
+                var frameLength = read + 9;
+                var rentedBuffer = ArrayPool<byte>.Shared.Rent(frameLength);
+                rsBuffer.Buffer.AsSpan(0, frameLength).CopyTo(rentedBuffer);
 
-            // Return unused budget to holders so other streams can use the window.
-            worker.DrainBudget();
+                await _dataChannel.Writer.WriteAsync(
+                    new DataFrameEntry(rentedBuffer, frameLength, read), token).ConfigureAwait(false);
+
+                SignalWriteLoop();
+            }
 
             // Read trailers lazily — they are set by StreamWorker after the body pipe completes
             var trailers = responseForTrailers?.Trailers;
 
             if (trailers != null && trailers.Count > 0) {
-                // Send trailers as HEADERS frame with EndStream
-                WriteResponseTrailers(trailers, rsBuffer, sendStreamIdentifier);
+                // Send trailers as HEADERS frame with EndStream, enqueue to data channel
+                ReadOnlyMemory<byte> payload;
+
+                lock (_headerEncodeLock) {
+                    payload = _headerEncoder.EncodeTrailers(trailers, rsBuffer, streamIdentifier);
+                }
+
+                var rentedTrailerBuffer = ArrayPool<byte>.Shared.Rent(payload.Length);
+                payload.Span.CopyTo(rentedTrailerBuffer);
+
+                await _dataChannel.Writer.WriteAsync(
+                    new DataFrameEntry(rentedTrailerBuffer, payload.Length, 0), token).ConfigureAwait(false);
+
+                SignalWriteLoop();
             }
             else {
-                WriteEndStream(sendStreamIdentifier);
+                // Send 0-byte EndStream DATA frame
+                var endFrameBuffer = ArrayPool<byte>.Shared.Rent(9);
+
+                new DataFrame(HeaderFlags.EndStream, 0, streamIdentifier)
+                    .WriteHeaderOnly(endFrameBuffer, 0);
+
+                await _dataChannel.Writer.WriteAsync(
+                    new DataFrameEntry(endFrameBuffer, 9, 0), token).ConfigureAwait(false);
+
+                SignalWriteLoop();
             }
 
             // Stream is fully complete — clean up the worker.
-            if (_currentStreams.TryRemove(sendStreamIdentifier, out var completedWorker)) {
+            if (_currentStreams.TryRemove(streamIdentifier, out var completedWorker)) {
                 completedWorker.Dispose();
             }
-        }
-
-        private void WriteEndStream(int streamIdentifier)
-        {
-            Span<byte> endFrame = stackalloc byte[9];
-            new DataFrame(HeaderFlags.EndStream, 0, streamIdentifier)
-                .WriteHeaderOnly(endFrame, 0);
-            _ringBuffer.Write(endFrame);
-        }
-
-        private void WriteResponseTrailers(
-            List<HeaderField> trailers, RsBuffer buffer, int streamIdentifier)
-        {
-            ReadOnlyMemory<byte> payload;
-
-            lock (_headerEncodeLock) {
-                payload = _headerEncoder.EncodeTrailers(trailers, buffer, streamIdentifier);
-            }
-
-            _ringBuffer.Write(payload.Span);
         }
 
         public (Stream ReadStream, Stream WriteStream) AbandonPipe()
@@ -514,6 +618,7 @@ namespace Fluxzy.Core
 
             _mainLoopTokenSource.Cancel();
             _ringBuffer.Complete();
+            _dataChannel.Writer.TryComplete();
             _exchangeChannel.Writer.TryComplete();
 
             foreach (var (_, worker) in _currentStreams)
@@ -521,7 +626,6 @@ namespace Fluxzy.Core
                 worker.Dispose();
             }
 
-            _overallWindowSizeHolder.Dispose();
             _ringBuffer.Dispose();
         }
     }
