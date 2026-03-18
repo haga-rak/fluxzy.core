@@ -274,8 +274,22 @@ namespace Fluxzy.Core
                 return;
 
             // Return to local budget — the bytes were already booked from holders.
-            // Budget is drained back to holders on Dispose.
+            // Budget is drained back to holders via DrainBudget or on Dispose.
             _windowBudget += amount;
+        }
+
+        /// <summary>
+        ///     Returns all pre-booked budget back to both holders so other streams
+        ///     can use the window. Called when the response body write completes.
+        /// </summary>
+        public void DrainBudget()
+        {
+            if (_windowBudget <= 0)
+                return;
+
+            _streamWindowSizeHolder.UpdateWindowSize(_windowBudget);
+            _overallWindowSizeHolder.UpdateWindowSize(_windowBudget);
+            _windowBudget = 0;
         }
 
         public void Dispose()

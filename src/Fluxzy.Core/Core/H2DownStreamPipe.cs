@@ -521,6 +521,9 @@ namespace Fluxzy.Core
                     new PooledFrame(frameBuffer, read + 9, true), token).ConfigureAwait(false);
             }
 
+            // Return unused budget to holders so other streams can use the window.
+            worker.DrainBudget();
+
             // Read trailers lazily — they are set by StreamWorker after the body pipe completes
             var trailers = responseForTrailers?.Trailers;
 
