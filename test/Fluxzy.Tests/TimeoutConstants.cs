@@ -13,7 +13,7 @@ namespace Fluxzy.Tests
                     return 60;
                 }
                 else {
-                    return 15;
+                    return 30;
                 }
             }
         }
