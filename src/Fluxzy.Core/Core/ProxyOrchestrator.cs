@@ -1,9 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -222,7 +220,7 @@ namespace Fluxzy.Core
             IPEndPoint localEndPoint, string localEndPointsAddress,
             CancellationTokenSource callerTokenSource)
         {
-            var activeTasks = new List<Task>();
+            var tracker = new ActiveExchangeTracker();
             var processedProvisional = false;
 
             while (true)
@@ -263,31 +261,27 @@ namespace Fluxzy.Core
                     continue;
                 }
 
-                // Prune completed tasks
-                activeTasks.RemoveAll(t => t.IsCompleted);
+                tracker.Increment();
 
-                var task = ProcessExchangeMultiplexed(
+                ProcessExchangeMultiplexed(
                     exchange, closeImmediately, token,
                     remoteEndPoint, downStreamClientAddress,
                     localEndPoint, localEndPointsAddress,
-                    downStreamPipe, callerTokenSource);
-
-                activeTasks.Add(task);
+                    downStreamPipe, callerTokenSource,
+                    tracker);
             }
 
-            // Wait for all in-flight exchanges to complete before returning
+            // Wait for all in-flight exchanges to complete
             // (the caller will dispose the pipe after this)
-            if (activeTasks.Count > 0)
-            {
-                await Task.WhenAll(activeTasks).ConfigureAwait(false);
-            }
+            await tracker.WaitForAll().ConfigureAwait(false);
         }
 
-        private async Task ProcessExchangeMultiplexed(
+        private async void ProcessExchangeMultiplexed(
             Exchange exchange, bool closeImmediately, CancellationToken token,
             IPEndPoint remoteEndPoint, string downStreamClientAddress,
             IPEndPoint localEndPoint, string localEndPointsAddress,
-            IDownStreamPipe downStreamPipe, CancellationTokenSource callerTokenSource)
+            IDownStreamPipe downStreamPipe, CancellationTokenSource callerTokenSource,
+            ActiveExchangeTracker tracker)
         {
             using var exchangeBuffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
 
@@ -317,6 +311,10 @@ namespace Fluxzy.Core
                 {
                     // Swallow — one stream's error must not kill the connection
                 }
+            }
+            finally
+            {
+                tracker.Decrement();
             }
         }
 
@@ -848,5 +846,28 @@ namespace Fluxzy.Core
     internal class ExchangeHolder
     {
         public Exchange? Exchange { get; set; }
+    }
+
+    internal class ActiveExchangeTracker
+    {
+        private int _count = 1; // sentinel prevents premature completion
+        private readonly TaskCompletionSource _allDone = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Increment() => Interlocked.Increment(ref _count);
+
+        public void Decrement()
+        {
+            if (Interlocked.Decrement(ref _count) == 0)
+            {
+                _allDone.TrySetResult();
+            }
+        }
+
+        public Task WaitForAll()
+        {
+            // Release the sentinel
+            Decrement();
+            return _allDone.Task;
+        }
     }
 }
