@@ -92,26 +92,41 @@ namespace Fluxzy.Core
             return false;
         }
 
+        private const int DecodeInitialBufferSize = 1024 * 64;
+        private const int DecodeMaxBufferSize = 1024 * 1024;
+
         internal static Memory<char> DecodeAndAllocate(IHeaderEncoder headerEncoder, ReadOnlySpan<byte> onWire)
         {
-            var byteArray = ArrayPool<char>.Shared.Rent(1024 * 64);
+            var bufferSize = DecodeInitialBufferSize;
 
-            try
+            while (bufferSize <= DecodeMaxBufferSize)
             {
-                Span<char> tempBuffer = byteArray;
+                var byteArray = ArrayPool<char>.Shared.Rent(bufferSize);
 
-                var decoded = headerEncoder.Decoder.Decode(onWire, tempBuffer);
-                Memory<char> charBuffer = new char[decoded.Length + 256];
+                try
+                {
+                    Span<char> tempBuffer = byteArray;
 
-                decoded.CopyTo(charBuffer.Span);
-                var length = decoded.Length;
+                    var decoded = headerEncoder.Decoder.Decode(onWire, tempBuffer);
+                    Memory<char> charBuffer = new char[decoded.Length + 256];
 
-                return charBuffer.Slice(0, length);
+                    decoded.CopyTo(charBuffer.Span);
+
+                    return charBuffer.Slice(0, decoded.Length);
+                }
+                catch (IndexOutOfRangeException) when (bufferSize < DecodeMaxBufferSize)
+                {
+                    // Buffer too small for decoded headers, grow and retry
+                    bufferSize *= 2;
+                }
+                finally
+                {
+                    ArrayPool<char>.Shared.Return(byteArray);
+                }
             }
-            finally
-            {
-                ArrayPool<char>.Shared.Return(byteArray);
-            }
+
+            throw new FluxzyException(
+                $"Decoded header size exceeds maximum allowed ({DecodeMaxBufferSize} chars)");
         }
     }
 }
