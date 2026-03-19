@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,7 +29,7 @@ namespace Fluxzy.Misc.Streams
         {
             _baseStream = baseStream;
             _closeOnDone = closeOnDone;
-            _destinations = listenerStreams.ToList();
+            _destinations = new List<Stream>(listenerStreams);
         }
 
         public override bool CanRead => _baseStream.CanRead;
@@ -97,8 +96,9 @@ namespace Fluxzy.Misc.Streams
 
             if (read == 0 && _closeOnDone) {
                 if (_destinations != null) {
-                    await Task.WhenAll(
-                        _destinations.Select(t => t.DisposeAsync().AsTask())).ConfigureAwait(false);
+                    foreach (var dest in _destinations) {
+                        await dest.DisposeAsync().ConfigureAwait(false);
+                    }
                 }
 
                 _destinations = null;
@@ -110,9 +110,11 @@ namespace Fluxzy.Misc.Streams
             }
             else {
                 if (_destinations != null) {
-                    await Task.WhenAll(
-                        _destinations.Select(t => t.WriteAsync(buffer.Slice(0, read), cancellationToken).AsTask()))
-                              .ConfigureAwait(false);
+                    var slice = buffer.Slice(0, read);
+
+                    foreach (var dest in _destinations) {
+                        await dest.WriteAsync(slice, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 

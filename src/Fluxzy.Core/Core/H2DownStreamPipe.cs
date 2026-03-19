@@ -56,6 +56,7 @@ namespace Fluxzy.Core
         };
 
         private readonly Channel<DataFrameEntry> _dataChannel;
+        private const int GatherBufferSize = 256 * 1024;
         private int _connectionWindow = 65535;
         private readonly SemaphoreSlim _writeSignal = new(0);
         private int _writeSignalState;
@@ -421,23 +422,32 @@ namespace Fluxzy.Core
                         didWork = true;
                     }
 
-                    // Phase 2: Drain data channel respecting connection window
-                    // Before each DATA frame, drain the ring buffer to ensure HEADERS
-                    // (written to ring buffer) are always sent before DATA (in channel)
-                    // for the same stream, even when both arrive mid-iteration.
+                    // Phase 2: Drain data channel respecting connection window.
+                    // Gather consecutive DATA frames into a single write to reduce syscalls.
+                    byte[]? gatherBuffer = null;
+                    var gatherOffset = 0;
+
                     while (_dataChannel.Reader.TryPeek(out var entry)) {
-                        // Interleave: send any pending control/HEADERS frames first
-                        _ringBuffer.GetReadableRegions(out var pri1, out var pri2, out var priTotal);
+                        // Interleave: flush gathered data and drain ring buffer if priority data exists
+                        if (_ringBuffer.ReadableCount > 0) {
+                            if (gatherOffset > 0) {
+                                await _writeStream.WriteAsync(gatherBuffer!.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
+                                gatherOffset = 0;
+                                didWork = true;
+                            }
 
-                        if (priTotal > 0) {
-                            if (pri1.Length > 0)
-                                await _writeStream.WriteAsync(pri1, token).ConfigureAwait(false);
+                            _ringBuffer.GetReadableRegions(out var pri1, out var pri2, out var priTotal);
 
-                            if (pri2.Length > 0)
-                                await _writeStream.WriteAsync(pri2, token).ConfigureAwait(false);
+                            if (priTotal > 0) {
+                                if (pri1.Length > 0)
+                                    await _writeStream.WriteAsync(pri1, token).ConfigureAwait(false);
 
-                            _ringBuffer.Advance(priTotal);
-                            didWork = true;
+                                if (pri2.Length > 0)
+                                    await _writeStream.WriteAsync(pri2, token).ConfigureAwait(false);
+
+                                _ringBuffer.Advance(priTotal);
+                                didWork = true;
+                            }
                         }
 
                         if (entry.FlowControlledBytes > 0) {
@@ -451,12 +461,41 @@ namespace Fluxzy.Core
 
                         _dataChannel.Reader.TryRead(out _); // consume the peeked entry
 
-                        await _writeStream.WriteAsync(
-                            entry.RentedBuffer.AsMemory(0, entry.Length), token).ConfigureAwait(false);
+                        // Single frame with nothing else queued — write directly, skip gather
+                        if (gatherOffset == 0 && !_dataChannel.Reader.TryPeek(out _)) {
+                            await _writeStream.WriteAsync(
+                                entry.RentedBuffer.AsMemory(0, entry.Length), token).ConfigureAwait(false);
+                            ArrayPool<byte>.Shared.Return(entry.RentedBuffer);
+                            didWork = true;
+                            break;
+                        }
 
+                        // Gather mode: accumulate frames for batched write
+                        gatherBuffer ??= ArrayPool<byte>.Shared.Rent(GatherBufferSize);
+
+                        if (gatherOffset + entry.Length > gatherBuffer.Length) {
+                            // Flush current batch before it overflows
+                            if (gatherOffset > 0) {
+                                await _writeStream.WriteAsync(gatherBuffer.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
+                                gatherOffset = 0;
+                                didWork = true;
+                            }
+                        }
+
+                        entry.RentedBuffer.AsSpan(0, entry.Length).CopyTo(gatherBuffer.AsSpan(gatherOffset));
+                        gatherOffset += entry.Length;
                         ArrayPool<byte>.Shared.Return(entry.RentedBuffer);
                         didWork = true;
                     }
+
+                    // Flush remaining gathered data
+                    if (gatherOffset > 0) {
+                        await _writeStream.WriteAsync(gatherBuffer!.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
+                        didWork = true;
+                    }
+
+                    if (gatherBuffer != null)
+                        ArrayPool<byte>.Shared.Return(gatherBuffer);
 
                     // Phase 3: Flush
                     if (didWork)
@@ -557,8 +596,6 @@ namespace Fluxzy.Core
 
             var remoteMaxFrameSize = _h2StreamSetting.Remote.MaxFrameSize;
 
-            rsBuffer.Ensure(remoteMaxFrameSize + 9);
-
             while (true)
             {
                 var booked = await worker.BookWindowSize(remoteMaxFrameSize, token).ConfigureAwait(false);
@@ -571,12 +608,16 @@ namespace Fluxzy.Core
 
                 var bodySize = Math.Min(booked, remoteMaxFrameSize);
 
+                // Rent buffer upfront; read body directly at offset 9 (after frame header)
+                var rentedBuffer = ArrayPool<byte>.Shared.Rent(bodySize + 9);
+
                 var read = await responseBodyStream
-                    .ReadAsync(rsBuffer.Memory.Slice(9, bodySize), token).ConfigureAwait(false);
+                    .ReadAsync(rentedBuffer.AsMemory(9, bodySize), token).ConfigureAwait(false);
 
                 if (read == 0)
                 {
-                    // EOF — refund booked window and break to send end-stream
+                    // EOF — return buffer, refund booked window, break to send end-stream
+                    ArrayPool<byte>.Shared.Return(rentedBuffer);
                     worker.RefundWindowSize(booked);
                     break;
                 }
@@ -588,14 +629,11 @@ namespace Fluxzy.Core
                     worker.RefundWindowSize(refund);
                 }
 
-                // Build DATA frame header
+                // Build DATA frame header directly in rented buffer
                 new DataFrame(HeaderFlags.None, read, streamIdentifier)
-                    .WriteHeaderOnly(rsBuffer.Buffer, read);
+                    .WriteHeaderOnly(rentedBuffer, read);
 
-                // Rent buffer, copy frame, enqueue to data channel
                 var frameLength = read + 9;
-                var rentedBuffer = ArrayPool<byte>.Shared.Rent(frameLength);
-                rsBuffer.Buffer.AsSpan(0, frameLength).CopyTo(rentedBuffer);
 
                 await _dataChannel.Writer.WriteAsync(
                     new DataFrameEntry(rentedBuffer, frameLength, read), token).ConfigureAwait(false);
