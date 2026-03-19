@@ -52,7 +52,7 @@ namespace Fluxzy.Clients.H2
             return _runningStreams.TryGetValue(streamIdentifier, out result);
         }
 
-        private StreamWorker CreateActiveStream(
+        private async ValueTask<StreamWorker> CreateActiveStreamAsync(
             Exchange exchange,
             CancellationToken callerCancellationToken,
             SemaphoreSlim ongoingStreamInit, CancellationTokenSource resetTokenSource)
@@ -60,7 +60,7 @@ namespace Fluxzy.Clients.H2
             if (_onError)
                 throw new InvalidOperationException("This connection is on error");
 
-            ongoingStreamInit.Wait(callerCancellationToken);
+            await ongoingStreamInit.WaitAsync(callerCancellationToken).ConfigureAwait(false);
 
             var streamId = Interlocked.Add(ref _lastStreamIdentifier, 2);
 
@@ -88,7 +88,8 @@ namespace Fluxzy.Clients.H2
             if (!_maxConcurrentStreamBarrier.Wait(TimeSpan.Zero))
                 await _maxConcurrentStreamBarrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
 
-            var res = CreateActiveStream(exchange, callerCancellationToken, ongoingStreamInit, resetTokenSource);
+            var res = await CreateActiveStreamAsync(exchange, callerCancellationToken, ongoingStreamInit, resetTokenSource)
+                            .ConfigureAwait(false);
 
             return res;
         }

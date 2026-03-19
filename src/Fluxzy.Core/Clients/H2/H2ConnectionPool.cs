@@ -289,22 +289,42 @@ namespace Fluxzy.Clients.H2
 
             try {
                 var tasks = new List<WriteTask>();
+                var otherTasks = new List<WriteTask>();
 
                 while (!token.IsCancellationRequested) {
                     tasks.Clear();
+                    otherTasks.Clear();
 
                     if (_writerChannel == null)
                         break;
 
                     if (_writerChannel.Reader.TryReadAll(tasks)) {
-                        var windowUpdateTasks = tasks.Where(t => t.FrameType == H2FrameType.WindowUpdate).ToArray();
+                        // Separate window updates from other frames
+                        var windowUpdateCount = 0;
+                        var totalOtherSize = 0;
 
-                        if (windowUpdateTasks.Length > 0) {
-                            var bufferLength = windowUpdateTasks.Length * 13;
+                        for (var i = 0; i < tasks.Count; i++) {
+                            var task = tasks[i];
+                            if (task.FrameType == H2FrameType.WindowUpdate) {
+                                windowUpdateCount++;
+                            }
+                            else {
+                                otherTasks.Add(task);
+                                totalOtherSize += task.BufferBytes.Length;
+                            }
+                        }
+
+                        // Batch window updates into single write
+                        if (windowUpdateCount > 0) {
+                            var bufferLength = windowUpdateCount * 13;
                             var heapBuffer = ArrayPool<byte>.Shared.Rent(bufferLength);
                             var memoryBuffer = new Memory<byte>(heapBuffer).Slice(0, bufferLength);
 
-                            foreach (var writeTask in windowUpdateTasks) {
+                            for (var i = 0; i < tasks.Count; i++) {
+                                var writeTask = tasks[i];
+                                if (writeTask.FrameType != H2FrameType.WindowUpdate)
+                                    continue;
+
                                 new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
                                     .Write(memoryBuffer.Span);
 
@@ -319,37 +339,56 @@ namespace Fluxzy.Clients.H2
                             ArrayPool<byte>.Shared.Return(heapBuffer);
                         }
 
-                        var count = 0;
-                        var totalSize = 0;
+                        // Sort non-window-update tasks in-place by priority
+                        if (otherTasks.Count > 1) {
+                            otherTasks.Sort(static (a, b) => {
+                                var aIsData = a.FrameType == H2FrameType.Headers || a.FrameType == H2FrameType.Data;
+                                var bIsData = b.FrameType == H2FrameType.Headers || b.FrameType == H2FrameType.Data;
 
-                        // TODO improve the priority rule 
-                        foreach (var writeTask in tasks
-                                                  .Where(t => t.FrameType != H2FrameType.WindowUpdate)
-                                                  .OrderBy(
-                                                      r => r.FrameType == H2FrameType.Headers ||
-                                                           r.FrameType == H2FrameType.Data)
-                                                  .ThenBy(r => r.StreamDependency == 0)
-                                                  .ThenBy(r => r.StreamIdentifier)
-                                                  .ThenBy(r => r.Priority)
-                                ) {
+                                var cmp = aIsData.CompareTo(bIsData);
+                                if (cmp != 0) return cmp;
+
+                                cmp = (a.StreamDependency == 0).CompareTo(b.StreamDependency == 0);
+                                if (cmp != 0) return cmp;
+
+                                cmp = a.StreamIdentifier.CompareTo(b.StreamIdentifier);
+                                if (cmp != 0) return cmp;
+
+                                return a.Priority.CompareTo(b.Priority);
+                            });
+                        }
+
+                        // Batch all non-window-update frames into single write
+                        if (otherTasks.Count > 0) {
+                            var batchBuffer = ArrayPool<byte>.Shared.Rent(totalOtherSize);
+
                             try {
+                                var offset = 0;
+
+                                for (var i = 0; i < otherTasks.Count; i++) {
+                                    var writeTask = otherTasks[i];
+                                    writeTask.BufferBytes.Span.CopyTo(batchBuffer.AsSpan(offset));
+                                    offset += writeTask.BufferBytes.Length;
+                                }
 
                                 await _baseStream
-                                      .WriteAsync(writeTask.BufferBytes, token)
+                                      .WriteAsync(batchBuffer, 0, totalOtherSize, token)
                                       .ConfigureAwait(false);
 
-                                _logger.OutgoingFrame(writeTask.BufferBytes);
-
-                                totalSize += writeTask.BufferBytes.Length;
-
-                                count++;
-
-                                writeTask.OnComplete(null);
+                                for (var i = 0; i < otherTasks.Count; i++) {
+                                    _logger.OutgoingFrame(otherTasks[i].BufferBytes);
+                                    otherTasks[i].OnComplete(null);
+                                }
                             }
                             catch (Exception ex) when (ex is SocketException || ex is IOException) {
-                                writeTask.OnComplete(ex);
+                                for (var i = 0; i < otherTasks.Count; i++) {
+                                    otherTasks[i].OnComplete(ex);
+                                }
 
                                 throw;
+                            }
+                            finally {
+                                ArrayPool<byte>.Shared.Return(batchBuffer);
                             }
                         }
 
