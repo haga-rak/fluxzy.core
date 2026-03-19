@@ -71,6 +71,8 @@ namespace Fluxzy.Core
         private bool _disposed;
         private bool _goAwayReceived;
         private H2ErrorCode _goAwayErrorCode;
+        private int _highestAcceptedStreamId;
+        private bool _goAwaySent;
 
         public H2DownStreamPipe(
             IIdProvider idProvider,
@@ -173,6 +175,18 @@ namespace Fluxzy.Core
             WriteSmallFrame(buffer, 9 + 4);
         }
 
+        private void WriteGoAway(H2ErrorCode errorCode)
+        {
+            if (_goAwaySent)
+                return;
+
+            _goAwaySent = true;
+
+            Span<byte> buffer = stackalloc byte[9 + 8];
+            new GoAwayFrame(_highestAcceptedStreamId, errorCode).Write(buffer);
+            WriteSmallFrame(buffer, 9 + 8);
+        }
+
         private void WriteAck()
         {
             _ringBuffer.Write(H2Helper.SettingAckBuffer);
@@ -220,6 +234,16 @@ namespace Fluxzy.Core
         {
             _goAwayReceived = true;
             _goAwayErrorCode = errorCode;
+
+            if (errorCode != H2ErrorCode.NoError && DebugContext.EnableDumpStackTraceOn502)
+                Console.Error.WriteLine($"H2 downstream GO_AWAY received ({RequestedAuthority}): errorCode={errorCode}, lastStreamId={lastStreamId}");
+
+            foreach (var (streamId, worker) in _currentStreams) {
+                if (streamId > lastStreamId) {
+                    if (_currentStreams.TryRemove(streamId, out _))
+                        worker.Dispose();
+                }
+            }
         }
 
         private void CheckoutServerStreamWorker(ServerStreamWorker streamWorker)
@@ -252,7 +276,12 @@ namespace Fluxzy.Core
                     }
 
                     if (frame.BodyType == H2FrameType.Settings) {
-                        var sendAck = H2Helper.ProcessSettingFrame(_h2StreamSetting, frame);
+                        var sendAck = H2Helper.ProcessSettingFrame(_h2StreamSetting, frame, out var fatalError);
+
+                        if (fatalError.HasValue) {
+                            WriteGoAway(fatalError.Value);
+                            break;
+                        }
 
                         if (sendAck)
                         {
@@ -297,6 +326,9 @@ namespace Fluxzy.Core
                             _h2StreamSetting, _logger);
 
                         _currentStreams.TryAdd(frame.StreamIdentifier, worker);
+
+                        if (frame.StreamIdentifier > _highestAcceptedStreamId)
+                            _highestAcceptedStreamId = frame.StreamIdentifier;
                     }
 
                     if (frame.BodyType == H2FrameType.PushPromise) {
@@ -358,6 +390,10 @@ namespace Fluxzy.Core
             catch (Exception ex) {
                 if (DebugContext.EnableDumpStackTraceOn502)
                     Console.Error.WriteLine($"H2 downstream read loop error ({RequestedAuthority}): {ex}");
+
+                try { WriteGoAway(H2ErrorCode.InternalError); }
+                catch { /* best-effort */ }
+
                 throw;
             }
             finally  {
@@ -470,7 +506,7 @@ namespace Fluxzy.Core
 
         public async ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token)
         {
-            if (_disposed || _goAwayReceived || _readHalted || _writeHalted)
+            if (_disposed || _goAwayReceived || _goAwaySent || _readHalted || _writeHalted)
                 return null;
 
             try {
@@ -621,6 +657,11 @@ namespace Fluxzy.Core
                 return;
 
             _disposed = true;
+
+            if (!_goAwaySent && !_writeHalted) {
+                try { WriteGoAway(H2ErrorCode.NoError); }
+                catch { /* best-effort */ }
+            }
 
             _mainLoopTokenSource.Cancel();
             _ringBuffer.Complete();
