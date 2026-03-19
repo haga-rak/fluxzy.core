@@ -12,13 +12,13 @@ namespace Fluxzy.Clients.H2
     {
         private readonly H2Logger _logger;
 
-        // Single mutex for BOTH window size and waiters to avoid lost wakeups.
+        // Mutex for the waiter queue only. The value field uses lock-free CAS.
         private readonly object _sync = new();
 
         // FIFO of async waiters that want "some" window (they re-check on wake).
         private readonly LinkedList<TaskCompletionSource<bool>> _waiters = new();
 
-        // Protected by _sync.
+        // Updated via Interlocked.CompareExchange — no monitor lock on the fast path.
         private int _availableWindowSize;
 
         public WindowSizeHolder(
@@ -34,17 +34,7 @@ namespace Fluxzy.Clients.H2
 
         public int InitialWindowSize { get; private set; }
 
-        public int AvailableWindowSize
-        {
-            get
-            {
-                lock (_sync) return _availableWindowSize;
-            }
-            private set
-            {
-                lock (_sync) _availableWindowSize = value;
-            }
-        }
+        public int AvailableWindowSize => Volatile.Read(ref _availableWindowSize);
 
         public int StreamIdentifier { get; }
 
@@ -64,50 +54,68 @@ namespace Fluxzy.Clients.H2
 
         /// <summary>
         /// Adds (or subtracts) to the available window size, saturating at int.MaxValue.
-        /// Wakes waiters only when we cross from 0 to &gt; 0 to avoid needless stampedes.
+        /// Uses lock-free CAS for the value; acquires lock only to signal ONE waiter.
+        /// Wakes a single waiter when we cross from 0 to &gt; 0; that waiter cascades
+        /// to the next if window remains after booking, avoiding thundering herd.
         /// </summary>
         public void UpdateWindowSize(int windowSizeIncrement)
         {
             _logger.Trace(this, windowSizeIncrement);
 
-            List<TaskCompletionSource<bool>>? toRelease = null;
+            // Lock-free CAS update of the value.
+            int before, after;
+            while (true)
+            {
+                before = Volatile.Read(ref _availableWindowSize);
+                long afterLong = (long)before + windowSizeIncrement;
+
+                if (afterLong > int.MaxValue)
+                    afterLong = int.MaxValue;
+
+                if (afterLong < 0)
+                    afterLong = 0;
+
+                after = (int)afterLong;
+
+                if (Interlocked.CompareExchange(ref _availableWindowSize, after, before) == before)
+                    break;
+            }
+
+            // Signal ONE waiter if we crossed from ≤0 to >0.
+            if (before <= 0 && after > 0)
+            {
+                WakeOneWaiter();
+            }
+        }
+
+        /// <summary>
+        /// Dequeues and completes the first waiter in FIFO order.
+        /// Called when window becomes available so exactly one waiter wakes up.
+        /// After that waiter books its share, it cascades to the next if window remains.
+        /// </summary>
+        private void WakeOneWaiter()
+        {
+            TaskCompletionSource<bool>? toRelease = null;
 
             lock (_sync)
             {
-                long before = _availableWindowSize;
-                long after = before + (long)windowSizeIncrement;
-
-                if (after > int.MaxValue) 
-                    after = int.MaxValue;
-
-                // Window size shouldn't go below 0 for our booking logic; clamp.
-
-                if (after < 0)
-                    after = 0;
-
-                _availableWindowSize = (int)after;
-
-                // Only signal when crossing 0 -> >0 and there are waiters.
-                if (before <= 0 && after > 0 && _waiters.Count > 0)
+                if (_waiters.Count > 0)
                 {
-                    toRelease = new List<TaskCompletionSource<bool>>(_waiters.Count);
-                    foreach (var w in _waiters)
-                        toRelease.Add(w);
-                    _waiters.Clear();
+                    toRelease = _waiters.First!.Value;
+                    _waiters.RemoveFirst();
                 }
             }
 
-            // Complete outside lock.
-            if (toRelease is not null)
-            {
-                foreach (var tcs in toRelease)
-                    tcs.TrySetResult(true);
-            }
+            // Complete outside lock to avoid holding lock during continuation.
+            toRelease?.TrySetResult(true);
         }
 
         /// <summary>
         /// Attempts to book up to requestedLength bytes of window.
         /// Returns 0 if canceled or if requestedLength == 0.
+        /// Fast path is lock-free (CAS); slow path uses lock for waiter queue only.
+        /// After a successful booking, cascades a wake to the next waiter if
+        /// window remains, ensuring fair progress without thundering herd.
         /// </summary>
         public async ValueTask<int> BookWindowSize(int requestedLength, CancellationToken cancellationToken)
         {
@@ -118,38 +126,55 @@ namespace Fluxzy.Clients.H2
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Fast path under lock: grant immediately if anything is available.
-                lock (_sync)
+                // Lock-free fast path: CAS to atomically book available window.
                 {
-                    var maxAvailable = Math.Min(requestedLength, _availableWindowSize);
-                    if (maxAvailable > 0)
+                    var current = Volatile.Read(ref _availableWindowSize);
+                    if (current > 0)
                     {
-                        _availableWindowSize -= maxAvailable;
-                        _logger.Trace(this, -maxAvailable);
-                        return maxAvailable;
-                    }
+                        var grant = Math.Min(requestedLength, current);
+                        if (Interlocked.CompareExchange(ref _availableWindowSize, current - grant, current) == current)
+                        {
+                            _logger.Trace(this, -grant);
 
-                    // If nothing is available, fall through to enqueue a waiter (outside the lock we await).
+                            // Cascade: if window remains after our booking, wake the next waiter.
+                            if (current - grant > 0)
+                                WakeOneWaiter();
+
+                            return grant;
+                        }
+                        continue; // CAS failed (concurrent modification), retry fast path.
+                    }
                 }
 
-                // Slow path: enqueue and await notification that window became available.
-                TaskCompletionSource<bool> waiter = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                LinkedListNode<TaskCompletionSource<bool>>? node;
-
+                // Slow path: enqueue waiter and await notification that window became available.
                 CancellationTokenRegistration ctr = default;
+                TaskCompletionSource<bool> waiter;
 
                 lock (_sync)
                 {
-                    // Re-check under the same lock in case window became available between the two lock sections.
-                    var maxAvailable = Math.Min(requestedLength, _availableWindowSize);
-                    if (maxAvailable > 0)
+                    // Re-check under lock — must be atomic with waiter addition to prevent lost wakeups.
+                    // Use CAS for the value to stay compatible with lock-free UpdateWindowSize.
+                    var current = Volatile.Read(ref _availableWindowSize);
+                    if (current > 0)
                     {
-                        _availableWindowSize -= maxAvailable;
-                        _logger.Trace(this, -maxAvailable);
-                        return maxAvailable;
+                        var grant = Math.Min(requestedLength, current);
+                        if (Interlocked.CompareExchange(ref _availableWindowSize, current - grant, current) == current)
+                        {
+                            _logger.Trace(this, -grant);
+
+                            if (current - grant > 0)
+                                WakeOneWaiter();
+
+                            return grant;
+                        }
+                        // CAS failed — another thread modified the value concurrently.
+                        // Exit lock and retry the outer loop (fast path will pick it up).
+                        continue;
                     }
 
-                    node = _waiters.AddLast(waiter);
+                    // Window is exhausted — create and enqueue waiter.
+                    waiter = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    var node = _waiters.AddLast(waiter);
 
                     if (cancellationToken.CanBeCanceled)
                     {

@@ -30,7 +30,7 @@ namespace Fluxzy.Clients.H2.Frames
                 Exclusive = bodyBytes.Span[0] >> 7 == 1;
                 StreamDependency = BinaryPrimitives.ReadInt32BigEndian(bodyBytes.Span) & 0x7FFFFFFF;
                 Weight = bodyBytes.Span[4];
-                bodyBytes.Slice(5);
+                bodyBytes = bodyBytes.Slice(5);
             }
             else {
                 Exclusive = false;

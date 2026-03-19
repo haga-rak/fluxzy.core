@@ -595,11 +595,18 @@ namespace Fluxzy.Core
                     }
 
                     if (exchange.Response.Header.ContentLength == -1 &&
-                        responseBodyStream != null)
+                        responseBodyStream != null &&
+                        !downStreamPipe.SupportsMultiplexing)
                     // When content-length is not present (either from HTTP/2 server or due to body substitution),
-                    // we force transfer-encoding chunked to inform the downstream receiver of the content body end
+                    // we force transfer-encoding chunked to inform the HTTP/1.1 downstream receiver of the content body end.
                     {
                         exchange.Response.Header.ForceTransferChunked();
+                    }
+
+                    if (downStreamPipe.SupportsMultiplexing)
+                    // HTTP/2 forbids transfer-encoding (RFC 9113 §8.2.2) — strip it for H2 downstream.
+                    {
+                        exchange.Response.Header.RemoveHeader("transfer-encoding");
                     }
 
                     foreach (var responseHeaderAlteration in exchange.Context.ResponseHeaderAlterations)

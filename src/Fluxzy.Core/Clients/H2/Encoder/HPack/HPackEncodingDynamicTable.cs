@@ -1,5 +1,6 @@
-﻿// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
+// Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fluxzy.Clients.H2.Encoder.Utils;
@@ -8,54 +9,59 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 {
     public class HPackEncodingDynamicTable
     {
-        private readonly Dictionary<int, HeaderField> _entries = new();
+        // Ring buffer for entries (FIFO order: oldest at _head, newest at _tail-1)
+        private HeaderField[] _ring;
+        private int _head;  // index of oldest entry
+        private int _count; // number of live entries
 
         private readonly Dictionary<HeaderField, int>
-            _reverseEntries = new(new TableEntryComparer()); // only used for evicting
+            _reverseEntries = new(new TableEntryComparer());
 
         private int _currentMaxSize;
         private int _currentSize;
 
-        private int _internalIndex = -1;
-        private int _oldestElementInternalIndex;
+        // Monotonically increasing insertion index (used as value in _reverseEntries)
+        private int _insertionIndex;
 
         public HPackEncodingDynamicTable(int initialSize)
         {
             _currentMaxSize = initialSize;
+            _ring = new HeaderField[Math.Max(16, initialSize / 32)];
         }
 
         public HeaderField[] GetContent()
         {
-            return _entries.Values.OrderBy(r => r.Name.ToString()).ToArray();
+            var result = new HeaderField[_count];
+            for (var i = 0; i < _count; i++) {
+                result[i] = _ring[(_head + i) % _ring.Length];
+            }
+            return result.OrderBy(r => r.Name.ToString()).ToArray();
         }
 
-        private int EvictUntil(int toBeRemovedSize)
+        private void EvictUntil(int toBeRemovedSize)
         {
             var evictedSize = 0;
-            var i = 0;
 
-            for (i = _oldestElementInternalIndex; evictedSize < toBeRemovedSize; i++) {
-                if (!_entries.TryGetValue(i, out var tableEntry)) {
-                    _oldestElementInternalIndex = _internalIndex; // There's no more element on the list 
-
-                    return evictedSize;
-                }
-
-                var a = _entries.Remove(i);
-                var b = _reverseEntries.Remove(tableEntry);
-
-                _currentSize -= tableEntry.Size;
-                evictedSize += tableEntry.Size;
+            while (_count > 0 && evictedSize < toBeRemovedSize) {
+                var entry = _ring[_head];
+                _reverseEntries.Remove(entry);
+                _ring[_head] = default; // release reference
+                _currentSize -= entry.Size;
+                evictedSize += entry.Size;
+                _head = (_head + 1) % _ring.Length;
+                _count--;
             }
-
-            _oldestElementInternalIndex = i;
-
-            return evictedSize;
         }
 
-        private int ConvertIndexFromInternal(int internalIndex)
+        private int ConvertInsertionIndexToExternal(int insertionIdx)
         {
-            return _entries.Count - (internalIndex - _oldestElementInternalIndex) + 61;
+            // Newest entry = external index 62 (first dynamic table entry)
+            // The offset from newest: _insertionIndex - insertionIdx
+            // External index: 62 + offset = 62 + (_insertionIndex - insertionIdx)
+            // But _insertionIndex is already incremented after Add, so:
+            // the last inserted entry has insertionIdx = _insertionIndex - 1
+            // and should get external index 62.
+            return 62 + (_insertionIndex - 1 - insertionIdx);
         }
 
         public void UpdateMaxSize(int newMaxSize)
@@ -78,46 +84,57 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
 
             if (provisionalSize > _currentMaxSize) {
                 var spaceNeeded = provisionalSize - _currentMaxSize;
+                EvictUntil(spaceNeeded);
 
-                var evictedSize = EvictUntil(spaceNeeded);
-
-                // No decoding error.
-                // Inserting element larger than Table MAX SIZE cause the table to be emptied 
-                if (evictedSize < spaceNeeded) {
+                // Entry larger than table max size: empty the table
+                if (_currentSize + entry.Size > _currentMaxSize) {
                     _currentSize = 0;
-                    _entries.Clear();
-                    _internalIndex = -1;
-                    _oldestElementInternalIndex = 0;
-
-                    return _internalIndex;
+                    _count = 0;
+                    _head = 0;
+                    _reverseEntries.Clear();
+                    return -1;
                 }
             }
 
-            _currentSize += entry.Size;
-
-            _internalIndex += 1;
-
-            if (_entries.ContainsKey(_internalIndex) != _reverseEntries.ContainsKey(entry)) {
+            // Grow ring if full
+            if (_count == _ring.Length) {
+                GrowRing();
             }
 
-            _entries[_internalIndex] = entry;
-            _reverseEntries[entry] = _internalIndex;
+            var tail = (_head + _count) % _ring.Length;
+            _ring[tail] = entry;
+            _count++;
+            _currentSize += entry.Size;
 
-            return ConvertIndexFromInternal(_internalIndex);
+            var idx = _insertionIndex;
+            _insertionIndex++;
+
+            _reverseEntries[entry] = idx;
+
+            return ConvertInsertionIndexToExternal(idx);
+        }
+
+        private void GrowRing()
+        {
+            var newCapacity = _ring.Length * 2;
+            var newRing = new HeaderField[newCapacity];
+
+            for (var i = 0; i < _count; i++) {
+                newRing[i] = _ring[(_head + i) % _ring.Length];
+            }
+
+            _ring = newRing;
+            _head = 0;
         }
 
         public bool TryGet(in HeaderField entry, out int indexExternal)
         {
-            int indexInternal;
-
-            if (_reverseEntries.TryGetValue(entry, out indexInternal)) {
-                indexExternal = ConvertIndexFromInternal(indexInternal);
-
+            if (_reverseEntries.TryGetValue(entry, out var insertionIdx)) {
+                indexExternal = ConvertInsertionIndexToExternal(insertionIdx);
                 return true;
             }
 
             indexExternal = -1;
-
             return false;
         }
     }

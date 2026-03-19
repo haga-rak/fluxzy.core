@@ -101,7 +101,13 @@ namespace Fluxzy.Misc.Streams
 
         public ValueTask WriteEof()
         {
-            return WriteEof(null);
+            if (!_eof) {
+                _eof = true;
+
+                return _innerStream.WriteAsync(ChunkTerminator);
+            }
+
+            return default;
         }
 
         public ValueTask WriteEof(List<HeaderField>? trailers)

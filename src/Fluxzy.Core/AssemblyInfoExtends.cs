@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Fluxzy.Core.Pcap.Cli")]
 [assembly: InternalsVisibleTo("Fluxzy.Core.Pcap")]
 [assembly: InternalsVisibleTo("Fluxzy.Exec")]
+[assembly: InternalsVisibleTo("Fluxzy.Benchmarks")]
 
 // ReSharper disable once CheckNamespace
 namespace System.Runtime.CompilerServices

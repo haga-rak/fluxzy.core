@@ -63,7 +63,7 @@ namespace Fluxzy.Core
                     return true;
 
                 case SettingIdentifier.SettingsInitialWindowSize:
-                    setting.OverallWindowSize = settingFrame.Value;
+                    setting.Remote.WindowSize = settingFrame.Value;
 
                     return true;
 

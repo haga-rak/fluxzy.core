@@ -1,5 +1,4 @@
-﻿using BenchmarkDotNet.Running;
-using Fluxzy.Benchmarks.Pcap;
+using BenchmarkDotNet.Running;
 
 namespace Fluxzy.Benchmarks;
 
@@ -7,7 +6,6 @@ internal static class Program
 {
     public static void Main(string[] args)
     {
-        // var summary = BenchmarkRunner.Run<Md5VsSha256>();
-        var summary = BenchmarkRunner.Run<BlockMergeBenchmark>();
+        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
     }
 }

@@ -39,10 +39,17 @@ namespace Fluxzy.Clients.H2
 
                 var encodedHeader = Encoder.Encode(encodingJob.Data, buffer);
 
+                // Each frame adds a 9-byte header. Ensure the destination buffer
+                // is large enough for the HPACK data plus all frame headers.
+                var maxFrameSize = _streamSetting.Remote.MaxFrameSize;
+                var frameCount = (encodedHeader.Length / (maxFrameSize - 9)) + 1;
+                var requiredSize = encodedHeader.Length + (frameCount * 9);
+                destinationBuffer.Ensure(requiredSize);
+
                 var res = Packetizer.PacketizeHeader(
                     encodedHeader, destinationBuffer.Buffer,
                     endStream, encodingJob.StreamIdentifier,
-                    _streamSetting.Remote.MaxFrameSize, encodingJob.StreamDependency);
+                    maxFrameSize, encodingJob.StreamDependency);
 
                 return destinationBuffer.Memory.Slice(0, res.Length);
             }
