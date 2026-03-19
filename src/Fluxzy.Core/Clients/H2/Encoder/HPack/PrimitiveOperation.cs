@@ -17,7 +17,7 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
         {
         }
 
-        internal PrimitiveOperation(HuffmanCodec codec, int maxStringLength = 1024 * 16)
+        internal PrimitiveOperation(HuffmanCodec codec, int maxStringLength = 1024 * 128)
         {
             _codec = codec;
             _maxStringLength = maxStringLength;

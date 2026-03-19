@@ -285,6 +285,23 @@ namespace Fluxzy.Clients.H2
             if (_headerBuffer.IsEmpty)
                 _headerBuffer = new byte[Parent.Context.Setting.MaxHeaderSize];
 
+            var futureLength = _totalHeaderReceived + buffer.Length;
+
+            if (futureLength > _headerBuffer.Length) {
+                // Grow up to the negotiated MaxHeaderListSize
+                var maxAllowed = Parent.Context.Setting.Local.MaxHeaderListSize;
+
+                if (futureLength > maxAllowed)
+                    throw new H2Exception(
+                        $"Response header size ({futureLength}) exceeds negotiated maximum ({maxAllowed})",
+                        H2ErrorCode.FrameSizeError);
+
+                var newSize = Math.Min(Math.Max(futureLength, _headerBuffer.Length * 2), maxAllowed);
+                var newBuffer = new byte[newSize];
+                _headerBuffer.Slice(0, _totalHeaderReceived).CopyTo(newBuffer);
+                _headerBuffer = newBuffer;
+            }
+
             buffer.CopyTo(_headerBuffer.Slice(_totalHeaderReceived));
             _totalHeaderReceived += buffer.Length;
 
@@ -328,6 +345,22 @@ namespace Fluxzy.Clients.H2
         {
             if (_headerBuffer.IsEmpty)
                 _headerBuffer = new byte[Parent.Context.Setting.MaxHeaderSize];
+
+            var futureLength = _totalHeaderReceived + buffer.Length;
+
+            if (futureLength > _headerBuffer.Length) {
+                var maxAllowed = Parent.Context.Setting.Local.MaxHeaderListSize;
+
+                if (futureLength > maxAllowed)
+                    throw new H2Exception(
+                        $"Response trailer size ({futureLength}) exceeds negotiated maximum ({maxAllowed})",
+                        H2ErrorCode.FrameSizeError);
+
+                var newSize = Math.Min(Math.Max(futureLength, _headerBuffer.Length * 2), maxAllowed);
+                var newBuffer = new byte[newSize];
+                _headerBuffer.Slice(0, _totalHeaderReceived).CopyTo(newBuffer);
+                _headerBuffer = newBuffer;
+            }
 
             buffer.CopyTo(_headerBuffer.Slice(_totalHeaderReceived));
             _totalHeaderReceived += buffer.Length;
