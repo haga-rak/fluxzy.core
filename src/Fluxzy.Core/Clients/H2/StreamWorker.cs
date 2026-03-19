@@ -103,6 +103,11 @@ namespace Fluxzy.Clients.H2
                                             .BookWindowSize(streamWindow, cancellationToken)
                                             .ConfigureAwait(false);
 
+            // Refund the stream window for any bytes the overall window couldn't grant,
+            // otherwise they are permanently lost and the stream window gradually drains to zero.
+            if (overallWindow < streamWindow)
+                RemoteWindowSize.UpdateWindowSize(streamWindow - overallWindow);
+
             return overallWindow;
         }
 
