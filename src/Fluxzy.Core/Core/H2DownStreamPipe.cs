@@ -206,7 +206,7 @@ namespace Fluxzy.Core
         private void SendWindowUpdateFrame(int streamIdentifier, int length)
         {
             Span<byte> buffer = stackalloc byte[9 + 4];
-            var writtenLength = new WindowUpdateFrame(streamIdentifier, length).Write(buffer);
+            var writtenLength = new WindowUpdateFrame(length, streamIdentifier).Write(buffer);
             WriteSmallFrame(buffer, writtenLength);
         }
 

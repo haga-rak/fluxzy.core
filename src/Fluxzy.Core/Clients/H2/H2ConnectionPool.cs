@@ -304,22 +304,19 @@ namespace Fluxzy.Clients.H2
                             var heapBuffer = ArrayPool<byte>.Shared.Rent(bufferLength);
                             var memoryBuffer = new Memory<byte>(heapBuffer).Slice(0, bufferLength);
 
-                            try {
-                                foreach (var writeTask in windowUpdateTasks) {
-                                    new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
-                                        .Write(memoryBuffer.Span);
+                            foreach (var writeTask in windowUpdateTasks) {
+                                new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
+                                    .Write(memoryBuffer.Span);
 
-                                    memoryBuffer = memoryBuffer.Slice(13);
+                                memoryBuffer = memoryBuffer.Slice(13);
 
-                                    _logger.OutgoingWindowUpdate(writeTask.WindowUpdateSize,
-                                        writeTask.StreamIdentifier);
-                                }
-                            }
-                            finally {
-                                ArrayPool<byte>.Shared.Return(heapBuffer);
+                                _logger.OutgoingWindowUpdate(writeTask.WindowUpdateSize,
+                                    writeTask.StreamIdentifier);
                             }
 
                             await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
+
+                            ArrayPool<byte>.Shared.Return(heapBuffer);
                         }
 
                         var count = 0;
