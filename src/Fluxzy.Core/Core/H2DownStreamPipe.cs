@@ -466,9 +466,7 @@ namespace Fluxzy.Core
                     Interlocked.Exchange(ref _writeSignalState, 0);
 
                     // Double-check all sources before sleeping
-                    _ringBuffer.GetReadableRegions(out _, out _, out var checkTotal);
-
-                    if (checkTotal > 0)
+                    if (_ringBuffer.ReadableCount > 0)
                         continue;
 
                     if (_dataChannel.Reader.TryPeek(out _))
@@ -477,9 +475,7 @@ namespace Fluxzy.Core
                     // Check termination: both sources completed and empty
                     if (_ringBuffer.IsCompleted && _dataChannel.Reader.Completion.IsCompleted) {
                         // Final drain to catch any data that arrived between checks
-                        _ringBuffer.GetReadableRegions(out _, out _, out var lastCheck);
-
-                        if (lastCheck > 0 || _dataChannel.Reader.TryPeek(out _))
+                        if (_ringBuffer.ReadableCount > 0 || _dataChannel.Reader.TryPeek(out _))
                             continue;
 
                         break;
@@ -510,7 +506,10 @@ namespace Fluxzy.Core
                 return null;
 
             try {
-                var exchange = await _exchangeChannel.Reader.ReadAsync(token).ConfigureAwait(false);
+                if (_exchangeChannel.Reader.TryRead(out var exchange))
+                    return exchange;
+
+                exchange = await _exchangeChannel.Reader.ReadAsync(token).ConfigureAwait(false);
                 return exchange;
             }
             catch (ChannelClosedException) {

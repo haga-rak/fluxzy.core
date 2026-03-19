@@ -46,7 +46,7 @@ namespace Fluxzy.Core
         ///     Number of frames worth of window to book at once from the stream holder.
         ///     Reduces async calls when the stream window is large.
         /// </summary>
-        private const int BatchFrames = 2;
+        private const int BatchFrames = 4;
 
         public ServerStreamWorker(
             int streamIdentifier,

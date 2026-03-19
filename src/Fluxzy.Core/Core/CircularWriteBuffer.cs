@@ -46,6 +46,13 @@ namespace Fluxzy.Core
         }
 
         /// <summary>
+        ///     Lock-free check of how many bytes are available.
+        ///     Safe for the single consumer to call outside the lock
+        ///     (acquire-release ordering with producer writes inside the lock).
+        /// </summary>
+        public int ReadableCount => Volatile.Read(ref _count);
+
+        /// <summary>
         ///     Whether Complete() has been called.
         /// </summary>
         public bool IsCompleted
