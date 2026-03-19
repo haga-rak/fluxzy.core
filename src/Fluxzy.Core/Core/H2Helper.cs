@@ -25,10 +25,11 @@ namespace Fluxzy.Core
         /// <param name="frame"></param>
         /// <returns></returns>
         public static bool ProcessSettingFrame(
-            H2StreamSetting streamSetting, H2FrameReadResult frame)
+            H2StreamSetting streamSetting, H2FrameReadResult frame, out H2ErrorCode? fatalError)
         {
             var indexer = 0;
             var isAckFrame = false;
+            fatalError = null;
 
             while (frame.TryReadNextSetting(out var settingFrame, ref indexer)) {
                 if (settingFrame.Ack) {
@@ -36,6 +37,11 @@ namespace Fluxzy.Core
                 }
                 else {
                     ProcessIncomingSettingFrame(streamSetting, ref settingFrame);
+
+                    if (settingFrame.SettingIdentifier == SettingIdentifier.SettingsEnablePush
+                        && settingFrame.Value > 0) {
+                        fatalError = H2ErrorCode.ProtocolError;
+                    }
                 }
             }
 
@@ -50,12 +56,7 @@ namespace Fluxzy.Core
 
             switch (settingFrame.SettingIdentifier) {
                 case SettingIdentifier.SettingsEnablePush:
-                    if (settingFrame.Value > 0)
-
-                        // TODO Send a Goaway. Push not supported 
-                        return false;
-
-                    return true;
+                    return settingFrame.Value == 0;
 
                 case SettingIdentifier.SettingsMaxConcurrentStreams:
                     setting.Remote.SettingsMaxConcurrentStreams = settingFrame.Value;
