@@ -77,41 +77,77 @@ namespace Fluxzy.Clients.Dns
             return result;
         }
 
+        private const int MaxRetries = 2;
+
         private async Task<List<string?>> InternalGetDnsData(string type, string hostName)
         {
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_finalUrl}?name={hostName}&type={type}");
+            Exception? lastException = null;
 
-            requestMessage.Headers.Add("Accept", "application/dns-json");
-
-            using var response = await _client.SendAsync(requestMessage, HttpCompletionOption.ResponseContentRead)
-                                              .ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
+            for (var attempt = 0; attempt <= MaxRetries; attempt++)
             {
-                throw new FluxzyException("Failed to resolve DNS over HTTPS");
+                if (attempt > 0)
+                {
+                    await Task.Delay(100 * attempt).ConfigureAwait(false);
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_finalUrl}?name={hostName}&type={type}");
+
+                requestMessage.Headers.Add("Accept", "application/dns-json");
+
+                HttpResponseMessage response;
+
+                try
+                {
+                    response = await _client.SendAsync(requestMessage, HttpCompletionOption.ResponseContentRead)
+                                            .ConfigureAwait(false);
+                }
+                catch (HttpRequestException ex) when (attempt < MaxRetries)
+                {
+                    lastException = ex;
+                    continue;
+                }
+
+                using (response)
+                {
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (attempt < MaxRetries)
+                        {
+                            lastException = new FluxzyException(
+                                $"Failed to resolve DNS over HTTPS (HTTP {(int)response.StatusCode})");
+                            continue;
+                        }
+
+                        throw new FluxzyException(
+                            $"Failed to resolve DNS over HTTPS (HTTP {(int)response.StatusCode})");
+                    }
+
+                    await using var content = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+                    var dnsResponse = await JsonSerializer.DeserializeAsync<DnsOverHttpsResponse>(content)
+                                                         .ConfigureAwait(false);
+
+                    if (dnsResponse == null)
+                    {
+                        throw new ClientErrorException(0, "Invalid DNS response (null)");
+                    }
+
+                    if (dnsResponse.Status != 0)
+                    {
+                        throw new ClientErrorException(0,
+                            $"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
+                    }
+
+                    var result = dnsResponse.Answers
+                                            .Where(a => a.Type == 1)
+                                            .Select(a => a.Data)
+                                            .ToList();
+
+                    return result;
+                }
             }
 
-            await using var content = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-            var dnsResponse = await JsonSerializer.DeserializeAsync<DnsOverHttpsResponse>(content).ConfigureAwait(false);
-
-            if (dnsResponse == null)
-            {
-                throw new ClientErrorException(0, "Invalid DNS response (null)");
-            }
-
-            if (dnsResponse.Status != 0)
-            {
-                throw new ClientErrorException(0,
-                    $"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
-            }
-
-            var result = dnsResponse.Answers
-                                    .Where(a => a.Type == 1)
-                                    .Select(a => a.Data)
-                                    .ToList();
-
-            return result;
+            throw lastException ?? new FluxzyException("Failed to resolve DNS over HTTPS");
         }
 
         protected override async Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
