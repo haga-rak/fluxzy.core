@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers.Binary;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -131,6 +132,21 @@ namespace Fluxzy.Tests.UnitTests.Formatters
             Assert.Equal(2, frames.Count);
             Assert.False(frames[0].Compressed);
             Assert.False(frames[1].Compressed);
+        }
+
+        [Fact]
+        public async Task ResponseProducer_GrpcSamplesArchive_DoesNotThrow()
+        {
+            var producer = new ResponseProtobufProducer();
+            var archiveReaderProvider = new FromFileArchiveFileProvider("_Files/Archives/grpc-samples.fxzy");
+            var archiveReader = (await archiveReaderProvider.Get())!;
+            var producerFactory = new ProducerFactory(archiveReaderProvider, FormatSettings.Default);
+
+            foreach (var exchange in archiveReader.ReadAllExchanges()) {
+                var producerContext = (await producerFactory.GetProducerContext(exchange.Id))!;
+                var result = producer.Build(exchange, producerContext);
+                // Should not throw NullReferenceException
+            }
         }
 
         [Fact]
