@@ -644,12 +644,35 @@ namespace Fluxzy.Clients.H2
 
                 exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
-                await activeStream.ProcessRequestBody(exchange, buffer, streamCancellationToken).ConfigureAwait(false);
+                // Run request body upload and response processing concurrently.
+                // HTTP/2 allows the server to send response headers and data before
+                // the request body is complete (required for gRPC bidirectional streaming).
+                var requestBodyTask = activeStream.ProcessRequestBody(exchange, buffer, streamCancellationToken);
+
+                try {
+                    await activeStream.ProcessResponse(streamCancellationToken, this)
+                                      .ConfigureAwait(false);
+                }
+                catch {
+                    // Observe the request body task to prevent UnobservedTaskException
+                    try { await requestBodyTask.ConfigureAwait(false); }
+                    catch { /* already failing on ProcessResponse */ }
+
+                    throw;
+                }
+
+                // In bidirectional streaming (e.g., gRPC), the server may finish its
+                // response (and trigger stream disposal) before the request body is
+                // fully sent. Since we already have a valid response, suppress errors
+                // caused by early stream closure.
+                try {
+                    await requestBodyTask.ConfigureAwait(false);
+                }
+                catch when (exchange.Response.Header != null) {
+                    // Response already received — request body errors are benign
+                }
 
                 exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
-
-                await activeStream.ProcessResponse(streamCancellationToken, this)
-                                  .ConfigureAwait(false);
             }
             catch (OperationCanceledException opex) {
                 if (activeStream != null &&
