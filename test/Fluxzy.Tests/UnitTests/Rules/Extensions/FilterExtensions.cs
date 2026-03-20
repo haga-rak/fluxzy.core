@@ -173,6 +173,18 @@ namespace Fluxzy.Tests.UnitTests.Rules.Extensions
                     new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenResponseHasJsonBody()) };
 
             yield return
+                new object[] { typeof(ProtobufRequestFilter).FullName!,
+                    new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenRequestHasProtobufBody()) };
+
+            yield return
+                new object[] { typeof(ProtobufResponseFilter).FullName!,
+                    new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenResponseHasProtobufBody()) };
+
+            yield return
+                new object[] { typeof(ProtobufFilter).FullName!,
+                    new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenIsProtobuf()) };
+
+            yield return
                 new object[] { typeof(ResponseHeaderFilter).FullName!,
                     new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenResponseHeaderExists("responseheader")) };
 

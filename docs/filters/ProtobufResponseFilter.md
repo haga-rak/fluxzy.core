@@ -1,0 +1,68 @@
+## protobufResponseFilter
+
+### Description
+
+Select exchanges having protobuf response body. The content-type header is checked to determine if the content body is protobuf.
+
+### Evaluation scope
+
+Evaluation scope defines the timing where this filter will be applied. 
+
+{.alert .alert-info}
+:::
+**responseHeaderReceivedFromRemote** This scope occurs the moment fluxzy has done parsing the response header.
+:::
+
+### YAML configuration name
+
+    protobufResponseFilter
+
+### Settings
+
+This filter has no specific characteristic
+
+The following table describes the customizable properties available for this filter: 
+
+{.property-table .property-table-filter}
+:::
+| Property | Type | Description | DefaultValue |
+| :------- | :------- | :------- | -------- |
+| inverted | boolean | Negate the filter result | false |
+:::
+
+### Example of usage
+
+The following examples apply a comment to the filtered exchange
+
+Select only exchanges with protobuf response body.
+
+```yaml
+rules:
+- filter:
+    typeKind: ProtobufResponseFilter
+  actions:
+  - typeKind: ApplyCommentAction
+    comment: filter was applied
+```
+
+
+Select exchanges without protobuf response body.
+
+```yaml
+rules:
+- filter:
+    typeKind: ProtobufResponseFilter
+  actions:
+  - typeKind: ApplyCommentAction
+    comment: filter was applied
+```
+
+
+### .NET reference
+
+View definition of [ProtobufResponseFilter](https://docs.fluxzy.io/api/Fluxzy.Rules.Filters.ResponseFilters.ProtobufResponseFilter.html) for .NET integration.
+
+### See also
+
+This filter has no related filter
+
