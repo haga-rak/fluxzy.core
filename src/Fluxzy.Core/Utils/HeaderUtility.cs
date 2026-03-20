@@ -113,57 +113,105 @@ namespace Fluxzy.Utils
 
         private static string? SolveSimplifiedContentType(ReadOnlySpan<char> headerValue)
         {
+            // gRPC (check before protobuf since grpc+proto is common)
+            if (headerValue.Contains("grpc", StringComparison.OrdinalIgnoreCase))
+                return "grpc";
+
+            // Structured data
             if (headerValue.Contains("json", StringComparison.OrdinalIgnoreCase))
                 return "json";
+            if (headerValue.Contains("protobuf", StringComparison.OrdinalIgnoreCase))
+                return "pbuf";
+            if (headerValue.Contains("yaml", StringComparison.OrdinalIgnoreCase))
+                return "yaml";
+            if (headerValue.Contains("csv", StringComparison.OrdinalIgnoreCase))
+                return "csv";
+            if (headerValue.Contains("msgpack", StringComparison.OrdinalIgnoreCase))
+                return "msgpack";
+            if (headerValue.Contains("cbor", StringComparison.OrdinalIgnoreCase))
+                return "cbor";
+            if (headerValue.Contains("graphql", StringComparison.OrdinalIgnoreCase))
+                return "graphql";
 
+            // Web content
             if (headerValue.Contains("html", StringComparison.OrdinalIgnoreCase))
                 return "html";
-
-            if (headerValue.Contains("css", StringComparison.OrdinalIgnoreCase))
-                return "css";
-
-            if (headerValue.Contains("svg", StringComparison.OrdinalIgnoreCase))
-                return "img";
-
-            if (headerValue.Contains("xml", StringComparison.OrdinalIgnoreCase))
-                return "xml";
-
             if (headerValue.Contains("javascript", StringComparison.OrdinalIgnoreCase))
                 return "js";
+            if (headerValue.Contains("css", StringComparison.OrdinalIgnoreCase))
+                return "css";
+            if (headerValue.Contains("wasm", StringComparison.OrdinalIgnoreCase))
+                return "wasm";
+            if (headerValue.Contains("event-stream", StringComparison.OrdinalIgnoreCase))
+                return "sse";
 
-            if (headerValue.Contains("font", StringComparison.OrdinalIgnoreCase))
-                return "font";
-
+            // Images (svg before generic image, and before xml)
+            if (headerValue.Contains("svg", StringComparison.OrdinalIgnoreCase))
+                return "img";
             if (headerValue.Contains("image", StringComparison.OrdinalIgnoreCase))
                 return "img";
 
+            // XML (after svg+xml and html checks)
+            if (headerValue.Contains("xml", StringComparison.OrdinalIgnoreCase))
+                return "xml";
+
+            // Media
             if (headerValue.Contains("audio", StringComparison.OrdinalIgnoreCase))
                 return "audio";
-
             if (headerValue.Contains("video", StringComparison.OrdinalIgnoreCase))
                 return "video";
+            if (headerValue.Contains("mpegurl", StringComparison.OrdinalIgnoreCase))
+                return "hls";
 
+            // Fonts
+            if (headerValue.Contains("font", StringComparison.OrdinalIgnoreCase))
+                return "font";
+
+            // Forms
+            if (headerValue.Contains("multipart", StringComparison.OrdinalIgnoreCase))
+                return "multipart";
+            if (headerValue.Contains("form-urlencoded", StringComparison.OrdinalIgnoreCase))
+                return "form";
+
+            // Documents
             if (headerValue.Contains("pdf", StringComparison.OrdinalIgnoreCase))
                 return "pdf";
+            if (headerValue.Contains("wordprocessingml", StringComparison.OrdinalIgnoreCase)
+                || headerValue.Contains("msword", StringComparison.OrdinalIgnoreCase))
+                return "doc";
+            if (headerValue.Contains("spreadsheetml", StringComparison.OrdinalIgnoreCase)
+                || headerValue.Contains("ms-excel", StringComparison.OrdinalIgnoreCase))
+                return "xls";
+            if (headerValue.Contains("presentationml", StringComparison.OrdinalIgnoreCase)
+                || headerValue.Contains("ms-powerpoint", StringComparison.OrdinalIgnoreCase))
+                return "ppt";
 
-            if (headerValue.Contains("protobuf", StringComparison.OrdinalIgnoreCase))
-                return "pbuf";
-
+            // Text
             if (headerValue.Contains("text/plain", StringComparison.OrdinalIgnoreCase))
                 return "text";
 
-            if (headerValue.Contains("xul", StringComparison.OrdinalIgnoreCase))
-                return "xul";
-
+            // Archives
             if (headerValue.Contains("zip", StringComparison.OrdinalIgnoreCase))
                 return "zip";
+            if (headerValue.Contains("gzip", StringComparison.OrdinalIgnoreCase))
+                return "gz";
+            if (headerValue.Contains("tar", StringComparison.OrdinalIgnoreCase))
+                return "tar";
 
+            // DNS over HTTPS
+            if (headerValue.Contains("dns-message", StringComparison.OrdinalIgnoreCase))
+                return "dns";
+
+            // Binary fallback
             if (headerValue.Contains("octet", StringComparison.OrdinalIgnoreCase))
                 return "bin";
 
+            // Legacy
+            if (headerValue.Contains("xul", StringComparison.OrdinalIgnoreCase))
+                return "xul";
+
             return null;
         }
-
         public static bool TryParseKeepAlive(ReadOnlySpan<char> keepAliveValue, out int max, out int timeout)
         {
             max = -1;
