@@ -81,8 +81,12 @@ namespace Fluxzy.Clients.H2
                     break;
             }
 
-            // Signal ONE waiter if we crossed from ≤0 to >0.
-            if (before <= 0 && after > 0)
+            // Signal ONE waiter whenever window is positive — not just on the
+            // 0→positive transition.  When two concurrent UpdateWindowSize calls
+            // race, only one observes before≤0; the other sees before>0 and skips
+            // the wake even though a waiter may still be queued.  WakeOneWaiter is
+            // cheap (lock + empty-check) when no waiters exist.
+            if (after > 0)
             {
                 WakeOneWaiter();
             }

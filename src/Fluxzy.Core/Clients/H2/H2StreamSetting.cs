@@ -13,7 +13,9 @@ namespace Fluxzy.Clients.H2
             SettingsMaxConcurrentStreams = 256
         };
 
-        public PeerSetting Remote { get; set; } = new();
+        public PeerSetting Remote { get; set; } = new() {
+            WindowSize = 65535 // HTTP/2 spec default (RFC 9113 §6.5.2)
+        };
 
         public int SettingsHeaderTableSize { get; set; } = 65536;
 

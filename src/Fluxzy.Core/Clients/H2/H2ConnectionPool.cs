@@ -107,7 +107,7 @@ namespace Fluxzy.Clients.H2
             if (_initDone)
                 return;
 
-            _initDone = false;
+            _initDone = true;
 
             //_baseStream.Write(Preface);
             SettingHelper.WriteWelcomeSettings(H2Constants.Preface, _baseStream, Setting, _logger);

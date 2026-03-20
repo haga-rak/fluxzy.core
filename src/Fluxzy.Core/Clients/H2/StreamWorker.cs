@@ -48,7 +48,7 @@ namespace Fluxzy.Clients.H2
             _resetTokenSource = resetTokenSource;
 
             RemoteWindowSize = new WindowSizeHolder(parent.Context.Logger,
-                parent.Context.Setting.OverallWindowSize,
+                parent.Context.Setting.Remote.WindowSize,
                 streamIdentifier);
 
             _logger = parent.Context.Logger;
