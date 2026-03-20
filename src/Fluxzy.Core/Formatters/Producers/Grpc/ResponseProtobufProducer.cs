@@ -101,7 +101,7 @@ namespace Fluxzy.Formatters.Producers.Grpc
             var statusHeader = trailers
                 .FirstOrDefault(h => h.Name.Span.Equals("grpc-status", StringComparison.OrdinalIgnoreCase));
 
-            if (statusHeader.Name.Length > 0) {
+            if (statusHeader != null) {
                 var statusStr = statusHeader.Value.ToString();
 
                 if (int.TryParse(statusStr, out var status))
@@ -111,7 +111,7 @@ namespace Fluxzy.Formatters.Producers.Grpc
             var messageHeader = trailers
                 .FirstOrDefault(h => h.Name.Span.Equals("grpc-message", StringComparison.OrdinalIgnoreCase));
 
-            if (messageHeader.Name.Length > 0)
+            if (messageHeader != null)
                 result.GrpcMessage = messageHeader.Value.ToString();
         }
 
