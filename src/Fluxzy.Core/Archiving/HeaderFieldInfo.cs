@@ -42,13 +42,15 @@ namespace Fluxzy
 
         public HeaderFieldInfo(HeaderField original, bool doNotForwardConnectionHeader = false)
         {
-            Name = original.Name;
-            Value = original.Value;
-            
+            // Materialize pooled Memory<char> slices into string-backed memory
+            // to prevent use-after-free when the ExchangeScope returns the buffer to the pool
+            Name = original.Name.ToString().AsMemory();
+            Value = original.Value.ToString().AsMemory();
+
             Forwarded = !Http11Constants.IsNonForwardableHeader(original.Name);
 
             if (doNotForwardConnectionHeader && Forwarded && Http11Constants.UnEditableHeaders.Contains(Name)) {
-                Forwarded = false; 
+                Forwarded = false;
             }
         }
 
