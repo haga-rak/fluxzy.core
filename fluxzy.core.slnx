@@ -1,0 +1,71 @@
+<Solution>
+  <Folder Name="/build/">
+    <Project Path="build/Fluxzy.Build/Fluxzy.Build.csproj" />
+  </Folder>
+  <Folder Name="/docker/">
+    <File Path=".dockerignore" />
+    <File Path="docker/Dockerfile.alpine-x64" />
+    <File Path="docker/entrypoint.sh" />
+  </Folder>
+  <Folder Name="/Docs/">
+    <File Path="docs/README.md" />
+    <Project Path="src/Fluxzy.Tools.DocGen/Fluxzy.Tools.DocGen.csproj" />
+  </Folder>
+  <Folder Name="/Pcap/">
+    <Project Path="src/Fluxzy.Core.Pcap.Cli/Fluxzy.Core.Pcap.Cli.csproj" />
+    <Project Path="src/Fluxzy.Core.Pcap/Fluxzy.Core.Pcap.csproj" />
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="examples/Samples.No001.RecordAsHarOrFxzy/Samples.No001.RecordAsHarOrFxzy.csproj" />
+    <Project Path="examples/Samples.No002.Filtering/Samples.No002.Filtering.csproj" />
+    <Project Path="examples/Samples.No003.RawCapture/Samples.No003.RawCapture.csproj" />
+    <Project Path="examples/Samples.No004.BasicAlterations/Samples.No004.BasicAlterations.csproj" />
+    <Project Path="examples/Samples.No005.BasicAlterations_FromConfigurationFile/Samples.No005.BasicAlterations_FromConfigurationFile.csproj" />
+    <Project Path="examples/Samples.No006.CaptureOsTraffic/Samples.No006.CaptureOsTraffic.csproj" />
+    <Project Path="examples/Samples.No007.UsingClientCertificate/Samples.No007.UsingClientCertificate.csproj" />
+    <Project Path="examples/Samples.No008.ForcingHttpVersion/Samples.No008.ForcingHttpVersion.csproj" />
+    <Project Path="examples/Samples.No009.InjectCodeSnippet/Samples.No009.InjectCodeSnippet.csproj" />
+    <Project Path="examples/Samples.No010.MockResponse/Samples.No010.MockResponse.csproj" />
+    <Project Path="examples/Samples.No011.AddRequestCookie/Samples.No011.AddRequestCookie.csproj" />
+    <Project Path="examples/Samples.No012.AddResponseCookie/Samples.No012.AddResponseCookie.csproj" />
+    <Project Path="examples/Samples.No013.ModifyHeaders/Samples.No013.ModifyHeaders.csproj" />
+    <Project Path="examples/Samples.No014.HttpClientWithPcap/Samples.No014.HttpClientWithPcap.csproj" />
+    <Project Path="examples/Samples.No015.ReadingArchive/Samples.No015.ReadingArchive.csproj" />
+    <Project Path="examples/Samples.No016.ImpersonateBrowser/Samples.No016.ImpersonateBrowser.csproj" />
+    <Project Path="examples/Samples.No017.TransformRequestBody/Samples.No017.TransformRequestBody.csproj" />
+    <Project Path="examples/Samples.No018.TransformResponseBody/Samples.No018.TransformResponseBody.csproj" />
+    <Project Path="examples/Samples.No019.HttpMessageHandlerWithCustomFingerPrint/Samples.No019.HttpMessageHandlerWithCustomFingerPrint.csproj" />
+    <Project Path="examples/Samples.No020.HotReloadRules/Samples.No020.HotReloadRules.csproj" />
+    <Project Path="examples/Samples.No021.SessionCaptureAndReplay/Samples.No021.SessionCaptureAndReplay.csproj" />
+    <Project Path="examples/Samples.No022.RejectRequests/Samples.No022.RejectRequests.csproj" />
+    <Project Path="examples/Samples.No023.GrpcThroughProxy/Samples.No023.GrpcThroughProxy.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="test/Fluxzy.Benchmarks/Fluxzy.Benchmarks.csproj" />
+    <Project Path="test/Fluxzy.Tests/Fluxzy.Tests.csproj" />
+  </Folder>
+  <Folder Name="/__global/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".github/release.yml" />
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/coverage.yml" />
+    <File Path=".github/workflows/pull-request.yaml" />
+    <File Path=".github/workflows/release-cli.yml" />
+    <File Path=".github/workflows/release-nuget.pre.public.yml" />
+    <File Path=".github/workflows/release-nuget.public.yml" />
+    <File Path=".gitignore" />
+    <File Path="codecov.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE.md" />
+    <File Path="README.md" />
+    <File Path="version.json" />
+  </Folder>
+  <Project Path="src/Fluxzy.Core/Fluxzy.Core.csproj" />
+  <Project Path="src/Fluxzy.Extensions/Fluxzy.Extensions.csproj" />
+  <Project Path="src/Fluxzy/fluxzy.csproj" />
+  <Properties Name="RiderSharedRunConfigurations" Scope="PostLoad">
+    <Property Name="File" Value="src\Fluxzy.Desktop.Ui\ClientApp\.run\Angular CLI Server.run.xml" />
+  </Properties>
+</Solution>
