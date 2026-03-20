@@ -46,8 +46,8 @@ namespace Fluxzy.Formatters.Producers.Grpc
                     continue;
                 }
 
-                var decoded = TryDecodeFrame(frame.Data, registry, serviceName, methodName,
-                    true, maxLength, out var usedDescriptor);
+                var decoded = TryDecodeFrame(frame.Data, registry, context.Settings.ProtobufDecoder,
+                    serviceName, methodName, true, maxLength, out var usedDescriptor);
 
                 if (usedDescriptor)
                     hasDescriptor = true;
@@ -70,6 +70,7 @@ namespace Fluxzy.Formatters.Producers.Grpc
         internal static string TryDecodeFrame(
             ReadOnlyMemory<byte> data,
             ProtoFileRegistry? registry,
+            IProtobufDecoder? customDecoder,
             string? serviceName,
             string? methodName,
             bool isRequest,
@@ -78,6 +79,18 @@ namespace Fluxzy.Formatters.Producers.Grpc
         {
             usedDescriptor = false;
 
+            // Try custom decoder first
+            if (customDecoder != null) {
+                var context = new ProtobufDecodeContext(data, serviceName, methodName, isRequest);
+                var result = customDecoder.TryDecode(context);
+
+                if (result != null) {
+                    usedDescriptor = true;
+                    return result;
+                }
+            }
+
+            // Fall back to protoc-based decoding
             if (registry != null && serviceName != null && methodName != null) {
                 var (input, output) = registry.FindServiceMethod(serviceName, methodName);
                 var descriptor = isRequest ? input : output;

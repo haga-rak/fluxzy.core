@@ -51,8 +51,8 @@ namespace Fluxzy.Formatters.Producers.Grpc
                 }
 
                 var decoded = RequestProtobufProducer.TryDecodeFrame(
-                    frame.Data, registry, serviceName, methodName,
-                    false, maxLength, out var usedDescriptor);
+                    frame.Data, registry, context.Settings.ProtobufDecoder,
+                    serviceName, methodName, false, maxLength, out var usedDescriptor);
 
                 if (usedDescriptor)
                     hasDescriptor = true;
