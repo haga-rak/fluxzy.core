@@ -73,9 +73,11 @@ namespace Fluxzy.Core
 
             try {
 
+                var effectiveServeH2 = _serveH2 && !context.ForceServeHttp11;
+
                 var sslProtocols = SslProtocols.None;
 
-                if (_serveH2) {
+                if (effectiveServeH2) {
                     sslProtocols = SslProtocols.Tls12;
 
 #if NET8_0_OR_GREATER
@@ -85,7 +87,7 @@ namespace Fluxzy.Core
 
                 var sslServerAuthenticationOptions = new SslServerAuthenticationOptions
                 {
-                    ApplicationProtocols = _serveH2 ? H11AndH2Protocols : H11Protocols,
+                    ApplicationProtocols = effectiveServeH2 ? H11AndH2Protocols : H11Protocols,
                     EnabledSslProtocols = sslProtocols,
                     ClientCertificateRequired = false,
                     CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
