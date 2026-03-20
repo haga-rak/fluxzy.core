@@ -19,7 +19,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         {
             get
             {
-                int[] checkLength = { 0, 152, 12464, 150002 };
+                int[] checkLength = { 0, 152, 12464, 150002, 150002 * 16 };
 
                 foreach (var length in checkLength)
                 {

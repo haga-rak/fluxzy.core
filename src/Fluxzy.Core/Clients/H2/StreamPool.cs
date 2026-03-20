@@ -121,17 +121,18 @@ namespace Fluxzy.Clients.H2
 
         public int ShouldWindowUpdate(int dataLength)
         {
-            var windowIncrement = 0;
+            var newValue = Interlocked.Add(ref _overallWindowSize, dataLength);
+            var threshold = (int)(0.5 * Context.Setting.Local.WindowSize);
 
-            _overallWindowSize += dataLength;
+            if (newValue > threshold) {
+                // CAS to claim the accumulated value
+                var claimed = Interlocked.Exchange(ref _overallWindowSize, 0);
 
-            if (_overallWindowSize > 0.5 * Context.Setting.Local.WindowSize) {
-                windowIncrement = _overallWindowSize;
-
-                _overallWindowSize = 0;
+                if (claimed > 0)
+                    return claimed;
             }
 
-            return windowIncrement;
+            return 0;
         }
     }
 }
