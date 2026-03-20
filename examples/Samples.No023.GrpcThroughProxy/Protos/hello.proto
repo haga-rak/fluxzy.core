@@ -1,0 +1,17 @@
+syntax = "proto3";
+package hello;
+
+option csharp_namespace = "Samples.No023.GrpcThroughProxy";
+
+service HelloService {
+  rpc SayHello (HelloRequest) returns (HelloResponse);
+  rpc LotsOfReplies (HelloRequest) returns (stream HelloResponse);
+}
+
+message HelloRequest {
+  string greeting = 1;
+}
+
+message HelloResponse {
+  string reply = 1;
+}

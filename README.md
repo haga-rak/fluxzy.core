@@ -16,9 +16,9 @@
 
 </div>
 
-<i>A [fast](https://fluxzy.io/resources/blogs/performance-benchmark-fluxzy-mitmproxy-mitmdump-squid) and fully streamed MITM proxy to intercept, record, and modify HTTP/1, HTTP/2, and WebSocket traffic, whether in plain or secured with TLS.</i>
+<i>A [fast](https://fluxzy.io/resources/blogs/performance-benchmark-fluxzy-mitmproxy-mitmdump-squid) and fully streamed MITM proxy to intercept, record, and modify HTTP/1, HTTP/2, WebSocket, and gRPC traffic, whether in plain or secured with TLS.</i>
 
-Fluxzy is a man-in-the-middle (MITM) proxy that acts as both client and server, enabling interception and modification of HTTP/1, HTTP/2, and WebSocket traffic. It's designed for high performance, using full streaming to minimize overhead, while response bodies exceeding the initial buffer are fully stored in memory for inspection. Fluxzy supports configuration-driven setups through rule files, allowing easy reuse and switching of configurations between CLI, .NET applications, and the Fluxzy Desktop application without additional effort.
+Fluxzy is a man-in-the-middle (MITM) proxy that acts as both client and server, enabling interception and modification of HTTP/1, HTTP/2, WebSocket, and gRPC traffic. It's designed for high performance, using full streaming to minimize overhead, while response bodies exceeding the initial buffer are fully stored in memory for inspection. Fluxzy supports configuration-driven setups through rule files, allowing easy reuse and switching of configurations between CLI, .NET applications, and the Fluxzy Desktop application without additional effort.
 
 Fluxzy can be used as a CLI tool, a Docker container or a .NET library and is used under the hood by [Fluxzy Desktop](https://www.fluxzy.io/download) which is a cross-platform HTTP debugger.
 
@@ -35,7 +35,8 @@ Protocol detection is automatic: clients can connect using either HTTP CONNECT o
 
 ## ⚙️ Key Features
 
-- [Intercepts HTTP/1.1, HTTP/2, and WebSocket traffic](examples/Samples.No004.BasicAlterations/Program.cs)  
+- [Intercepts HTTP/1.1, HTTP/2, WebSocket, and gRPC traffic](examples/Samples.No004.BasicAlterations/Program.cs)
+- [Intercepts and inspects gRPC calls through the proxy](examples/Samples.No023.GrpcThroughProxy/Program.cs) (requires `SetServeH2(true)` since gRPC relies on HTTP/2 framing)
 - [Acts as a system-wide proxy](examples/Samples.No006.CaptureOsTraffic/Program.cs)  
 - [Captures and exports deciphered raw packets in PCAP format](examples/Samples.No003.RawCapture/Program.cs)  
 - [Offers a choice of TLS providers: .NET native or BouncyCastle](https://docs.fluxzy.io/api/Fluxzy.FluxzySetting.html#Fluxzy_FluxzySetting_UseBouncyCastleSslEngine)
