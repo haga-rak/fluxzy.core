@@ -20,6 +20,14 @@ namespace Fluxzy.Formatters
 
         public int MaxFormattableProtobufLength { get; set; } = 2 * 1024 * 1024;
 
+        /// <summary>
+        ///     An optional custom protobuf decoder. When set, this decoder is tried first for
+        ///     gRPC message decoding. If it returns null, the built-in protoc-based decoding
+        ///     is used as a fallback (when <see cref="ProtoDirectories" /> is configured and
+        ///     protoc is available on PATH), followed by raw wire-format decoding.
+        /// </summary>
+        public IProtobufDecoder? ProtobufDecoder { get; set; }
+
         public List<string> ProtoDirectories { get; set; } = new();
     }
 }
