@@ -46,11 +46,13 @@ namespace Fluxzy
 
         public RequestHeaderInfo(RequestHeader originalHeader, bool doNotForwardConnectionHeader = false)
         {
-            Method = originalHeader.Method;
-            Scheme = originalHeader.Scheme;
-            Path = originalHeader.Path;
-            Authority = originalHeader.Authority;
-            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s, doNotForwardConnectionHeader));
+            // Materialize pooled Memory<char> slices into string-backed memory
+            // to prevent use-after-free when the ExchangeScope returns the buffer to the pool
+            Method = originalHeader.Method.ToString().AsMemory();
+            Scheme = originalHeader.Scheme.ToString().AsMemory();
+            Path = originalHeader.Path.ToString().AsMemory();
+            Authority = originalHeader.Authority.ToString().AsMemory();
+            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s, doNotForwardConnectionHeader)).ToList();
         }
 
         [JsonConstructor]

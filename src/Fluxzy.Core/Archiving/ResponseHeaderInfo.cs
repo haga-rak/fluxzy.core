@@ -67,7 +67,7 @@ namespace Fluxzy
         public ResponseHeaderInfo(ResponseHeader originalHeader, bool doNotForwardConnectionHeader = false)
         {
             StatusCode = originalHeader.StatusCode;
-            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s, doNotForwardConnectionHeader));
+            Headers = originalHeader.HeaderFields.Select(s => new HeaderFieldInfo(s, doNotForwardConnectionHeader)).ToList();
         }
 
         [Key(0)]
