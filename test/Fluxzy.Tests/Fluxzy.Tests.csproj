@@ -79,7 +79,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.34.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.34.1" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.76.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.76.0" />
     <PackageReference Include="Grpc.Tools" Version="2.78.0">
