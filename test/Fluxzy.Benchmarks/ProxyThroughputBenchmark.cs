@@ -148,6 +148,7 @@ public class ProxyThroughputBenchmark
         public Config()
         {
             WithSummaryStyle(SummaryStyle.Default.WithRatioStyle(RatioStyle.Percentage));
+            AddColumn(StatisticColumn.OperationsPerSecond);
         }
     }
 }
