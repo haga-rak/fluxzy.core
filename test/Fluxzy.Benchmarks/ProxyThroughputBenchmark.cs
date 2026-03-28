@@ -46,7 +46,7 @@ public class ProxyThroughputBenchmark
     public async Task Setup()
     {
         // 1. Start HTTPS test server (equivalent to floodys)
-        _server = await InProcessHost.Create(app => {
+        _server = await InProcessHost.Create(suppressLogging: true, configureRoutes: app => {
             app.MapGet("/bench", async ctx => {
                 var lengthStr = ctx.Request.Query["length"].FirstOrDefault();
                 var length = lengthStr != null ? int.Parse(lengthStr) : 0;
