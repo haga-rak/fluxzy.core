@@ -20,7 +20,7 @@ namespace Fluxzy.Tests.UnitTests.HPack
 
             Span<char> resultBuffer = stackalloc char[MaxHeaderLength];
 
-            var headerBlocks = Http11Parser.Read(header.AsMemory()).ToList();
+            var headerBlocks = Http11Parser.Read(header.AsMemory());
             var result = Http11Parser.Write(headerBlocks, resultBuffer).ToString();
 
             Assert.Equal(header, result, StringComparer.OrdinalIgnoreCase);
@@ -33,7 +33,7 @@ namespace Fluxzy.Tests.UnitTests.HPack
 
             Span<char> resultBuffer = stackalloc char[MaxHeaderLength];
 
-            var headerBlocks = Http11Parser.Read(header.AsMemory()).ToList();
+            var headerBlocks = Http11Parser.Read(header.AsMemory());
             var result = Http11Parser.Write(headerBlocks, resultBuffer).ToString();
 
             Assert.Equal(header, result, StringComparer.OrdinalIgnoreCase);

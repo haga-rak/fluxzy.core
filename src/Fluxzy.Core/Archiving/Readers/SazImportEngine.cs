@@ -335,7 +335,7 @@ namespace Fluxzy.Readers
                 ArrayPool<byte>.Shared.Return(buffer);
             }
 
-            headers = Http11Parser.Read(requestHeaderString.AsMemory()).ToList();
+            headers = Http11Parser.Read(requestHeaderString.AsMemory());
 
             var res = stream.DrainUntil(4); // SKIP DOUBLE CRLF
 

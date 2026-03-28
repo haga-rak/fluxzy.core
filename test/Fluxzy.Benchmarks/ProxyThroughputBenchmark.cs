@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -115,13 +116,12 @@ public class ProxyThroughputBenchmark
 
     private async Task SendRequest()
     {
-        using var response = await _client.GetAsync(_targetUrl).ConfigureAwait(false);
+        using var response = await _client.GetAsync(_targetUrl, HttpCompletionOption.ResponseHeadersRead)
+            .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        // Drain the response body (matching floody behavior)
-        if (response.Content.Headers.ContentLength > 0) {
-            await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-        }
+        // Drain the response body using pooled buffers (no per-request allocations)
+        await response.Content.CopyToAsync(Stream.Null).ConfigureAwait(false);
     }
 
     private class Config : ManualConfig

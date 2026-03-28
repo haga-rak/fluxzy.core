@@ -13,36 +13,45 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
     /// </summary>
     public static class Http11Parser
     {
-        public static IEnumerable<HeaderField> Read(
+        public static List<HeaderField> Read(
             ReadOnlyMemory<char> input, bool isHttps = true,
             bool keepNonForwardableHeader = false,
             bool splitCookies = true)
         {
+            var result = new List<HeaderField>();
             var firstLine = true;
 
-            foreach (var line in input.Split(Http11Constants.LineSeparators).ToArray()) {
+            foreach (var line in input.Split(Http11Constants.LineSeparators)) {
                 if (firstLine) {
-                    // parsing request line
-                    var arrayOfValue = line.Split(Http11Constants.SpaceSeparators, 3).ToArray();
+                    // parsing request line — need indexed access, extract parts manually
+                    var part0 = ReadOnlyMemory<char>.Empty;
+                    var part1 = ReadOnlyMemory<char>.Empty;
+                    var partCount = 0;
 
-                    if (arrayOfValue.Length >= 2) {
-                        if (arrayOfValue[0].Length >= 4
-                            && arrayOfValue[0].Slice(0, 4).Span
-                                              .Equals("HTTP".AsSpan(), StringComparison.OrdinalIgnoreCase)) {
-                            // Response header block 
+                    foreach (var part in line.Split(Http11Constants.SpaceSeparators, 3)) {
+                        if (partCount == 0) part0 = part;
+                        else if (partCount == 1) part1 = part;
+                        partCount++;
+                    }
 
-                            yield return new HeaderField(Http11Constants.StatusVerb, arrayOfValue[1]);
+                    if (partCount >= 2) {
+                        if (part0.Length >= 4
+                            && part0.Slice(0, 4).Span
+                                    .Equals("HTTP".AsSpan(), StringComparison.OrdinalIgnoreCase)) {
+                            // Response header block
+
+                            result.Add(new HeaderField(Http11Constants.StatusVerb, part1));
                         }
                         else {
                             // Request header block
 
-                            yield return new HeaderField(Http11Constants.MethodVerb, arrayOfValue[0]);
+                            result.Add(new HeaderField(Http11Constants.MethodVerb, part0));
 
-                            yield return new HeaderField(Http11Constants.SchemeVerb,
-                                isHttps ? Http11Constants.HttpsVerb : Http11Constants.HttpVerb);
+                            result.Add(new HeaderField(Http11Constants.SchemeVerb,
+                                isHttps ? Http11Constants.HttpsVerb : Http11Constants.HttpVerb));
 
-                            yield return new HeaderField(Http11Constants.PathVerb,
-                                arrayOfValue[1].RemoveProtocolAndAuthority()); // Remove prefix on path
+                            result.Add(new HeaderField(Http11Constants.PathVerb,
+                                part1.RemoveProtocolAndAuthority())); // Remove prefix on path
 
 
                             if (Http11Constants.SchemeVerb.Span.StartsWith(Http11Constants.HttpsVerb.Span))
@@ -55,20 +64,29 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                     continue;
                 }
 
-                var kpValue = line.Split(Http11Constants.HeaderSeparator, 2).ToArray();
+                // Header line — split into name:value (max 2 parts)
+                var kName = ReadOnlyMemory<char>.Empty;
+                var kValue = ReadOnlyMemory<char>.Empty;
+                var kvCount = 0;
 
-                if (kpValue.Length != 2)
+                foreach (var part in line.Split(Http11Constants.HeaderSeparator, 2)) {
+                    if (kvCount == 0) kName = part;
+                    else kValue = part;
+                    kvCount++;
+                }
+
+                if (kvCount != 2)
                     throw new HPackCodecException($"Invalid header on line {line}");
 
-                var headerName = kpValue[0].Trim(); // should we trim here? 
+                var headerName = kName.Trim(); // should we trim here?
 
                 if (!keepNonForwardableHeader && Http11Constants.NonH2Header.Contains(headerName))
                     continue;
 
-                var headerValue = kpValue[1].Trim();
+                var headerValue = kValue.Trim();
 
                 if (headerName.Span.Equals(Http11Constants.HostVerb.Span, StringComparison.OrdinalIgnoreCase)) {
-                    yield return new HeaderField(Http11Constants.AuthorityVerb, headerValue);
+                    result.Add(new HeaderField(Http11Constants.AuthorityVerb, headerValue));
 
                     continue;
                 }
@@ -76,15 +94,17 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 if (headerName.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)) {
                     if (splitCookies) {
                         foreach (var cookieEntry in headerValue.Split(Http11Constants.CookieSeparators)) {
-                            yield return new HeaderField(Http11Constants.CookieVerb, cookieEntry.Trim());
+                            result.Add(new HeaderField(Http11Constants.CookieVerb, cookieEntry.Trim()));
                         }
 
                         continue;
                     }
                 }
 
-                yield return new HeaderField(headerName, headerValue);
+                result.Add(new HeaderField(headerName, headerValue));
             }
+
+            return result;
         }
 
         public static Span<char> Write(

@@ -16,24 +16,29 @@ namespace Fluxzy.Core
         protected static readonly byte[] CloseFlatHeader = "Connection: close\r\n"u8.ToArray();
         protected static readonly byte[] KeepAliveFlatHeader = "Connection: keep-alive\r\n"u8.ToArray();
 
-        private readonly ILookup<ReadOnlyMemory<char>, HeaderField> _lookupFields;
         private readonly List<HeaderField> _rawHeaderFields;
 
         protected Header(IEnumerable<HeaderField> headerFields)
         {
-            _rawHeaderFields = headerFields.ToList();
+            _rawHeaderFields = headerFields as List<HeaderField> ?? new List<HeaderField>(headerFields);
 
-            _lookupFields = _rawHeaderFields
-                .ToLookup(t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
-
-            ChunkedBody = _lookupFields[Http11Constants.TransferEncodingVerb]
-                .Any(t => t.Value.Span.Equals("chunked", StringComparison.OrdinalIgnoreCase));
-
+            // Single pass to compute ChunkedBody and ContentLength
             var contentLength = -1L;
 
-            // In case of multiple content length we cake the last 
-            if (_lookupFields[Http11Constants.ContentLength].Any(t => long.TryParse(t.Value.Span, out contentLength))) {
-                ContentLength = contentLength;
+            foreach (var field in _rawHeaderFields) {
+                if (!ChunkedBody &&
+                    field.Name.Span.Equals(Http11Constants.TransferEncodingVerb.Span,
+                        StringComparison.OrdinalIgnoreCase) &&
+                    field.Value.Span.Equals("chunked", StringComparison.OrdinalIgnoreCase)) {
+                    ChunkedBody = true;
+                }
+
+                if (field.Name.Span.Equals(Http11Constants.ContentLength.Span,
+                        StringComparison.OrdinalIgnoreCase) &&
+                    long.TryParse(field.Value.Span, out contentLength)) {
+                    // In case of multiple content length we take the last
+                    ContentLength = contentLength;
+                }
             }
         }
 
@@ -44,9 +49,16 @@ namespace Fluxzy.Core
         {
         }
 
-        public IEnumerable<HeaderField> this[ReadOnlyMemory<char> key] => _lookupFields[key];
+        public IEnumerable<HeaderField> this[ReadOnlyMemory<char> key] {
+            get {
+                foreach (var field in _rawHeaderFields) {
+                    if (field.Name.Span.Equals(key.Span, StringComparison.OrdinalIgnoreCase))
+                        yield return field;
+                }
+            }
+        }
 
-        public IEnumerable<HeaderField> this[string headerName] => _lookupFields[headerName.AsMemory()];
+        public IEnumerable<HeaderField> this[string headerName] => this[headerName.AsMemory()];
 
         /// <summary>
         ///     If transfer-encoding chunked is defined

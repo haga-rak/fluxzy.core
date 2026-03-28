@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +22,7 @@ builder.WebHost.ConfigureKestrel(k =>
     k.Listen(IPAddress.Loopback, 0, listenOptions =>
     {
         listenOptions.UseHttps(certificate);
+        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
     });
 });
 
