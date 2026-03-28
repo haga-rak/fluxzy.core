@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Fluxzy.Core;
-
 namespace Fluxzy.Benchmarks;
+
+internal readonly record struct PooledFrame(byte[] Array, int Length, bool Pooled);
 
 /// <summary>
 ///     Compares direct stream write (H1.1 path) vs channel-based write indirection (H2 path).
@@ -86,7 +86,7 @@ public class ChannelWritePipeBenchmark
                 // Simulate per-frame ArrayPool rent
                 var frameBuffer = ArrayPool<byte>.Shared.Rent(read);
                 _sourceData.AsSpan(0, read).CopyTo(frameBuffer);
-                channel.Writer.TryWrite(new PooledFrame(frameBuffer, read, pooled: true));
+                channel.Writer.TryWrite(new PooledFrame(frameBuffer, read, Pooled: true));
             }
 
             channel.Writer.Complete();
