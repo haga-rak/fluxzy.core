@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Fluxzy.Tests._Fixtures;
 
@@ -33,11 +34,17 @@ public class InProcessHost : IAsyncDisposable
     }
 
     public static async Task<InProcessHost> Create(
-        Action<WebApplication>? configureRoutes = null)
+        Action<WebApplication>? configureRoutes = null,
+        bool suppressLogging = false)
     {
         var certificate = CreateSelfSignedCertificate();
 
         var builder = WebApplication.CreateBuilder();
+
+        if (suppressLogging)
+        {
+            builder.Logging.ClearProviders();
+        }
 
         builder.WebHost.ConfigureKestrel(k =>
         {
