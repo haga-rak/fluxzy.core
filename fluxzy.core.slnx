@@ -42,6 +42,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="test/Fluxzy.Benchmarks/Fluxzy.Benchmarks.csproj" />
+    <Project Path="test/Fluxzy.Benchmarks.Server/Fluxzy.Benchmarks.Server.csproj" />
     <Project Path="test/Fluxzy.Tests/Fluxzy.Tests.csproj" />
   </Folder>
   <Folder Name="/__global/">

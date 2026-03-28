@@ -10,10 +10,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Reports;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
-using Fluxzy.Rules.Filters;
 using Fluxzy.Tests._Fixtures;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 
 namespace Fluxzy.Benchmarks;
 
@@ -30,7 +27,7 @@ public class ProxyThroughputBenchmark
     private const int RequestsPerIteration = 500;
     private const int Concurrency = 16;
 
-    private InProcessHost _server = null!;
+    private BenchmarkServerProcess _server = null!;
     private Proxy _proxy = null!;
     private HttpClient _client = null!;
     private SemaphoreSlim _semaphore = null!;
@@ -45,25 +42,9 @@ public class ProxyThroughputBenchmark
     [GlobalSetup]
     public async Task Setup()
     {
-        // 1. Start HTTPS test server (equivalent to floodys)
-        _server = await InProcessHost.Create(suppressLogging: true, configureRoutes: app => {
-            app.MapGet("/bench", async ctx => {
-                var lengthStr = ctx.Request.Query["length"].FirstOrDefault();
-                var length = lengthStr != null ? int.Parse(lengthStr) : 0;
-
-                if (length > 0) {
-                    ctx.Response.ContentLength = length;
-                    var buffer = new byte[Math.Min(length, 16384)];
-                    var remaining = length;
-
-                    while (remaining > 0) {
-                        var toWrite = Math.Min(remaining, buffer.Length);
-                        await ctx.Response.Body.WriteAsync(buffer.AsMemory(0, toWrite));
-                        remaining -= toWrite;
-                    }
-                }
-            });
-        });
+        // 1. Start external HTTPS test server (separate process to avoid polluting memory measurements)
+        _server = new BenchmarkServerProcess();
+        await _server.StartAsync();
 
         // 2. Start Fluxzy proxy (equivalent to: fluxzy start -k --serve-h2)
         var setting = FluxzySetting.CreateLocalRandomPort();
