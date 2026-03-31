@@ -53,7 +53,15 @@ namespace Fluxzy.Clients.H2
 
             _logger = parent.Context.Logger;
 
-            _pipeResponseBody = new Pipe(new PipeOptions(MemoryPool<byte>.Shared));
+            _pipeResponseBody = new Pipe(new PipeOptions(
+                pool: MemoryPool<byte>.Shared,
+                readerScheduler: PipeScheduler.Inline,
+                writerScheduler: PipeScheduler.Inline,
+                pauseWriterThreshold: 0,
+                resumeWriterThreshold: 0,
+                minimumSegmentSize: 16384,
+                useSynchronizationContext: false
+            ));
         }
 
         public int StreamIdentifier { get; }
@@ -468,12 +476,11 @@ namespace Fluxzy.Clients.H2
 
             try {
                 _pipeResponseBody.Writer.Write(buffer.Span);
+                _pipeResponseBody.Writer.FlushAsync().GetAwaiter().GetResult();
             }
             catch {
                 cancelled = true;
             }
-
-            // var flushResult = await _pipeResponseBody.Writer.WriteAsync(buffer, token);
 
             _logger.TraceDeep(StreamIdentifier, () => "a - 4");
 
