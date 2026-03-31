@@ -62,9 +62,10 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
 
             registry.SetValue("ProxyEnable", systemProxySetting.Enabled ? 1 : 0);
 
-            if (systemProxySetting.BoundHost == null) {
-                // Remove proxy setting 
-                registry.DeleteValue("ProxyServer");
+            if (systemProxySetting.BoundHost == null
+                || systemProxySetting.BoundHost == ProxyConstants.NoProxyWord) {
+                // Remove proxy setting
+                registry.DeleteValue("ProxyServer", false);
             }
             else {
                 var actualServerLine = $"{systemProxySetting.BoundHost}:{systemProxySetting.ListenPort}";

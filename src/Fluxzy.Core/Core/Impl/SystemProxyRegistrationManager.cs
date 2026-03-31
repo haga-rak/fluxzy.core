@@ -47,7 +47,7 @@ namespace Fluxzy.Core
         {
             var existingSetting = await GetSystemProxySetting().ConfigureAwait(false);
 
-            if (_oldSetting != null && !existingSetting.Equals(_oldSetting))
+            if (_oldSetting == null)
                 _oldSetting = existingSetting;
 
             if (!_registerDone) {
@@ -87,6 +87,7 @@ namespace Fluxzy.Core
             if (_oldSetting != null) {
                 await _systemProxySetter.ApplySetting(_oldSetting).ConfigureAwait(false);
                 _oldSetting = null;
+                _currentSetting = null;
 
                 return;
             }
