@@ -611,11 +611,14 @@ namespace Fluxzy.Clients.H2
 
             StreamWorker? activeStream = null;
 
-            using var streamCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            // CTS for stream-scoped operations. Owned by this method unless
+            // transferred to a background request-body task (see below).
+            var streamCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                 callerCancellationToken,
                 _connectionToken);
 
             var streamCancellationToken = streamCancellationTokenSource.Token;
+            var ownsTokenSource = true; // tracks disposal responsibility
 
             try {
                 Task waitForHeaderSentTask;
@@ -647,7 +650,14 @@ namespace Fluxzy.Clients.H2
                 // Run request body upload and response processing concurrently.
                 // HTTP/2 allows the server to send response headers and data before
                 // the request body is complete (required for gRPC bidirectional streaming).
-                var requestBodyTask = activeStream.ProcessRequestBody(exchange, buffer, streamCancellationToken);
+
+                // Allocate a dedicated buffer for request body forwarding so we can
+                // return the shared buffer to the caller once the response is available.
+                var bodyBuffer = RsBuffer.Allocate(
+                    Math.Min(Setting.Local.MaxFrameSize, buffer.Buffer.Length));
+
+                var requestBodyTask = activeStream.ProcessRequestBody(
+                    exchange, bodyBuffer, streamCancellationToken);
 
                 try {
                     await activeStream.ProcessResponse(streamCancellationToken, this)
@@ -658,18 +668,33 @@ namespace Fluxzy.Clients.H2
                     try { await requestBodyTask.ConfigureAwait(false); }
                     catch { /* already failing on ProcessResponse */ }
 
+                    bodyBuffer.Dispose();
                     throw;
                 }
 
-                // In bidirectional streaming (e.g., gRPC), the server may finish its
-                // response (and trigger stream disposal) before the request body is
-                // fully sent. Since we already have a valid response, suppress errors
-                // caused by early stream closure.
-                try {
-                    await requestBodyTask.ConfigureAwait(false);
+                if (requestBodyTask.IsCompleted) {
+                    // Fast path: request body finished before or with the response.
+                    bodyBuffer.Dispose();
+
+                    try {
+                        await requestBodyTask.ConfigureAwait(false);
+                    }
+                    catch when (exchange.Response.Header != null) {
+                        // Response already received — request body errors are benign
+                    }
                 }
-                catch when (exchange.Response.Header != null) {
-                    // Response already received — request body errors are benign
+                else {
+                    // Slow path (gRPC bidirectional streaming): the client may wait for
+                    // the response before half-closing the request stream. Returning now
+                    // lets the orchestrator forward the response to the client, which
+                    // unblocks the client to finish sending. The request body task
+                    // continues in the background with its own buffer and CTS.
+                    ownsTokenSource = false; // background task takes ownership
+
+                    _ = requestBodyTask.AsTask().ContinueWith(_ => {
+                        bodyBuffer.Dispose();
+                        streamCancellationTokenSource.Dispose();
+                    }, TaskScheduler.Default);
                 }
 
                 exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
@@ -678,16 +703,20 @@ namespace Fluxzy.Clients.H2
                 if (activeStream != null &&
                     opex.CancellationToken == callerCancellationToken)
 
-                    // The caller cancels this exchange. 
-                    // Send a reset on stream to prevent the remote 
-                    // from sending further data 
+                    // The caller cancels this exchange.
+                    // Send a reset on stream to prevent the remote
+                    // from sending further data
                     activeStream.ResetByCaller();
 
                 throw;
             }
             finally {
-                if (!streamCancellationTokenSource.IsCancellationRequested)
-                    streamCancellationTokenSource.Cancel();
+                if (ownsTokenSource) {
+                    if (!streamCancellationTokenSource.IsCancellationRequested)
+                        streamCancellationTokenSource.Cancel();
+
+                    streamCancellationTokenSource.Dispose();
+                }
             }
         }
     }
