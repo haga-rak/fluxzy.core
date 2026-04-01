@@ -226,4 +226,28 @@ public class GrpcRemoteEndpointTests
             Assert.Contains("LotsOfReplies", stdout);
         }
     }
+
+    /// <summary>
+    /// Tests grpcurl list against grpcb.in:9001 using server reflection (no proto files needed).
+    /// Uses port 9001 (TLS) because port 9000 is plaintext H2C which cannot be proxied through
+    /// an HTTPS forward proxy. Requires SetServeH2 because gRPC needs HTTP/2 downstream.
+    /// </summary>
+    [Fact]
+    public async Task List_Services_Reflection_Through_Proxy()
+    {
+        var (proxy, proxyUrl) = await CreateProxy();
+
+        await using (proxy)
+        {
+            var (stdout, stderr, exitCode) = await RunGrpcurl(proxyUrl,
+                $"-insecure {GrpcBinHost} list");
+
+            Assert.True(exitCode == 0,
+                $"grpcurl list failed with exit code {exitCode}. stderr: {stderr}");
+
+            // Server reflection should return known services
+            Assert.Contains("hello.HelloService", stdout);
+            Assert.Contains("grpcbin.GRPCBin", stdout);
+        }
+    }
 }
