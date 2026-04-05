@@ -13,7 +13,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/haga-rak/fluxzy.core</RepositoryUrl>
-    <PackageTags>mitm;http;https;proxy;sock5</PackageTags>
+    <PackageTags>mitm;http;https;proxy;sock5;grpc</PackageTags>
   </PropertyGroup>
   
   <PropertyGroup>
