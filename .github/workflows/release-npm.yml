@@ -1,0 +1,26 @@
+name: Publish npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "GitHub release tag (e.g. v1.35.20)"
+        required: true
+        type: string
+
+jobs:
+  publish-npm:
+    name: "Publish to npm"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Publish npm packages
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash npm/publish-npm.sh "${{ inputs.tag }}"
