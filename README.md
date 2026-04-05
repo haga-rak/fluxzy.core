@@ -11,6 +11,7 @@
 [![Docker Image Version](https://img.shields.io/docker/v/fluxzy/fluxzy?label=docker&color=7155ab)](https://hub.docker.com/r/fluxzy/fluxzy)
 [![Homebrew](https://img.shields.io/badge/homebrew-fluxzy-FBB040?logo=homebrew&logoColor=white)](https://github.com/haga-rak/homebrew-fluxzy)
 [![WinGet](https://img.shields.io/badge/winget-Fluxzy.Fluxzy-0078D4?logo=windows&logoColor=white)](https://github.com/microsoft/winget-pkgs/tree/master/manifests/f/Fluxzy/Fluxzy)
+[![npm](https://img.shields.io/npm/v/@fluxzy/cli?label=npm&logo=npm)](https://www.npmjs.com/package/@fluxzy/cli)
 
 [Features](#-key-features) | [Quick usage (CLI)](#using-the-cli) | [Quick usage (.NET)](#integrate-with-a-net-application) | [Quick usage (Docker)](#using-docker-container) | [Documentation](https://docs.fluxzy.io/documentation/core/introduction.html) | [Build](#-build) | [License](LICENSE.md) | [Releases](https://github.com/haga-rak/fluxzy.core/releases)
 
@@ -82,6 +83,16 @@ winget install Fluxzy.Fluxzy
 ```bash
 brew tap haga-rak/fluxzy
 brew install fluxzy
+```
+
+**npm (Windows, macOS, Linux):**
+```bash
+npm install -g @fluxzy/cli
+```
+
+Or run directly without installing:
+```bash
+npx @fluxzy/cli start --llo
 ```
 
 Alternatively, you can download the binaries directly from the [releases page](https://github.com/haga-rak/fluxzy.core/releases) or [fluxzy.io](https://www.fluxzy.io/download#cli).
