@@ -229,6 +229,9 @@ EOF
 # Create wrapper CLI script
 cp "${SCRIPT_DIR}/cli-wrapper.js" "${WRAPPER_BIN_DIR}/cli.js"
 
+# Copy README
+cp "${SCRIPT_DIR}/README.md" "${WRAPPER_DIR}/README.md"
+
 # Publish wrapper
 npm publish "$WRAPPER_DIR" --access public --userconfig "${WORK_DIR}/.npmrc" $DRY_RUN_FLAG
 
