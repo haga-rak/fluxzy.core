@@ -77,9 +77,12 @@ namespace Fluxzy.Clients.H11
                 if (chunkedStream != null) {
                     await chunkedStream.WriteEof().ConfigureAwait(false);
                 }
-            }
 
-            exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+                exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+            }
+            else {
+                exchange.Metrics.RequestBodySent = exchange.Metrics.RequestHeaderSent;
+            }
 
             _logger.Trace(exchange.Id, () => "Body sent");
 

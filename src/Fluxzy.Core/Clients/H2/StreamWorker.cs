@@ -249,10 +249,12 @@ namespace Fluxzy.Clients.H2
 
                     _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
-                    if (dataFramePayloadLength == 0 || endStream)
+                    if (dataFramePayloadLength == 0 || endStream) {
+                        exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
                         return;
+                    }
 
-                    // This is for back pressure 
+                    // This is for back pressure
                     await writeTaskBody.DoneTask.ConfigureAwait(false);
                 }
             }

@@ -647,6 +647,13 @@ namespace Fluxzy.Clients.H2
 
                 exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
+                var hasRequestBody = exchange.Request.Body != null
+                    && (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0);
+
+                if (!hasRequestBody) {
+                    exchange.Metrics.RequestBodySent = exchange.Metrics.RequestHeaderSent;
+                }
+
                 // Run request body upload and response processing concurrently.
                 // HTTP/2 allows the server to send response headers and data before
                 // the request body is complete (required for gRPC bidirectional streaming).
@@ -697,7 +704,8 @@ namespace Fluxzy.Clients.H2
                     }, TaskScheduler.Default);
                 }
 
-                exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+                // RequestBodySent is set inside ProcessRequestBody for with-body requests,
+                // and set to RequestHeaderSent for no-body requests (above).
             }
             catch (OperationCanceledException opex) {
                 if (activeStream != null &&
