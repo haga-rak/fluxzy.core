@@ -39,9 +39,18 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
             var proxyServerName = proxyServerTab.Length != 2 ? ProxyConstants.NoProxyWord : proxyServerTab[0];
             var proxyPort = proxyServerTab.Length != 2 ? -1 : int.Parse(proxyServerTab[1]);
 
-            return new SystemProxySetting(proxyServerName, proxyPort, proxyOverrideList) {
+            var setting = new SystemProxySetting(proxyServerName, proxyPort, proxyOverrideList) {
                 Enabled = proxyEnabled
             };
+
+            // Preserve the raw ProxyServer string when it does not match the standard
+            // "host:port" format (e.g. legacy per-protocol entries like
+            // "http=proxy:80;https=proxy:443"). Without this, the value would be lost
+            // on restore because BoundHost collapses to NoProxyWord.
+            if (proxyServerTab.Length != 2 && !string.IsNullOrEmpty(proxyServer))
+                setting.PrivateValues[ProxyConstants.WinProxyServerRawKey] = proxyServer;
+
+            return setting;
 
 #else
             throw new NotSupportedException("This method is only supported on .NET 6.0 or greater");
@@ -62,7 +71,15 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
 
             registry.SetValue("ProxyEnable", systemProxySetting.Enabled ? 1 : 0);
 
-            if (systemProxySetting.BoundHost == null
+            // If the setting carries a preserved raw ProxyServer string (round-trip from
+            // a previous GetSetting() call that could not parse it as "host:port"), write
+            // it back verbatim so corporate/legacy configurations are not corrupted.
+            if (systemProxySetting.PrivateValues.TryGetValue(ProxyConstants.WinProxyServerRawKey, out var rawObj)
+                && rawObj is string rawProxyServer
+                && !string.IsNullOrEmpty(rawProxyServer)) {
+                registry.SetValue("ProxyServer", rawProxyServer);
+            }
+            else if (systemProxySetting.BoundHost == null
                 || systemProxySetting.BoundHost == ProxyConstants.NoProxyWord) {
                 // Remove proxy setting
                 registry.DeleteValue("ProxyServer", false);

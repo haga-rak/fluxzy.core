@@ -79,7 +79,7 @@ namespace Fluxzy.Core
         }
 
         /// <summary>
-        /// Unregister any previous setting 
+        /// Unregister any previous setting
         /// </summary>
         /// <returns></returns>
         public async Task UnRegister()
@@ -100,12 +100,9 @@ namespace Fluxzy.Core
                 return;
             }
 
-            var existingSetting = await GetSystemProxySetting().ConfigureAwait(false);
-
-            if (existingSetting.Enabled) {
-                existingSetting.Enabled = false;
-                await _systemProxySetter.ApplySetting(existingSetting).ConfigureAwait(false);
-            }
+            // No pending state: UnRegister is a no-op. This matters for the ProcessExit
+            // handler that fires after an explicit UnRegister — touching the registry
+            // here would corrupt the already-restored user setting.
         }
         
         private IPAddress GetConnectableIpAddr(IPAddress address)
