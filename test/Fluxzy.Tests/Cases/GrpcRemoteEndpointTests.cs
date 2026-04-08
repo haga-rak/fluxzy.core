@@ -250,4 +250,126 @@ public class GrpcRemoteEndpointTests
             Assert.Contains("grpcbin.GRPCBin", stdout);
         }
     }
+
+    // ---------------------------------------------------------------------------
+    // Reverse-proxy mode coverage (GitHub #610)
+    // ---------------------------------------------------------------------------
+    // In reverse-secure mode Fluxzy uses the TLS SNI as the target authority and
+    // forwards to the port given by SetReverseModeForcedPort. The client (grpcurl)
+    // does not use a forward proxy at all — it connects directly to Fluxzy as if
+    // it were grpcb.in. We pass `-authority grpcb.in` so grpcurl sets SNI and the
+    // HTTP/2 ":authority" pseudo-header to grpcb.in, which is what the remote
+    // vhost expects.
+
+    private const int GrpcBinTlsPort = 9001;
+
+    private static async Task<(Proxy proxy, int port)> CreateReverseProxy(
+        Action<FluxzySetting>? configure = null)
+    {
+        var setting = FluxzySetting.CreateLocalRandomPort();
+        setting.SetReverseMode(true);
+        setting.SetReverseModeForcedPort(GrpcBinTlsPort);
+        setting.SetServeH2(true);
+        setting.AddAlterationRules(
+            new SkipRemoteCertificateValidationAction(), AnyFilter.Default);
+
+        configure?.Invoke(setting);
+
+        var proxy = new Proxy(setting);
+        var endpoint = proxy.Run().First();
+
+        if (endpoint.Address.Equals(IPAddress.Any))
+            endpoint = new IPEndPoint(IPAddress.Loopback, endpoint.Port);
+        else if (endpoint.Address.Equals(IPAddress.IPv6Any))
+            endpoint = new IPEndPoint(IPAddress.IPv6Loopback, endpoint.Port);
+
+        return (proxy, endpoint.Port);
+    }
+
+    private static async Task<(string stdout, string stderr, int exitCode)> RunGrpcurlDirect(
+        string args, int timeoutSeconds = 30)
+    {
+        // No https_proxy env var — client talks directly to the Fluxzy reverse endpoint.
+        var psi = new ProcessStartInfo
+        {
+            FileName = "grpcurl",
+            Arguments = args,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var process = Process.Start(psi)!;
+        using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+
+        try {
+            var stdout = await process.StandardOutput.ReadToEndAsync(cts.Token);
+            var stderr = await process.StandardError.ReadToEndAsync(cts.Token);
+
+            await process.WaitForExitAsync(cts.Token);
+
+            return (stdout, stderr, process.ExitCode);
+        }
+        catch (OperationCanceledException) {
+            try { process.Kill(entireProcessTree: true); } catch { }
+
+            return ("", $"grpcurl timed out after {timeoutSeconds}s", -1);
+        }
+    }
+
+    [Fact]
+    public async Task Unary_SayHello_Through_Reverse_Proxy()
+    {
+        var (proxy, port) = await CreateReverseProxy();
+
+        await using (proxy)
+        {
+            var (stdout, stderr, exitCode) = await RunGrpcurlDirect(
+                $"-insecure -authority grpcb.in {ProtoArgs} -d \"{{\\\"greeting\\\": \\\"fluxzy\\\"}}\" localhost:{port} hello.HelloService/SayHello");
+
+            Assert.True(exitCode == 0, $"grpcurl failed with exit code {exitCode}. stderr: {stderr}");
+
+            using var doc = JsonDocument.Parse(stdout);
+            var reply = doc.RootElement.GetProperty("reply").GetString();
+
+            Assert.Equal("hello fluxzy", reply);
+        }
+    }
+
+    [Fact]
+    public async Task Unary_DummyUnary_Through_Reverse_Proxy()
+    {
+        var (proxy, port) = await CreateReverseProxy();
+
+        await using (proxy)
+        {
+            var (stdout, stderr, exitCode) = await RunGrpcurlDirect(
+                $"-insecure -authority grpcb.in {ProtoArgs} -d \"{{\\\"f_string\\\": \\\"reverse-value\\\"}}\" localhost:{port} grpcbin.GRPCBin/DummyUnary");
+
+            Assert.True(exitCode == 0, $"grpcurl failed with exit code {exitCode}. stderr: {stderr}");
+
+            using var doc = JsonDocument.Parse(stdout);
+            var fString = doc.RootElement.GetProperty("fString").GetString();
+
+            Assert.Equal("reverse-value", fString);
+        }
+    }
+
+    [Fact]
+    public async Task ServerStreaming_LotsOfReplies_Through_Reverse_Proxy()
+    {
+        var (proxy, port) = await CreateReverseProxy();
+
+        await using (proxy)
+        {
+            var (stdout, stderr, exitCode) = await RunGrpcurlDirect(
+                $"-insecure -authority grpcb.in {ProtoArgs} -d \"{{\\\"greeting\\\": \\\"reverse-stream\\\"}}\" localhost:{port} hello.HelloService/LotsOfReplies");
+
+            Assert.True(exitCode == 0, $"grpcurl failed with exit code {exitCode}. stderr: {stderr}");
+
+            // Server streaming returns multiple JSON objects containing the greeting
+            Assert.Contains("reverse-stream", stdout);
+        }
+    }
 }
