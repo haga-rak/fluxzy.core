@@ -19,7 +19,8 @@ namespace Fluxzy.Core
             if (setting.ReverseModePlainHttp)
                 return new ReverseProxyPlainExchangeSourceProvider(idProvider, setting.ReverseModeForcedPort, contextBuilder);
 
-            return new ReverseProxyExchangeSourceProvider(certificateProvider, idProvider, setting.ReverseModeForcedPort, contextBuilder);
+            return new ReverseProxyExchangeSourceProvider(certificateProvider, idProvider,
+                setting.ReverseModeForcedPort, setting.ServeH2, contextBuilder);
         }
     }
 }
