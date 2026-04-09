@@ -26,7 +26,7 @@ namespace Fluxzy.Benchmarks;
 public class ProxyThroughputBenchmark
 {
     private const int RequestsPerIteration = 500;
-    private const int Concurrency = 16;
+    private const int Concurrency = 56;
 
     private BenchmarkServerProcess _server = null!;
     private Proxy _proxy = null!;
@@ -53,6 +53,8 @@ public class ProxyThroughputBenchmark
         setting.ConfigureRule()
             .WhenAny()
             .Do(new SkipRemoteCertificateValidationAction()); // -k flag
+
+        setting.SetConnectionPerHost(63);
 
         _proxy = new Proxy(setting);
         var endPoint = _proxy.Run().First();

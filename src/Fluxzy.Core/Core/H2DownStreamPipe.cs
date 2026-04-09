@@ -96,8 +96,8 @@ namespace Fluxzy.Core
             _headerEncoder = new HeaderEncoder(hPackEncoder, hPackDecoder, _h2StreamSetting);
             _logger = new H2Logger(requestedAuthority, -1);
             _ringBuffer = new CircularWriteBuffer(RingBufferCapacity, SignalWriteLoop);
-            _dataChannel = Channel.CreateBounded<DataFrameEntry>(
-                new BoundedChannelOptions(256) { SingleReader = true });
+            _dataChannel = Channel.CreateUnbounded<DataFrameEntry>(
+                new UnboundedChannelOptions() { SingleReader = true });
             _mainLoopTokenSource = new CancellationTokenSource();
             _mainLoopToken = _mainLoopTokenSource.Token;
         }
@@ -519,7 +519,7 @@ namespace Fluxzy.Core
 
                         break;
                     }
-
+                    
                     await _writeSignal.WaitAsync(token).ConfigureAwait(false);
                 }
             }
