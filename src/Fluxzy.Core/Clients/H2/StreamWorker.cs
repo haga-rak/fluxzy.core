@@ -56,7 +56,7 @@ namespace Fluxzy.Clients.H2
 
             _pipeResponseBody = new Pipe(new PipeOptions(
                 pool: MemoryPool<byte>.Shared,
-                readerScheduler: PipeScheduler.Inline,
+                readerScheduler: PipeScheduler.ThreadPool,
                 writerScheduler: PipeScheduler.Inline,
                 pauseWriterThreshold: 0,
                 resumeWriterThreshold: 0,
