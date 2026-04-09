@@ -99,6 +99,50 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
         }
 
         /// <summary>
+        /// Firefox-style zero-length POST: HEADERS (no END_STREAM) + empty DATA[END_STREAM].
+        /// Verifies the exchange exposes an empty, non-seekable request body with
+        /// Content-Length: 0. This combination is precisely what tripped the upstream
+        /// StreamWorker into sending a stray DATA[END_STREAM] frame on top of a
+        /// HEADERS[END_STREAM] frame, causing the remote to reset the connection.
+        /// </summary>
+        [Fact]
+        public async Task PostContentLengthZero_WithTrailingEmptyDataFrame_ProducesEmptyBody()
+        {
+            await using var ctx = await H2TestContext.Create();
+
+            await ctx.ReadNextFrame(); // SETTINGS
+            await ctx.SendSettingsAck();
+
+            // Firefox sends HEADERS without END_STREAM...
+            var headers =
+                "POST /Feeds/Pop HTTP/2\r\nHost: localhost\r\nContent-Length: 0\r\nTE: trailers\r\n\r\n"
+                    .AsMemory();
+            await ctx.SendHeadersFrame(1, headers, endStream: false, endHeaders: true);
+
+            // ...then a DATA frame with zero bytes and END_STREAM to close the stream.
+            await ctx.SendDataFrame(1, Array.Empty<byte>(), endStream: true);
+
+            using var buffer = Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32768);
+            using var scope = new ExchangeScope();
+
+            var exchange = await ctx.DownStreamPipe.ReadNextExchange(buffer, scope, ctx.Token);
+
+            Assert.NotNull(exchange);
+            Assert.Equal(1, exchange!.StreamIdentifier);
+            Assert.Equal(0, exchange.Request.Header.ContentLength);
+
+            // The body must be a real (non-seekable) pipe stream — NOT Stream.Null — because
+            // HEADERS did not carry END_STREAM. This is the scenario that used to cause
+            // StreamWorker.ProcessRequestBody to enqueue an extra DATA[END_STREAM, 0] frame.
+            Assert.NotNull(exchange.Request.Body);
+            Assert.False(exchange.Request.Body!.CanSeek);
+
+            using var bodyStream = new MemoryStream();
+            await exchange.Request.Body.CopyToAsync(bodyStream, ctx.Token);
+            Assert.Empty(bodyStream.ToArray());
+        }
+
+        /// <summary>
         /// Send HEADERS (no END_STREAM) then DATA with END_STREAM.
         /// Verify the exchange body reads correctly.
         /// </summary>

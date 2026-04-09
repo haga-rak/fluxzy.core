@@ -90,6 +90,12 @@ public class InProcessHost : IAsyncDisposable
         });
     }
 
+    /// <summary>
+    ///     Exposes the self-signed certificate factory for tests that spin up their
+    ///     own raw TLS listener instead of a full Kestrel host.
+    /// </summary>
+    public static X509Certificate2 CreateSelfSignedCertificateForTesting() => CreateSelfSignedCertificate();
+
     private static X509Certificate2 CreateSelfSignedCertificate()
     {
         using var rsa = RSA.Create(2048);

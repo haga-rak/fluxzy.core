@@ -28,6 +28,7 @@ namespace Fluxzy.Clients.H2
 
         private Memory<byte> _headerBuffer;
 
+        private bool _headerEndedStream;
         private bool _noBodyStream;
         private bool _responseHeadersComplete;
 
@@ -177,6 +178,8 @@ namespace Fluxzy.Clients.H2
                             exchange.Request.Body == null ||
                             (exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0);
 
+            _headerEndedStream = endStream;
+
             var readyToBeSent = Parent.Context.HeaderEncoder.Encode(
                 new HeaderEncodingJob(exchange.Request.Header.GetHttp11Header(), StreamIdentifier, StreamDependency),
                 buffer, endStream);
@@ -198,6 +201,17 @@ namespace Fluxzy.Clients.H2
 
         public async ValueTask ProcessRequestBody(Exchange exchange, RsBuffer buffer, CancellationToken token)
         {
+            // HEADERS already carried END_STREAM (e.g. Content-Length: 0). The stream is
+            // half-closed (local) — sending any DATA frame now would be a PROTOCOL_ERROR
+            // on a closed stream, so we must not enter the body loop. This matters for
+            // clients like Firefox that send HEADERS + DATA[END_STREAM, 0] for zero-length
+            // POSTs: Fluxzy exposes the empty request body as a non-seekable pipe stream,
+            // which would otherwise trip the loop's "!CanSeek" entry condition.
+            if (_headerEndedStream) {
+                exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+                return;
+            }
+
             var totalSent = 0;
             var requestBodyStream = exchange.Request.Body;
             var bodyLength = exchange.Request.Header.ContentLength;
