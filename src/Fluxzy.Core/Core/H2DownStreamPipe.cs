@@ -723,8 +723,7 @@ namespace Fluxzy.Core
 
                 var frameLength = read + 9;
 
-                await _dataChannel.Writer.WriteAsync(
-                    new DataFrameEntry(rentedBuffer, frameLength, read), token).ConfigureAwait(false);
+                 _dataChannel.Writer.TryWrite(new DataFrameEntry(rentedBuffer, frameLength, read));
 
                 SignalWriteLoop();
             }
@@ -736,8 +735,7 @@ namespace Fluxzy.Core
                 // Enqueue a trailer-encoding job; WriteLoop encodes it on its own thread (no lock).
                 // Wire ordering is preserved because all DATA frames for this stream are already
                 // queued ahead of this entry in the same FIFO channel.
-                await _dataChannel.Writer.WriteAsync(
-                    new DataFrameEntry(trailers, streamIdentifier), token).ConfigureAwait(false);
+                _dataChannel.Writer.TryWrite(new DataFrameEntry(trailers, streamIdentifier));
 
                 SignalWriteLoop();
             }
@@ -748,8 +746,7 @@ namespace Fluxzy.Core
                 new DataFrame(HeaderFlags.EndStream, 0, streamIdentifier)
                     .WriteHeaderOnly(endFrameBuffer, 0);
 
-                await _dataChannel.Writer.WriteAsync(
-                    new DataFrameEntry(endFrameBuffer, 9, 0), token).ConfigureAwait(false);
+                _dataChannel.Writer.TryWrite(new DataFrameEntry(endFrameBuffer, 9, 0));
 
                 SignalWriteLoop();
             }
