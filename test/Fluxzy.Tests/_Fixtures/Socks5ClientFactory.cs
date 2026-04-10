@@ -18,7 +18,8 @@ namespace Fluxzy.Tests._Fixtures
     {
         public static HttpClient Create(
             IPEndPoint proxyEndPoint, int timeoutSeconds = 15,
-            Version? httpVersion = null)
+            Version? httpVersion = null,
+            Func<Stream, Stream>? streamWrapper = null)
         {
             var normalized = NormalizeEndPoint(proxyEndPoint);
             var useH2 = httpVersion != null && httpVersion.Major >= 2;
@@ -43,7 +44,11 @@ namespace Fluxzy.Tests._Fixtures
                     var socket = new Socket(normalized.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                     await socket.ConnectAsync(normalized, cancellationToken);
 
-                    var stream = new NetworkStream(socket, ownsSocket: true);
+                    Stream stream = new NetworkStream(socket, ownsSocket: true);
+
+                    if (streamWrapper != null)
+                        stream = streamWrapper(stream);
+
                     await PerformSocks5HandshakeAsync(stream, context.DnsEndPoint, cancellationToken);
 
                     return stream;

@@ -35,7 +35,7 @@ app.MapGet("/bench", async ctx =>
 
     if (length > 0)
     {
-        ctx.Response.ContentLength = length;
+        ctx.Response.ContentLength = 8192;
         var buffer = new byte[Math.Min(length, 16384)];
         var remaining = length;
 

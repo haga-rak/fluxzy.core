@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Fluxzy.Benchmarks.Server": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:63911;http://localhost:63912"
+    }
+  }
+}
