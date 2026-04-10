@@ -11,10 +11,24 @@ if /i "%~1"=="--short" (
     shift
     goto parse_args
 )
+if /i "%~1"=="--contention" (
+    rem Opt-in CLR contention ETW trace (EventPipe). Produces .nettrace per run
+    rem in BenchmarkDotNet.Artifacts/. Open in PerfView / VS / speedscope.
+    set FLUXZY_BENCH_CONTENTION=1
+    shift
+    goto parse_args
+)
 if /i "%~1"=="--h2-8k" (
     rem H2 + 8192 body only, ~30%% of default duration
     set SHORT_ARGS=--warmupCount 2 --iterationCount 5 --launchCount 1
     set FILTER=*ProxyThroughputBenchmark*True*8192*
+    shift
+    goto parse_args
+)
+if /i "%~1"=="--h2-0k" (
+    rem H2 + 0 body only, ~30%% of default duration
+    set SHORT_ARGS=--warmupCount 2 --iterationCount 5 --launchCount 1
+    set FILTER=*ProxyThroughputBenchmark*True*0*
     shift
     goto parse_args
 )

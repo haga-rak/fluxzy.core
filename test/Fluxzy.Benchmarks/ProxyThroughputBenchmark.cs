@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,10 +9,12 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Reports;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Tests._Fixtures;
+using Microsoft.Diagnostics.NETCore.Client;
 
 namespace Fluxzy.Benchmarks;
 
@@ -128,10 +131,38 @@ public class ProxyThroughputBenchmark
 
     private class Config : ManualConfig
     {
+        // CLR ETW keywords — values come from Microsoft-Windows-DotNETRuntime provider manifest.
+        // Combined, these give us ContentionStart/Stop with resolvable managed call stacks.
+        private const long ClrContentionKeyword = 0x4000;     // GC=0x1, Loader=0x8, Jit=0x10, Contention=0x4000
+        private const long ClrJitKeyword = 0x10;
+        private const long ClrLoaderKeyword = 0x8;
+        private const long ClrJitToNativeMapKeyword = 0x20000;
+        private const long ClrStackKeyword = 0x40000000;
+
         public Config()
         {
             WithSummaryStyle(SummaryStyle.Default.WithRatioStyle(RatioStyle.Percentage));
             AddColumn(StatisticColumn.OperationsPerSecond);
+
+            // Opt-in contention trace: FLUXZY_BENCH_CONTENTION=1 produces a .nettrace per benchmark
+            // run (in BenchmarkDotNet.Artifacts/), openable in PerfView / VS / speedscope.
+            if (string.Equals(
+                    Environment.GetEnvironmentVariable("FLUXZY_BENCH_CONTENTION"),
+                    "1",
+                    StringComparison.Ordinal)) {
+                var providers = new[] {
+                    new EventPipeProvider(
+                        name: "Microsoft-Windows-DotNETRuntime",
+                        eventLevel: EventLevel.Verbose,
+                        keywords: ClrContentionKeyword
+                                  | ClrJitKeyword
+                                  | ClrLoaderKeyword
+                                  | ClrJitToNativeMapKeyword
+                                  | ClrStackKeyword)
+                };
+
+                AddDiagnoser(new EventPipeProfiler(providers: providers));
+            }
         }
     }
 }
