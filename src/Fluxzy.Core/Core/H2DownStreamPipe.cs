@@ -20,15 +20,42 @@ namespace Fluxzy.Core
 {
     internal readonly struct DataFrameEntry
     {
-        public readonly byte[] RentedBuffer;
+        public readonly byte[]? RentedBuffer;
         public readonly int Length;
         public readonly int FlowControlledBytes;
+        public readonly IList<HeaderField>? TrailerHeaders;
+        public readonly int TrailerStreamIdentifier;
 
         public DataFrameEntry(byte[] rentedBuffer, int length, int flowControlledBytes)
         {
             RentedBuffer = rentedBuffer;
             Length = length;
             FlowControlledBytes = flowControlledBytes;
+            TrailerHeaders = null;
+            TrailerStreamIdentifier = 0;
+        }
+
+        public DataFrameEntry(IList<HeaderField> trailerHeaders, int trailerStreamIdentifier)
+        {
+            RentedBuffer = null;
+            Length = 0;
+            FlowControlledBytes = 0;
+            TrailerHeaders = trailerHeaders;
+            TrailerStreamIdentifier = trailerStreamIdentifier;
+        }
+    }
+
+    internal readonly struct PendingHeaderWrite
+    {
+        public readonly ReadOnlyMemory<char> Http11Header;
+        public readonly int StreamIdentifier;
+        public readonly bool HasBody;
+
+        public PendingHeaderWrite(ReadOnlyMemory<char> http11Header, int streamIdentifier, bool hasBody)
+        {
+            Http11Header = http11Header;
+            StreamIdentifier = streamIdentifier;
+            HasBody = hasBody;
         }
     }
 
@@ -48,7 +75,10 @@ namespace Fluxzy.Core
 
         private readonly ConcurrentDictionary<int, ServerStreamWorker> _currentStreams = new();
         private readonly HeaderEncoder _headerEncoder;
-        private readonly object _headerEncodeLock = new();
+        private readonly Channel<PendingHeaderWrite> _pendingHeaders =
+            Channel.CreateUnbounded<PendingHeaderWrite>(
+                new UnboundedChannelOptions() { SingleReader = true });
+        private readonly RsBuffer _headerEncodeBuffer = RsBuffer.Allocate(16 * 1024);
         private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting() {
             Local = new () {
                 SettingsMaxConcurrentStreams = 256
@@ -408,7 +438,15 @@ namespace Fluxzy.Core
                 while (!token.IsCancellationRequested) {
                     var didWork = false;
 
-                    // Phase 1: Drain ring buffer (control frames, HEADERS — priority, no flow control)
+                    // Phase 1: Drain pending header encodes into the ring buffer, then drain
+                    //          the ring buffer (control frames + HEADERS — priority, no flow control).
+                    //          Encoding runs only here, so the shared HPACK dynamic table needs
+                    //          no synchronization.
+                    while (_pendingHeaders.Reader.TryRead(out var pending)) {
+                        EncodePendingHeader(pending);
+                        didWork = true;
+                    }
+
                     _ringBuffer.GetReadableRegions(out var seg1, out var seg2, out var total);
 
                     if (total > 0) {
@@ -428,6 +466,14 @@ namespace Fluxzy.Core
                     var gatherOffset = 0;
 
                     while (_dataChannel.Reader.TryPeek(out var entry)) {
+                        // Re-drain any pending headers that arrived during data writes so the
+                        // HEADERS frame for stream X always precedes its DATA on the wire.
+                        // Headers go into the ring buffer, which the interleave block below flushes.
+                        while (_pendingHeaders.Reader.TryRead(out var pending)) {
+                            EncodePendingHeader(pending);
+                            didWork = true;
+                        }
+
                         // Interleave: flush gathered data and drain ring buffer if priority data exists
                         if (_ringBuffer.ReadableCount > 0) {
                             if (gatherOffset > 0) {
@@ -450,6 +496,23 @@ namespace Fluxzy.Core
                             }
                         }
 
+                        // Trailer-encoding job (placed inline in the DATA channel to preserve
+                        // per-stream ordering relative to the DATA frames queued ahead of it).
+                        if (entry.TrailerHeaders != null) {
+                            if (gatherOffset > 0) {
+                                await _writeStream.WriteAsync(gatherBuffer!.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
+                                gatherOffset = 0;
+                            }
+
+                            var trailerBytes = _headerEncoder.EncodeTrailers(
+                                entry.TrailerHeaders, _headerEncodeBuffer, entry.TrailerStreamIdentifier);
+
+                            await _writeStream.WriteAsync(trailerBytes, token).ConfigureAwait(false);
+                            _dataChannel.Reader.TryRead(out _); // consume the peeked entry
+                            didWork = true;
+                            continue;
+                        }
+
                         if (entry.FlowControlledBytes > 0) {
                             var window = Volatile.Read(ref _connectionWindow);
 
@@ -464,8 +527,8 @@ namespace Fluxzy.Core
                         // Single frame with nothing else queued — write directly, skip gather
                         if (gatherOffset == 0 && !_dataChannel.Reader.TryPeek(out _)) {
                             await _writeStream.WriteAsync(
-                                entry.RentedBuffer.AsMemory(0, entry.Length), token).ConfigureAwait(false);
-                            ArrayPool<byte>.Shared.Return(entry.RentedBuffer);
+                                entry.RentedBuffer!.AsMemory(0, entry.Length), token).ConfigureAwait(false);
+                            ArrayPool<byte>.Shared.Return(entry.RentedBuffer!);
                             didWork = true;
                             break;
                         }
@@ -482,9 +545,9 @@ namespace Fluxzy.Core
                             }
                         }
 
-                        entry.RentedBuffer.AsSpan(0, entry.Length).CopyTo(gatherBuffer.AsSpan(gatherOffset));
+                        entry.RentedBuffer!.AsSpan(0, entry.Length).CopyTo(gatherBuffer.AsSpan(gatherOffset));
                         gatherOffset += entry.Length;
-                        ArrayPool<byte>.Shared.Return(entry.RentedBuffer);
+                        ArrayPool<byte>.Shared.Return(entry.RentedBuffer!);
                         didWork = true;
                     }
 
@@ -511,15 +574,22 @@ namespace Fluxzy.Core
                     if (_dataChannel.Reader.TryPeek(out _))
                         continue;
 
-                    // Check termination: both sources completed and empty
-                    if (_ringBuffer.IsCompleted && _dataChannel.Reader.Completion.IsCompleted) {
+                    if (_pendingHeaders.Reader.TryPeek(out _))
+                        continue;
+
+                    // Check termination: all sources completed and empty
+                    if (_ringBuffer.IsCompleted &&
+                        _dataChannel.Reader.Completion.IsCompleted &&
+                        _pendingHeaders.Reader.Completion.IsCompleted) {
                         // Final drain to catch any data that arrived between checks
-                        if (_ringBuffer.ReadableCount > 0 || _dataChannel.Reader.TryPeek(out _))
+                        if (_ringBuffer.ReadableCount > 0 ||
+                            _dataChannel.Reader.TryPeek(out _) ||
+                            _pendingHeaders.Reader.TryPeek(out _))
                             continue;
 
                         break;
                     }
-                    
+
                     await _writeSignal.WaitAsync(token).ConfigureAwait(false);
                 }
             }
@@ -531,8 +601,13 @@ namespace Fluxzy.Core
             }
             finally {
                 // Return rented buffers from any remaining channel entries
-                while (_dataChannel.Reader.TryRead(out var remaining))
-                    ArrayPool<byte>.Shared.Return(remaining.RentedBuffer);
+                while (_dataChannel.Reader.TryRead(out var remaining)) {
+                    if (remaining.RentedBuffer != null)
+                        ArrayPool<byte>.Shared.Return(remaining.RentedBuffer);
+                }
+
+                // Drain leftover pending header jobs (they hold only managed memory).
+                while (_pendingHeaders.Reader.TryRead(out _)) { }
 
                 _writeHalted = true;
             }
@@ -559,27 +634,40 @@ namespace Fluxzy.Core
             }
         }
 
-        public ValueTask WriteResponseHeader(
-            ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, ReadOnlyMemory<char> requestMethod, CancellationToken token)
+        /// <summary>
+        ///     HPACK-encode a pending response header and commit the bytes to the ring buffer.
+        ///     Called only from the single-threaded WriteLoop, so no synchronization around the
+        ///     shared HPACK dynamic table is required.
+        /// </summary>
+        private void EncodePendingHeader(in PendingHeaderWrite pending)
         {
-            var hasBody = responseHeader.HasResponseBody(requestMethod.Span, out _);
-            ReadOnlyMemory<byte> payload;
+            var encoded = _headerEncoder.Encode(
+                new HeaderEncodingJob(pending.Http11Header, pending.StreamIdentifier, 0),
+                _headerEncodeBuffer, !pending.HasBody);
 
-            lock (_headerEncodeLock) {
-                payload = _headerEncoder.Encode(
-                    new HeaderEncodingJob(responseHeader.GetHttp11Header(),
-                        streamIdentifier, 0),
-                    buffer, !hasBody);
-            }
+            _ringBuffer.Write(encoded.Span);
 
-            _ringBuffer.Write(payload.Span);
-
-            if (!hasBody) {
+            if (!pending.HasBody) {
                 // No body will follow — clean up the stream worker now.
-                if (_currentStreams.TryRemove(streamIdentifier, out var worker)) {
+                if (_currentStreams.TryRemove(pending.StreamIdentifier, out var worker)) {
                     worker.Dispose();
                 }
             }
+        }
+
+        public ValueTask WriteResponseHeader(
+            ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, ReadOnlyMemory<char> requestMethod, CancellationToken token)
+        {
+            // Compute hasBody on the caller thread (needs requestMethod.Span) and materialize the
+            // HTTP/1.1 header representation here — GetHttp11Header() is a pure, fresh allocation
+            // so it's safe to hand off. Actual HPACK encoding happens on the WriteLoop, which is
+            // the sole owner of the shared HPACK dynamic table: no lock required on the hot path.
+            var hasBody = responseHeader.HasResponseBody(requestMethod.Span, out _);
+
+            _pendingHeaders.Writer.TryWrite(new PendingHeaderWrite(
+                responseHeader.GetHttp11Header(), streamIdentifier, hasBody));
+
+            SignalWriteLoop();
 
             return default;
         }
@@ -645,18 +733,11 @@ namespace Fluxzy.Core
             var trailers = responseForTrailers?.Trailers;
 
             if (trailers != null && trailers.Count > 0) {
-                // Send trailers as HEADERS frame with EndStream, enqueue to data channel
-                ReadOnlyMemory<byte> payload;
-
-                lock (_headerEncodeLock) {
-                    payload = _headerEncoder.EncodeTrailers(trailers, rsBuffer, streamIdentifier);
-                }
-
-                var rentedTrailerBuffer = ArrayPool<byte>.Shared.Rent(payload.Length);
-                payload.Span.CopyTo(rentedTrailerBuffer);
-
+                // Enqueue a trailer-encoding job; WriteLoop encodes it on its own thread (no lock).
+                // Wire ordering is preserved because all DATA frames for this stream are already
+                // queued ahead of this entry in the same FIFO channel.
                 await _dataChannel.Writer.WriteAsync(
-                    new DataFrameEntry(rentedTrailerBuffer, payload.Length, 0), token).ConfigureAwait(false);
+                    new DataFrameEntry(trailers, streamIdentifier), token).ConfigureAwait(false);
 
                 SignalWriteLoop();
             }
@@ -703,6 +784,7 @@ namespace Fluxzy.Core
             _mainLoopTokenSource.Cancel();
             _ringBuffer.Complete();
             _dataChannel.Writer.TryComplete();
+            _pendingHeaders.Writer.TryComplete();
             _exchangeChannel.Writer.TryComplete();
 
             foreach (var (_, worker) in _currentStreams)
@@ -711,6 +793,7 @@ namespace Fluxzy.Core
             }
 
             _ringBuffer.Dispose();
+            _headerEncodeBuffer.Dispose();
         }
     }
 }
