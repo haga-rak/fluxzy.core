@@ -3,7 +3,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Channels;
@@ -18,47 +17,6 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    internal readonly struct DataFrameEntry
-    {
-        public readonly byte[]? RentedBuffer;
-        public readonly int Length;
-        public readonly int FlowControlledBytes;
-        public readonly IList<HeaderField>? TrailerHeaders;
-        public readonly int TrailerStreamIdentifier;
-
-        public DataFrameEntry(byte[] rentedBuffer, int length, int flowControlledBytes)
-        {
-            RentedBuffer = rentedBuffer;
-            Length = length;
-            FlowControlledBytes = flowControlledBytes;
-            TrailerHeaders = null;
-            TrailerStreamIdentifier = 0;
-        }
-
-        public DataFrameEntry(IList<HeaderField> trailerHeaders, int trailerStreamIdentifier)
-        {
-            RentedBuffer = null;
-            Length = 0;
-            FlowControlledBytes = 0;
-            TrailerHeaders = trailerHeaders;
-            TrailerStreamIdentifier = trailerStreamIdentifier;
-        }
-    }
-
-    internal readonly struct PendingHeaderWrite
-    {
-        public readonly ReadOnlyMemory<char> Http11Header;
-        public readonly int StreamIdentifier;
-        public readonly bool HasBody;
-
-        public PendingHeaderWrite(ReadOnlyMemory<char> http11Header, int streamIdentifier, bool hasBody)
-        {
-            Http11Header = http11Header;
-            StreamIdentifier = streamIdentifier;
-            HasBody = hasBody;
-        }
-    }
-
     internal class H2DownStreamPipe : IDownStreamPipe
     {
         private readonly Stream _readStream;
@@ -286,6 +244,7 @@ namespace Fluxzy.Core
         private async Task ReadLoop(CancellationToken token)
         {
             try {
+                using var reader = new H2FrameStreamReader(_readStream, _h2StreamSetting.MaxFrameSizeAllowed);
                 using var readBuffer = RsBuffer.Allocate(_h2StreamSetting.MaxFrameSizeAllowed + 9);
 
                 while (!token.IsCancellationRequested) {
@@ -293,9 +252,7 @@ namespace Fluxzy.Core
                     H2FrameReadResult frame;
 
                     try {
-                        frame =
-                            await H2FrameReader.ReadNextFrameAsync(_readStream, readBuffer.Memory,
-                                token).ConfigureAwait(false);
+                        frame = await reader.ReadNextFrameAsync(token).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) {
                         break;

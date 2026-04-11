@@ -25,7 +25,7 @@ namespace Fluxzy.Benchmarks;
 public class ProxyThroughputBenchmark
 {
     private const int RequestsPerIteration = 500;
-    private const int Concurrency = 32;
+    private const int Concurrency = 56;
 
     private BenchmarkServerProcess _server = null!;
     private Proxy _proxy = null!;

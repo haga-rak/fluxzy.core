@@ -470,17 +470,15 @@ namespace Fluxzy.Clients.H2
         /// <returns></returns>
         private async Task InternalReadLoop(CancellationToken token)
         {
-            using var readBuffer = MemoryPool<byte>.Shared.Rent(Setting.Remote.MaxFrameSize);
+            using var reader = new H2FrameStreamReader(_baseStream, Setting.Remote.MaxFrameSize);
 
             Exception? outException = null;
 
             try {
                 while (!token.IsCancellationRequested) {
                     _logger.TraceDeep(0, () => "1");
-                    
-                    var frame =
-                        await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer.Memory,
-                            token).ConfigureAwait(false);
+
+                    var frame = await reader.ReadNextFrameAsync(token).ConfigureAwait(false);
 
                     if (ProcessNewFrame(frame))
                         break;
