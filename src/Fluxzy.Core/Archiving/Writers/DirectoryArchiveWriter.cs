@@ -17,6 +17,7 @@ namespace Fluxzy.Writers
     public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {
         private readonly ArchiveMetaInformation _archiveMetaInformation = CreateNewCaptureArchiveMetaInformation();
+        private readonly object _metaLock = new object();
 
         private static ArchiveMetaInformation CreateNewCaptureArchiveMetaInformation()
         {
@@ -78,7 +79,7 @@ namespace Fluxzy.Writers
             if (!force && File.Exists(_archiveMetaInformationPath))
                 return;
 
-            lock (_archiveMetaInformationPath)
+            lock (_metaLock)
             {
                 using var fileStream = File.Create(_archiveMetaInformationPath);
                 JsonSerializer.Serialize(fileStream, _archiveMetaInformation, GlobalArchiveOption.DefaultSerializerOptions);
@@ -87,15 +88,15 @@ namespace Fluxzy.Writers
 
         public override void UpdateTags(IEnumerable<Tag> tags)
         {
-            lock (_archiveMetaInformationPath)
+            lock (_metaLock)
             {
                 foreach (var tag in tags)
                 {
                     _archiveMetaInformation.Tags.Add(tag);
                 }
-            }
 
-            UpdateMeta(true);
+                UpdateMeta(true);
+            }
         }
 
         protected override bool ExchangeUpdateRequired(Exchange exchange)
@@ -130,18 +131,18 @@ namespace Fluxzy.Writers
 
             if (exchangeInfo.Tags?.Any() ?? false)
             {
-                var modified = false;
-
-                lock (_archiveMetaInformation) {
+                lock (_metaLock)
+                {
+                    var modified = false;
 
                     foreach (var tag in exchangeInfo.Tags)
                     {
                         modified = _archiveMetaInformation.Tags.Add(tag) || modified;
                     }
-                }
 
-                if (modified)
-                    UpdateMeta(true);
+                    if (modified)
+                        UpdateMeta(true);
+                }
             }
 
             return true;
