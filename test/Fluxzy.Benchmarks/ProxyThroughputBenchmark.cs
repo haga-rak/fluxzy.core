@@ -1,20 +1,12 @@
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.Tracing;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
-using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Tests._Fixtures;
 using Microsoft.Diagnostics.NETCore.Client;
@@ -28,11 +20,12 @@ namespace Fluxzy.Benchmarks;
 ///     Run: dotnet run -c Release -- --filter *ProxyThroughputBenchmark*
 /// </summary>
 [MemoryDiagnoser]
+//[ThreadingDiagnoser]
 [Config(typeof(Config))]
 public class ProxyThroughputBenchmark
 {
     private const int RequestsPerIteration = 500;
-    private const int Concurrency = 56;
+    private const int Concurrency = 32;
 
     private BenchmarkServerProcess _server = null!;
     private Proxy _proxy = null!;
@@ -170,7 +163,7 @@ public class ProxyThroughputBenchmark
 
     private async Task SendRequest()
     {
-        using var response = await _client.GetAsync(_targetUrl, HttpCompletionOption.ResponseHeadersRead)
+        using var response = await _client.GetAsync(_targetUrl, HttpCompletionOption.ResponseContentRead)
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
