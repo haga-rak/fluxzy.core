@@ -154,6 +154,7 @@ namespace Fluxzy.Core
             }
 
             await _requestBodyPipe.Writer.WriteAsync(buffer.Memory.Slice(0, length), token).ConfigureAwait(false);
+            await _requestBodyPipe.Writer.FlushAsync(token).ConfigureAwait(false);
 
             if (endStream)
             {
