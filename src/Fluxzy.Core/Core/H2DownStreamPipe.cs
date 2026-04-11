@@ -561,8 +561,6 @@ namespace Fluxzy.Core
                         ArrayPool<byte>.Shared.Return(gatherBuffer);
 
                     // Phase 3: Flush
-                    if (didWork)
-                        await _writeStream.FlushAsync(token).ConfigureAwait(false);
 
                     // Phase 4: Wait for signal
                     Interlocked.Exchange(ref _writeSignalState, 0);
@@ -589,6 +587,9 @@ namespace Fluxzy.Core
 
                         break;
                     }
+
+                    if (didWork)
+                        await _writeStream.FlushAsync(token).ConfigureAwait(false);
 
                     await _writeSignal.WaitAsync(token).ConfigureAwait(false);
                 }
