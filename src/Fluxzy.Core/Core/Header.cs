@@ -330,9 +330,13 @@ namespace Fluxzy.Core
 
         internal void ForceTransferChunked()
         {
-            // Allow chunked body f
-
             if (!CanHaveBody()) {
+                return;
+            }
+
+            if (ChunkedBody) {
+                // Upstream response already declared Transfer-Encoding: chunked.
+                // Appending a second entry breaks strict HTTP clients (issue #615).
                 return;
             }
 
