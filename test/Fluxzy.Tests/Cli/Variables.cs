@@ -169,6 +169,7 @@ rules:
         [InlineData("authority.secure", "Secure")]
         [InlineData("exchange.url", "FullUrl")]
         [InlineData("exchange.method", "Method")]
+        [InlineData("exchange.path", "Path")]
         [InlineData("exchange.status", "StatusCode")]
         [InlineData("exchange.id", "Id")]
         public async Task Self_Generated_Context_Variables(string variableName, string propertyName)
