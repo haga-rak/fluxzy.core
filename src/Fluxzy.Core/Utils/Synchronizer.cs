@@ -24,10 +24,20 @@ namespace Fluxzy.Utils
         {
             LockInfo lockInfo;
 
-            lock (_locks)
+            if (_preserve)
             {
+                // With preserve=true entries are never removed, so
+                // ConcurrentDictionary.GetOrAdd is sufficient — no global lock needed.
                 lockInfo = _locks.GetOrAdd(key, _ => new LockInfo());
                 Interlocked.Increment(ref lockInfo.WaitingCount);
+            }
+            else
+            {
+                lock (_locks)
+                {
+                    lockInfo = _locks.GetOrAdd(key, _ => new LockInfo());
+                    Interlocked.Increment(ref lockInfo.WaitingCount);
+                }
             }
 
             await lockInfo.Semaphore.WaitAsync();
@@ -43,9 +53,11 @@ namespace Fluxzy.Utils
             Interlocked.Decrement(ref lockInfo.OwnerCount);
             lockInfo.Semaphore.Release();
 
+            if (_preserve)
+                return;
+
             lock (_locks) {
-                if (!_preserve
-                    && Volatile.Read(ref lockInfo.WaitingCount) == 0
+                if (Volatile.Read(ref lockInfo.WaitingCount) == 0
                     && Volatile.Read(ref lockInfo.OwnerCount) == 0)
                 {
                     var pair = new KeyValuePair<T, LockInfo>(key, lockInfo);

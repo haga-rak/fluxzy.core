@@ -39,8 +39,7 @@ namespace Fluxzy.Clients
         private readonly RealtimeArchiveWriter _archiveWriter;
         private readonly IDnsSolver _dnsSolver;
 
-        private readonly IDictionary<Authority, IHttpConnectionPool> _connectionPools =
-            new Dictionary<Authority, IHttpConnectionPool>();
+        private readonly ConcurrentDictionary<Authority, IHttpConnectionPool> _connectionPools = new();
         private readonly CancellationTokenSource _poolCheckHaltSource = new();
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
@@ -97,11 +96,7 @@ namespace Fluxzy.Clients
         /// </summary>
         internal async Task CheckAllPoolsOnceAsync()
         {
-            List<IHttpConnectionPool> activePools;
-
-            lock (_connectionPools) {
-                activePools = _connectionPools.Values.ToList();
-            }
+            var activePools = _connectionPools.Values.ToList();
 
             // Sequential: CheckAlive does no network I/O on either the alive or the
             // idle-teardown branch, so concurrency would only add coordination cost.
@@ -150,152 +145,159 @@ namespace Fluxzy.Clients
                 return mockedConnectionPool;
             }
 
-            IHttpConnectionPool? result = null;
+            var forceNewConnection = exchange.Context.ForceNewConnection;
 
-            try
-            {
-                using var _ = await _synchronizer.LockAsync(exchange.Authority);
+            if (exchange.Request.Header.IsWebSocketRequest || exchange.Context.BlindMode)
+                forceNewConnection = true;
 
-                var forceNewConnection = exchange.Context.ForceNewConnection;
-
-                if (exchange.Request.Header.IsWebSocketRequest || exchange.Context.BlindMode)
-                    forceNewConnection = true;
-
-                // Looking for existing HttpPool
-
-                if (!forceNewConnection) {
-                    lock (_connectionPools) 
-                    {
-                        if (_connectionPools.TryGetValue(exchange.Authority, out var pool)) 
-                        {
-                            if (pool.Complete) {
-                                _connectionPools.Remove(pool.Authority);
-                            }
-                            else {
-                                if (exchange.Metrics.RetrievingPool == default)
-                                    exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
-
-                                exchange.Metrics.ReusingConnection = true;
-
-                                return pool;
-                            }
-                        }
-                    }
-                }
+            // Fast path: reuse existing pool without acquiring the per-authority semaphore.
+            // Pools are only stored after Init(), so any pool found here is fully initialised.
+            if (!forceNewConnection
+                && _connectionPools.TryGetValue(exchange.Authority, out var existingPool)
+                && !existingPool.Complete) {
 
                 if (exchange.Metrics.RetrievingPool == default)
                     exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
+                exchange.Metrics.ReusingConnection = true;
 
-                //  pool 
-                if (exchange.Context.BlindMode && exchange.Authority.Secure) {
-                    var tunneledConnectionPool = new TunnelOnlyConnectionPool(
-                        exchange.Authority, _timingProvider,
-                        _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult);
+                return existingPool;
+            }
 
-                    return result = tunneledConnectionPool;
-                }
+            // Slow path: acquire per-authority semaphore for pool creation
+            using var syncGuard = await _synchronizer.LockAsync(exchange.Authority);
 
-                if (exchange.Request.Header.IsWebSocketRequest) {
-                    var tunneledConnectionPool = new WebsocketConnectionPool(
-                        exchange.Authority, _timingProvider,
-                        _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult);
-
-                    return result = tunneledConnectionPool;
-                }
-
-                if (!exchange.Authority.Secure) {
-                    // Plain HTTP/1, no h2c
-
-                    var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
-                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting,
-                        _archiveWriter!, dnsResolutionResult);
-
-                    exchange.HttpVersion = "HTTP/1.1";
-
-                    if (exchange.Context.PreMadeResponse != null)
-                    {
-                        return new MockedConnectionPool(exchange.Authority,
-                            exchange.Context.PreMadeResponse);
+            // Double-check after acquiring semaphore — another thread may have
+            // created the pool while we waited.
+            if (!forceNewConnection) {
+                if (_connectionPools.TryGetValue(exchange.Authority, out var pool)) {
+                    if (pool.Complete) {
+                        _connectionPools.TryRemove(exchange.Authority, out _);
                     }
+                    else {
+                        if (exchange.Metrics.RetrievingPool == default)
+                            exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
-                    lock (_connectionPools) {
-                        return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
+                        exchange.Metrics.ReusingConnection = true;
+
+                        return pool;
                     }
                 }
+            }
 
-                // HTTPS test 1.1/2
+            if (exchange.Metrics.RetrievingPool == default)
+                exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
 
-                RemoteConnectionResult openingResult;
-                try
+            //  pool
+            if (exchange.Context.BlindMode && exchange.Authority.Secure) {
+                var tunneledConnectionPool = new TunnelOnlyConnectionPool(
+                    exchange.Authority, _timingProvider,
+                    _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult);
+
+                tunneledConnectionPool.Init();
+
+                return tunneledConnectionPool;
+            }
+
+            if (exchange.Request.Header.IsWebSocketRequest) {
+                var tunneledConnectionPool = new WebsocketConnectionPool(
+                    exchange.Authority, _timingProvider,
+                    _remoteConnectionBuilder, proxyRuntimeSetting, dnsResolutionResult);
+
+                tunneledConnectionPool.Init();
+
+                return tunneledConnectionPool;
+            }
+
+            if (!exchange.Authority.Secure) {
+                // Plain HTTP/1, no h2c
+
+                var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
+                    _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting,
+                    _archiveWriter!, dnsResolutionResult);
+
+                exchange.HttpVersion = "HTTP/1.1";
+
+                if (exchange.Context.PreMadeResponse != null)
                 {
-                    openingResult =
-                        (await _remoteConnectionBuilder.OpenConnectionToRemote(
-                            exchange, dnsResolutionResult,
-                            exchange.Context.SslApplicationProtocols ?? AllProtocols, proxyRuntimeSetting,
-                            exchange.Context.ProxyConfiguration,
-                            cancellationToken).ConfigureAwait(false))!;
+                    return new MockedConnectionPool(exchange.Authority,
+                        exchange.Context.PreMadeResponse);
+                }
 
-                    if (exchange.Context.PreMadeResponse != null)
-                    {
-                        return new MockedConnectionPool(exchange.Authority,
-                            exchange.Context.PreMadeResponse);
-                    }
+                http11ConnectionPool.Init();
+                _connectionPools[exchange.Authority] = http11ConnectionPool;
 
+                return http11ConnectionPool;
+            }
+
+            // HTTPS test 1.1/2
+
+            RemoteConnectionResult openingResult;
+            try
+            {
+                openingResult =
+                    (await _remoteConnectionBuilder.OpenConnectionToRemote(
+                        exchange, dnsResolutionResult,
+                        exchange.Context.SslApplicationProtocols ?? AllProtocols, proxyRuntimeSetting,
+                        exchange.Context.ProxyConfiguration,
+                        cancellationToken).ConfigureAwait(false))!;
+
+                if (exchange.Context.PreMadeResponse != null)
+                {
+                    return new MockedConnectionPool(exchange.Authority,
+                        exchange.Context.PreMadeResponse);
+                }
+
+            }
+            catch {
+                if (exchange.Connection != null)
+                    _archiveWriter.Update(exchange.Connection, cancellationToken);
+
+                throw;
+            }
+
+
+            if (openingResult.Type == RemoteConnectionResultType.Http11) {
+                var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
+                    _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter,
+                    dnsResolutionResult);
+
+                exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/1.1";
+
+                _archiveWriter.Update(openingResult.Connection, cancellationToken);
+
+                http11ConnectionPool.Init();
+                _connectionPools[exchange.Authority] = http11ConnectionPool;
+
+                return http11ConnectionPool;
+            }
+
+            if (openingResult.Type == RemoteConnectionResultType.Http2) {
+                var h2ConnectionPool = new H2ConnectionPool(
+                    openingResult.Connection
+                                 .ReadStream!, // Read and write stream are the same after the sslhandshake
+                    exchange.Context.AdvancedTlsSettings.H2StreamSetting ?? new H2StreamSetting(),
+                    exchange.Authority, exchange.Connection!, OnConnectionFaulted);
+
+                exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
+
+                if (_archiveWriter != null!)
+                    _archiveWriter.Update(openingResult.Connection, cancellationToken);
+
+                try {
+                    h2ConnectionPool.Init();
                 }
                 catch {
-                    if (exchange.Connection != null)
-                        _archiveWriter.Update(exchange.Connection, cancellationToken);
-
+                    _ = ObserveDisposal(h2ConnectionPool);
                     throw;
                 }
 
+                _connectionPools[exchange.Authority] = h2ConnectionPool;
 
-                if (openingResult.Type == RemoteConnectionResultType.Http11) {
-                    var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
-                        _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter,
-                        dnsResolutionResult);
-
-                    exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/1.1";
-
-                    _archiveWriter.Update(openingResult.Connection, cancellationToken);
-
-                    lock (_connectionPools) {
-                        return result = _connectionPools[exchange.Authority] = http11ConnectionPool;
-                    }
-                }
-
-                if (openingResult.Type == RemoteConnectionResultType.Http2) {
-                    var h2ConnectionPool = new H2ConnectionPool(
-                        openingResult.Connection
-                                     .ReadStream!, // Read and write stream are the same after the sslhandshake
-                        exchange.Context.AdvancedTlsSettings.H2StreamSetting ?? new H2StreamSetting(),
-                        exchange.Authority, exchange.Connection!, OnConnectionFaulted);
-
-                    exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
-
-                    if (_archiveWriter != null!)
-                        _archiveWriter.Update(openingResult.Connection, cancellationToken);
-
-                    lock (_connectionPools) {
-                        return result = _connectionPools[exchange.Authority] = h2ConnectionPool;
-                    }
-                }
-
-                throw new NotSupportedException($"Unhandled protocol type {openingResult.Type}");
+                return h2ConnectionPool;
             }
-            finally {
-                if (result != null) {
-                    try
-                    {
-                        result.Init();
-                    }
-                    catch
-                    {
-                        OnConnectionFaulted(result);
-                    }
-                }
-            }
+
+            throw new NotSupportedException($"Unhandled protocol type {openingResult.Type}");
         }
 
         private IDnsSolver ResolveDnsProvider(Exchange exchange, ProxyRuntimeSetting proxyRuntimeSetting)
@@ -313,18 +315,12 @@ namespace Fluxzy.Clients
         /// </summary>
         internal void TryAddPoolForTests(Authority authority, IHttpConnectionPool pool)
         {
-            lock (_connectionPools) {
-                _connectionPools[authority] = pool;
-            }
+            _connectionPools[authority] = pool;
         }
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)
         {
-            bool removed;
-
-            lock (_connectionPools) {
-                removed = _connectionPools.Remove(h2ConnectionPool.Authority);
-            }
+            var removed = _connectionPools.TryRemove(h2ConnectionPool.Authority, out _);
 
             if (!removed)
                 return;
