@@ -177,7 +177,7 @@ namespace Fluxzy.Core
 
         public bool ReadyToCreateExchange => _endHeader && !_exchangeCreated;
 
-        public async Task<Exchange> CreateExchange(
+        public async ValueTask<Exchange> CreateExchange(
             IIdProvider idProvider,
             IExchangeContextBuilder contextBuilder,
             Authority authority, bool secure)
