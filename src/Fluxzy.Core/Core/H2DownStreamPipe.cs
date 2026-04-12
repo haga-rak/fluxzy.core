@@ -27,7 +27,9 @@ namespace Fluxzy.Core
         private const int RingBufferCapacity = 512 * 1024;
 
         private readonly Channel<Exchange> _exchangeChannel =
-            Channel.CreateUnbounded<Exchange>();
+            Channel.CreateUnbounded<Exchange>(new () {
+                SingleWriter = true, SingleReader = true
+            });
 
         private readonly CircularWriteBuffer _ringBuffer;
 
@@ -389,8 +391,25 @@ namespace Fluxzy.Core
             }
         }
 
+        private async ValueTask FlushRingBufferAsync(CancellationToken token)
+        {
+            _ringBuffer.GetReadableRegions(out var seg1, out var seg2, out var total);
+
+            if (total > 0) {
+                if (seg1.Length > 0)
+                    await _writeStream.WriteAsync(seg1, token).ConfigureAwait(false);
+
+                if (seg2.Length > 0)
+                    await _writeStream.WriteAsync(seg2, token).ConfigureAwait(false);
+
+                _ringBuffer.Advance(total);
+            }
+        }
+
         private async Task WriteLoop(CancellationToken token)
         {
+            var gatherBuffer = ArrayPool<byte>.Shared.Rent(GatherBufferSize);
+
             try {
                 while (!token.IsCancellationRequested) {
                     var didWork = false;
@@ -404,22 +423,13 @@ namespace Fluxzy.Core
                         didWork = true;
                     }
 
-                    _ringBuffer.GetReadableRegions(out var seg1, out var seg2, out var total);
-
-                    if (total > 0) {
-                        if (seg1.Length > 0)
-                            await _writeStream.WriteAsync(seg1, token).ConfigureAwait(false);
-
-                        if (seg2.Length > 0)
-                            await _writeStream.WriteAsync(seg2, token).ConfigureAwait(false);
-
-                        _ringBuffer.Advance(total);
+                    if (_ringBuffer.ReadableCount > 0) {
+                        await FlushRingBufferAsync(token).ConfigureAwait(false);
                         didWork = true;
                     }
 
                     // Phase 2: Drain data channel respecting connection window.
                     // Gather consecutive DATA frames into a single write to reduce syscalls.
-                    byte[]? gatherBuffer = null;
                     var gatherOffset = 0;
 
                     while (_dataChannel.Reader.TryPeek(out var entry)) {
@@ -434,30 +444,20 @@ namespace Fluxzy.Core
                         // Interleave: flush gathered data and drain ring buffer if priority data exists
                         if (_ringBuffer.ReadableCount > 0) {
                             if (gatherOffset > 0) {
-                                await _writeStream.WriteAsync(gatherBuffer!.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
+                                await _writeStream.WriteAsync(gatherBuffer.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
                                 gatherOffset = 0;
                                 didWork = true;
                             }
 
-                            _ringBuffer.GetReadableRegions(out var pri1, out var pri2, out var priTotal);
-
-                            if (priTotal > 0) {
-                                if (pri1.Length > 0)
-                                    await _writeStream.WriteAsync(pri1, token).ConfigureAwait(false);
-
-                                if (pri2.Length > 0)
-                                    await _writeStream.WriteAsync(pri2, token).ConfigureAwait(false);
-
-                                _ringBuffer.Advance(priTotal);
-                                didWork = true;
-                            }
+                            await FlushRingBufferAsync(token).ConfigureAwait(false);
+                            didWork = true;
                         }
 
                         // Trailer-encoding job (placed inline in the DATA channel to preserve
                         // per-stream ordering relative to the DATA frames queued ahead of it).
                         if (entry.TrailerHeaders != null) {
                             if (gatherOffset > 0) {
-                                await _writeStream.WriteAsync(gatherBuffer!.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
+                                await _writeStream.WriteAsync(gatherBuffer.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
                                 gatherOffset = 0;
                             }
 
@@ -491,8 +491,6 @@ namespace Fluxzy.Core
                         }
 
                         // Gather mode: accumulate frames for batched write
-                        gatherBuffer ??= ArrayPool<byte>.Shared.Rent(GatherBufferSize);
-
                         if (gatherOffset + entry.Length > gatherBuffer.Length) {
                             // Flush current batch before it overflows
                             if (gatherOffset > 0) {
@@ -510,12 +508,9 @@ namespace Fluxzy.Core
 
                     // Flush remaining gathered data
                     if (gatherOffset > 0) {
-                        await _writeStream.WriteAsync(gatherBuffer!.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
+                        await _writeStream.WriteAsync(gatherBuffer.AsMemory(0, gatherOffset), token).ConfigureAwait(false);
                         didWork = true;
                     }
-
-                    if (gatherBuffer != null)
-                        ArrayPool<byte>.Shared.Return(gatherBuffer);
 
                     // Phase 3: Flush
 
@@ -547,7 +542,7 @@ namespace Fluxzy.Core
 
                     if (didWork)
                         await _writeStream.FlushAsync(token).ConfigureAwait(false);
-
+                    
                     await _writeSignal.WaitAsync(token).ConfigureAwait(false);
                 }
             }
@@ -558,6 +553,8 @@ namespace Fluxzy.Core
                 throw;
             }
             finally {
+                ArrayPool<byte>.Shared.Return(gatherBuffer);
+
                 // Return rented buffers from any remaining channel entries
                 while (_dataChannel.Reader.TryRead(out var remaining)) {
                     if (remaining.RentedBuffer != null)
