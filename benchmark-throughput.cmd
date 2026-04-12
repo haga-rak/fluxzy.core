@@ -7,7 +7,7 @@ set SHORT_ARGS=
 :parse_args
 if "%~1"=="" goto done_args
 if /i "%~1"=="--short" (
-    set SHORT_ARGS=--warmupCount 1 --iterationCount 3 --launchCount 1
+    set SHORT_ARGS=--warmupCount 1 --iterationCount 20 --launchCount 1
     shift
     goto parse_args
 )

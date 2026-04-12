@@ -8,7 +8,7 @@ FILTER=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --short)
-            SHORT_ARGS="--warmupCount 1 --iterationCount 3 --launchCount 1"
+            SHORT_ARGS="--warmupCount 1 --iterationCount 10 --launchCount 1"
             shift
             ;;
         --contention)
