@@ -3,7 +3,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
 using Fluxzy.Clients.H2.Encoder.HPack;
 
 namespace Fluxzy.Clients.H2.Encoder.Utils
@@ -34,7 +33,10 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             char[]? heapBuffer = null;
 
             try {
-                var minimumLength = entries.Sum(s => s.Size) + 64;
+                var minimumLength = 64;
+
+                foreach (var entry in entries)
+                    minimumLength += entry.Size;
 
                 var cookieBuffer = minimumLength < 1024
                     ? stackalloc char[minimumLength]
@@ -63,7 +65,10 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             char[]? heapBuffer = null;
 
             try {
-                var minimumLength = entries.Sum(s => s.Value.Length + s.Name.Length + 32) + 64;
+                var minimumLength = 64;
+
+                foreach (var entry in entries)
+                    minimumLength += entry.Value.Length + entry.Name.Length + 32;
 
                 var cookieBuffer = minimumLength < 1024
                     ? stackalloc char[minimumLength]
@@ -83,36 +88,62 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             in ICollection<HeaderField> entries, in Span<char> buffer,
             in Span<char> cookieBuffer)
         {
-            var mapping = entries
-                          .Where(t => Http11Constants.ControlHeaders.Contains(t.Name))
-                          .ToDictionary
-                              (t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
+            // Linear scan for control headers (max 5) — avoids Dictionary + LINQ allocations
+            var method = default(HeaderField);
+            var status = default(HeaderField);
+            var path = default(HeaderField);
+            var authority = default(HeaderField);
+            var hasMethod = false;
+            var hasStatus = false;
+            var hasPath = false;
+            var hasAuthority = false;
+
+            foreach (var entry in entries) {
+                var name = entry.Name;
+
+                if (name.Span.Equals(Http11Constants.MethodVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    method = entry;
+                    hasMethod = true;
+                }
+                else if (name.Span.Equals(Http11Constants.StatusVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    status = entry;
+                    hasStatus = true;
+                }
+                else if (name.Span.Equals(Http11Constants.PathVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    path = entry;
+                    hasPath = true;
+                }
+                else if (name.Span.Equals(Http11Constants.AuthorityVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    authority = entry;
+                    hasAuthority = true;
+                }
+            }
 
             var totalWritten = 0;
             var offsetBuffer = buffer;
 
-            if (!mapping.TryGetValue(Http11Constants.MethodVerb, out var method)) {
-                if (!mapping.TryGetValue(Http11Constants.StatusVerb, out var statusHeader))
+            if (!hasMethod) {
+                if (!hasStatus)
                     throw new HPackCodecException("Invalid HTTP header. Could not find :method or :status");
 
-                // Response header 
+                // Response header
 
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "HTTP/1.1 ");
-                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, statusHeader.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, status.Value.Span);
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, " ");
 
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten,
-                    Http11Constants.GetStatusLine(statusHeader.Value).Span);
+                    Http11Constants.GetStatusLine(status.Value).Span);
 
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
             else {
                 // Request Header
 
-                if (!mapping.TryGetValue(Http11Constants.PathVerb, out var path))
+                if (!hasPath)
                     throw new HPackCodecException("Could not find path verb");
 
-                if (!mapping.TryGetValue(Http11Constants.AuthorityVerb, out var authority))
+                if (!hasAuthority)
                     throw new HPackCodecException("Could not find authority verb");
 
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, method.Value.Span);
@@ -125,7 +156,24 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
+            // Write non-pseudo headers and join cookies in a single pass
+            var cookieOffset = 0;
+            var cookieOffsetBuffer = cookieBuffer;
+            var hasCookie = false;
+
             foreach (var entry in entries) {
+                if (entry.Name.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    // Accumulate cookie values with "; " separator
+                    if (hasCookie) {
+                        SpanCharsHelper.Concat(ref cookieOffsetBuffer, ref cookieOffset, "; ");
+                    }
+
+                    SpanCharsHelper.Concat(ref cookieOffsetBuffer, ref cookieOffset, entry.Value.Span);
+                    hasCookie = true;
+
+                    continue;
+                }
+
                 if (Http11Constants.AvoidAutoParseHttp11Headers.Contains(entry.Name))
                     continue; // PSEUDO headers
 
@@ -135,14 +183,8 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
-            var cookieLength = SpanCharsHelper.Join(
-                entries.Where(c =>
-                    c.Name.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)
-                ).Select(s => s.Value), "; ".AsSpan(), cookieBuffer);
-
-            var cookieValue = cookieBuffer.Slice(0, cookieLength);
-
-            if (!cookieValue.IsEmpty) {
+            if (hasCookie) {
+                var cookieValue = cookieBuffer.Slice(0, cookieOffset);
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, Http11Constants.CookieVerb.Span);
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, ": ");
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, cookieValue);
@@ -158,36 +200,62 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             in ICollection<HeaderFieldInfo> entries, in Span<char> buffer,
             in Span<char> cookieBuffer)
         {
-            var mapping = entries
-                          .Where(t => Http11Constants.ControlHeaders.Contains(t.Name))
-                          .ToDictionary
-                              (t => t.Name, t => t, SpanCharactersIgnoreCaseComparer.Default);
+            // Linear scan for control headers — avoids Dictionary + LINQ allocations
+            var method = default(HeaderFieldInfo);
+            var status = default(HeaderFieldInfo);
+            var path = default(HeaderFieldInfo);
+            var authority = default(HeaderFieldInfo);
+            var hasMethod = false;
+            var hasStatus = false;
+            var hasPath = false;
+            var hasAuthority = false;
+
+            foreach (var entry in entries) {
+                var name = entry.Name;
+
+                if (name.Span.Equals(Http11Constants.MethodVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    method = entry;
+                    hasMethod = true;
+                }
+                else if (name.Span.Equals(Http11Constants.StatusVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    status = entry;
+                    hasStatus = true;
+                }
+                else if (name.Span.Equals(Http11Constants.PathVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    path = entry;
+                    hasPath = true;
+                }
+                else if (name.Span.Equals(Http11Constants.AuthorityVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    authority = entry;
+                    hasAuthority = true;
+                }
+            }
 
             var totalWritten = 0;
             var offsetBuffer = buffer;
 
-            if (!mapping.TryGetValue(Http11Constants.MethodVerb, out var method)) {
-                if (!mapping.TryGetValue(Http11Constants.StatusVerb, out var statusHeader))
+            if (!hasMethod) {
+                if (!hasStatus)
                     throw new HPackCodecException("Invalid HTTP header. Could not find :method or :status");
 
-                // Response header 
+                // Response header
 
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "HTTP/1.1 ");
-                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, statusHeader.Value.Span);
+                SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, status.Value.Span);
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, " ");
 
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten,
-                    Http11Constants.GetStatusLine(statusHeader.Value).Span);
+                    Http11Constants.GetStatusLine(status.Value).Span);
 
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
             else {
                 // Request Header
 
-                if (!mapping.TryGetValue(Http11Constants.PathVerb, out var path))
+                if (!hasPath)
                     throw new HPackCodecException("Could not find path verb");
 
-                if (!mapping.TryGetValue(Http11Constants.AuthorityVerb, out var authority))
+                if (!hasAuthority)
                     throw new HPackCodecException("Could not find authority verb");
 
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, method.Value.Span);
@@ -200,7 +268,23 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
+            // Write non-pseudo headers and join cookies in a single pass
+            var cookieOffset = 0;
+            var cookieOffsetBuffer = cookieBuffer;
+            var hasCookie = false;
+
             foreach (var entry in entries) {
+                if (entry.Name.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)) {
+                    if (hasCookie) {
+                        SpanCharsHelper.Concat(ref cookieOffsetBuffer, ref cookieOffset, "; ");
+                    }
+
+                    SpanCharsHelper.Concat(ref cookieOffsetBuffer, ref cookieOffset, entry.Value.Span);
+                    hasCookie = true;
+
+                    continue;
+                }
+
                 if (Http11Constants.AvoidAutoParseHttp11Headers.Contains(entry.Name))
                     continue; // PSEUDO headers
 
@@ -210,14 +294,8 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, "\r\n");
             }
 
-            var cookieLength = SpanCharsHelper.Join(
-                entries.Where(c =>
-                    c.Name.Span.Equals(Http11Constants.CookieVerb.Span, StringComparison.OrdinalIgnoreCase)
-                ).Select(s => s.Value), "; ".AsSpan(), cookieBuffer);
-
-            var cookieValue = cookieBuffer.Slice(0, cookieLength);
-
-            if (!cookieValue.IsEmpty) {
+            if (hasCookie) {
+                var cookieValue = cookieBuffer.Slice(0, cookieOffset);
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, Http11Constants.CookieVerb.Span);
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, ": ");
                 SpanCharsHelper.Concat(ref offsetBuffer, ref totalWritten, cookieValue);
