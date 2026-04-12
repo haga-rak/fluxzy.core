@@ -440,16 +440,19 @@ namespace Fluxzy.Clients.H2
                             }
                         }
 
-                        await _baseStream.FlushAsync(token).ConfigureAwait(false);
                         _lastActivity = ITimingProvider.Default.Instant();
                     }
                     else {
+
+                        await _baseStream.FlushAsync(token).ConfigureAwait(false);
                         // async wait
                         if (!token.IsCancellationRequested
                             && !await _writerChannel.Reader.WaitToReadAsync(token))
                             break;
                     }
                 }
+
+                await _baseStream.FlushAsync(token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) {
             }
