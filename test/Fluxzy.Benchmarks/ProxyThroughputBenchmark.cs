@@ -174,10 +174,12 @@ public class ProxyThroughputBenchmark
     private class Config : ManualConfig
     {
         // CLR ETW keywords — values come from Microsoft-Windows-DotNETRuntime provider manifest.
-        // Combined, these give us ContentionStart/Stop with resolvable managed call stacks.
-        private const long ClrContentionKeyword = 0x4000;     // GC=0x1, Loader=0x8, Jit=0x10, Contention=0x4000
-        private const long ClrJitKeyword = 0x10;
+        private const long ClrGcKeyword = 0x1;                // GC/AllocationTick, GCHeapStats, GCTriggered
+        private const long ClrGcHandleKeyword = 0x2;          // GC handle traffic (pinning, weak refs)
         private const long ClrLoaderKeyword = 0x8;
+        private const long ClrJitKeyword = 0x10;
+        private const long ClrContentionKeyword = 0x4000;
+        private const long ClrTypeKeyword = 0x80000;          // type name resolution for alloc events
         private const long ClrJitToNativeMapKeyword = 0x20000;
         private const long ClrStackKeyword = 0x40000000;
 
@@ -198,6 +200,30 @@ public class ProxyThroughputBenchmark
                         name: "Microsoft-Windows-DotNETRuntime",
                         eventLevel: EventLevel.Verbose,
                         keywords: ClrContentionKeyword
+                                  | ClrJitKeyword
+                                  | ClrLoaderKeyword
+                                  | ClrJitToNativeMapKeyword
+                                  | ClrStackKeyword)
+                };
+
+                AddDiagnoser(new EventPipeProfiler(providers: providers));
+            }
+
+            // Opt-in allocation trace: FLUXZY_BENCH_ALLOC=1 produces a .nettrace per benchmark run
+            // with sampled GC/AllocationTick events (~every 100 KB of allocations) and managed
+            // call stacks. Open in PerfView ("GC Heap Alloc Ignore Free (Coarse Sampling) Stacks"),
+            // Visual Studio, or convert with `dotnet-trace convert --format speedscope *.nettrace`.
+            if (string.Equals(
+                    Environment.GetEnvironmentVariable("FLUXZY_BENCH_ALLOC"),
+                    "1",
+                    StringComparison.Ordinal)) {
+                var providers = new[] {
+                    new EventPipeProvider(
+                        name: "Microsoft-Windows-DotNETRuntime",
+                        eventLevel: EventLevel.Verbose,
+                        keywords: ClrGcKeyword
+                                  | ClrGcHandleKeyword
+                                  | ClrTypeKeyword
                                   | ClrJitKeyword
                                   | ClrLoaderKeyword
                                   | ClrJitToNativeMapKeyword

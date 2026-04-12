@@ -17,6 +17,17 @@ while [[ $# -gt 0 ]]; do
             export FLUXZY_BENCH_CONTENTION=1
             shift
             ;;
+        --alloc)
+            # Opt-in CLR allocation ETW trace (EventPipe). Produces .nettrace per run
+            # with sampled GC/AllocationTick events + managed stacks. Defaults to
+            # shorter iterations since the trace overhead skews absolute numbers.
+            # Open in PerfView ("GC Heap Alloc Ignore Free (Coarse Sampling) Stacks").
+            export FLUXZY_BENCH_ALLOC=1
+            if [[ -z "$SHORT_ARGS" ]]; then
+                SHORT_ARGS="--warmupCount 1 --iterationCount 5 --launchCount 1"
+            fi
+            shift
+            ;;
         --h2-8k)
             # H2 + 8192 body only, ~30% of default duration
             SHORT_ARGS="--warmupCount 2 --iterationCount 5 --launchCount 1"

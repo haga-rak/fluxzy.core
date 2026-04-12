@@ -18,6 +18,16 @@ if /i "%~1"=="--contention" (
     shift
     goto parse_args
 )
+if /i "%~1"=="--alloc" (
+    rem Opt-in CLR allocation ETW trace (EventPipe). Produces .nettrace per run
+    rem with sampled GC/AllocationTick events + managed stacks. Defaults to
+    rem shorter iterations since the trace overhead skews absolute numbers.
+    rem Open in PerfView ("GC Heap Alloc Ignore Free (Coarse Sampling) Stacks").
+    set FLUXZY_BENCH_ALLOC=1
+    if "%SHORT_ARGS%"=="" set SHORT_ARGS=--warmupCount 1 --iterationCount 5 --launchCount 1
+    shift
+    goto parse_args
+)
 if /i "%~1"=="--h2-8k" (
     rem H2 + 8192 body only, ~30%% of default duration
     set SHORT_ARGS=--warmupCount 2 --iterationCount 10 --launchCount 1
