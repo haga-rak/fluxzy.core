@@ -73,6 +73,28 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             StatusLineMappingStr.ToDictionary(t => t.Key.AsMemory(), t => t.Value.AsMemory(),
                 new SpanCharactersIgnoreCaseComparer());
 
+        private static readonly byte[]?[] StatusLineBytesByCode = BuildStatusLineBytesArray();
+
+        private static readonly byte[] UnknownStatusBytes = "Unknown status"u8.ToArray();
+
+        private static byte[]?[] BuildStatusLineBytesArray()
+        {
+            var max = 0;
+
+            foreach (var key in StatusLineMappingStr.Keys) {
+                var code = int.Parse(key);
+                if (code > max) max = code;
+            }
+
+            var arr = new byte[]?[max + 1];
+
+            foreach (var kv in StatusLineMappingStr) {
+                arr[int.Parse(kv.Key)] = System.Text.Encoding.ASCII.GetBytes(kv.Value);
+            }
+
+            return arr;
+        }
+
         public static readonly byte [] DoubleCrLf = new byte[] {13, 10, 13, 10};
 
 
@@ -132,6 +154,21 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 return res;
 
             return "Unknown status".AsMemory();
+        }
+
+        public static ReadOnlySpan<byte> GetStatusLineBytes(int statusCode)
+        {
+            var arr = StatusLineBytesByCode;
+
+            if ((uint) statusCode < (uint) arr.Length) {
+                var val = arr[statusCode];
+
+                if (val != null) {
+                    return val;
+                }
+            }
+
+            return UnknownStatusBytes;
         }
 
         public static bool IsNonForwardableHeader(ReadOnlyMemory<char> headerName)
