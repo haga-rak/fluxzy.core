@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -57,7 +58,7 @@ namespace Fluxzy.Core
             StreamIdentifier = streamIdentifier;
             _headerEncoder = headerEncoder;
             _h2StreamSetting = h2StreamSetting;
-            _headerBuffer = new byte[h2StreamSetting.MaxHeaderSize];
+            _headerBuffer = ArrayPool<byte>.Shared.Rent(h2StreamSetting.MaxHeaderSize);
             _streamWindowSizeHolder = new WindowSizeHolder(logger, h2StreamSetting.Remote.WindowSize, streamIdentifier);
         }
 
@@ -275,6 +276,8 @@ namespace Fluxzy.Core
 
             _requestBodyPipe?.Writer.Complete();
             _streamWindowSizeHolder.Dispose();
+
+            ArrayPool<byte>.Shared.Return(_headerBuffer);
         }
     }
 
