@@ -17,7 +17,7 @@ namespace Fluxzy.Core
 {
     internal class ProxyRuntimeSetting
     {
-        private volatile IReadOnlyList<Rule>? _effectiveRules;
+        private volatile PartitionedRules? _partitionedRules;
         private readonly object _ruleUpdateLock = new object();
 
         private ProxyRuntimeSetting()
@@ -125,8 +125,8 @@ namespace Fluxzy.Core
                 rule.Filter.Init(startupContext);
             }
 
-            if (_effectiveRules == null) {
-                _effectiveRules = activeRules.AsReadOnly();
+            if (_partitionedRules == null) {
+                _partitionedRules = new PartitionedRules(activeRules.AsReadOnly());
             }
         }
 
@@ -139,7 +139,7 @@ namespace Fluxzy.Core
         /// <exception cref="RuleInitializationException">If rule initialization fails</exception>
         public void UpdateRules(IEnumerable<Rule> newAlterationRules)
         {
-            if (_effectiveRules == null) {
+            if (_partitionedRules == null) {
                 throw new InvalidOperationException("Rules not initialized. Call Init() first.");
             }
 
@@ -159,8 +159,8 @@ namespace Fluxzy.Core
                     }
 
                     // Atomic swap - thread-safe visibility
-                    var newReadOnlyList = activeRules.AsReadOnly();
-                    System.Threading.Interlocked.Exchange(ref _effectiveRules, newReadOnlyList);
+                    var newPartitioned = new PartitionedRules(activeRules.AsReadOnly());
+                    System.Threading.Interlocked.Exchange(ref _partitionedRules, newPartitioned);
                 }
                 catch (Exception ex) {
                     throw new RuleInitializationException("Failed to update rules: " + ex.Message, ex);
@@ -173,9 +173,9 @@ namespace Fluxzy.Core
         /// </summary>
         public IReadOnlyCollection<Rule> GetCurrentAlterationRules()
         {
-            var currentRules = _effectiveRules;
+            var current = _partitionedRules;
 
-            if (currentRules == null) {
+            if (current == null) {
                 return Array.Empty<Rule>();
             }
 
@@ -184,7 +184,7 @@ namespace Fluxzy.Core
                                                  .Select(r => r.Action.GetType())
                                                  .ToHashSet();
 
-            return currentRules
+            return current.AllRules
                 .Where(r => !fixedRuleActions.Contains(r.Action.GetType()))
                 .ToList()
                 .AsReadOnly();
@@ -195,17 +195,10 @@ namespace Fluxzy.Core
             Connection? connection = null, Exchange? exchange = null)
         {
             try {
-                foreach (var rule in _effectiveRules!)
-                {
-                    if (rule.Action.ActionScope != filterScope &&
-                        rule.Action.ActionScope != FilterScope.OutOfScope &&
-                        !(rule.Action.ActionScope == FilterScope.CopySibling &&
-                          rule.Action is MultipleScopeAction multipleScopeAction &&
-                          multipleScopeAction.RunScope == filterScope))
-                    {
-                        continue;
-                    }
+                var rules = _partitionedRules!.GetRulesForScope(filterScope);
 
+                foreach (var rule in rules)
+                {
                     await rule.Enforce(
                         context, exchange, connection, filterScope,
                         ExecutionContext?.BreakPointManager!).ConfigureAwait(false);
@@ -223,7 +216,7 @@ namespace Fluxzy.Core
                 if (e is RuleExecutionFailureException) {
                     throw;
                 }
-                
+
                 throw new RuleExecutionFailureException("Error while evaluating rules: " + e.Message, e);
             }
 

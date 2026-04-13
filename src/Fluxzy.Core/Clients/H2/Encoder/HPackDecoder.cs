@@ -49,33 +49,6 @@ namespace Fluxzy.Clients.H2.Encoder
         public void Dispose()
         {
         }
-
-        public ReadOnlySpan<char> Decode(
-            ReadOnlySpan<byte> headerContent, Span<char> buffer,
-            ref IList<HeaderField> originalFields)
-        {
-            _tempEntries.Clear();
-
-            try {
-                for (;;) {
-                    var tableEntry = ReadNextField(headerContent, out var readen);
-
-                    if (readen <= 0)
-                        break;
-
-                    _tempEntries.Add(tableEntry);
-                    originalFields.Add(tableEntry);
-
-                    headerContent = headerContent.Slice(readen);
-                }
-
-                return Http11Parser.Write(_tempEntries, buffer);
-            }
-            finally {
-                _tempEntries.Clear();
-            }
-        }
-
         public ReadOnlySpan<char> Decode(ReadOnlySpan<byte> headerContent, Span<char> buffer)
         {
             _tempEntries.Clear();
@@ -166,17 +139,18 @@ namespace Fluxzy.Clients.H2.Encoder
                             $"Requested headerIndex does not exist in static table {headerIndex}");
                     }
 
-                    var stringLength = _primitiveOperation.GetStringLength(buffer.Slice(offsetLength));
+                    var valPrefix = buffer.Slice(offsetLength);
+                    _primitiveOperation.ReadStringPrefix(valPrefix, out var valWireLen, out var valIsHuffman);
+                    var valCharBudget = valIsHuffman ? valWireLen * 2 : valWireLen;
 
                     var lineBuffer =
-                        stringLength < _codecSetting.MaxStackAllocationLength
-                            ? stackalloc char[stringLength]
-                            : new char[stringLength];
+                        valCharBudget <= _codecSetting.MaxStackAllocationLength
+                            ? stackalloc char[valCharBudget]
+                            : new char[valCharBudget];
 
                     var headerValue =
                         _primitiveOperation
-                            .ReadString(buffer.Slice(offsetLength)
-                                , lineBuffer, out var headerValueLength);
+                            .ReadString(valPrefix, lineBuffer, out var headerValueLength);
 
                     bytesReaden = offsetLength + headerValueLength;
 
@@ -184,23 +158,27 @@ namespace Fluxzy.Clients.H2.Encoder
                 }
 
                 case HeaderFieldType.LiteralHeaderFieldIncrementalIndexingWithName: {
-                    var headerNameLength = _primitiveOperation.GetStringLength(buffer.Slice(1));
+                    var nameSlice = buffer.Slice(1);
+                    _primitiveOperation.ReadStringPrefix(nameSlice, out var nameWireLen, out var nameIsHuffman);
+                    var nameCharBudget = nameIsHuffman ? nameWireLen * 2 : nameWireLen;
 
                     var headerNameBuffer =
-                        headerNameLength < _codecSetting.MaxStackAllocationLength
-                            ? stackalloc char[headerNameLength]
-                            : new char[headerNameLength];
+                        nameCharBudget <= _codecSetting.MaxStackAllocationLength
+                            ? stackalloc char[nameCharBudget]
+                            : new char[nameCharBudget];
 
                     var headerName =
-                        _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var offsetHeaderName);
+                        _primitiveOperation.ReadString(nameSlice, headerNameBuffer, out var offsetHeaderName);
 
-                    var headerValueLength = _primitiveOperation.GetStringLength(buffer.Slice(1 + offsetHeaderName));
+                    var valSlice = buffer.Slice(1 + offsetHeaderName);
+                    _primitiveOperation.ReadStringPrefix(valSlice, out var valWireLen2, out var valIsHuffman2);
+                    var valCharBudget2 = valIsHuffman2 ? valWireLen2 * 2 : valWireLen2;
 
-                    var headerValueBuffer = headerValueLength < _codecSetting.MaxStackAllocationLength
-                        ? stackalloc char[headerValueLength]
-                        : new char[headerValueLength];
+                    var headerValueBuffer = valCharBudget2 <= _codecSetting.MaxStackAllocationLength
+                        ? stackalloc char[valCharBudget2]
+                        : new char[valCharBudget2];
 
-                    var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + offsetHeaderName),
+                    var headerValue = _primitiveOperation.ReadString(valSlice,
                         headerValueBuffer, out var offsetHeaderValue);
 
                     bytesReaden = 1 + offsetHeaderName + offsetHeaderValue;
@@ -215,14 +193,16 @@ namespace Fluxzy.Clients.H2.Encoder
                     if (!Context.TryGetEntry(index, out var tableEntry))
                         throw new HPackCodecException($"Referenced index header {index} is absent from decodingTable");
 
-                    var resultStringLength = _primitiveOperation.GetStringLength(buffer.Slice(offsetLength));
+                    var valSlice3 = buffer.Slice(offsetLength);
+                    _primitiveOperation.ReadStringPrefix(valSlice3, out var valWireLen3, out var valIsHuffman3);
+                    var valCharBudget3 = valIsHuffman3 ? valWireLen3 * 2 : valWireLen3;
 
                     var lineBuffer =
-                        resultStringLength < _codecSetting.MaxStackAllocationLength
-                            ? stackalloc char[resultStringLength]
-                            : new char[resultStringLength];
+                        valCharBudget3 <= _codecSetting.MaxStackAllocationLength
+                            ? stackalloc char[valCharBudget3]
+                            : new char[valCharBudget3];
 
-                    var resultString = _primitiveOperation.ReadString(buffer.Slice(offsetLength), lineBuffer,
+                    var resultString = _primitiveOperation.ReadString(valSlice3, lineBuffer,
                         out var offsetValueLength);
 
                     bytesReaden = offsetLength + offsetValueLength;
@@ -232,24 +212,28 @@ namespace Fluxzy.Clients.H2.Encoder
 
                 case HeaderFieldType.LiteralHeaderFieldNeverIndexWithName:
                 case HeaderFieldType.LiteralHeaderFieldWithoutIndexingWithName: {
-                    var headerNameLength = _primitiveOperation.GetStringLength(buffer.Slice(1));
+                    var nameSlice4 = buffer.Slice(1);
+                    _primitiveOperation.ReadStringPrefix(nameSlice4, out var nameWireLen4, out var nameIsHuffman4);
+                    var nameCharBudget4 = nameIsHuffman4 ? nameWireLen4 * 2 : nameWireLen4;
 
                     var headerNameBuffer =
-                        headerNameLength < _codecSetting.MaxStackAllocationLength
-                            ? stackalloc char[headerNameLength]
-                            : new char[headerNameLength];
+                        nameCharBudget4 <= _codecSetting.MaxStackAllocationLength
+                            ? stackalloc char[nameCharBudget4]
+                            : new char[nameCharBudget4];
 
                     var headerName =
-                        _primitiveOperation.ReadString(buffer.Slice(1), headerNameBuffer, out var nameLength);
+                        _primitiveOperation.ReadString(nameSlice4, headerNameBuffer, out var nameLength);
 
-                    var headerValueLength = _primitiveOperation.GetStringLength(buffer.Slice(1 + nameLength));
+                    var valSlice4 = buffer.Slice(1 + nameLength);
+                    _primitiveOperation.ReadStringPrefix(valSlice4, out var valWireLen4, out var valIsHuffman4);
+                    var valCharBudget4 = valIsHuffman4 ? valWireLen4 * 2 : valWireLen4;
 
                     var headerValueBuffer =
-                        headerValueLength < _codecSetting.MaxStackAllocationLength
-                            ? stackalloc char[headerValueLength]
-                            : new char[headerValueLength];
+                        valCharBudget4 <= _codecSetting.MaxStackAllocationLength
+                            ? stackalloc char[valCharBudget4]
+                            : new char[valCharBudget4];
 
-                    var headerValue = _primitiveOperation.ReadString(buffer.Slice(1 + nameLength), headerValueBuffer,
+                    var headerValue = _primitiveOperation.ReadString(valSlice4, headerValueBuffer,
                         out var valueLength);
 
                     bytesReaden = 1 + nameLength + valueLength;

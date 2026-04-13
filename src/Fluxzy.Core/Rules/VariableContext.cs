@@ -68,15 +68,15 @@ namespace Fluxzy.Rules
             string str,
             VariableBuildingContext? buildingParam)
         {
-            // TODO : implement without regex 
+            // TODO : implement without regex
             // TODO : add an escape character for the variable syntax
 
             return RegexVariable.Replace(str, match => {
                 var variableName = match.Groups["variableName"].Value;
 
                 if (buildingParam != null
-                    && buildingParam.LazyVariableEvaluations.TryGetValue(variableName, out var func))
-                    return func();
+                    && buildingParam.TryEvaluate(variableName, out var builtIn))
+                    return builtIn;
 
                 if (TryGet(variableName, out var value))
                     return value!;

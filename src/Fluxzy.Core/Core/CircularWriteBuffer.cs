@@ -77,7 +77,7 @@ namespace Fluxzy.Core
             if (data.Length > _capacity)
                 throw new InvalidOperationException(
                     $"Frame size {data.Length} exceeds ring buffer capacity {_capacity}");
-
+            
             lock (_lock) {
                 // Wait for sufficient free space
                 while (_capacity - _count < data.Length) {

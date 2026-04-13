@@ -42,8 +42,13 @@ namespace Fluxzy.Clients.H2.Encoder
         {
             var offset = 0;
 
-            foreach (var headerField in Http11Parser.Read(headerContent, isHttps)) {
-                offset += Encode(headerField, buffer.Slice(offset));
+            // Hot path: stream parse + encode in a single pass via a ref-struct enumerator,
+            // avoiding the List<HeaderField> and iterator-state-machine allocations that used
+            // to dominate the per-request cost.
+            var reader = new Http11HeaderReader(headerContent, isHttps);
+
+            while (reader.MoveNext()) {
+                offset += Encode(reader.Current, buffer.Slice(offset));
             }
 
             return buffer.Slice(0, offset);

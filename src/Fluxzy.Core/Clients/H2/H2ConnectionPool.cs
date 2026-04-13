@@ -49,6 +49,15 @@ namespace Fluxzy.Clients.H2
 
         private DateTime _lastActivity = ITimingProvider.Default.Instant();
 
+        /// <summary>
+        ///     Test seam: allows tests to force the idle path of <see cref="CheckAlive"/>
+        ///     deterministically without resorting to reflection or wall-clock waits.
+        /// </summary>
+        internal DateTime LastActivity {
+            get => _lastActivity;
+            set => _lastActivity = value;
+        }
+
         // Window size of the remote 
         private readonly WindowSizeHolder _overallWindowSizeHolder;
 
@@ -114,6 +123,30 @@ namespace Fluxzy.Clients.H2
 
             _innerReadTask = InternalReadLoop(_connectionToken);
             _innerWriteRun = InternalWriteLoop(_connectionToken);
+        }
+
+        /// <summary>
+        ///     Test seam: captures internal state at a single point in time so tests can
+        ///     assert ordering invariants (e.g. "the writer channel must be drained before
+        ///     the fault callback runs"). Not used by production code paths.
+        /// </summary>
+        internal H2ConnectionPoolStateSnapshot SnapshotForTests()
+        {
+            var pendingCount = 0;
+            var channelDrainedAndClosed = true;
+
+            if (_writerChannel != null) {
+                channelDrainedAndClosed = _writerChannel.Reader.Completion.IsCompleted;
+
+                if (_writerChannel.Reader.CanCount)
+                    pendingCount = _writerChannel.Reader.Count;
+            }
+
+            return new H2ConnectionPoolStateSnapshot(
+                Complete: _complete,
+                CtsCancelled: _connectionCancellationTokenSource.IsCancellationRequested,
+                WriterChannelDrainedAndClosed: channelDrainedAndClosed,
+                WriterChannelPendingCount: pendingCount);
         }
 
         public ValueTask<bool> CheckAlive()
@@ -191,8 +224,10 @@ namespace Fluxzy.Clients.H2
             _connectionCancellationTokenSource?.Cancel();
             _connectionCancellationTokenSource?.Dispose();
 
+            // Note: do NOT null out _writeSemaphore. Nulling a mutable field that
+            // other code may concurrently observe is a latent NRE hazard. CTS
+            // cancellation is the canonical "writers must stop" signal.
             _writeSemaphore?.Dispose();
-            _writeSemaphore = null;
 
             if (_innerReadTask != null)
                 await _innerReadTask.ConfigureAwait(false);
@@ -254,18 +289,28 @@ namespace Fluxzy.Clients.H2
 
             _complete = true;
 
-            // End the connection. This operation is idempotent. 
+            // End the connection. This operation is idempotent.
 
             _logger.Trace(0, "Cleanup start " + ex);
 
-            if (_onConnectionFaulted != null)
-                _onConnectionFaulted(this);
+            // IMPORTANT: drive ALL of our own internal cleanup BEFORE notifying the
+            // fault callback. The callback (in PoolBuilder.OnConnectionFaulted) may
+            // synchronously start tearing the pool down via DisposeAsync, and the
+            // synchronous prefix of DisposeAsync runs inline up to its first await.
+            // If we notified first, the rest of OnLoopEnd would then be running on
+            // top of partially-disposed state — the reentrance race that produced
+            // the NRE in haga-rak/fluxzy.core#614.
+            //
+            // The new ordering guarantees: by the time the fault callback runs,
+            // _complete is set, the CTS is cancelled, the writer channel is
+            // completed and drained, and all pending write tasks have been
+            // signalled. Disposal can then run safely without racing OnLoopEnd.
 
             if (ex != null)
                 _streamPool.OnGoAway(ex);
 
             if (!_connectionCancellationTokenSource.IsCancellationRequested)
-                _connectionCancellationTokenSource?.Cancel();
+                _connectionCancellationTokenSource.Cancel();
 
             if (releaseChannelItems && _writerChannel != null) {
                 _writerChannel.Writer.TryComplete();
@@ -279,6 +324,9 @@ namespace Fluxzy.Clients.H2
                     }
                 }
             }
+
+            // Notify last so the callback observes a fully-quiesced pool.
+            _onConnectionFaulted?.Invoke(this);
 
             _logger.Trace(0, "Cleanup end");
         }
@@ -392,16 +440,19 @@ namespace Fluxzy.Clients.H2
                             }
                         }
 
-                        await _baseStream.FlushAsync(token).ConfigureAwait(false);
                         _lastActivity = ITimingProvider.Default.Instant();
                     }
                     else {
+
+                        await _baseStream.FlushAsync(token).ConfigureAwait(false);
                         // async wait
                         if (!token.IsCancellationRequested
                             && !await _writerChannel.Reader.WaitToReadAsync(token))
                             break;
                     }
                 }
+
+                await _baseStream.FlushAsync(token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) {
             }
@@ -422,17 +473,15 @@ namespace Fluxzy.Clients.H2
         /// <returns></returns>
         private async Task InternalReadLoop(CancellationToken token)
         {
-            using var readBuffer = MemoryPool<byte>.Shared.Rent(Setting.Remote.MaxFrameSize);
+            using var reader = new H2FrameStreamReader(_baseStream, Setting.Remote.MaxFrameSize);
 
             Exception? outException = null;
 
             try {
                 while (!token.IsCancellationRequested) {
                     _logger.TraceDeep(0, () => "1");
-                    
-                    var frame =
-                        await H2FrameReader.ReadNextFrameAsync(_baseStream, readBuffer.Memory,
-                            token).ConfigureAwait(false);
+
+                    var frame = await reader.ReadNextFrameAsync(token).ConfigureAwait(false);
 
                     if (ProcessNewFrame(frame))
                         break;
@@ -602,6 +651,12 @@ namespace Fluxzy.Clients.H2
 
             return false;
         }
+
+        internal readonly record struct H2ConnectionPoolStateSnapshot(
+            bool Complete,
+            bool CtsCancelled,
+            bool WriterChannelDrainedAndClosed,
+            int WriterChannelPendingCount);
 
         private async ValueTask InternalSend(
             Exchange exchange, RsBuffer buffer,

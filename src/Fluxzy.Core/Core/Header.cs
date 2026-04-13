@@ -185,13 +185,11 @@ namespace Fluxzy.Core
 
         public int GetHttp11LengthOnly(bool skipNonForwardableHeader, bool shouldClose, bool plainHttp)
         {
-            var totalLength = 0;
-
             // Writing Method Path Http Protocol Version
-            totalLength += GetHeaderLineLength(plainHttp);
+            var totalLength = GetHeaderLineLength(plainHttp);
 
             foreach (var header in _rawHeaderFields) {
-                if (header.Name.Span[0] == ':') // H2 control header 
+                if (header.Name.Span[0] == ':') // H2 control header
                 {
                     continue;
                 }
@@ -200,13 +198,11 @@ namespace Fluxzy.Core
                     continue;
                 }
 
-                totalLength += Encoding.ASCII.GetByteCount(header.Name.Span);
-                totalLength += Encoding.ASCII.GetByteCount(": ");
-                totalLength += Encoding.ASCII.GetByteCount(header.Value.Span);
-                totalLength += Encoding.ASCII.GetByteCount("\r\n");
+                // ASCII: 1 char == 1 byte. Constants ": " (2) and "\r\n" (2) folded in.
+                totalLength += header.Name.Length + header.Value.Length + 4;
             }
 
-            totalLength += Encoding.ASCII.GetByteCount("\r\n");
+            totalLength += 2; // final CRLF
 
             if (shouldClose) {
                 totalLength += CloseFlatHeader.Length; // Adding connection close header
@@ -233,7 +229,7 @@ namespace Fluxzy.Core
             totalLength += WriteHeaderLine(data, plainHttp);
 
             foreach (var header in _rawHeaderFields) {
-                if (header.Name.Span[0] == ':') // H2 control header 
+                if (header.Name.Span[0] == ':') // H2 control header
                 {
                     continue;
                 }
@@ -243,9 +239,11 @@ namespace Fluxzy.Core
                 }
 
                 totalLength += Encoding.ASCII.GetBytes(header.Name.Span, data.Slice(totalLength));
-                totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
+                ": "u8.CopyTo(data.Slice(totalLength));
+                totalLength += 2;
                 totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
-                totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+                "\r\n"u8.CopyTo(data.Slice(totalLength));
+                totalLength += 2;
             }
 
             if (requestClose) {
@@ -253,7 +251,8 @@ namespace Fluxzy.Core
                 totalLength += CloseFlatHeader.Length;
             }
 
-            totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+            "\r\n"u8.CopyTo(data.Slice(totalLength));
+            totalLength += 2;
 
             return totalLength;
         }
@@ -269,7 +268,7 @@ namespace Fluxzy.Core
             totalLength += WriteHeaderLine(data, plainHttp);
 
             foreach (var header in _rawHeaderFields) {
-                if (header.Name.Span[0] == ':') // H2 control header 
+                if (header.Name.Span[0] == ':') // H2 control header
                 {
                     continue;
                 }
@@ -279,9 +278,11 @@ namespace Fluxzy.Core
                 }
 
                 totalLength += Encoding.ASCII.GetBytes(header.Name.Span, data.Slice(totalLength));
-                totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
+                ": "u8.CopyTo(data.Slice(totalLength));
+                totalLength += 2;
                 totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
-                totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+                "\r\n"u8.CopyTo(data.Slice(totalLength));
+                totalLength += 2;
             }
 
             if (writeKeepAlive) {
@@ -289,7 +290,8 @@ namespace Fluxzy.Core
                 totalLength += KeepAliveFlatHeader.Length;
             }
 
-            totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+            "\r\n"u8.CopyTo(data.Slice(totalLength));
+            totalLength += 2;
 
 
             return totalLength;
@@ -305,7 +307,7 @@ namespace Fluxzy.Core
             // totalLength += WriteHeaderLine(data);
 
             foreach (var header in _rawHeaderFields) {
-                //if (header.Name.Span[0] == ':') // H2 control header 
+                //if (header.Name.Span[0] == ':') // H2 control header
                 //    continue;
 
                 if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name)) {
@@ -313,12 +315,15 @@ namespace Fluxzy.Core
                 }
 
                 totalLength += Encoding.ASCII.GetBytes(header.Name.Span, data.Slice(totalLength));
-                totalLength += Encoding.ASCII.GetBytes(": ", data.Slice(totalLength));
+                ": "u8.CopyTo(data.Slice(totalLength));
+                totalLength += 2;
                 totalLength += Encoding.ASCII.GetBytes(header.Value.Span, data.Slice(totalLength));
-                totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+                "\r\n"u8.CopyTo(data.Slice(totalLength));
+                totalLength += 2;
             }
 
-            totalLength += Encoding.ASCII.GetBytes("\r\n", data.Slice(totalLength));
+            "\r\n"u8.CopyTo(data.Slice(totalLength));
+            totalLength += 2;
 
             return totalLength;
         }
@@ -330,9 +335,13 @@ namespace Fluxzy.Core
 
         internal void ForceTransferChunked()
         {
-            // Allow chunked body f
-
             if (!CanHaveBody()) {
+                return;
+            }
+
+            if (ChunkedBody) {
+                // Upstream response already declared Transfer-Encoding: chunked.
+                // Appending a second entry breaks strict HTTP clients (issue #615).
                 return;
             }
 
