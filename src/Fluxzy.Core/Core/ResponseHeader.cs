@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -142,33 +143,50 @@ namespace Fluxzy.Core
         {
             var totalLength = 0;
 
-            var statusCodeString = StatusCode.ToString();
+            // "HTTP/1.1 " = 9 bytes
+            "HTTP/1.1 "u8.CopyTo(buffer);
+            totalLength += 9;
 
-            totalLength += Encoding.ASCII.GetBytes("HTTP/1.1 ", buffer.Slice(totalLength));
-            totalLength += Encoding.ASCII.GetBytes(statusCodeString, buffer.Slice(totalLength));
-            totalLength += Encoding.ASCII.GetBytes(" ", buffer.Slice(totalLength));
+            if (!Utf8Formatter.TryFormat(StatusCode, buffer.Slice(totalLength), out var written)) {
+                throw new InvalidOperationException("Failed to format status code");
+            }
 
-            totalLength += Encoding.ASCII.GetBytes(Http11Constants.GetStatusLine(statusCodeString.AsMemory()).Span,
-                buffer.Slice(totalLength));
+            totalLength += written;
 
-            totalLength += Encoding.ASCII.GetBytes("\r\n", buffer.Slice(totalLength));
+            buffer[totalLength++] = (byte) ' ';
+
+            var statusLine = Http11Constants.GetStatusLineBytes(StatusCode);
+            statusLine.CopyTo(buffer.Slice(totalLength));
+            totalLength += statusLine.Length;
+
+            "\r\n"u8.CopyTo(buffer.Slice(totalLength));
+            totalLength += 2;
 
             return totalLength;
         }
 
         protected override int GetHeaderLineLength(bool _)
         {
-            var totalLength = 0;
+            // "HTTP/1.1 " (9) + <digits> + " " (1) + statusLine + "\r\n" (2)
+            return 12 + CountDigits(StatusCode) + Http11Constants.GetStatusLineBytes(StatusCode).Length;
+        }
 
-            var statusCodeString = StatusCode.ToString();
+        private static int CountDigits(int value)
+        {
+            if (value < 0) {
+                return CountDigits(-value) + 1;
+            }
 
-            totalLength += Encoding.ASCII.GetByteCount("HTTP/1.1 ");
-            totalLength += Encoding.ASCII.GetByteCount(statusCodeString);
-            totalLength += Encoding.ASCII.GetByteCount(" ");
-            totalLength += Encoding.ASCII.GetByteCount(Http11Constants.GetStatusLine(statusCodeString.AsMemory()).Span);
-            totalLength += Encoding.ASCII.GetByteCount("\r\n");
-
-            return totalLength;
+            if (value < 10) return 1;
+            if (value < 100) return 2;
+            if (value < 1000) return 3;
+            if (value < 10000) return 4;
+            if (value < 100000) return 5;
+            if (value < 1000000) return 6;
+            if (value < 10000000) return 7;
+            if (value < 100000000) return 8;
+            if (value < 1000000000) return 9;
+            return 10;
         }
     }
 }

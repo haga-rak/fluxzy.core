@@ -26,7 +26,7 @@ namespace Fluxzy.Clients.H2
         private bool _disposed;
         private bool _firstBodyFragment = true;
 
-        private Memory<byte> _headerBuffer;
+        private byte[]? _headerBuffer;
 
         private bool _headerEndedStream;
         private bool _noBodyStream;
@@ -56,7 +56,7 @@ namespace Fluxzy.Clients.H2
 
             _pipeResponseBody = new Pipe(new PipeOptions(
                 pool: MemoryPool<byte>.Shared,
-                readerScheduler: PipeScheduler.Inline,
+                readerScheduler: PipeScheduler.ThreadPool,
                 writerScheduler: PipeScheduler.Inline,
                 pauseWriterThreshold: 0,
                 resumeWriterThreshold: 0,
@@ -84,6 +84,11 @@ namespace Fluxzy.Clients.H2
             _logger.Trace(StreamIdentifier, ".... disposing");
 
             RemoteWindowSize?.Dispose();
+
+            if (_headerBuffer != null) {
+                ArrayPool<byte>.Shared.Return(_headerBuffer);
+                _headerBuffer = null;
+            }
 
             try {
                 _headerReceivedSemaphore.Release();
@@ -274,6 +279,38 @@ namespace Fluxzy.Clients.H2
             }
         }
 
+        /// <summary>
+        ///     Ensure <see cref="_headerBuffer"/> is rented from <see cref="ArrayPool{T}.Shared"/>
+        ///     and has at least <paramref name="requiredLength"/> capacity. Shared between the
+        ///     response-header and trailer accumulation paths. Grows by renting a new array,
+        ///     copying the existing prefix, and returning the old one.
+        /// </summary>
+        private void EnsureHeaderBuffer(int requiredLength)
+        {
+            if (_headerBuffer == null) {
+                var initial = Math.Max(requiredLength, Parent.Context.Setting.MaxHeaderSize);
+                _headerBuffer = ArrayPool<byte>.Shared.Rent(initial);
+                return;
+            }
+
+            if (requiredLength <= _headerBuffer.Length)
+                return;
+
+            // Grow up to the negotiated MaxHeaderListSize
+            var maxAllowed = Parent.Context.Setting.Local.MaxHeaderListSize;
+
+            if (requiredLength > maxAllowed)
+                throw new H2Exception(
+                    $"Response header size ({requiredLength}) exceeds negotiated maximum ({maxAllowed})",
+                    H2ErrorCode.FrameSizeError);
+
+            var newSize = Math.Min(Math.Max(requiredLength, _headerBuffer.Length * 2), maxAllowed);
+            var newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
+            _headerBuffer.AsSpan(0, _totalHeaderReceived).CopyTo(newBuffer);
+            ArrayPool<byte>.Shared.Return(_headerBuffer);
+            _headerBuffer = newBuffer;
+        }
+
         internal void ReceiveHeaderFragmentFromConnection(ref HeadersFrame headerFrame)
         {
             _exchange.Metrics.TotalReceived += headerFrame.BodyLength;
@@ -311,33 +348,15 @@ namespace Fluxzy.Clients.H2
             ReadOnlyMemory<byte> buffer,
             bool lastHeaderFragment)
         {
-            if (_headerBuffer.IsEmpty)
-                _headerBuffer = new byte[Parent.Context.Setting.MaxHeaderSize];
+            EnsureHeaderBuffer(_totalHeaderReceived + buffer.Length);
 
-            var futureLength = _totalHeaderReceived + buffer.Length;
-
-            if (futureLength > _headerBuffer.Length) {
-                // Grow up to the negotiated MaxHeaderListSize
-                var maxAllowed = Parent.Context.Setting.Local.MaxHeaderListSize;
-
-                if (futureLength > maxAllowed)
-                    throw new H2Exception(
-                        $"Response header size ({futureLength}) exceeds negotiated maximum ({maxAllowed})",
-                        H2ErrorCode.FrameSizeError);
-
-                var newSize = Math.Min(Math.Max(futureLength, _headerBuffer.Length * 2), maxAllowed);
-                var newBuffer = new byte[newSize];
-                _headerBuffer.Slice(0, _totalHeaderReceived).CopyTo(newBuffer);
-                _headerBuffer = newBuffer;
-            }
-
-            buffer.CopyTo(_headerBuffer.Slice(_totalHeaderReceived));
+            buffer.Span.CopyTo(_headerBuffer.AsSpan(_totalHeaderReceived));
             _totalHeaderReceived += buffer.Length;
 
             if (lastHeaderFragment) {
                 _exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant();
 
-                var charHeader = H2Helper.DecodeAndAllocate(Parent.Context.HeaderEncoder, _headerBuffer.Slice(0, _totalHeaderReceived).Span);
+                var charHeader = H2Helper.DecodeAndAllocate(Parent.Context.HeaderEncoder, _headerBuffer.AsSpan(0, _totalHeaderReceived));
 
                 _exchange.Response.Header = new ResponseHeader(charHeader, true, false);
 
@@ -372,32 +391,15 @@ namespace Fluxzy.Clients.H2
             ReadOnlyMemory<byte> buffer,
             bool lastHeaderFragment)
         {
-            if (_headerBuffer.IsEmpty)
-                _headerBuffer = new byte[Parent.Context.Setting.MaxHeaderSize];
+            EnsureHeaderBuffer(_totalHeaderReceived + buffer.Length);
 
-            var futureLength = _totalHeaderReceived + buffer.Length;
-
-            if (futureLength > _headerBuffer.Length) {
-                var maxAllowed = Parent.Context.Setting.Local.MaxHeaderListSize;
-
-                if (futureLength > maxAllowed)
-                    throw new H2Exception(
-                        $"Response trailer size ({futureLength}) exceeds negotiated maximum ({maxAllowed})",
-                        H2ErrorCode.FrameSizeError);
-
-                var newSize = Math.Min(Math.Max(futureLength, _headerBuffer.Length * 2), maxAllowed);
-                var newBuffer = new byte[newSize];
-                _headerBuffer.Slice(0, _totalHeaderReceived).CopyTo(newBuffer);
-                _headerBuffer = newBuffer;
-            }
-
-            buffer.CopyTo(_headerBuffer.Slice(_totalHeaderReceived));
+            buffer.Span.CopyTo(_headerBuffer.AsSpan(_totalHeaderReceived));
             _totalHeaderReceived += buffer.Length;
 
             if (lastHeaderFragment) {
                 // Decode trailer fields directly (no HTTP/1.1 status line)
                 var trailerFields = Parent.Context.HeaderEncoder.Decoder.DecodeTrailerFields(
-                    _headerBuffer.Slice(0, _totalHeaderReceived).Span);
+                    _headerBuffer.AsSpan(0, _totalHeaderReceived));
 
                 _exchange.Response.Trailers = trailerFields;
 

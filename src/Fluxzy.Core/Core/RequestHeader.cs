@@ -99,37 +99,32 @@ namespace Fluxzy.Core
             var totalLength = 0;
 
             totalLength += Encoding.ASCII.GetBytes(Method.Span, buffer.Slice(totalLength));
-            totalLength += Encoding.ASCII.GetBytes(" ", buffer.Slice(totalLength));
+            buffer[totalLength++] = (byte) ' ';
 
             var path = !plainHttp ? Path.Span : PathAndQueryUtility.Parse(Path.Span);
 
             totalLength += Encoding.ASCII.GetBytes(path, buffer.Slice(totalLength));
 
-            totalLength += Encoding.ASCII.GetBytes(" HTTP/1.1\r\n", buffer.Slice(totalLength));
-            totalLength += Encoding.ASCII.GetBytes("Host: ", buffer.Slice(totalLength));
+            // " HTTP/1.1\r\nHost: " = 17 bytes
+            " HTTP/1.1\r\nHost: "u8.CopyTo(buffer.Slice(totalLength));
+            totalLength += 17;
+
             totalLength += Encoding.ASCII.GetBytes(Authority.Span, buffer.Slice(totalLength));
-            totalLength += Encoding.ASCII.GetBytes("\r\n", buffer.Slice(totalLength));
+
+            "\r\n"u8.CopyTo(buffer.Slice(totalLength));
+            totalLength += 2;
 
             return totalLength;
         }
 
         protected override int GetHeaderLineLength(bool plainHttp)
         {
-            var totalLength = 0;
-
-            totalLength += Encoding.ASCII.GetByteCount(Method.Span);
-            totalLength += Encoding.ASCII.GetByteCount(" ");
-
             var path = !plainHttp ? Path.Span : PathAndQueryUtility.Parse(Path.Span);
 
-            totalLength += Encoding.ASCII.GetByteCount(path);
-
-            totalLength += Encoding.ASCII.GetByteCount(" HTTP/1.1\r\n");
-            totalLength += Encoding.ASCII.GetByteCount("Host: ");
-            totalLength += Encoding.ASCII.GetByteCount(Authority.Span);
-            totalLength += Encoding.ASCII.GetByteCount("\r\n");
-
-            return totalLength;
+            // Method + " " + path + " HTTP/1.1\r\n" (11) + "Host: " (6) + Authority + "\r\n" (2)
+            // = Method.Length + 1 + path.Length + 11 + 6 + Authority.Length + 2
+            // = Method.Length + path.Length + Authority.Length + 20
+            return Method.Length + path.Length + Authority.Length + 20;
         }
     }
 }

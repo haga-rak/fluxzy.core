@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -57,7 +58,7 @@ namespace Fluxzy.Core
             StreamIdentifier = streamIdentifier;
             _headerEncoder = headerEncoder;
             _h2StreamSetting = h2StreamSetting;
-            _headerBuffer = new byte[h2StreamSetting.MaxHeaderSize];
+            _headerBuffer = ArrayPool<byte>.Shared.Rent(h2StreamSetting.MaxHeaderSize);
             _streamWindowSizeHolder = new WindowSizeHolder(logger, h2StreamSetting.Remote.WindowSize, streamIdentifier);
         }
 
@@ -154,6 +155,7 @@ namespace Fluxzy.Core
             }
 
             await _requestBodyPipe.Writer.WriteAsync(buffer.Memory.Slice(0, length), token).ConfigureAwait(false);
+            await _requestBodyPipe.Writer.FlushAsync(token).ConfigureAwait(false);
 
             if (endStream)
             {
@@ -176,7 +178,7 @@ namespace Fluxzy.Core
 
         public bool ReadyToCreateExchange => _endHeader && !_exchangeCreated;
 
-        public async Task<Exchange> CreateExchange(
+        public async ValueTask<Exchange> CreateExchange(
             IIdProvider idProvider,
             IExchangeContextBuilder contextBuilder,
             Authority authority, bool secure)
@@ -274,6 +276,8 @@ namespace Fluxzy.Core
 
             _requestBodyPipe?.Writer.Complete();
             _streamWindowSizeHolder.Dispose();
+
+            ArrayPool<byte>.Shared.Return(_headerBuffer);
         }
     }
 

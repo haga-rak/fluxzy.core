@@ -27,6 +27,7 @@ builder.WebHost.ConfigureKestrel(k =>
 });
 
 var app = builder.Build();
+var buffer = new byte[16384 * 4];
 
 app.MapGet("/bench", async ctx =>
 {
@@ -35,8 +36,7 @@ app.MapGet("/bench", async ctx =>
 
     if (length > 0)
     {
-        ctx.Response.ContentLength = length;
-        var buffer = new byte[Math.Min(length, 16384)];
+        ctx.Response.ContentLength = 8192;
         var remaining = length;
 
         while (remaining > 0)

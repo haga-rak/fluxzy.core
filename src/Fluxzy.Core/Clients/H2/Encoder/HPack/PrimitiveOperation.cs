@@ -2,7 +2,6 @@
 
 using System;
 using System.Buffers;
-using System.Text;
 using Fluxzy.Clients.H2.Encoder.Huffman;
 
 namespace Fluxzy.Clients.H2.Encoder.HPack
@@ -120,6 +119,23 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             }
         }
 
+        /// <summary>
+        ///     Reads the string wire prefix (huffman flag and wire byte length) without any Huffman decoding.
+        ///     Returns the number of prefix bytes consumed from input.
+        /// </summary>
+        public int ReadStringPrefix(ReadOnlySpan<byte> input, out int wireLength, out bool isHuffman)
+        {
+            isHuffman = (input[0] & 0x80) != 0;
+            var prefixBytes = ReadInt32(input, 7, out wireLength);
+
+            if (wireLength > _maxStringLength) {
+                throw new HPackCodecException(
+                    $"string length exceed the maximum authorized : {wireLength} / {_maxStringLength}");
+            }
+
+            return prefixBytes;
+        }
+
         public Span<char> ReadString(ReadOnlySpan<byte> input, Span<char> buffer, out int newOffset)
         {
             try {
@@ -132,32 +148,33 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                 }
 
                 var rawString = input.Slice(offset, stringLength);
-
-                if (!huffmanEncoded) {
-                    var size = Encoding.ASCII.GetChars(rawString, buffer);
-                    var res = buffer.Slice(0, size);
-
-                    newOffset = stringLength + offset;
-
-                    return res;
-                }
-
                 newOffset = stringLength + offset;
 
-                var decodedLength = _codec.GetDecodedLength(rawString);
+                if (!huffmanEncoded) {
+                    // Direct byte-to-char widening (HPACK strings are ASCII)
+                    for (var i = 0; i < rawString.Length; i++)
+                        buffer[i] = (char) rawString[i];
+
+                    return buffer.Slice(0, rawString.Length);
+                }
+
+                // Upper bound for Huffman: shortest code is 5 bits, so max decoded = wireLen * 8/5 < wireLen * 2
+                var maxDecodedLength = stringLength * 2;
 
                 byte[]? heapBuffer = null;
 
-                var decodeBuffer = decodedLength < 1024
-                    ? stackalloc byte[decodedLength]
-                    : heapBuffer = ArrayPool<byte>.Shared.Rent(decodedLength);
+                var decodeBuffer = maxDecodedLength < 1024
+                    ? stackalloc byte[maxDecodedLength]
+                    : heapBuffer = ArrayPool<byte>.Shared.Rent(maxDecodedLength);
 
                 try {
                     var decoded = _codec.Decode(rawString, decodeBuffer);
 
-                    var resultLength = Encoding.ASCII.GetChars(decoded, buffer);
+                    // Direct byte-to-char widening (HPACK strings are ASCII)
+                    for (var i = 0; i < decoded.Length; i++)
+                        buffer[i] = (char) decoded[i];
 
-                    return buffer.Slice(0, resultLength);
+                    return buffer.Slice(0, decoded.Length);
                 }
                 finally {
                     if (heapBuffer != null)
@@ -178,8 +195,11 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
                     ? stackalloc byte[input.Length * 2]
                     : heapBuffer = ArrayPool<byte>.Shared.Rent(input.Length * 2);
 
-                var size = Encoding.ASCII.GetBytes(input, inputByteBuffer);
-                var inputBytes = inputByteBuffer.Slice(0, size);
+                // Direct char-to-byte narrowing (HPACK strings are ASCII)
+                for (var i = 0; i < input.Length; i++)
+                    inputByteBuffer[i] = (byte) input[i];
+
+                var inputBytes = inputByteBuffer.Slice(0, input.Length);
 
                 var encodedLength = _codec.GetEncodedLength(inputBytes);
 
