@@ -56,11 +56,14 @@ namespace Fluxzy.Core.Pcap
 
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
 
-            var writer = _packetQueue.GetOrAdd(connectionKey);
+            // The OS can reuse an ephemeral local port while the previous writer is still in
+            // its linger window, which would collide on connectionKey. Always rotate so a
+            // fresh writer serves the new connection; the stale writer is disposed here.
+            var writer = _packetQueue.Rotate(connectionKey);
 
-            writer.Register(outFileName); // There is a change that the writer is already registered
+            writer.Register(outFileName);
 
-            return writer.Key;
+            return writer.SubscriptionId;
         }
 
         public void StoreKey(string nssKey, IPAddress remoteAddress, int remotePort, int localPort)
@@ -95,7 +98,7 @@ namespace Fluxzy.Core.Pcap
             if (_packetQueue == null)
                 throw new InvalidOperationException("Not started yet");
 
-            _packetQueue.TryRemove(subscription, out _);
+            _packetQueue.TryRemoveBySubId(subscription, out _);
 
             return default;
         }

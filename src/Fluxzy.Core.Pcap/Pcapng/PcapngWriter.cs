@@ -157,5 +157,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
         }
 
         public long Key { get; }
+
+        public long SubscriptionId { get; set; }
     }
 }
