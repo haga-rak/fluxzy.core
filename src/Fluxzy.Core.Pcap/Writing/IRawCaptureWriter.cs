@@ -9,6 +9,8 @@ namespace Fluxzy.Core.Pcap.Writing
     {
         long Key { get; }
 
+        long SubscriptionId { get; set; }
+
         bool Faulted { get; }
 
         void Flush();
