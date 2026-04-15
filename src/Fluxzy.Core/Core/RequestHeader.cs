@@ -43,6 +43,13 @@ namespace Fluxzy.Core
             Scheme = this[Http11Constants.SchemeVerb].First().Value;
 
             IsWebSocketRequest = DoesHeadersIndicateWebsocketRequest();
+            HasExpectContinue = DoesHeadersIndicateExpectContinue();
+        }
+
+        private bool DoesHeadersIndicateExpectContinue()
+        {
+            return this[Http11Constants.Expect]
+                       .Any(c => c.Value.Span.Equals("100-continue", StringComparison.OrdinalIgnoreCase));
         }
         
         private bool DoesHeadersIndicateWebsocketRequest()
@@ -78,6 +85,11 @@ namespace Fluxzy.Core
         /// true if it's a websocket request
         /// </summary>
         public bool IsWebSocketRequest { get; set; }
+
+        /// <summary>
+        /// true if the request carries an Expect: 100-continue header.
+        /// </summary>
+        public bool HasExpectContinue { get; set; }
 
         /// <summary>
         /// Full URL building with Authority, path and scheme

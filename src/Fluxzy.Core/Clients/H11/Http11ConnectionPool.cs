@@ -122,7 +122,7 @@ namespace Fluxzy.Clients.H11
                     _logger.Trace(exchange.Id, () => $"New connection obtained: {exchange.Connection.Id}");
                 }
 
-                var poolProcessing = new Http11PoolProcessing(_logger);
+                var poolProcessing = new Http11PoolProcessing(_logger, _proxyRuntimeSetting.ExpectContinueTimeout);
 
                 try {
                     await poolProcessing.Process(exchange, buffer, exchangeScope, cancellationToken)

@@ -185,6 +185,15 @@ namespace Fluxzy.Core
 
         public int StreamIdentifier { get; set; }
 
+        /// <summary>
+        ///     Bridges the upstream connection pool to the downstream pipe for interim
+        ///     (1xx) responses — specifically `100 Continue` when the client sent
+        ///     `Expect: 100-continue`. Set by <see cref="ProxyOrchestrator"/> once the
+        ///     exchange is bound to a downstream pipe. Null when unsupported (e.g. H2
+        ///     downstream, tunnel mode).
+        /// </summary>
+        internal Func<int, ReadOnlyMemory<char>, System.Threading.CancellationToken, ValueTask>? InterimResponseWriter { get; set; }
+
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {
             return Request.Header.Headers.Select(t => (HeaderFieldInfo) t);

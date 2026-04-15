@@ -610,6 +610,16 @@ namespace Fluxzy.Core
             }
         }
 
+        public ValueTask WriteInterimResponse(int statusCode, ReadOnlyMemory<char> reasonPhrase, int streamIdentifier, CancellationToken token)
+        {
+            // HTTP/2 clients do not rely on Expect: 100-continue in practice
+            // (§8.1.2.2 forbids the Expect header in H2 requests), so the
+            // Expect-100 bridge from issue #624 is only relevant for H1
+            // downstream. If this ever needs to be implemented, it should queue
+            // a separate HEADERS frame with `:status: 1xx` and no END_STREAM.
+            return default;
+        }
+
         public ValueTask WriteResponseHeader(
             ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int streamIdentifier, ReadOnlyMemory<char> requestMethod, CancellationToken token)
         {
