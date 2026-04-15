@@ -124,6 +124,7 @@ namespace Fluxzy.Core.Pcap
 
             lock (this) {
                 _writer.Write((byte) MessageType.Flush);
+                _writer.Flush();
             }
         }
 

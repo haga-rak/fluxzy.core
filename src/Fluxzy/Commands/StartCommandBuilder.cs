@@ -308,7 +308,11 @@ namespace Fluxzy.Cli.Commands
             var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
             var systemProxyManager = new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
-            await using var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(), a => new OutOfProcessCaptureContext(a));
+            // Scope owns the out-of-proc capture subprocess lifetime. It must be disposed
+            // BEFORE PackDirectoryToFile runs so the subprocess closes its pcapng FileStreams
+            // and flushes all buffered packet data to disk; otherwise small captures can sit
+            // in the 4 KB FileStream buffer and the packager's Length==0 skip drops them.
+            await using (var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(), a => new OutOfProcessCaptureContext(a))) {
 
             if (!ValidateSetting(invocationContext, proxyStartUpSetting)) {
                 invocationContext.ExitCode = 1;
@@ -389,6 +393,8 @@ namespace Fluxzy.Cli.Commands
                     }
                 }
             }
+
+            } // scope dispose: subprocess exits, pcapng FileStreams closed + flushed
 
             invocationContext.Console.Out.WriteLine("Proxy ended, gracefully");
 
