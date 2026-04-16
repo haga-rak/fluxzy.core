@@ -26,6 +26,16 @@ Official .NET builds are *signed* and published at [nuget.org](https://www.nuget
 
 **CLI Installation**
 
+npm (Windows, macOS, Linux):
+```
+npm install -g @fluxzy/cli
+```
+
+Or run directly without installing:
+```
+npx @fluxzy/cli start --llo
+```
+
 Windows (winget):
 ```
 winget install Fluxzy.Fluxzy
