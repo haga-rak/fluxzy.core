@@ -327,6 +327,22 @@ dotnet build src/Fluxzy.Core.Pcap
 ```
 
 
+## 📊 Benchmarking
+
+Throughput is tracked with [BenchmarkDotNet](https://benchmarkdotnet.org/) under `test/Fluxzy.Benchmarks`. The `ProxyThroughputBenchmark` drives concurrent HTTPS requests through Fluxzy (or directly to a test Kestrel server, as a baseline) and reports per-request mean latency, requests per second, and real wire bandwidth.
+
+```bash
+# Quick run (10 warmup + 10 iterations, ~2 minutes)
+bash benchmark-throughput.sh --short
+
+# Full run (default BenchmarkDotNet job)
+bash benchmark-throughput.sh
+```
+
+A manually-triggered GitHub Actions workflow (`Benchmark Throughput`) also runs the same benchmark on `ubuntu-latest` and uploads the artifacts; trigger it from the Actions tab.
+
+For a worked example of using these tools to localize a regression (a TCP Nagle stall in the test harness was masking H2 throughput), see [PR #628](https://github.com/haga-rak/fluxzy.core/pull/628).
+
 ## 📬 Contact 
 
 - Use github issues for bug reports and feature requests
