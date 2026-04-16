@@ -8,20 +8,31 @@ namespace Fluxzy.Core
 {
     public class ExchangeScope : IDisposable
     {
-        private readonly List<IDisposable> _memoryPools = new();
+        private char[]? _first;
+        private char[]? _second;
+        private List<char[]>? _overflow;
 
         private bool _disposed;
 
         public Memory<char> RegisterForReturn(int length)
         {
-            var memoryOwner = MemoryPool<char>.Shared.Rent(length);
+            var array = ArrayPool<char>.Shared.Rent(length);
 
-            lock (this)
-                _memoryPools.Add(memoryOwner);
+            lock (this) {
+                if (_first == null) {
+                    _first = array;
+                }
+                else if (_second == null) {
+                    _second = array;
+                }
+                else {
+                    (_overflow ??= new List<char[]>()).Add(array);
+                }
+            }
 
-            return memoryOwner.Memory.Slice(0, length);
+            return new Memory<char>(array, 0, length);
         }
-        
+
         public void Dispose()
         {
             if (_disposed)
@@ -31,9 +42,22 @@ namespace Fluxzy.Core
 
             _disposed = true;
 
-            foreach (var memoryOwner in _memoryPools)
-            {
-                memoryOwner.Dispose();
+            if (_first != null) {
+                ArrayPool<char>.Shared.Return(_first);
+                _first = null;
+            }
+
+            if (_second != null) {
+                ArrayPool<char>.Shared.Return(_second);
+                _second = null;
+            }
+
+            if (_overflow != null) {
+                foreach (var array in _overflow) {
+                    ArrayPool<char>.Shared.Return(array);
+                }
+
+                _overflow = null;
             }
         }
     }
