@@ -424,8 +424,6 @@ namespace Fluxzy.Clients.H2
         
         public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
         {
-            SendWindowUpdate(Parent.Context.Setting.Local.WindowSize, StreamIdentifier);
-
             try {
                 _logger.Trace(StreamIdentifier, "Before semaphore ");
 
