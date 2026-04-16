@@ -94,13 +94,12 @@ namespace Fluxzy.Clients.H11
                 OpCode = wsFrame.OpCode;
 
             if (wsFrame.FinalFragment && Length == 0 && wsFrame.PayloadLength < maxWsMessageLengthBuffered) {
-                // Build direct buffer for message 
+                // Build direct buffer for message
 
                 var readResult = await pipeReader.ReadAtLeastAsync((int) wsFrame.PayloadLength, token).ConfigureAwait(false);
 
-                // TODO optimize with stackalloc on sequence
-
-                Data = readResult.Buffer.ToArray();
+                // ReadAtLeastAsync may return more than requested; only take this frame's payload
+                Data = readResult.Buffer.Slice(0, wsFrame.PayloadLength).ToArray();
 
                 ApplyXor(Data, wsFrame.MaskedPayload, 0);
 
@@ -111,8 +110,9 @@ namespace Fluxzy.Clients.H11
             else {
                 await using var stream = outStream(Id);
                 var totalWr = 0;
+                long frameWritten = 0;
 
-                while (WrittenLength < wsFrame.PayloadLength) {
+                while (frameWritten < wsFrame.PayloadLength) {
                     // Write into file 
 
                     if (!pipeReader.TryRead(out var readResult))
@@ -121,7 +121,7 @@ namespace Fluxzy.Clients.H11
                     // readResult.Buffer.Slice()
 
                     var effectiveBufferLength =
-                        (int) Math.Min(readResult.Buffer.Length, wsFrame.PayloadLength - WrittenLength);
+                        (int) Math.Min(readResult.Buffer.Length, wsFrame.PayloadLength - frameWritten);
 
                     var totalWriteInSequence = 0;
 
@@ -157,12 +157,10 @@ namespace Fluxzy.Clients.H11
                         totalWriteInSequence += memory.Length;
                     }
 
+                    frameWritten += effectiveBufferLength;
                     WrittenLength += effectiveBufferLength;
 
                     pipeReader.AdvanceTo(readResult.Buffer.GetPosition(effectiveBufferLength));
-                }
-
-                if (wsFrame.FinalFragment) {
                 }
             }
 
