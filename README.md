@@ -345,10 +345,10 @@ Reference numbers from a Ryzen 9 7950X3D on Linux, .NET 10, loopback. Use them t
 
 | Scenario               | Direct to Kestrel       | Through Fluxzy proxy   |
 |------------------------|------------------------:|-----------------------:|
-| HTTP/1.1, empty body   | 269k req/s, 49 MiB/s    | 129k req/s, 24 MiB/s   |
-| HTTP/1.1, 8 KB body    | 158k req/s, 1.24 GiB/s  | 56k req/s, 450 MiB/s   |
-| HTTP/2, empty body     | 268k req/s, 23 MiB/s    | 145k req/s, 15 MiB/s   |
-| HTTP/2, 8 KB body      | 75k req/s, 603 MiB/s    | 57k req/s, 457 MiB/s   |
+| HTTP/1.1, empty body   | 272k req/s, 49 MiB/s    | 138k req/s, 25 MiB/s   |
+| HTTP/1.1, 8 KB body    | 155k req/s, 1.22 GiB/s  | 61k req/s, 492 MiB/s   |
+| HTTP/2, empty body     | 270k req/s, 24 MiB/s    | 154k req/s, 16 MiB/s   |
+| HTTP/2, 8 KB body      | 75k req/s, 604 MiB/s    | 57k req/s, 457 MiB/s   |
 
 The "Direct to Kestrel" column is the upper bound of what the test client + Kestrel can achieve without a proxy in the path. The "Through Fluxzy proxy" column shows the same workload after the SOCKS5 + MITM hop, so the gap between the two columns is the cost the proxy adds.
 
