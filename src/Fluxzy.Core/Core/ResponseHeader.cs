@@ -24,15 +24,11 @@ namespace Fluxzy.Core
             bool isSecure, bool parseConnectionInfo)
             : base(headerContent, isSecure)
         {
-            StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
+            StatusCode = ParseStatusCode();
 
             if (parseConnectionInfo) {
-                ConnectionCloseRequest = HeaderFields.Any(
-                    r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
-                         && (
-                             r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase) ||
-                             r.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase)
-                         ));
+                ConnectionCloseRequest =
+                    HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "close", "upgrade");
 
                 if (!ConnectionCloseRequest) {
                     ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
@@ -47,18 +43,23 @@ namespace Fluxzy.Core
         public ResponseHeader(IEnumerable<HeaderField> headers)
             : base(headers)
         {
-            StatusCode = int.Parse(this[Http11Constants.StatusVerb].First().Value.Span);
+            StatusCode = ParseStatusCode();
 
-            ConnectionCloseRequest = HeaderFields.Any(
-                r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
-                     && (
-                         r.Value.Span.Equals("close", StringComparison.OrdinalIgnoreCase) ||
-                         r.Value.Span.Equals("upgrade", StringComparison.OrdinalIgnoreCase)
-                     ));
+            ConnectionCloseRequest =
+                HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "close", "upgrade");
 
             if (!ConnectionCloseRequest) {
                 ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
             }
+        }
+
+        private int ParseStatusCode()
+        {
+            if (!TryGetFirstHeader(Http11Constants.StatusVerb, out var field)) {
+                throw new InvalidOperationException("Missing ':status' pseudo-header in response.");
+            }
+
+            return int.Parse(field.Value.Span);
         }
 
         public int TimeoutIdleSeconds { get; set; } = 1;
@@ -73,14 +74,9 @@ namespace Fluxzy.Core
         {
             var immediateClose = false;
 
-            if (HeaderFields.Any(
-                    r => r.Name.Span.Equals(Http11Constants.ConnectionVerb.Span, StringComparison.OrdinalIgnoreCase)
-                         && r.Value.Span.Equals("keep-alive", StringComparison.OrdinalIgnoreCase))) {
-                var keepHeaderValue = HeaderFields.LastOrDefault(
-                    h => h.Name.Span.Equals(Http11Constants.KeepAliveVerb.Span, StringComparison.OrdinalIgnoreCase)
-                );
-
-                if (!keepHeaderValue.Value.IsEmpty) {
+            if (HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "keep-alive")) {
+                if (TryGetLastHeader(Http11Constants.KeepAliveVerb, out var keepHeaderValue)
+                    && !keepHeaderValue.Value.IsEmpty) {
                     if (HeaderUtility.TryParseKeepAlive(keepHeaderValue.Value.Span, out var max, out var timeout)) {
                         if (max >= 0) {
                             MaxConnection = max;
