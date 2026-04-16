@@ -1,0 +1,48 @@
+name: Benchmark Throughput
+
+on:
+  workflow_dispatch:
+    inputs:
+      short:
+        description: "Run with --short (faster, less precise)"
+        type: boolean
+        default: true
+      filter:
+        description: "Optional benchmark filter (e.g. *ProxyThroughputBenchmark*True*8192*)"
+        type: string
+        default: ""
+
+jobs:
+  benchmark:
+    name: "Run ProxyThroughputBenchmark"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Run benchmark
+        shell: bash
+        run: |
+          ARGS=()
+          if [[ "${{ inputs.short }}" == "true" ]]; then
+            ARGS+=(--short)
+          fi
+          if [[ -n "${{ inputs.filter }}" ]]; then
+            ARGS+=("${{ inputs.filter }}")
+          fi
+          bash benchmark-throughput.sh "${ARGS[@]}"
+
+      - name: Upload BenchmarkDotNet artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: test/Fluxzy.Benchmarks/BenchmarkDotNet.Artifacts/
+          if-no-files-found: warn

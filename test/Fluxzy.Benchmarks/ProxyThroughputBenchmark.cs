@@ -1,6 +1,10 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Globalization;
+using System.Net.Http;
+using System.Net.Security;
+using System.Net.Sockets;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
@@ -28,11 +32,14 @@ public class ProxyThroughputBenchmark
     private const int Concurrency = 56;
 
     private BenchmarkServerProcess _server = null!;
-    private Proxy _proxy = null!;
+    private Proxy? _proxy;
     private HttpClient _client = null!;
     private SemaphoreSlim _semaphore = null!;
     private string _targetUrl = null!;
     private ByteCounter _byteCounter = null!;
+
+    [Params(true, false)]
+    public bool UseProxy { get; set; }
 
     [Params(true, false)]
     public bool ServeH2 { get; set; }
@@ -47,34 +54,42 @@ public class ProxyThroughputBenchmark
         _server = new BenchmarkServerProcess();
         await _server.StartAsync();
 
-        // 2. Start Fluxzy proxy (equivalent to: fluxzy start -k --serve-h2)
-        var setting = FluxzySetting.CreateLocalRandomPort();
-        setting.SetServeH2(ServeH2);
-        setting.ConfigureRule()
-            .WhenAny()
-            .Do(new SkipRemoteCertificateValidationAction()); // -k flag
-
-        setting.SetConnectionPerHost(63);
-
-        _proxy = new Proxy(setting);
-        var endPoint = _proxy.Run().First();
-
-        // 3. Create HTTP client routed through proxy via SOCKS5
-        //    (equivalent to: floody -c 16 -x 127.0.0.1:<port>)
-        //    The counting stream wraps the raw socket — TLS/HTTP layers sit above it,
-        //    so the counter tallies actual TCP bytes (encrypted, includes TLS framing).
         var httpVersion = ServeH2 ? new Version(2, 0) : new Version(1, 1);
         _byteCounter = new ByteCounter();
-        _client = Socks5ClientFactory.Create(
-            endPoint,
-            timeoutSeconds: 30,
-            httpVersion: httpVersion,
-            streamWrapper: s => new CountingStream(s, _byteCounter));
+
+        if (UseProxy) {
+            // 2. Start Fluxzy proxy (equivalent to: fluxzy start -k --serve-h2)
+            var setting = FluxzySetting.CreateLocalRandomPort();
+            setting.SetServeH2(ServeH2);
+            setting.ConfigureRule()
+                .WhenAny()
+                .Do(new SkipRemoteCertificateValidationAction()); // -k flag
+
+            setting.SetConnectionPerHost(63);
+
+            _proxy = new Proxy(setting);
+            var endPoint = _proxy.Run().First();
+
+            // 3. Create HTTP client routed through proxy via SOCKS5
+            //    (equivalent to: floody -c 16 -x 127.0.0.1:<port>)
+            //    The counting stream wraps the raw socket; TLS/HTTP layers sit above it,
+            //    so the counter tallies actual TCP bytes (encrypted, includes TLS framing).
+            _client = Socks5ClientFactory.Create(
+                endPoint,
+                timeoutSeconds: 30,
+                httpVersion: httpVersion,
+                streamWrapper: s => new CountingStream(s, _byteCounter));
+        }
+        else {
+            // No proxy baseline: HttpClient connects straight to Kestrel with the same
+            // counting stream wrapper, so bandwidth numbers are comparable across cases.
+            _client = CreateDirectClient(httpVersion, _byteCounter);
+        }
 
         _targetUrl = $"{_server.BaseUrl}/bench?length={ResponseBodyLength}";
         _semaphore = new SemaphoreSlim(Concurrency);
 
-        // Warmup: establish connections (pays SOCKS5 + TLS handshake costs once)
+        // Warmup: establish connections (pays SOCKS5/TLS handshake costs once)
         var warmupTasks = new Task[Concurrency];
 
         for (var i = 0; i < Concurrency; i++) {
@@ -109,17 +124,49 @@ public class ProxyThroughputBenchmark
         var totalBytes = (inAfter - inBefore) + (outAfter - outBefore);
         var bytesPerRequest = (double) totalBytes / probeCount;
 
-        var path = GetMeasurementFilePath(ServeH2, ResponseBodyLength);
+        var path = GetMeasurementFilePath(UseProxy, ServeH2, ResponseBodyLength);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         await File.WriteAllTextAsync(path, bytesPerRequest.ToString("R", CultureInfo.InvariantCulture));
     }
 
-    private static string GetMeasurementFilePath(bool serveH2, int responseBodyLength)
+    private static string GetMeasurementFilePath(bool useProxy, bool serveH2, int responseBodyLength)
     {
         return Path.Combine(
             Path.GetTempPath(),
             "fluxzy-bench",
-            $"bandwidth-{serveH2}-{responseBodyLength}.txt");
+            $"bandwidth-{useProxy}-{serveH2}-{responseBodyLength}.txt");
+    }
+
+    private static HttpClient CreateDirectClient(Version httpVersion, ByteCounter byteCounter)
+    {
+        var sslOptions = new SslClientAuthenticationOptions {
+            RemoteCertificateValidationCallback = (_, _, _, _) => true
+        };
+
+        if (httpVersion.Major >= 2) {
+            sslOptions.ApplicationProtocols = new List<SslApplicationProtocol> {
+                SslApplicationProtocol.Http2,
+                SslApplicationProtocol.Http11
+            };
+        }
+
+        var handler = new SocketsHttpHandler {
+            ConnectCallback = async (context, ct) => {
+                var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                socket.NoDelay = true;
+                await socket.ConnectAsync(context.DnsEndPoint, ct);
+                return new CountingStream(new NetworkStream(socket, ownsSocket: true), byteCounter);
+            },
+            SslOptions = sslOptions
+        };
+
+        var client = new HttpClient(handler) {
+            Timeout = TimeSpan.FromSeconds(30),
+            DefaultRequestVersion = httpVersion,
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact
+        };
+
+        return client;
     }
 
     [GlobalCleanup]
@@ -268,15 +315,17 @@ public class ProxyThroughputBenchmark
             if (report?.ResultStatistics == null)
                 return "-";
 
+            var useProxy = benchmarkCase.Parameters.Items
+                .FirstOrDefault(p => p.Name == nameof(UseProxy))?.Value as bool?;
             var serveH2 = benchmarkCase.Parameters.Items
                 .FirstOrDefault(p => p.Name == nameof(ServeH2))?.Value as bool?;
             var bodyLength = benchmarkCase.Parameters.Items
                 .FirstOrDefault(p => p.Name == nameof(ResponseBodyLength))?.Value as int?;
 
-            if (serveH2 is null || bodyLength is null)
+            if (useProxy is null || serveH2 is null || bodyLength is null)
                 return "-";
 
-            var bytesPerRequest = LoadMeasurement(serveH2.Value, bodyLength.Value);
+            var bytesPerRequest = LoadMeasurement(useProxy.Value, serveH2.Value, bodyLength.Value);
 
             if (bytesPerRequest is null or <= 0)
                 return "-";
@@ -293,12 +342,12 @@ public class ProxyThroughputBenchmark
             return FormatBytesPerSecond(bytesPerSecond);
         }
 
-        private static double? LoadMeasurement(bool serveH2, int bodyLength)
+        private static double? LoadMeasurement(bool useProxy, bool serveH2, int bodyLength)
         {
-            var key = $"{serveH2}_{bodyLength}";
+            var key = $"{useProxy}_{serveH2}_{bodyLength}";
 
             return Cache.GetOrAdd(key, _ => {
-                var path = GetMeasurementFilePath(serveH2, bodyLength);
+                var path = GetMeasurementFilePath(useProxy, serveH2, bodyLength);
 
                 if (!File.Exists(path))
                     return null;
