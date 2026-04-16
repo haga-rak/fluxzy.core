@@ -200,6 +200,14 @@ namespace Fluxzy.Core
                     return;
                 }
 
+                // Bridge the upstream pool to the downstream pipe so it can
+                // forward interim (1xx) responses — notably `100 Continue`
+                // for `Expect: 100-continue` (issue #624).
+                var capturedPipe = downStreamPipe;
+                var capturedStreamId = exchange.StreamIdentifier;
+                exchange.InterimResponseWriter = (statusCode, reason, ct) =>
+                    capturedPipe.WriteInterimResponse(statusCode, reason, capturedStreamId, ct);
+
                 var shouldCloseDownStreamConnection = await EnterProcessExchange(
                     buffer, closeImmediately, token, exchange,
                     remoteEndPoint, downStreamClientAddress,
@@ -260,6 +268,14 @@ namespace Fluxzy.Core
                 {
                     continue;
                 }
+
+                // Same interim-response bridge as the sequential path. The H2
+                // downstream implementation is a no-op, so this is defensive
+                // coverage for mixed-version scenarios (H2 client, H1 upstream).
+                var capturedPipe = downStreamPipe;
+                var capturedStreamId = exchange.StreamIdentifier;
+                exchange.InterimResponseWriter = (statusCode, reason, ct) =>
+                    capturedPipe.WriteInterimResponse(statusCode, reason, capturedStreamId, ct);
 
                 tracker.Increment();
 

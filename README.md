@@ -327,6 +327,31 @@ dotnet build src/Fluxzy.Core.Pcap
 ```
 
 
+## 📊 Benchmarking
+
+Throughput is tracked with [BenchmarkDotNet](https://benchmarkdotnet.org/) under `test/Fluxzy.Benchmarks`. The `ProxyThroughputBenchmark` drives 56 concurrent HTTPS requests against a local Kestrel server (over loopback) and reports per-request mean latency, requests per second, and real wire bandwidth. Each scenario is run twice: once straight to Kestrel (baseline) and once routed through Fluxzy via SOCKS5.
+
+```bash
+# Quick run (10 warmup + 10 iterations, ~2 minutes)
+bash benchmark-throughput.sh --short
+
+# Full run (default BenchmarkDotNet job)
+bash benchmark-throughput.sh
+```
+
+### Sample results
+
+Reference numbers from a Ryzen 9 7950X3D on Linux, .NET 10, loopback. Use them to compare relative cost; absolute values will differ on your hardware.
+
+| Scenario               | Direct to Kestrel       | Through Fluxzy proxy   |
+|------------------------|------------------------:|-----------------------:|
+| HTTP/1.1, empty body   | 272k req/s, 49 MiB/s    | 138k req/s, 25 MiB/s   |
+| HTTP/1.1, 8 KB body    | 155k req/s, 1.22 GiB/s  | 61k req/s, 492 MiB/s   |
+| HTTP/2, empty body     | 270k req/s, 24 MiB/s    | 154k req/s, 16 MiB/s   |
+| HTTP/2, 8 KB body      | 75k req/s, 604 MiB/s    | 57k req/s, 457 MiB/s   |
+
+The "Direct to Kestrel" column is the upper bound of what the test client + Kestrel can achieve without a proxy in the path. The "Through Fluxzy proxy" column shows the same workload after the SOCKS5 + MITM hop, so the gap between the two columns is the cost the proxy adds.
+
 ## 📬 Contact 
 
 - Use github issues for bug reports and feature requests

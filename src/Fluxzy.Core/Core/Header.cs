@@ -60,6 +60,67 @@ namespace Fluxzy.Core
 
         public IEnumerable<HeaderField> this[string headerName] => this[headerName.AsMemory()];
 
+        protected bool TryGetFirstHeader(ReadOnlyMemory<char> name, out HeaderField field)
+        {
+            foreach (var f in _rawHeaderFields) {
+                if (f.Name.Span.Equals(name.Span, StringComparison.OrdinalIgnoreCase)) {
+                    field = f;
+                    return true;
+                }
+            }
+
+            field = default;
+            return false;
+        }
+
+        protected bool TryGetLastHeader(ReadOnlyMemory<char> name, out HeaderField field)
+        {
+            field = default;
+            var found = false;
+
+            foreach (var f in _rawHeaderFields) {
+                if (f.Name.Span.Equals(name.Span, StringComparison.OrdinalIgnoreCase)) {
+                    field = f;
+                    found = true;
+                }
+            }
+
+            return found;
+        }
+
+        protected bool HasHeaderValueEqualsAny(ReadOnlyMemory<char> name, string value1, string? value2 = null)
+        {
+            foreach (var f in _rawHeaderFields) {
+                if (!f.Name.Span.Equals(name.Span, StringComparison.OrdinalIgnoreCase)) {
+                    continue;
+                }
+
+                var valSpan = f.Value.Span;
+
+                if (valSpan.Equals(value1, StringComparison.OrdinalIgnoreCase)) {
+                    return true;
+                }
+
+                if (value2 != null && valSpan.Equals(value2, StringComparison.OrdinalIgnoreCase)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected bool HasHeaderValueContains(ReadOnlyMemory<char> name, string value)
+        {
+            foreach (var f in _rawHeaderFields) {
+                if (f.Name.Span.Equals(name.Span, StringComparison.OrdinalIgnoreCase) &&
+                    f.Value.Span.Contains(value, StringComparison.OrdinalIgnoreCase)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         ///     If transfer-encoding chunked is defined
         /// </summary>
@@ -194,7 +255,10 @@ namespace Fluxzy.Core
                     continue;
                 }
 
-                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name)) {
+                // HTTP/1.1 forwarding only strips true hop-by-hop headers.
+                // Expect: 100-continue is end-to-end on H1 and must be preserved
+                // so the origin can answer the client (issue #624).
+                if (skipNonForwardableHeader && Http11Constants.IsH1HopByHopHeader(header.Name)) {
                     continue;
                 }
 
@@ -234,7 +298,7 @@ namespace Fluxzy.Core
                     continue;
                 }
 
-                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name)) {
+                if (skipNonForwardableHeader && Http11Constants.IsH1HopByHopHeader(header.Name)) {
                     continue;
                 }
 
@@ -273,7 +337,7 @@ namespace Fluxzy.Core
                     continue;
                 }
 
-                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name)) {
+                if (skipNonForwardableHeader && Http11Constants.IsH1HopByHopHeader(header.Name)) {
                     continue;
                 }
 

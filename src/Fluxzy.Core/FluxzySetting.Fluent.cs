@@ -228,6 +228,19 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     Configure how long the proxy waits for an upstream `100 Continue`
+        ///     before forwarding the request body anyway when the client used
+        ///     `Expect: 100-continue`. A value of <see cref="TimeSpan.Zero"/> or
+        ///     negative disables the interim-relay wait and makes the proxy send
+        ///     the body immediately after the request headers.
+        /// </summary>
+        public FluxzySetting SetExpectContinueTimeout(TimeSpan timeout)
+        {
+            ExpectContinueTimeout = timeout;
+            return this;
+        }
+
+        /// <summary>
         ///     Set the default protocols used by fluxzy
         /// </summary>
         /// <param name="protocols"></param>

@@ -118,5 +118,32 @@ namespace Fluxzy.Formatters.Producers.Requests
 
             return statusLine.SequenceEqual(_100ContinueBytes);
         }
+
+        /// <summary>
+        ///     Reads the three-digit status code from an HTTP/1.1 header block
+        ///     that starts with the response status line (e.g. <c>HTTP/1.1 100 Continue\r\n...</c>).
+        ///     Returns 0 if the line cannot be parsed.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadStatusCode(ReadOnlySpan<byte> httpLine)
+        {
+            if (httpLine.Length < 12)
+                return 0;
+
+            var statusLine = httpLine.Slice(9, 3);
+
+            int code = 0;
+
+            for (int i = 0; i < 3; i++) {
+                var b = statusLine[i];
+
+                if (b < (byte)'0' || b > (byte)'9')
+                    return 0;
+
+                code = code * 10 + (b - (byte)'0');
+            }
+
+            return code;
+        }
     }
 }

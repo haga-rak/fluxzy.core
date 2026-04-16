@@ -79,9 +79,11 @@ namespace Fluxzy.Core
 
             Metrics.ReceivedFromProxy = receivedFromProxy;
 
-            RunInLiveEdit = requestHeader.HeaderFields
-                                         .Any(h => h.Name.Span.Equals("x-fluxzy-live-edit",
-                                             StringComparison.OrdinalIgnoreCase));
+            if (FluxzySharedSetting.LiveEditEnabled) {
+                RunInLiveEdit = requestHeader.HeaderFields
+                                             .Any(h => h.Name.Span.Equals("x-fluxzy-live-edit",
+                                                 StringComparison.OrdinalIgnoreCase));
+            }
         }
 
         /// <summary>
@@ -184,6 +186,15 @@ namespace Fluxzy.Core
         public bool ReadUntilClose { get; set; }
 
         public int StreamIdentifier { get; set; }
+
+        /// <summary>
+        ///     Bridges the upstream connection pool to the downstream pipe for interim
+        ///     (1xx) responses — specifically `100 Continue` when the client sent
+        ///     `Expect: 100-continue`. Set by <see cref="ProxyOrchestrator"/> once the
+        ///     exchange is bound to a downstream pipe. Null when unsupported (e.g. H2
+        ///     downstream, tunnel mode).
+        /// </summary>
+        internal Func<int, ReadOnlyMemory<char>, System.Threading.CancellationToken, ValueTask>? InterimResponseWriter { get; set; }
 
         public IEnumerable<HeaderFieldInfo> GetRequestHeaders()
         {

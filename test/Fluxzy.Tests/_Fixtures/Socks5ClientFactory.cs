@@ -42,6 +42,7 @@ namespace Fluxzy.Tests._Fixtures
                 ConnectCallback = async (context, cancellationToken) =>
                 {
                     var socket = new Socket(normalized.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    socket.NoDelay = true;
                     await socket.ConnectAsync(normalized, cancellationToken);
 
                     Stream stream = new NetworkStream(socket, ownsSocket: true);

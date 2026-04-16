@@ -132,7 +132,8 @@ namespace Fluxzy.Tests.Cli
                 if (rawCap != CaptureType.None)
                 {
                     var rawCapStream = archiveReader.GetRawCaptureStream(connection.Id);
-                    Assert.True(await rawCapStream!.DrainAsync(disposeStream: true) > 0);
+                    Assert.NotNull(rawCapStream);
+                    Assert.True(await rawCapStream.DrainAsync(disposeStream: true) > 0);
                 }
 
                 if (rule)

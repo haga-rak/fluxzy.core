@@ -59,6 +59,15 @@ namespace Fluxzy
         public int ConnectionPerHost { get; internal set; } = FluxzySharedSetting.MaxConnectionPerHost;
 
         /// <summary>
+        ///     Maximum time fluxzy waits for an upstream `100 Continue` (or a final
+        ///     response) after forwarding a request carrying `Expect: 100-continue`
+        ///     before falling back to sending the request body. Default: 1 second
+        ///     (matches .NET's `HttpClient.Expect100ContinueTimeout`).
+        /// </summary>
+        [JsonInclude]
+        public TimeSpan ExpectContinueTimeout { get; internal set; } = TimeSpan.FromSeconds(1);
+
+        /// <summary>
         ///     Ssl protocols for remote host connection
         /// </summary>
         [JsonInclude]

@@ -37,21 +37,25 @@ namespace Fluxzy.Core
 
         private void InitSettings()
         {
-            Authority = this[Http11Constants.AuthorityVerb].First().Value;
-            Path = this[Http11Constants.PathVerb].First().Value;
-            Method = this[Http11Constants.MethodVerb].First().Value;
-            Scheme = this[Http11Constants.SchemeVerb].First().Value;
+            Authority = RequireFirstHeader(Http11Constants.AuthorityVerb).Value;
+            Path = RequireFirstHeader(Http11Constants.PathVerb).Value;
+            Method = RequireFirstHeader(Http11Constants.MethodVerb).Value;
+            Scheme = RequireFirstHeader(Http11Constants.SchemeVerb).Value;
 
-            IsWebSocketRequest = DoesHeadersIndicateWebsocketRequest();
+            IsWebSocketRequest = HasHeaderValueContains(Http11Constants.ConnectionVerb, "upgrade")
+                                 && HasHeaderValueEqualsAny(Http11Constants.Upgrade, "websocket");
+
+            HasExpectContinue = HasHeaderValueEqualsAny(Http11Constants.Expect, "100-continue");
         }
-        
-        private bool DoesHeadersIndicateWebsocketRequest()
+
+        private HeaderField RequireFirstHeader(ReadOnlyMemory<char> name)
         {
-            return this[Http11Constants.ConnectionVerb]
-                       .Any(c => c.Value.Span.Contains("upgrade", StringComparison.OrdinalIgnoreCase))
-                   &&
-                   this[Http11Constants.Upgrade]
-                       .Any(c => c.Value.Span.Equals("websocket", StringComparison.OrdinalIgnoreCase));
+            if (!TryGetFirstHeader(name, out var field)) {
+                throw new InvalidOperationException(
+                    $"Missing required pseudo-header '{name}' in request.");
+            }
+
+            return field;
         }
 
         /// <summary>
@@ -78,6 +82,11 @@ namespace Fluxzy.Core
         /// true if it's a websocket request
         /// </summary>
         public bool IsWebSocketRequest { get; set; }
+
+        /// <summary>
+        /// true if the request carries an Expect: 100-continue header.
+        /// </summary>
+        public bool HasExpectContinue { get; set; }
 
         /// <summary>
         /// Full URL building with Authority, path and scheme

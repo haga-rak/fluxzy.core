@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Rules.Actions;
@@ -62,7 +63,12 @@ namespace Fluxzy.Tests.Cases
                     (_, _, _, _) => true);
             client.Timeout = TimeSpan.FromSeconds(30);
 
-            var response = await client.GetAsync("https://noaa-goes16.s3.amazonaws.com/");
+            // ResponseHeadersRead avoids buffering the full S3 listing body. The assertion
+            // only needs the response headers, and pulling megabytes across the proxy makes
+            // the test timeout-prone on CI.
+            var response = await client.GetAsync(
+                "https://noaa-goes16.s3.amazonaws.com/",
+                HttpCompletionOption.ResponseHeadersRead);
 
             Assert.True(response.IsSuccessStatusCode,
                 $"Expected 2xx from noaa-goes16.s3.amazonaws.com, got {(int)response.StatusCode}");

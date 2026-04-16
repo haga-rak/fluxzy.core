@@ -91,6 +91,19 @@ namespace Fluxzy.Core
             return new Exchange(_idProvider, exchangeContext, RequestedAuthority, secureHeader, bodyStream, null!, receivedFromProxy);
         }
 
+        public async ValueTask WriteInterimResponse(int statusCode, ReadOnlyMemory<char> reasonPhrase, int _, CancellationToken token)
+        {
+            if (_writeStream == null)
+                throw new FluxzyException("Down stream has already been closed");
+
+            // "HTTP/1.1 NNN <reason>\r\n\r\n" — max ~64 bytes for typical reason phrases.
+            var line = $"HTTP/1.1 {statusCode} {reasonPhrase}\r\n\r\n";
+            var bytes = Encoding.ASCII.GetBytes(line);
+
+            await _writeStream.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
+            await _writeStream.FlushAsync(token).ConfigureAwait(false);
+        }
+
         public async ValueTask WriteResponseHeader(ResponseHeader responseHeader, RsBuffer buffer, bool shouldClose, int _, ReadOnlyMemory<char> requestMethod, CancellationToken token)
         {
             if (_writeStream == null)
