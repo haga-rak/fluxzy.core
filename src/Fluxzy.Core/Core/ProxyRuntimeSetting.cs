@@ -46,6 +46,7 @@ namespace Fluxzy.Core
             IdProvider = idProvider;
             UserAgentProvider = userAgentProvider;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
+            ExpectContinueTimeout = startupSetting.ExpectContinueTimeout;
             ActionMapping = new SetUserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
         }
 
@@ -73,6 +74,13 @@ namespace Fluxzy.Core
         public int ConcurrentConnection { get; set; } = 16;
 
         public int TimeOutSecondsUnusedConnection { get; set; } = 4;
+
+        /// <summary>
+        ///     Maximum time fluxzy waits for an upstream `100 Continue` (or a
+        ///     final response) before falling back to sending the request body.
+        ///     Matches .NET's default `Expect100ContinueTimeout` of 1 second.
+        /// </summary>
+        public TimeSpan ExpectContinueTimeout { get; set; } = TimeSpan.FromSeconds(1);
 
         public IIdProvider IdProvider { get; set; } = new FromIndexIdProvider(0, 0);
 

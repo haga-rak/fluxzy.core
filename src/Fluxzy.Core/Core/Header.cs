@@ -194,7 +194,10 @@ namespace Fluxzy.Core
                     continue;
                 }
 
-                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name)) {
+                // HTTP/1.1 forwarding only strips true hop-by-hop headers.
+                // Expect: 100-continue is end-to-end on H1 and must be preserved
+                // so the origin can answer the client (issue #624).
+                if (skipNonForwardableHeader && Http11Constants.IsH1HopByHopHeader(header.Name)) {
                     continue;
                 }
 
@@ -234,7 +237,7 @@ namespace Fluxzy.Core
                     continue;
                 }
 
-                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name)) {
+                if (skipNonForwardableHeader && Http11Constants.IsH1HopByHopHeader(header.Name)) {
                     continue;
                 }
 
@@ -273,7 +276,7 @@ namespace Fluxzy.Core
                     continue;
                 }
 
-                if (skipNonForwardableHeader && Http11Constants.IsNonForwardableHeader(header.Name)) {
+                if (skipNonForwardableHeader && Http11Constants.IsH1HopByHopHeader(header.Name)) {
                     continue;
                 }
 

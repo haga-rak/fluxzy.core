@@ -148,6 +148,16 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
                 ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade, AltSvc, Expect, FluxzyLiveEdit
             }, new SpanCharactersIgnoreCaseComparer());
 
+        // RFC 9110 §7.6.1 hop-by-hop headers plus fluxzy-internal markers.
+        // Deliberately excludes Expect: the proxy must forward Expect: 100-continue
+        // to an HTTP/1.1 upstream so the origin keeps authority over whether to
+        // accept the body (issue #624). Expect is still stripped on H2 upstreams
+        // via NonH2Header, because HPACK forbids it.
+        public static readonly HashSet<ReadOnlyMemory<char>> H1HopByHopHeader =
+            new(new[] {
+                ConnectionVerb, KeepAliveVerb, ProxyAuthenticate, Trailer, Upgrade, AltSvc, FluxzyLiveEdit
+            }, new SpanCharactersIgnoreCaseComparer());
+
         public static ReadOnlyMemory<char> GetStatusLine(ReadOnlyMemory<char> statusCode)
         {
             if (StatusLineMapping.TryGetValue(statusCode, out var res))
@@ -179,6 +189,11 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
         public static bool IsNonForwardableHeader(string headerName)
         {
             return NonH2Header.Contains(headerName.AsMemory());
+        }
+
+        public static bool IsH1HopByHopHeader(ReadOnlyMemory<char> headerName)
+        {
+            return H1HopByHopHeader.Contains(headerName);
         }
     }
 }
