@@ -79,9 +79,11 @@ namespace Fluxzy.Core
 
             Metrics.ReceivedFromProxy = receivedFromProxy;
 
-            RunInLiveEdit = requestHeader.HeaderFields
-                                         .Any(h => h.Name.Span.Equals("x-fluxzy-live-edit",
-                                             StringComparison.OrdinalIgnoreCase));
+            if (FluxzySharedSetting.LiveEditEnabled) {
+                RunInLiveEdit = requestHeader.HeaderFields
+                                             .Any(h => h.Name.Span.Equals("x-fluxzy-live-edit",
+                                                 StringComparison.OrdinalIgnoreCase));
+            }
         }
 
         /// <summary>

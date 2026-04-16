@@ -108,5 +108,12 @@ namespace Fluxzy
         /// </summary>
         public static int ProcessTrackerCacheSeconds { get; set; } =
             EnvironmentUtility.GetInt32("FLUXZY_PROCESS_TRACKER_CACHE_SECONDS", 30);
+
+        /// <summary>
+        ///     True when Fluxzy runs under Fluxzy Desktop (detected via the FluxzyDesktopVersion
+        ///     environment variable). Gates desktop-only hot-path checks like live-edit header scanning.
+        /// </summary>
+        public static bool LiveEditEnabled { get; } =
+            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FluxzyDesktopVersion"));
     }
 }
