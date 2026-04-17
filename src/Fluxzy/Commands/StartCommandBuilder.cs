@@ -287,7 +287,11 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.SetAutoInstallCertificate(installCert);
             proxyStartUpSetting.SetSkipGlobalSslDecryption(skipDecryption);
             proxyStartUpSetting.SetDisableCertificateCache(noCertCache);
-            proxyStartUpSetting.OutOfProcCapture = outOfProcCapture;
+            // When FLUXZY_SUDO_PASSWORD_FILE is set we can't capture in-process (the current
+            // process has no caps — the whole point of the file is to sudo the child). Force
+            // out-of-proc so the fluxzynetcap helper gets spawned under sudo.
+            proxyStartUpSetting.OutOfProcCapture = outOfProcCapture
+                || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FLUXZY_SUDO_PASSWORD_FILE"));
             proxyStartUpSetting.UseBouncyCastle = bouncyCastle;
             proxyStartUpSetting.SetEnableProcessTracking(enableProcessTracking);
             proxyStartUpSetting.SetIncludeAndroidEmulatorHost(!noAndroidEmulator);

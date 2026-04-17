@@ -227,7 +227,16 @@ namespace Fluxzy.Misc
                 return osXProcess;
             }
 
-            // For other OS we use pkexec
+            // For other OS we use pkexec, unless FLUXZY_SUDO_PASSWORD_FILE points to a
+            // readable file — in that case we shell out to `sudo -S` and feed the password
+            // from the file. Used primarily by tests to bypass the interactive pkexec prompt.
+
+            var passwordFile = Environment.GetEnvironmentVariable("FLUXZY_SUDO_PASSWORD_FILE");
+
+            if (!string.IsNullOrEmpty(passwordFile) && File.Exists(passwordFile)) {
+                return await StartWithSudoPasswordFile(commandName, args, passwordFile,
+                    redirectStdOut, redirectStandardError);
+            }
 
             var canElevated = await ProcessUtilX.HasCaptureCapabilities() || await ProcessUtilX.CanElevated();
             var execCommandName = canElevated ? commandName : "pkexec";
@@ -240,6 +249,42 @@ namespace Fluxzy.Misc
                 RedirectStandardInput = redirectStdOut,
                 RedirectStandardError = redirectStandardError
             });
+
+            return process;
+        }
+
+        private static async Task<Process?> StartWithSudoPasswordFile(
+            string commandName, string[] args, string passwordFile,
+            bool redirectStdOut, bool redirectStandardError)
+        {
+            var password = (await File.ReadAllTextAsync(passwordFile).ConfigureAwait(false))
+                .TrimEnd('\r', '\n');
+
+            var startInfo = new ProcessStartInfo("sudo") {
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = redirectStdOut,
+                RedirectStandardError = redirectStandardError,
+            };
+
+            startInfo.ArgumentList.Add("-S");
+            startInfo.ArgumentList.Add("-p");
+            startInfo.ArgumentList.Add(string.Empty);
+            startInfo.ArgumentList.Add("-E");
+            startInfo.ArgumentList.Add(commandName);
+
+            foreach (var arg in args)
+                startInfo.ArgumentList.Add(arg);
+
+            var process = Process.Start(startInfo);
+
+            if (process == null)
+                return null;
+
+            // sudo -S reads the password (up to the first newline) from stdin, then execs
+            // the target. Remaining stdin flows to the child, so the caller can keep writing.
+            await process.StandardInput.WriteLineAsync(password).ConfigureAwait(false);
+            await process.StandardInput.FlushAsync().ConfigureAwait(false);
 
             return process;
         }

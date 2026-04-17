@@ -409,3 +409,6 @@ thirdParty/
 # docfx build output
 _site/
 docs/docfx/api/
+
+# Local sudo password for Linux test setcap (see test/Fluxzy.Tests/Utility.cs)
+.password

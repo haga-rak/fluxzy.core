@@ -51,10 +51,28 @@ namespace Fluxzy.Tests
             CertificateContext.InstallDefaultCertificate();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                Task.Run(async () => { await Utility.AcquireCapabilitiesLinux(new FileInfo("fluxzynetcap").FullName);
-                        })
-                        .GetAwaiter().GetResult();
+                var passwordFile = FindRepoPasswordFile();
+
+                if (passwordFile != null) {
+                    Environment.SetEnvironmentVariable("FLUXZY_SUDO_PASSWORD_FILE", passwordFile);
+                }
             }
+        }
+
+        private static string? FindRepoPasswordFile()
+        {
+            var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+
+            while (dir != null) {
+                var candidate = Path.Combine(dir.FullName, ".password");
+
+                if (File.Exists(candidate))
+                    return candidate;
+
+                dir = dir.Parent;
+            }
+
+            return null;
         }
 
         public static string DirectoryName { get; set; } = string.Empty;
