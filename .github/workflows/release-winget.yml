@@ -60,7 +60,7 @@ jobs:
 
         $asset = "fluxzy-cli-$version-win-x64.zip"
         Write-Host "Downloading $asset..."
-        gh release download $tag --repo ${{ github.repository }} --pattern $asset --dir "./winget-assets"
+        gh release download $tag --repo ${{ github.repository }} --pattern $asset --dir "./winget-assets" --clobber
 
         Get-ChildItem "./winget-assets"
 
@@ -92,16 +92,20 @@ jobs:
         $dryRun = "${{ inputs.dry_run }}"
 
         $urlBase = "https://github.com/${{ github.repository }}/releases/download/$tag"
-        $urlX64 = "$urlBase/fluxzy-cli-$version-win-x64.zip"
+        $urlX86   = "$urlBase/fluxzy-cli-$version-win-x86.zip"
+        $urlX64   = "$urlBase/fluxzy-cli-$version-win-x64.zip"
+        $urlArm64 = "$urlBase/fluxzy-cli-$version-win-arm64.zip"
 
         Write-Host "Creating Winget manifest for version $wingetVersion"
-        Write-Host "URL x64: $urlX64"
+        Write-Host "URL x86:   $urlX86"
+        Write-Host "URL x64:   $urlX64"
+        Write-Host "URL arm64: $urlArm64"
 
         if ($dryRun -eq "true") {
           Write-Host "Dry run mode - validating manifest only"
           ./wingetcreate.exe update Fluxzy.Fluxzy `
             --version $wingetVersion `
-            --urls $urlX64 `
+            --urls $urlX86 $urlX64 $urlArm64 `
             --out ./manifest-output
 
           Write-Host "Generated manifest files:"
@@ -109,7 +113,7 @@ jobs:
         } else {
           ./wingetcreate.exe update Fluxzy.Fluxzy `
             --version $wingetVersion `
-            --urls $urlX64 `
+            --urls $urlX86 $urlX64 $urlArm64 `
             --token $env:WINGET_GITHUB_TOKEN `
             --submit
         }
