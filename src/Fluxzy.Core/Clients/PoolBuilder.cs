@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ namespace Fluxzy.Clients
     /// <summary>
     ///     Main entry of remote connection
     /// </summary>
-    internal class PoolBuilder : IDisposable
+    internal class PoolBuilder
     {
         private static readonly List<SslApplicationProtocol> AllProtocols = new() {
             SslApplicationProtocol.Http2,
@@ -40,7 +39,6 @@ namespace Fluxzy.Clients
         private readonly IDnsSolver _dnsSolver;
 
         private readonly ConcurrentDictionary<Authority, IHttpConnectionPool> _connectionPools = new();
-        private readonly CancellationTokenSource _poolCheckHaltSource = new();
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
@@ -59,59 +57,6 @@ namespace Fluxzy.Clients
             _timingProvider = timingProvider;
             _archiveWriter = archiveWriter;
             _dnsSolver = dnsSolver;
-            CheckPoolStatus(_poolCheckHaltSource.Token);
-        }
-        
-        public void Dispose()
-        {
-            _poolCheckHaltSource.Cancel();
-        }
-
-        private async void CheckPoolStatus(CancellationToken token)
-        {
-            try {
-                while (!token.IsCancellationRequested) {
-                    // TODO put delay into config files or settings
-
-                    await Task.Delay(5000, token).ConfigureAwait(false);
-
-                    await CheckAllPoolsOnceAsync().ConfigureAwait(false);
-                }
-            }
-            catch (TaskCanceledException) {
-                // Disposed was called
-            }
-        }
-
-        /// <summary>
-        ///     Performs one health-check pass over the currently registered pools.
-        ///     Extracted from <see cref="CheckPoolStatus"/> so tests can drive a single
-        ///     tick deterministically.
-        ///
-        ///     A failure in one pool's <c>CheckAlive</c> must NEVER propagate out of
-        ///     this method: the caller is the async-void <see cref="CheckPoolStatus"/>
-        ///     loop, and an unhandled exception there terminates the process
-        ///     (haga-rak/fluxzy.core#614). Each pool is checked in a try/catch and the
-        ///     sweep continues regardless of individual failures.
-        /// </summary>
-        internal async Task CheckAllPoolsOnceAsync()
-        {
-            var activePools = _connectionPools.Values.ToList();
-
-            // Sequential: CheckAlive does no network I/O on either the alive or the
-            // idle-teardown branch, so concurrency would only add coordination cost.
-            // Per-pool try/catch ensures one bad pool can't poison the sweep.
-            for (var i = 0; i < activePools.Count; i++) {
-                try {
-                    await activePools[i].CheckAlive().ConfigureAwait(false);
-                }
-                catch (Exception) {
-                    // Swallow: if a pool's health check throws, the next sweep will
-                    // observe Complete==true (assuming the failure put it in that
-                    // state) and reap it via the GetPool fast path. Logging hook
-                    // can be added once the project has a structured logger here.
-                }
-            }
         }
 
         /// <summary>
@@ -306,16 +251,6 @@ namespace Fluxzy.Clients
                 _dnsSolver : _dnsSolversCache.GetOrAdd(exchange.Context.DnsOverHttpsNameOrUrl,
                     n => new DnsOverHttpsResolver(n, exchange.Context.DnsOverHttpsCapture ?
                         proxyRuntimeSetting.GetInternalProxyAuthentication() : null));
-        }
-
-        /// <summary>
-        ///     Test seam: directly inserts a pool into the active pool dictionary so
-        ///     <see cref="CheckAllPoolsOnceAsync"/> picks it up. Avoids constructing
-        ///     the full <see cref="GetPool"/> collaborator stack.
-        /// </summary>
-        internal void TryAddPoolForTests(Authority authority, IHttpConnectionPool pool)
-        {
-            _connectionPools[authority] = pool;
         }
 
         private void OnConnectionFaulted(IHttpConnectionPool h2ConnectionPool)

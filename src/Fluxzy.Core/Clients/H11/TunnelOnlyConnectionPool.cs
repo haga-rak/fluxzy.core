@@ -46,11 +46,6 @@ namespace Fluxzy.Clients.H11
         {
         }
 
-        public ValueTask<bool> CheckAlive()
-        {
-            return new ValueTask<bool>(!Complete);
-        }
-
         public async ValueTask Send(
             Exchange exchange, IDownStreamPipe downStreamPipe, RsBuffer buffer, ExchangeScope __,
             CancellationToken cancellationToken = default)
