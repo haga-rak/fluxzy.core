@@ -32,6 +32,9 @@ namespace Fluxzy.Clients.H2
         private bool _noBodyStream;
         private bool _responseHeadersComplete;
 
+        private volatile bool _abandonedByGoAway;
+        private Exception? _abandonInnerCause;
+
         private int _totalBodyReceived;
 
         private int _totalHeaderReceived;
@@ -128,6 +131,43 @@ namespace Fluxzy.Clients.H2
         public void NotifyStreamWindowUpdate(int windowSizeUpdateValue)
         {
             RemoteWindowSize.UpdateWindowSize(windowSizeUpdateValue);
+        }
+
+        /// <summary>
+        ///     True once <see cref="AbandonAsRetryable"/> has been called — the server's
+        ///     GOAWAY indicated this stream was not processed.
+        /// </summary>
+        internal bool AbandonedByGoAway => _abandonedByGoAway;
+
+        internal Exception? AbandonInnerCause => _abandonInnerCause;
+
+        /// <summary>
+        ///     Proactively fail this stream as retryable because the remote sent GOAWAY
+        ///     with a <c>LastStreamId</c> below this stream's id. RFC 9113 §6.8 guarantees
+        ///     the server did not process it, so the orchestrator may safely reissue the
+        ///     exchange on a new connection.
+        ///     <para>
+        ///         Sets the abandon marker and cancels the stream's CTS so any in-flight
+        ///         awaits (header-received semaphore, window booking, body read) unblock
+        ///         with <see cref="OperationCanceledException"/>. The OCE catch paths
+        ///         upstream check <see cref="AbandonedByGoAway"/> and rewrap as
+        ///         <see cref="ConnectionCloseException"/> before returning to
+        ///         <see cref="H2ConnectionPool.Send"/>.
+        ///     </para>
+        /// </summary>
+        internal void AbandonAsRetryable(Exception? goAwayCause)
+        {
+            _abandonInnerCause = goAwayCause;
+            _abandonedByGoAway = true;
+
+            if (!_resetTokenSource.IsCancellationRequested) {
+                try {
+                    _resetTokenSource.Cancel();
+                }
+                catch (ObjectDisposedException) {
+                    // CTS already disposed — stream is tearing down on another path.
+                }
+            }
         }
 
         public void ResetByCaller(H2ErrorCode reason = H2ErrorCode.StreamClosed)
@@ -434,6 +474,13 @@ namespace Fluxzy.Clients.H2
             }
             catch (OperationCanceledException) {
                 _logger.Trace(StreamIdentifier, $"Received no header, cancelled by caller {StreamIdentifier}");
+
+                if (_abandonedByGoAway) {
+                    Parent.NotifyDispose(this);
+                    throw new ConnectionCloseException(
+                        "Stream abandoned after remote GOAWAY; request was not processed",
+                        _abandonInnerCause);
+                }
 
                 throw new ClientErrorException(1,
                     "The connection was interrupted before receiving response header");

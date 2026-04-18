@@ -40,7 +40,7 @@ namespace Fluxzy.Clients.H2
 
         private readonly CancellationTokenSource _connectionCancellationTokenSource = new();
 
-        private bool _goAwayInitByRemote;
+        private int _faultCallbackFired;
 
         private volatile bool _initDone;
 
@@ -109,7 +109,14 @@ namespace Fluxzy.Clients.H2
 
         public H2StreamSetting Setting { get; }
 
-        public bool Complete => _complete;
+        /// <summary>
+        ///     True once the pool is no longer accepting new exchanges — either because the
+        ///     connection has terminated (<see cref="_complete"/>) or the remote sent GOAWAY
+        ///     and the pool is draining in-flight streams (<see cref="StreamPool.IsDraining"/>).
+        ///     <see cref="PoolBuilder"/> uses this to route future exchanges to a fresh pool
+        ///     while existing in-flight streams continue to completion on this pool.
+        /// </summary>
+        public bool Complete => _complete || _streamPool.IsDraining;
 
         public void Init()
         {
@@ -146,27 +153,45 @@ namespace Fluxzy.Clients.H2
                 Complete: _complete,
                 CtsCancelled: _connectionCancellationTokenSource.IsCancellationRequested,
                 WriterChannelDrainedAndClosed: channelDrainedAndClosed,
-                WriterChannelPendingCount: pendingCount);
+                WriterChannelPendingCount: pendingCount,
+                Draining: _streamPool.IsDraining,
+                PeerLastStreamId: _streamPool.PeerLastStreamId,
+                GoAwayErrorCode: (_streamPool.GoAwayException as H2Exception)?.ErrorCode,
+                ActiveStreamCount: _streamPool.ActiveStreamCount);
         }
+
+        /// <summary>Test seam: direct access to the stream pool for unit-level assertions.</summary>
+        internal StreamPool StreamPoolForTests => _streamPool;
 
         public ValueTask<bool> CheckAlive()
         {
             var instant = ITimingProvider.Default.Instant();
 
+            // Fast path: a draining pool with no in-flight streams has nothing to do —
+            // tear down immediately without waiting for the idle timer. Prevents the pool
+            // from lingering in the dictionary after a graceful GOAWAY drained cleanly.
+            if (!_complete && _streamPool.IsDraining && _streamPool.ActiveStreamCount == 0) {
+                OnLoopEnd(null, true);
+                _logger.Trace(0, () => "Drain complete. Connection closed.");
+                return new ValueTask<bool>(false);
+            }
+
             if (!_complete && _streamPool.ActiveStreamCount == 0 &&
                 instant - _lastActivity > TimeSpan.FromSeconds(Setting.MaxIdleSeconds)) {
-                if (!_goAwayInitByRemote) {
+                // Only emit our own GOAWAY if the remote hasn't already sent us one.
+                // IsDraining is set exclusively by StreamPool.OnRemoteGoAway.
+                if (!_streamPool.IsDraining) {
                     try {
                         EmitGoAway(H2ErrorCode.NoError);
                     }
                     catch {
                         // Ignore go away error
                     }
-
-                    OnLoopEnd(null, true);
-
-                    _logger.Trace(0, () => "IDLE timeout. Connection closed.");
                 }
+
+                OnLoopEnd(null, true);
+
+                _logger.Trace(0, () => "IDLE timeout. Connection closed.");
 
                 return new ValueTask<bool>(false);
             }
@@ -195,11 +220,17 @@ namespace Fluxzy.Clients.H2
                 if (ex is OperationCanceledException opex
                     && cancellationToken != default
                     && opex.CancellationToken == cancellationToken) {
-                    // The caller cancels this exchange. 
-                    // Send a reset on stream to prevent the remote 
+                    // The caller cancels this exchange.
+                    // Send a reset on stream to prevent the remote
                 }
 
-                OnLoopEnd(ex, true);
+                // ConnectionCloseException here means either (a) the pool was already
+                // draining/complete when the exchange arrived, or (b) this stream was
+                // proactively abandoned because the server's GOAWAY LastStreamId ruled
+                // it out. Neither case is a pool-level transport failure — other
+                // in-flight streams on this pool may still complete. Skip OnLoopEnd.
+                if (ex is not ConnectionCloseException)
+                    OnLoopEnd(ex, true);
 
                 throw;
             }
@@ -262,24 +293,54 @@ namespace Fluxzy.Clients.H2
 
         private void EmitGoAway(H2ErrorCode errorCode)
         {
-            var goAwayFrame = new GoAwayFrame(_streamPool.LastStreamIdentifier, errorCode);
-            var buffer = new byte[9 + goAwayFrame.BodyLength];
-
-            goAwayFrame.Write(buffer);
-
+            var buffer = BuildGoAwayBytes(errorCode);
             var writeTask = new WriteTask(H2FrameType.Goaway, 0, 0, 0, buffer);
             UpStreamChannel(ref writeTask);
         }
 
+        /// <summary>
+        ///     Serialise a GOAWAY frame for emission from this pool.
+        ///     <para>
+        ///         RFC 9113 §6.8: LastStreamId carries the last *peer-initiated* stream
+        ///         id the sender processed. For a client with SETTINGS_ENABLE_PUSH=0 (our
+        ///         default, see <see cref="H2StreamSetting.Local"/>.EnablePush), the peer
+        ///         opens zero streams, so the correct value is 0. Writing
+        ///         <c>_streamPool.LastStreamIdentifier</c> (our own outgoing last id) would
+        ///         mis-signal which server-initiated streams were processed, and worse
+        ///         would emit the sentinel -1 on an early GOAWAY.
+        ///     </para>
+        /// </summary>
+        /// <remarks>
+        ///     Extracted from <see cref="EmitGoAway"/> as an <c>internal</c> test seam so
+        ///     the LastStreamId=0 invariant can be asserted deterministically without
+        ///     racing the writer loop (which may cancel the queued WriteTask if
+        ///     <c>OnLoopEnd</c> fires before it drains).
+        /// </remarks>
+        internal static byte[] BuildGoAwayBytes(H2ErrorCode errorCode)
+        {
+            const int lastProcessedPeerStreamId = 0;
+            var goAwayFrame = new GoAwayFrame(lastProcessedPeerStreamId, errorCode);
+            var buffer = new byte[9 + goAwayFrame.BodyLength];
+
+            goAwayFrame.Write(buffer);
+
+            return buffer;
+        }
+
         private void OnGoAway(ref GoAwayFrame frame)
         {
-            _goAwayInitByRemote = true;
+            // Build the cause synchronously so StreamPool.OnRemoteGoAway can surface it
+            // via GoAwayException. Non-NoError error codes must never be silently dropped
+            // — callers rely on the code to decide whether to retry on a fresh connection.
+            var cause = frame.ErrorCode == H2ErrorCode.NoError
+                ? null
+                : new H2Exception($"Remote GOAWAY {frame.ErrorCode}", frame.ErrorCode);
 
-            if (frame.ErrorCode == H2ErrorCode.CompressionError)
-                Console.WriteLine("Compression error");
-
-            if (frame.ErrorCode != H2ErrorCode.NoError)
-                throw new H2Exception($"Had to goaway {frame.ErrorCode}", frame.ErrorCode);
+            // Flip the pool into draining mode. The read loop keeps running so in-flight
+            // streams with id <= frame.LastStreamId can finish on this pool; new exchanges
+            // route to a fresh pool via Complete=true. Proactive abandonment of
+            // id > frame.LastStreamId streams happens inside OnRemoteGoAway.
+            _streamPool.OnRemoteGoAway(frame.LastStreamId, frame.ErrorCode, cause);
         }
 
         private void OnLoopEnd(Exception? ex, bool releaseChannelItems)
@@ -306,8 +367,11 @@ namespace Fluxzy.Clients.H2
             // completed and drained, and all pending write tasks have been
             // signalled. Disposal can then run safely without racing OnLoopEnd.
 
+            // Transport-level failure without a prior GOAWAY: surface the cause through
+            // the stream pool so any stream that's currently in Send() observes a
+            // meaningful GoAwayException. No-op if a GOAWAY already recorded a cause.
             if (ex != null)
-                _streamPool.OnGoAway(ex);
+                _streamPool.OnRemoteGoAway(_streamPool.PeerLastStreamId, H2ErrorCode.InternalError, ex);
 
             if (!_connectionCancellationTokenSource.IsCancellationRequested)
                 _connectionCancellationTokenSource.Cancel();
@@ -325,8 +389,13 @@ namespace Fluxzy.Clients.H2
                 }
             }
 
-            // Notify last so the callback observes a fully-quiesced pool.
-            _onConnectionFaulted?.Invoke(this);
+            // Notify last so the callback observes a fully-quiesced pool. Use a
+            // CAS-guarded fire so concurrent teardown paths (read-loop exit racing
+            // with idle CheckAlive, or Send-path error racing with transport close)
+            // cannot double-evict the pool from PoolBuilder or double-schedule
+            // disposal via ObserveDisposal.
+            if (Interlocked.CompareExchange(ref _faultCallbackFired, 1, 0) == 0)
+                _onConnectionFaulted?.Invoke(this);
 
             _logger.Trace(0, "Cleanup end");
         }
@@ -493,8 +562,11 @@ namespace Fluxzy.Clients.H2
                 _logger.TraceDeep(0, () => "OperationCanceledException death");
             }
             catch (Exception ex) {
-                if (!_goAwayInitByRemote)
-                    outException = ex;
+                // Surface the cause verbatim. Previously this was gated on a
+                // _goAwayInitByRemote flag to suppress the synthetic H2Exception that
+                // OnGoAway used to throw; with OnGoAway no longer throwing, the gate
+                // is dead and any exception reaching here is a genuine transport fault.
+                outException = ex;
             }
             finally {
                 OnLoopEnd(outException, false);
@@ -646,7 +718,11 @@ namespace Fluxzy.Clients.H2
 
                 OnGoAway(ref goAwayFrame);
 
-                return goAwayFrame.ErrorCode != H2ErrorCode.NoError;
+                // Do NOT break the read loop here. In-flight streams with id <= LastStreamId
+                // are still expected to receive HEADERS/DATA/RST/trailers from the server.
+                // The loop exits naturally when the server half-closes the transport or the
+                // idle CheckAlive fast path fires once draining completes.
+                return false;
             }
 
             return false;
@@ -656,7 +732,11 @@ namespace Fluxzy.Clients.H2
             bool Complete,
             bool CtsCancelled,
             bool WriterChannelDrainedAndClosed,
-            int WriterChannelPendingCount);
+            int WriterChannelPendingCount,
+            bool Draining = false,
+            int PeerLastStreamId = int.MaxValue,
+            H2ErrorCode? GoAwayErrorCode = null,
+            int ActiveStreamCount = 0);
 
         private async ValueTask InternalSend(
             Exchange exchange, RsBuffer buffer,
@@ -763,6 +843,16 @@ namespace Fluxzy.Clients.H2
                 // and set to RequestHeaderSent for no-body requests (above).
             }
             catch (OperationCanceledException opex) {
+                // Abandonment-by-GOAWAY surfaces here as OCE because AbandonAsRetryable
+                // cancels the stream CTS. Rewrap as ConnectionCloseException so the
+                // orchestrator (ProxyOrchestrator.cs:524) treats it as retryable and
+                // Send() skips the pool-level OnLoopEnd teardown.
+                if (activeStream != null && activeStream.AbandonedByGoAway) {
+                    throw new ConnectionCloseException(
+                        "Stream abandoned after remote GOAWAY; request was not processed",
+                        activeStream.AbandonInnerCause);
+                }
+
                 if (activeStream != null &&
                     opex.CancellationToken == callerCancellationToken)
 
