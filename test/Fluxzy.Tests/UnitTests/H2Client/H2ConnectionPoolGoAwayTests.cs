@@ -167,7 +167,7 @@ namespace Fluxzy.Tests.UnitTests.H2Client
         // Test: emitted GOAWAY carries LastStreamId=0 (RFC 9113 §6.8 compliance)
         //
         // Asserts the invariant directly at the frame-build seam rather than through
-        // an end-to-end write, because CheckAlive's idle path queues the GOAWAY on
+        // an end-to-end write, because the idle-teardown path queues the GOAWAY on
         // the writer channel and then immediately calls OnLoopEnd, which cancels the
         // task before the writer loop drains it — a pre-existing best-effort
         // behaviour. The seam guarantees the LastStreamId never leaks our own outgoing

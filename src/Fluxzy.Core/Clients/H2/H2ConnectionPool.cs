@@ -47,10 +47,13 @@ namespace Fluxzy.Clients.H2
         private Task? _innerReadTask;
         private Task? _innerWriteRun;
 
+        private PeriodicTimer? _idleTimer;
+        private Task? _idleMonitorTask;
+
         private DateTime _lastActivity = ITimingProvider.Default.Instant();
 
         /// <summary>
-        ///     Test seam: allows tests to force the idle path of <see cref="CheckAlive"/>
+        ///     Test seam: allows tests to force the idle path of <see cref="TryIdleTeardown"/>
         ///     deterministically without resorting to reflection or wall-clock waits.
         /// </summary>
         internal DateTime LastActivity {
@@ -130,6 +133,104 @@ namespace Fluxzy.Clients.H2
 
             _innerReadTask = InternalReadLoop(_connectionToken);
             _innerWriteRun = InternalWriteLoop(_connectionToken);
+
+            // Per-connection idle teardown. Replaces the centralized PoolBuilder
+            // sweeper (the old async-void CheckPoolStatus loop). Tick is bounded
+            // so that very large MaxIdleSeconds values still observe Cancel/Dispose
+            // promptly; the lower bound keeps the test-only MaxIdleSeconds=0 case
+            // ticking instead of busy-spinning.
+            var tickSeconds = Math.Clamp(Setting.MaxIdleSeconds, 1, 30);
+            _idleTimer = new PeriodicTimer(TimeSpan.FromSeconds(tickSeconds));
+            _idleMonitorTask = MonitorIdleAsync(_idleTimer, _connectionToken);
+        }
+
+        private async Task MonitorIdleAsync(PeriodicTimer timer, CancellationToken token)
+        {
+            try {
+                while (await timer.WaitForNextTickAsync(token).ConfigureAwait(false)) {
+                    if (TryIdleTeardown())
+                        return;
+                }
+            }
+            catch (OperationCanceledException) {
+                // Disposal path — expected.
+            }
+            catch (Exception) {
+                // Never propagate from the background loop; the prior async-void
+                // shape made this fatal (haga-rak/fluxzy.core#614). The teardown
+                // path itself is best-effort, so swallowing is correct here.
+            }
+        }
+
+        /// <summary>
+        ///     Returns <c>true</c> when the monitor loop should stop — either the pool
+        ///     is already torn down, or this call performed the teardown. Returns
+        ///     <c>false</c> when the pool is still in use and another tick is needed.
+        ///
+        ///     Snapshot + teardown happen under <see cref="_streamCreationLock"/> so a
+        ///     concurrent <see cref="Send"/> cannot allocate a stream id on a connection
+        ///     that is about to send GOAWAY. <see cref="SemaphoreSlim.Wait(int)"/> with
+        ///     timeout 0 means "yield this tick if a Send is mid-flight" — a Send in
+        ///     progress is itself proof the connection is not idle.
+        /// </summary>
+        internal bool TryIdleTeardown()
+        {
+            if (_complete) return true;
+            if (_streamPool.ActiveStreamCount != 0) return false;
+
+            // Fast path: a draining pool with no in-flight streams has nothing to do —
+            // tear down immediately without waiting for the idle timer. Prevents the pool
+            // from lingering in the dictionary after a graceful GOAWAY drained cleanly.
+            if (_streamPool.IsDraining) {
+                if (!_streamCreationLock.Wait(0)) return false;
+                try {
+                    if (_complete) return true;
+                    if (_streamPool.ActiveStreamCount != 0) return false;
+
+                    OnLoopEnd(null, true);
+                    _logger.Trace(0, () => "Drain complete. Connection closed.");
+                    return true;
+                }
+                finally {
+                    _streamCreationLock.Release();
+                }
+            }
+
+            var instant = ITimingProvider.Default.Instant();
+            if (instant - _lastActivity <= TimeSpan.FromSeconds(Setting.MaxIdleSeconds))
+                return false;
+
+            if (!_streamCreationLock.Wait(0))
+                return false;
+
+            try {
+                if (_complete) return true;
+                if (_streamPool.ActiveStreamCount != 0) return false;
+
+                instant = ITimingProvider.Default.Instant();
+                if (instant - _lastActivity <= TimeSpan.FromSeconds(Setting.MaxIdleSeconds))
+                    return false;
+
+                // Only emit our own GOAWAY if the remote hasn't already sent us one.
+                // IsDraining is set exclusively by StreamPool.OnRemoteGoAway.
+                if (!_streamPool.IsDraining) {
+                    try {
+                        EmitGoAway(H2ErrorCode.NoError);
+                    }
+                    catch {
+                        // Best-effort GOAWAY; teardown proceeds either way.
+                    }
+                }
+
+                OnLoopEnd(null, true);
+
+                _logger.Trace(0, () => "IDLE timeout. Connection closed.");
+
+                return true;
+            }
+            finally {
+                _streamCreationLock.Release();
+            }
         }
 
         /// <summary>
@@ -162,42 +263,6 @@ namespace Fluxzy.Clients.H2
 
         /// <summary>Test seam: direct access to the stream pool for unit-level assertions.</summary>
         internal StreamPool StreamPoolForTests => _streamPool;
-
-        public ValueTask<bool> CheckAlive()
-        {
-            var instant = ITimingProvider.Default.Instant();
-
-            // Fast path: a draining pool with no in-flight streams has nothing to do —
-            // tear down immediately without waiting for the idle timer. Prevents the pool
-            // from lingering in the dictionary after a graceful GOAWAY drained cleanly.
-            if (!_complete && _streamPool.IsDraining && _streamPool.ActiveStreamCount == 0) {
-                OnLoopEnd(null, true);
-                _logger.Trace(0, () => "Drain complete. Connection closed.");
-                return new ValueTask<bool>(false);
-            }
-
-            if (!_complete && _streamPool.ActiveStreamCount == 0 &&
-                instant - _lastActivity > TimeSpan.FromSeconds(Setting.MaxIdleSeconds)) {
-                // Only emit our own GOAWAY if the remote hasn't already sent us one.
-                // IsDraining is set exclusively by StreamPool.OnRemoteGoAway.
-                if (!_streamPool.IsDraining) {
-                    try {
-                        EmitGoAway(H2ErrorCode.NoError);
-                    }
-                    catch {
-                        // Ignore go away error
-                    }
-                }
-
-                OnLoopEnd(null, true);
-
-                _logger.Trace(0, () => "IDLE timeout. Connection closed.");
-
-                return new ValueTask<bool>(false);
-            }
-
-            return new ValueTask<bool>(true);
-        }
 
         public async ValueTask Send(
             Exchange exchange, IDownStreamPipe _, RsBuffer buffer, ExchangeScope __,
@@ -251,6 +316,11 @@ namespace Fluxzy.Clients.H2
 
             _overallWindowSizeHolder?.Dispose();
 
+            // Stop the idle monitor first: PeriodicTimer.Dispose causes any pending
+            // WaitForNextTickAsync to return false, so the monitor exits cleanly
+            // without observing a cancelled CTS.
+            _idleTimer?.Dispose();
+
             _logger.Trace(0, () => "Disposed");
             _connectionCancellationTokenSource?.Cancel();
             _connectionCancellationTokenSource?.Dispose();
@@ -265,6 +335,15 @@ namespace Fluxzy.Clients.H2
 
             if (_innerWriteRun != null)
                 await _innerWriteRun.ConfigureAwait(false);
+
+            if (_idleMonitorTask != null) {
+                try {
+                    await _idleMonitorTask.ConfigureAwait(false);
+                }
+                catch {
+                    // Monitor already swallows; this is belt-and-braces.
+                }
+            }
 
             try {
 
@@ -391,7 +470,7 @@ namespace Fluxzy.Clients.H2
 
             // Notify last so the callback observes a fully-quiesced pool. Use a
             // CAS-guarded fire so concurrent teardown paths (read-loop exit racing
-            // with idle CheckAlive, or Send-path error racing with transport close)
+            // with the idle monitor, or Send-path error racing with transport close)
             // cannot double-evict the pool from PoolBuilder or double-schedule
             // disposal via ObserveDisposal.
             if (Interlocked.CompareExchange(ref _faultCallbackFired, 1, 0) == 0)
@@ -721,7 +800,7 @@ namespace Fluxzy.Clients.H2
                 // Do NOT break the read loop here. In-flight streams with id <= LastStreamId
                 // are still expected to receive HEADERS/DATA/RST/trailers from the server.
                 // The loop exits naturally when the server half-closes the transport or the
-                // idle CheckAlive fast path fires once draining completes.
+                // idle monitor's drain fast path fires once draining completes.
                 return false;
             }
 

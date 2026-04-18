@@ -32,11 +32,6 @@ namespace Fluxzy.Clients.Mock
         {
         }
 
-        public ValueTask<bool> CheckAlive()
-        {
-            return new ValueTask<bool>(Complete);
-        }
-
         public async ValueTask Send(
             Exchange exchange,
             IDownStreamPipe downStreamPipe, RsBuffer buffer, ExchangeScope __,
