@@ -138,8 +138,8 @@ namespace Fluxzy.Clients.H11
                     byteIndex += 2;
                 }
                 else {
-                    if (startBuffer.Length < 4)
-                        return -1; // Not enough data 
+                    if (startBuffer.Length < 8)
+                        return -1; // Not enough data
 
                     wsFrame.PayloadLength = BinaryPrimitives.ReadInt64BigEndian(startBuffer);
                     byteIndex += 8;

@@ -130,7 +130,16 @@ namespace Fluxzy.Tests.Cli
 
                 Assert.Equal(expectedHash, resultHash);
 
-                await Task.Delay(200);
+                // Clean close so the proxy finishes writing the sent message to the
+                // archive before fluxzyInstance disposal — abrupt Dispose races with
+                // InitRead on slow CI and can leave the archive without the Sent entry.
+                try {
+                    using var closeCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "done", closeCts.Token);
+                }
+                catch {
+                    // best effort; fall through to dispose
+                }
             }
 
             using (IArchiveReader archiveReader = new DirectoryArchiveReader(directoryName)) {
