@@ -50,6 +50,7 @@ namespace Fluxzy.Core
         private int _connectionWindow = 65535;
         private readonly SemaphoreSlim _writeSignal = new(0);
         private int _writeSignalState;
+        private int _writeLoopIterations;
 
         private readonly H2Logger _logger;
         private readonly CancellationToken _mainLoopToken;
@@ -406,12 +407,33 @@ namespace Fluxzy.Core
             }
         }
 
+        /// <summary>
+        ///     Test seam: outer-while iteration counter for <see cref="WriteLoop"/>. Used
+        ///     to detect spin-loop regressions where the loop re-enters Phase 2 faster
+        ///     than WINDOW_UPDATEs can arrive (see WriteLoop_DoesNotSpinWhenConnectionWindowExhausted).
+        /// </summary>
+        internal int WriteLoopIterationsForTests => Volatile.Read(ref _writeLoopIterations);
+
+        /// <summary>
+        ///     Test seam: injects a synthetic <see cref="DataFrameEntry"/> with the given
+        ///     flow-control cost directly into the data channel, bypassing the
+        ///     ServerStreamWorker/response-body machinery. Lets tests force the
+        ///     "connection window exhausted, entry queued" state deterministically.
+        /// </summary>
+        internal void EnqueueFlowControlledDataForTest(int flowControlledBytes)
+        {
+            var buffer = ArrayPool<byte>.Shared.Rent(9);
+            _dataChannel.Writer.TryWrite(new DataFrameEntry(buffer, 9, flowControlledBytes));
+            SignalWriteLoop();
+        }
+
         private async Task WriteLoop(CancellationToken token)
         {
             var gatherBuffer = ArrayPool<byte>.Shared.Rent(GatherBufferSize);
 
             try {
                 while (!token.IsCancellationRequested) {
+                    Interlocked.Increment(ref _writeLoopIterations);
                     var didWork = false;
 
                     // Phase 1: Drain pending header encodes into the ring buffer, then drain
@@ -521,8 +543,18 @@ namespace Fluxzy.Core
                     if (_ringBuffer.ReadableCount > 0)
                         continue;
 
-                    if (_dataChannel.Reader.TryPeek(out _))
-                        continue;
+                    // Only re-enter the outer loop if the peeked entry can actually make
+                    // progress. A DATA frame whose FlowControlledBytes exceed the current
+                    // connection window cannot be consumed by Phase 2 — treating it as
+                    // "work available" would spin at 100% CPU until a client WINDOW_UPDATE
+                    // arrives (haga-rak/fluxzy.core#634). HandleWindowUpdate calls
+                    // SignalWriteLoop after incrementing _connectionWindow, so parking on
+                    // _writeSignal is the correct response.
+                    if (_dataChannel.Reader.TryPeek(out var nextDataEntry)) {
+                        if (nextDataEntry.FlowControlledBytes == 0 ||
+                            Volatile.Read(ref _connectionWindow) >= nextDataEntry.FlowControlledBytes)
+                            continue;
+                    }
 
                     if (_pendingHeaders.Reader.TryPeek(out _))
                         continue;
