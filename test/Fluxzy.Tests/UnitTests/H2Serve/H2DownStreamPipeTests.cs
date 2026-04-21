@@ -493,6 +493,52 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
         }
 
         /// <summary>
+        /// Repro for the 100% CPU regression reported in haga-rak/fluxzy.core#634.
+        ///
+        /// <para>
+        /// When a DATA entry sits at the head of the data channel but
+        /// <c>entry.FlowControlledBytes &gt; _connectionWindow</c>, Phase 2 of
+        /// <c>WriteLoop</c> breaks without consuming the entry. The "double-check"
+        /// at the end of the outer iteration then sees the still-peeked entry and
+        /// <c>continue</c>s back to the top, never reaching the
+        /// <c>_writeSignal.WaitAsync</c> park. Result: the write loop spins at
+        /// 100% CPU until a client WINDOW_UPDATE unblocks it.
+        /// </para>
+        ///
+        /// Default connection window is 65535. Queuing an entry that needs 200 000
+        /// flow-controlled bytes with no matching WINDOW_UPDATE exercises the spin
+        /// directly. On a fixed loop the iteration delta over 200 ms is a handful;
+        /// on the buggy loop it is in the millions.
+        /// </summary>
+        [Fact]
+        public async Task WriteLoop_DoesNotSpinWhenConnectionWindowExhausted()
+        {
+            await using var ctx = await H2TestContext.Create();
+            await ctx.CompleteHandshake();
+
+            // Let the write loop settle after the handshake.
+            await Task.Delay(50);
+
+            ctx.DownStreamPipe.EnqueueFlowControlledDataForTest(flowControlledBytes: 200_000);
+
+            // Give the signal a chance to wake the loop and have it (buggy) start spinning
+            // or (fixed) park on WaitAsync.
+            await Task.Delay(50);
+
+            var iterationsBefore = ctx.DownStreamPipe.WriteLoopIterationsForTests;
+
+            await Task.Delay(200);
+
+            var delta = ctx.DownStreamPipe.WriteLoopIterationsForTests - iterationsBefore;
+
+            Assert.True(delta < 50,
+                $"WriteLoop iterated {delta} times in 200ms with no WINDOW_UPDATE — " +
+                "this is a spin loop on connection-window exhaustion. Phase 4's " +
+                "\"_dataChannel.Reader.TryPeek(out _) → continue\" short-circuit " +
+                "must treat window-blocked entries as \"park, not spin\".");
+        }
+
+        /// <summary>
         /// Send POST with multiple DATA frames.
         /// Verify the complete body is received.
         /// </summary>
