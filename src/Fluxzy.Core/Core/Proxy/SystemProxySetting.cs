@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace Fluxzy.Core.Proxy
 {
@@ -31,6 +32,22 @@ namespace Fluxzy.Core.Proxy
         ///     This is used to store specif OS related proxy format
         /// </summary>
         public Dictionary<string, object> PrivateValues { get; } = new();
+
+        /// <summary>
+        ///     True only if the OS proxy is enabled AND its host/port match the given endpoint.
+        ///     Used to distinguish "Fluxzy is the active system proxy" from "some other proxy is on".
+        /// </summary>
+        public bool MatchesEndPoint(IPEndPoint endPoint)
+        {
+            if (!Enabled)
+                return false;
+
+            if (ListenPort != endPoint.Port)
+                return false;
+
+            return string.Equals(BoundHost, endPoint.Address.ToString(),
+                StringComparison.OrdinalIgnoreCase);
+        }
 
         public bool Equals(SystemProxySetting? other)
         {

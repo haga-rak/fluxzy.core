@@ -79,6 +79,30 @@ namespace Fluxzy.Core
         }
 
         /// <summary>
+        /// Returns true only if the OS proxy is currently enabled AND bound to the given endpoint.
+        /// Unlike <see cref="GetSystemProxySetting"/>, this filters out unrelated proxies
+        /// (corporate, Fiddler, another Fluxzy instance on a different port, ...).
+        /// </summary>
+        public async Task<bool> IsRegisteredOn(IPEndPoint endPoint)
+        {
+            var setting = await GetSystemProxySetting().ConfigureAwait(false);
+            var host = GetConnectableIpAddr(endPoint.Address);
+
+            return setting.MatchesEndPoint(new IPEndPoint(host, endPoint.Port));
+        }
+
+        /// <summary>
+        /// Overload mirroring the selection logic of <c>Register(IEnumerable&lt;IPEndPoint&gt;, ...)</c>:
+        /// prefers the loopback endpoint when multiple are provided.
+        /// </summary>
+        public Task<bool> IsRegisteredOn(IEnumerable<IPEndPoint> endPoints)
+        {
+            return IsRegisteredOn(endPoints.OrderByDescending(t => Equals(t.Address, IPAddress.Loopback)
+                                                                   || t.Address.Equals(IPAddress.IPv6Loopback))
+                                           .First());
+        }
+
+        /// <summary>
         /// Unregister any previous setting
         /// </summary>
         /// <returns></returns>

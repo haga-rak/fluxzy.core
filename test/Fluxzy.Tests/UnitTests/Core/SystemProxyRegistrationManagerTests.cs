@@ -172,6 +172,93 @@ namespace Fluxzy.Tests.UnitTests.Core
         }
 
         [Fact]
+        public async Task IsRegisteredOn_Returns_False_When_Proxy_Disabled()
+        {
+            var setting = CreateSetting("127.0.0.1", 8080, enabled: false);
+
+            var setter = Substitute.For<ISystemProxySetter>();
+            setter.ReadSetting().Returns(Task.FromResult(setting));
+
+            var manager = new SystemProxyRegistrationManager(setter);
+
+            Assert.False(await manager.IsRegisteredOn(new IPEndPoint(IPAddress.Loopback, 8080)));
+        }
+
+        [Fact]
+        public async Task IsRegisteredOn_Returns_False_When_Port_Differs()
+        {
+            var setting = CreateSetting("127.0.0.1", 9090, enabled: true);
+
+            var setter = Substitute.For<ISystemProxySetter>();
+            setter.ReadSetting().Returns(Task.FromResult(setting));
+
+            var manager = new SystemProxyRegistrationManager(setter);
+
+            Assert.False(await manager.IsRegisteredOn(new IPEndPoint(IPAddress.Loopback, 8080)));
+        }
+
+        [Fact]
+        public async Task IsRegisteredOn_Returns_False_When_Host_Differs()
+        {
+            var setting = CreateSetting("corp-proxy.local", 8080, enabled: true);
+
+            var setter = Substitute.For<ISystemProxySetter>();
+            setter.ReadSetting().Returns(Task.FromResult(setting));
+
+            var manager = new SystemProxyRegistrationManager(setter);
+
+            Assert.False(await manager.IsRegisteredOn(new IPEndPoint(IPAddress.Loopback, 8080)));
+        }
+
+        [Fact]
+        public async Task IsRegisteredOn_Returns_True_On_Exact_Match()
+        {
+            var setting = CreateSetting("127.0.0.1", 8080, enabled: true);
+
+            var setter = Substitute.For<ISystemProxySetter>();
+            setter.ReadSetting().Returns(Task.FromResult(setting));
+
+            var manager = new SystemProxyRegistrationManager(setter);
+
+            Assert.True(await manager.IsRegisteredOn(new IPEndPoint(IPAddress.Loopback, 8080)));
+        }
+
+        [Fact]
+        public async Task IsRegisteredOn_Normalizes_AnyAddress_To_Loopback()
+        {
+            // Fluxzy binds 0.0.0.0 but writes 127.0.0.1 to the registry (via GetConnectableIpAddr).
+            // IsRegisteredOn must apply the same normalization so callers can pass their raw bind endpoint.
+            var setting = CreateSetting("127.0.0.1", 8080, enabled: true);
+
+            var setter = Substitute.For<ISystemProxySetter>();
+            setter.ReadSetting().Returns(Task.FromResult(setting));
+
+            var manager = new SystemProxyRegistrationManager(setter);
+
+            Assert.True(await manager.IsRegisteredOn(new IPEndPoint(IPAddress.Any, 8080)));
+        }
+
+        [Fact]
+        public async Task IsRegisteredOn_Endpoints_Prefers_Loopback()
+        {
+            // When several endpoints are given, the loopback one is the one actually written to
+            // the registry by Register(), so it must also be the one matched here.
+            var setting = CreateSetting("127.0.0.1", 8080, enabled: true);
+
+            var setter = Substitute.For<ISystemProxySetter>();
+            setter.ReadSetting().Returns(Task.FromResult(setting));
+
+            var manager = new SystemProxyRegistrationManager(setter);
+
+            var endpoints = new[] {
+                new IPEndPoint(IPAddress.Parse("192.168.1.10"), 8080),
+                new IPEndPoint(IPAddress.Loopback, 8080),
+            };
+
+            Assert.True(await manager.IsRegisteredOn(endpoints));
+        }
+
+        [Fact]
         public async Task Unregister_Should_Preserve_Raw_ProxyServer_For_Legacy_Formats()
         {
             // Arrange: Windows registry contains a legacy per-protocol ProxyServer
