@@ -311,6 +311,7 @@ namespace Fluxzy.Clients.H2
             // without observing a cancelled CTS.
             _idleTimer?.Dispose();
 
+            _connectionCancellationTokenSource?.Cancel();
             _connectionCancellationTokenSource?.Dispose();
 
             // Note: do NOT null out _writeSemaphore. Nulling a mutable field that
