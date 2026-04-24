@@ -10,7 +10,7 @@ namespace Fluxzy.Clients.H2
 {
     internal static class SettingHelper
     {
-        private static int WriteStartupSetting(Span<byte> buffer, H2StreamSetting h2Setting, H2Logger logger)
+        private static int WriteStartupSetting(Span<byte> buffer, H2StreamSetting h2Setting)
         {
             var written = 0;
             var headerCount = 9; 
@@ -20,11 +20,8 @@ namespace Fluxzy.Clients.H2
             var totalSettingCount = 0;
 
             foreach (var (settingIdentifier, value) in h2Setting.GetAnnouncementSettings()) {
-
-                var currentSetting = new SettingFrame(settingIdentifier, value);
                 written += SettingFrame.WriteMultipleBody(buffer.Slice(written + headerCount), settingIdentifier, value);
                 totalSettingCount++;
-                logger.OutgoingSetting(ref currentSetting);
             }
 
             // 5 bytes header
@@ -33,7 +30,7 @@ namespace Fluxzy.Clients.H2
             return written;
         }
 
-        public static void WriteWelcomeSettings(byte [] preface, Stream innerStream, H2StreamSetting h2Setting, H2Logger logger)
+        public static void WriteWelcomeSettings(byte [] preface, Stream innerStream, H2StreamSetting h2Setting)
         {
             Span<byte> settingBuffer = stackalloc byte[512];
 
@@ -41,7 +38,7 @@ namespace Fluxzy.Clients.H2
 
             preface.AsSpan().CopyTo(settingBuffer);
             written += preface.Length;
-            written += WriteStartupSetting(settingBuffer.Slice(written), h2Setting, logger);
+            written += WriteStartupSetting(settingBuffer.Slice(written), h2Setting);
 
             var windowSizeAnnounced = h2Setting.Local.WindowSize - 65535;
 
@@ -66,13 +63,12 @@ namespace Fluxzy.Clients.H2
             }
         }
 
-        public static void WriteAck(Stream innerStream, H2Logger logger)
+        public static void WriteAck(Stream innerStream)
         {
             Span<byte> settingBuffer = stackalloc byte[80];
             var settingFrame = new SettingFrame(true);
             var written = settingFrame.Write(settingBuffer);
 
-            logger.OutgoingSetting(ref settingFrame);
             innerStream.Write(settingBuffer.Slice(0, written));
         }
     }

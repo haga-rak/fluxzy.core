@@ -20,7 +20,6 @@ public class WindowSizeBookingBenchmark
     private const int WindowSize = 1 << 24; // 16 MB — large enough to avoid slow-path waits
     private const int BatchFrames = 4; // matches ServerStreamWorker.BatchFrames
 
-    private H2Logger _logger = null!;
     private WindowSizeHolder _streamHolder = null!;
     private WindowSizeHolder _overallHolder = null!;
 
@@ -31,7 +30,6 @@ public class WindowSizeBookingBenchmark
     public void Setup()
     {
         var authority = new Authority("bench.local", 443, true);
-        _logger = new H2Logger(authority, connectionId: 0, active: false);
     }
 
     [IterationSetup]
@@ -41,8 +39,8 @@ public class WindowSizeBookingBenchmark
         _streamHolder?.Dispose();
         _overallHolder?.Dispose();
 
-        _streamHolder = new WindowSizeHolder(_logger, WindowSize, streamIdentifier: 1);
-        _overallHolder = new WindowSizeHolder(_logger, WindowSize, streamIdentifier: 0);
+        _streamHolder = new WindowSizeHolder(WindowSize, streamIdentifier: 1);
+        _overallHolder = new WindowSizeHolder(WindowSize, streamIdentifier: 0);
     }
 
     [IterationCleanup]
@@ -94,7 +92,7 @@ public class WindowSizeBookingBenchmark
 
         for (var t = 0; t < ConcurrentTasks; t++) {
             // Each task gets its own stream holder but shares the overall holder.
-            var streamHolder = new WindowSizeHolder(_logger, WindowSize, streamIdentifier: t + 10);
+            var streamHolder = new WindowSizeHolder(WindowSize, streamIdentifier: t + 10);
             var framesPerTask = 1024 / ConcurrentTasks;
 
             tasks[t] = Task.Run(async () => {
@@ -165,7 +163,7 @@ public class WindowSizeBookingBenchmark
         var tasks = new Task<int>[ConcurrentTasks];
 
         for (var t = 0; t < ConcurrentTasks; t++) {
-            var streamHolder = new WindowSizeHolder(_logger, WindowSize, streamIdentifier: t + 10);
+            var streamHolder = new WindowSizeHolder(WindowSize, streamIdentifier: t + 10);
             var framesPerTask = 1024 / ConcurrentTasks;
 
             tasks[t] = Task.Run(async () => {

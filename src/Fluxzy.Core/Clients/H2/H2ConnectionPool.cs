@@ -26,7 +26,6 @@ namespace Fluxzy.Clients.H2
         private readonly Connection _connection;
         private readonly CancellationToken _connectionToken;
 
-        private readonly H2Logger _logger;
         private readonly Action<H2ConnectionPool>? _onConnectionFaulted;
         private readonly SemaphoreSlim _streamCreationLock = new(1);
 
@@ -82,10 +81,9 @@ namespace Fluxzy.Clients.H2
             Setting = setting;
             _connection = connection;
             _onConnectionFaulted = onConnectionFaulted;
-            _logger = new H2Logger(Authority, Id);
             _connectionToken = _connectionCancellationTokenSource.Token;
 
-            _overallWindowSizeHolder = new WindowSizeHolder(_logger, Setting.OverallWindowSize, 0);
+            _overallWindowSizeHolder = new WindowSizeHolder(Setting.OverallWindowSize, 0);
 
             _writerChannel =
                 Channel.CreateUnbounded<WriteTask>(new UnboundedChannelOptions {
@@ -103,7 +101,7 @@ namespace Fluxzy.Clients.H2
 
             _streamPool = new StreamPool(
                 new StreamContext(
-                    Id, authority, setting, _logger,
+                    Id, authority, setting, 
                     headerEncoder, UpStreamChannel,
                     _overallWindowSizeHolder));
         }
@@ -129,7 +127,7 @@ namespace Fluxzy.Clients.H2
             _initDone = true;
 
             //_baseStream.Write(Preface);
-            SettingHelper.WriteWelcomeSettings(H2Constants.Preface, _baseStream, Setting, _logger);
+            SettingHelper.WriteWelcomeSettings(H2Constants.Preface, _baseStream, Setting);
 
             _innerReadTask = InternalReadLoop(_connectionToken);
             _innerWriteRun = InternalWriteLoop(_connectionToken);
@@ -188,7 +186,6 @@ namespace Fluxzy.Clients.H2
                     if (_streamPool.ActiveStreamCount != 0) return false;
 
                     OnLoopEnd(null, true);
-                    _logger.Trace(0, () => "Drain complete. Connection closed.");
                     return true;
                 }
                 finally {
@@ -223,8 +220,6 @@ namespace Fluxzy.Clients.H2
                 }
 
                 OnLoopEnd(null, true);
-
-                _logger.Trace(0, () => "IDLE timeout. Connection closed.");
 
                 return true;
             }
@@ -271,16 +266,11 @@ namespace Fluxzy.Clients.H2
             Interlocked.Increment(ref TotalRequest);
 
             try {
-                _logger.Trace(exchange, "Send start");
-
                 exchange.Connection = _connection;
 
                 await InternalSend(exchange, buffer, cancellationToken).ConfigureAwait(false);
-
-                _logger.Trace(exchange, "Response header received");
             }
             catch (Exception ex) {
-                _logger.Trace(exchange, "Send on error " + ex);
 
                 if (ex is OperationCanceledException opex
                     && cancellationToken != default
@@ -321,8 +311,6 @@ namespace Fluxzy.Clients.H2
             // without observing a cancelled CTS.
             _idleTimer?.Dispose();
 
-            _logger.Trace(0, () => "Disposed");
-            _connectionCancellationTokenSource?.Cancel();
             _connectionCancellationTokenSource?.Dispose();
 
             // Note: do NOT null out _writeSemaphore. Nulling a mutable field that
@@ -430,9 +418,7 @@ namespace Fluxzy.Clients.H2
             _complete = true;
 
             // End the connection. This operation is idempotent.
-
-            _logger.Trace(0, "Cleanup start " + ex);
-
+            
             // IMPORTANT: drive ALL of our own internal cleanup BEFORE notifying the
             // fault callback. The callback (in PoolBuilder.OnConnectionFaulted) may
             // synchronously start tearing the pool down via DisposeAsync, and the
@@ -475,8 +461,6 @@ namespace Fluxzy.Clients.H2
             // disposal via ObserveDisposal.
             if (Interlocked.CompareExchange(ref _faultCallbackFired, 1, 0) == 0)
                 _onConnectionFaulted?.Invoke(this);
-
-            _logger.Trace(0, "Cleanup end");
         }
 
         private async Task InternalWriteLoop(CancellationToken token)
@@ -525,9 +509,6 @@ namespace Fluxzy.Clients.H2
                                     .Write(memoryBuffer.Span);
 
                                 memoryBuffer = memoryBuffer.Slice(13);
-
-                                _logger.OutgoingWindowUpdate(writeTask.WindowUpdateSize,
-                                    writeTask.StreamIdentifier);
                             }
 
                             await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
@@ -572,7 +553,6 @@ namespace Fluxzy.Clients.H2
                                       .ConfigureAwait(false);
 
                                 for (var i = 0; i < otherTasks.Count; i++) {
-                                    _logger.OutgoingFrame(otherTasks[i].BufferBytes);
                                     otherTasks[i].OnComplete(null);
                                 }
                             }
@@ -627,18 +607,13 @@ namespace Fluxzy.Clients.H2
 
             try {
                 while (!token.IsCancellationRequested) {
-                    _logger.TraceDeep(0, () => "1");
-
                     var frame = await reader.ReadNextFrameAsync(token).ConfigureAwait(false);
 
                     if (ProcessNewFrame(frame))
                         break;
                 }
-
-                _logger.TraceDeep(0, () => "Natural death");
             }
             catch (OperationCanceledException) {
-                _logger.TraceDeep(0, () => "OperationCanceledException death");
             }
             catch (Exception ex) {
                 // Surface the cause verbatim. Previously this was gated on a
@@ -654,17 +629,11 @@ namespace Fluxzy.Clients.H2
 
         private bool ProcessNewFrame(H2FrameReadResult frame)
         {
-            _logger.TraceDeep(0, () => "2");
-
             if (frame.IsEmpty)
                 return true;
-
-            _logger.TraceDeep(0, () => "3");
-
+            
             _lastActivity = ITimingProvider.Default.Instant();
-
-            _logger.IncomingFrame(ref frame);
-
+            
             _streamPool.TryGetExistingActiveStream(frame.StreamIdentifier, out var activeStream);
 
             if (frame.BodyType == H2FrameType.Settings) {
@@ -673,7 +642,6 @@ namespace Fluxzy.Clients.H2
 
                 while (frame.TryReadNextSetting(out var settingFrame, ref indexer)) {
 
-                    _logger.IncomingSetting(ref settingFrame);
                     var needAck = H2Helper.ProcessIncomingSettingFrame(Setting, ref settingFrame);
 
                     if (settingFrame.SettingIdentifier == SettingIdentifier.SettingsInitialWindowSize) {
@@ -682,8 +650,6 @@ namespace Fluxzy.Clients.H2
                     }
 
                     sendAck = sendAck || needAck;
-
-                    _logger.TraceDeep(0, () => "4");
                 }
 
                 if (sendAck) {
@@ -698,8 +664,6 @@ namespace Fluxzy.Clients.H2
             }
 
             if (frame.BodyType == H2FrameType.Priority) {
-                _logger.TraceDeep(0, () => "5");
-
                 if (activeStream == null)
                     return false;
 
@@ -709,8 +673,6 @@ namespace Fluxzy.Clients.H2
             }
 
             if (frame.BodyType == H2FrameType.Headers) {
-                _logger.TraceDeep(0, () => "6");
-
                 if (activeStream == null)
 
                     // TODO : Notify stream error, stream already closed 
@@ -724,8 +686,6 @@ namespace Fluxzy.Clients.H2
             }
 
             if (frame.BodyType == H2FrameType.Continuation) {
-                _logger.TraceDeep(0, () => "7");
-
                 if (activeStream == null)
 
                     // TODO : Notify stream error, stream already closed 
@@ -739,25 +699,17 @@ namespace Fluxzy.Clients.H2
             }
 
             if (frame.BodyType == H2FrameType.Data) {
-                _logger.TraceDeep(0, () => "8 : ");
-
                 if (activeStream == null)
                     return false;
-
-                _logger.TraceDeep(0, () => "8 : " + activeStream.StreamIdentifier);
-
+                
                 activeStream.ReceiveBodyFragmentFromConnection(
                     frame.GetDataFrame().Buffer,
                     frame.Flags.HasFlag(HeaderFlags.EndStream));
-
-                _logger.TraceDeep(0, () => "8 1 : " + activeStream.StreamIdentifier);
 
                 return false;
             }
 
             if (frame.BodyType == H2FrameType.RstStream) {
-                _logger.TraceDeep(0, () => "9");
-
                 if (activeStream == null)
                     return false;
 
@@ -767,8 +719,6 @@ namespace Fluxzy.Clients.H2
             }
 
             if (frame.BodyType == H2FrameType.WindowUpdate) {
-                _logger.TraceDeep(0, () => "10");
-
                 var windowSizeIncrement = frame.GetWindowUpdateFrame().WindowSizeIncrement;
 
                 if (activeStream == null) {
@@ -783,16 +733,12 @@ namespace Fluxzy.Clients.H2
             }
 
             if (frame.BodyType == H2FrameType.Ping) {
-                _logger.TraceDeep(0, () => "11");
-
                 EmitPing(frame.GetPingFrame().OpaqueData);
 
                 return false;
             }
 
             if (frame.BodyType == H2FrameType.Goaway) {
-                _logger.TraceDeep(0, () => "12");
-
                 var goAwayFrame = frame.GetGoAwayFrame();
 
                 OnGoAway(ref goAwayFrame);

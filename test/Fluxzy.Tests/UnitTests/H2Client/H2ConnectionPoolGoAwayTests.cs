@@ -263,7 +263,6 @@ namespace Fluxzy.Tests.UnitTests.H2Client
         {
             var authority = new Authority("test.local", 443, true);
             var setting = new H2StreamSetting();
-            var logger = new H2Logger(authority, -1);
 
             var hpackEncoder = new HPackEncoder(
                 new EncodingContext(ArrayPoolMemoryProvider<char>.Default));
@@ -271,7 +270,7 @@ namespace Fluxzy.Tests.UnitTests.H2Client
                 new DecodingContext(authority, ArrayPoolMemoryProvider<char>.Default));
             var headerEncoder = new HeaderEncoder(hpackEncoder, hpackDecoder, setting);
 
-            var overallWindow = new WindowSizeHolder(logger, setting.OverallWindowSize, 0);
+            var overallWindow = new WindowSizeHolder(setting.OverallWindowSize, 0);
 
             UpStreamChannel noopChannel = (ref WriteTask _) => { };
 
@@ -279,7 +278,6 @@ namespace Fluxzy.Tests.UnitTests.H2Client
                 connectionId: 1,
                 authority: authority,
                 setting: setting,
-                logger: logger,
                 headerEncoder: headerEncoder,
                 upStreamChannel: noopChannel,
                 overallWindowSizeHolder: overallWindow);

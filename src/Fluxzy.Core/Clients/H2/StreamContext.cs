@@ -10,7 +10,6 @@ namespace Fluxzy.Clients.H2
             int connectionId,
             Authority authority,
             H2StreamSetting setting,
-            H2Logger logger,
             IHeaderEncoder headerEncoder,
             UpStreamChannel upStreamChannel,
             WindowSizeHolder overallWindowSizeHolder)
@@ -18,7 +17,6 @@ namespace Fluxzy.Clients.H2
             ConnectionId = connectionId;
             Authority = authority;
             Setting = setting;
-            Logger = logger;
             HeaderEncoder = headerEncoder;
             UpStreamChannel = upStreamChannel;
             OverallWindowSizeHolder = overallWindowSizeHolder;
@@ -29,8 +27,6 @@ namespace Fluxzy.Clients.H2
         public Authority Authority { get; }
 
         public H2StreamSetting Setting { get; }
-
-        public H2Logger Logger { get; }
 
         public IHeaderEncoder HeaderEncoder { get; }
 

@@ -10,8 +10,6 @@ namespace Fluxzy.Clients.H2
 {
     internal sealed class WindowSizeHolder : IDisposable
     {
-        private readonly H2Logger _logger;
-
         // Mutex for the waiter queue only. The value field uses lock-free CAS.
         private readonly object _sync = new();
 
@@ -22,11 +20,9 @@ namespace Fluxzy.Clients.H2
         private int _availableWindowSize;
 
         public WindowSizeHolder(
-            H2Logger logger,
             int availableWindowSize,
             int streamIdentifier)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _availableWindowSize = availableWindowSize;
             StreamIdentifier = streamIdentifier;
             InitialWindowSize = availableWindowSize;
@@ -60,8 +56,6 @@ namespace Fluxzy.Clients.H2
         /// </summary>
         public void UpdateWindowSize(int windowSizeIncrement)
         {
-            _logger.Trace(this, windowSizeIncrement);
-
             // Lock-free CAS update of the value.
             int before, after;
             while (true)
@@ -138,8 +132,6 @@ namespace Fluxzy.Clients.H2
                         var grant = Math.Min(requestedLength, current);
                         if (Interlocked.CompareExchange(ref _availableWindowSize, current - grant, current) == current)
                         {
-                            _logger.Trace(this, -grant);
-
                             // Cascade: if window remains after our booking, wake the next waiter.
                             if (current - grant > 0)
                                 WakeOneWaiter();
@@ -164,8 +156,6 @@ namespace Fluxzy.Clients.H2
                         var grant = Math.Min(requestedLength, current);
                         if (Interlocked.CompareExchange(ref _availableWindowSize, current - grant, current) == current)
                         {
-                            _logger.Trace(this, -grant);
-
                             if (current - grant > 0)
                                 WakeOneWaiter();
 

@@ -52,7 +52,6 @@ namespace Fluxzy.Core
         private int _writeSignalState;
         private int _writeLoopIterations;
 
-        private readonly H2Logger _logger;
         private readonly CancellationToken _mainLoopToken;
         private readonly CancellationTokenSource _mainLoopTokenSource;
 
@@ -85,7 +84,6 @@ namespace Fluxzy.Core
                     ArrayPoolMemoryProvider<char>.Default));
 
             _headerEncoder = new HeaderEncoder(hPackEncoder, hPackDecoder, _h2StreamSetting);
-            _logger = new H2Logger(requestedAuthority, -1);
             _ringBuffer = new CircularWriteBuffer(RingBufferCapacity, SignalWriteLoop);
             _dataChannel = Channel.CreateUnbounded<DataFrameEntry>(
                 new UnboundedChannelOptions() { SingleReader = true });
@@ -314,7 +312,7 @@ namespace Fluxzy.Core
 
                     if (!_currentStreams.TryGetValue(frame.StreamIdentifier, out var worker)) {
                         worker = new ServerStreamWorker(frame.StreamIdentifier, _headerEncoder,
-                            _h2StreamSetting, _logger);
+                            _h2StreamSetting);
 
                         _currentStreams.TryAdd(frame.StreamIdentifier, worker);
 

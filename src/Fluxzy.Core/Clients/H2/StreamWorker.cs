@@ -17,9 +17,7 @@ namespace Fluxzy.Clients.H2
         private readonly Exchange _exchange;
 
         private readonly SemaphoreSlim _headerReceivedSemaphore = new(0, 1);
-
-        private readonly H2Logger _logger;
-
+        
         private readonly Pipe _pipeResponseBody;
         private readonly CancellationTokenSource _resetTokenSource;
 
@@ -51,12 +49,9 @@ namespace Fluxzy.Clients.H2
             _exchange = exchange;
             _resetTokenSource = resetTokenSource;
 
-            RemoteWindowSize = new WindowSizeHolder(parent.Context.Logger,
-                parent.Context.Setting.Remote.WindowSize,
+            RemoteWindowSize = new WindowSizeHolder(parent.Context.Setting.Remote.WindowSize,
                 streamIdentifier);
-
-            _logger = parent.Context.Logger;
-
+            
             _pipeResponseBody = new Pipe(new PipeOptions(
                 pool: MemoryPool<byte>.Shared,
                 readerScheduler: PipeScheduler.ThreadPool,
@@ -83,9 +78,7 @@ namespace Fluxzy.Clients.H2
         public void Dispose()
         {
             _disposed = true;
-
-            _logger.Trace(StreamIdentifier, ".... disposing");
-
+            
             RemoteWindowSize?.Dispose();
 
             if (_headerBuffer != null) {
@@ -100,8 +93,6 @@ namespace Fluxzy.Clients.H2
             catch (SemaphoreFullException) {
                 // We do nothing here
             }
-
-            _logger.Trace(StreamIdentifier, ".... disposed");
         }
 
         private async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
@@ -200,8 +191,6 @@ namespace Fluxzy.Clients.H2
 
                 if (_exchange.Response.Header != null)
                     value += _exchange.Response.Header.GetHttp11Header().ToString();
-
-                _logger.Trace(StreamIdentifier, $"Receive RST : {errorCode} from server.\r\n{value}");
             }
 
             _exchange.ExchangeCompletionSource
@@ -405,9 +394,7 @@ namespace Fluxzy.Clients.H2
                     _totalHeaderReceived -= buffer.Length;
                     return; // We wait for more header and ignore 103
                 }
-
-                _logger.TraceResponse(this, _exchange);
-
+                
                 if (DebugContext.InsertFluxzyMetricsOnResponseHeader) {
                     var headerName = "fluxzy-h2-debug";
 
@@ -420,9 +407,7 @@ namespace Fluxzy.Clients.H2
 
                 _responseHeadersComplete = true;
                 _totalHeaderReceived = 0; // Reset for possible trailer accumulation
-
-                _logger.Trace(StreamIdentifier, "Releasing semaphore");
-
+                
                 _headerReceivedSemaphore.Release();
             }
         }
@@ -442,10 +427,7 @@ namespace Fluxzy.Clients.H2
                     _headerBuffer.AsSpan(0, _totalHeaderReceived));
 
                 _exchange.Response.Trailers = trailerFields;
-
-                _logger.Trace(StreamIdentifier,
-                    () => $"Response trailers received: {trailerFields.Count} fields");
-
+                
                 // Trailers always signal end of stream — complete the body pipe and exchange
                 if (_exchange.Metrics.ResponseBodyEnd == default)
                     _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
@@ -465,16 +447,10 @@ namespace Fluxzy.Clients.H2
         public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
         {
             try {
-                _logger.Trace(StreamIdentifier, "Before semaphore ");
-
                 if (!cancellationToken.IsCancellationRequested)
                     await _headerReceivedSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-                _logger.Trace(StreamIdentifier, "Acquire semaphore ");
             }
             catch (OperationCanceledException) {
-                _logger.Trace(StreamIdentifier, $"Received no header, cancelled by caller {StreamIdentifier}");
-
                 if (_abandonedByGoAway) {
                     Parent.NotifyDispose(this);
                     throw new ConnectionCloseException(
@@ -510,30 +486,19 @@ namespace Fluxzy.Clients.H2
             }
 
             _totalBodyReceived += buffer.Length;
-
-            _logger.TraceDeep(StreamIdentifier, () => "a - 1");
-
+            
             if (_firstBodyFragment) {
                 _exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
                 _firstBodyFragment = false;
-
-                _logger.Trace(_exchange, StreamIdentifier,
-                    () => "First body block received");
             }
 
-            _logger.TraceDeep(StreamIdentifier, () => "a - 2");
             OnDataConsumedByCaller(buffer.Length);
 
             if (endStream) {
-                _logger.Trace(_exchange, StreamIdentifier,
-                    () => "Total body received : " + _totalBodyReceived);
-
                 _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
             }
 
             _exchange.Metrics.TotalReceived += buffer.Length;
-
-            _logger.TraceDeep(StreamIdentifier, () => "a - 3");
 
             var cancelled = false;
 
@@ -544,31 +509,21 @@ namespace Fluxzy.Clients.H2
             catch {
                 cancelled = true;
             }
-
-            _logger.TraceDeep(StreamIdentifier, () => "a - 4");
-
+            
             var shouldEnd = endStream || cancelled;
 
             if (shouldEnd) {
                 if (_exchange.Metrics.ResponseBodyEnd == default)
                     _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
-                _logger.Trace(_exchange, StreamIdentifier,
-                    () => "End");
-
                 if (!cancelled)
                     _pipeResponseBody.Writer.Complete();
-
-                _logger.TraceDeep(StreamIdentifier, () => "a - 5");
-
+                
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
 
                 // Give a chance for semaphores to released before disposed
 
                 // await Task.Yield();
-
-                _logger.TraceDeep(StreamIdentifier, () => "a - 6");
-
                 Parent.NotifyDispose(this);
             }
         }
