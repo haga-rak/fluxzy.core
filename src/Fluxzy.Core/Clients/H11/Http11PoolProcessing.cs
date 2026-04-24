@@ -16,12 +16,10 @@ namespace Fluxzy.Clients.H11
 {
     internal class Http11PoolProcessing
     {
-        private readonly H1Logger _logger;
         private readonly TimeSpan _expectContinueTimeout;
 
-        public Http11PoolProcessing(H1Logger logger, TimeSpan expectContinueTimeout)
+        public Http11PoolProcessing(TimeSpan expectContinueTimeout)
         {
-            _logger = logger;
             _expectContinueTimeout = expectContinueTimeout;
         }
 
@@ -42,9 +40,7 @@ namespace Fluxzy.Clients.H11
             exchange.Connection!.AddNewRequestProcessed();
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
-
-            _logger.Trace(exchange.Id, () => "Begin writing header");
-
+            
             var headerLength = exchange.Request.Header.WriteHttp11(
                 !exchange.Authority.Secure,
                 buffer, skipNonForwardableHeader: true, writeExtraHeaderField: true, requestClose: false);
@@ -54,8 +50,6 @@ namespace Fluxzy.Clients.H11
             await exchange.Connection.WriteStream!
                           .WriteAsync(buffer.Memory.Slice(0, headerLength), cancellationToken)
                           .ConfigureAwait(false);
-
-            _logger.Trace(exchange.Id, () => "Header sent");
 
             exchange.Metrics.TotalSent += headerLength;
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
@@ -131,9 +125,7 @@ namespace Fluxzy.Clients.H11
             else {
                 exchange.Metrics.RequestBodySent = exchange.Metrics.RequestHeaderSent;
             }
-
-            _logger.Trace(exchange.Id, () => "Body sent");
-
+            
             // Waiting for header block — unless the Expect pre-read already
             // produced the final response header.
 
@@ -186,9 +178,7 @@ namespace Fluxzy.Clients.H11
 
             exchange.Response.Header = new ResponseHeader(
                 headerContent, exchange.Authority.Secure, true);
-
-            _logger.TraceResponse(exchange);
-
+            
             var shouldCloseConnection = exchange.Response.Header.ConnectionCloseRequest;
 
             if (!exchange.Response.Header.HasResponseBody(exchange.Request.Header.Method.Span, out var shouldClose)) {
@@ -202,9 +192,7 @@ namespace Fluxzy.Clients.H11
                 exchange.Response.Body = Stream.Null;
 
                 exchange.ExchangeCompletionSource.TrySetResult(shouldCloseConnection || shouldClose);
-
-                _logger.Trace(exchange.Id, () => "No response body");
-
+                
                 return true;
             }
 
@@ -249,7 +237,6 @@ namespace Fluxzy.Clients.H11
             exchange.Response.Body = new MetricsStream(bodyStream,
                     () => {
                         exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
-                        _logger.Trace(exchange.Id, () => "First body bytes read");
                     },
                     (endConnection, length) => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
@@ -259,13 +246,10 @@ namespace Fluxzy.Clients.H11
                             exchange.Response.Trailers = chunkedReadStream.Trailers;
 
                         exchange.ExchangeCompletionSource.TrySetResult(endConnection);
-                        _logger.Trace(exchange.Id, () => $"Last body bytes end : {length} total bytes");
                     },
                     exception => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.ExchangeCompletionSource.SetException(exception);
-
-                        _logger.Trace(exchange.Id, () => $"Read error : {exception}");
                     },
                     shouldCloseConnection,
                     exchange.Response.Header.ContentLength >= 0 ? exchange.Response.Header.ContentLength : null,
