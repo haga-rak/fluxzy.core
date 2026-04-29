@@ -259,6 +259,28 @@ namespace Fluxzy
         [JsonInclude]
         public List<string> ProtoDirectories { get; internal set; } = new();
 
+        /// <summary>
+        ///     When false (default), header values whose name matches <see cref="LogRedactedHeaders" />
+        ///     are replaced with "&lt;redacted, len=N&gt;" in Trace-level envelope logs (event 1099).
+        ///     Set to true only when you accept emitting credentials and cookies to your logging backend.
+        /// </summary>
+        [JsonInclude]
+        public bool LogIncludeSensitiveHeaders { get; internal set; }
+
+        /// <summary>
+        ///     Case-insensitive set of header names whose values are redacted in Trace-level
+        ///     envelope logs unless <see cref="LogIncludeSensitiveHeaders" /> is true.
+        /// </summary>
+        [JsonInclude]
+        public HashSet<string> LogRedactedHeaders { get; internal set; } =
+            new(StringComparer.OrdinalIgnoreCase) {
+                "Authorization",
+                "Proxy-Authorization",
+                "Cookie",
+                "Set-Cookie",
+                "X-Auth-Token"
+            };
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption) {

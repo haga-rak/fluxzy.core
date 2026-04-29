@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Ssl;
 using Fluxzy.Core;
+using Fluxzy.Logging;
 using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients
@@ -98,6 +99,12 @@ namespace Fluxzy.Clients
 
             if (!exchange.Authority.Secure || exchange.Context.BlindMode) {
                 exchange.Connection.ReadStream = exchange.Connection.WriteStream = newlyOpenedStream;
+                exchange.Connection.HttpVersion ??= "HTTP/1.1";
+
+                FluxzyLogEvents.LogConnectionOpened(
+                    setting.GetLogger<RemoteConnectionBuilder>(),
+                    exchange.Connection,
+                    proxyConfiguration != null);
 
                 return new RemoteConnectionResult(RemoteConnectionResultType.Unknown, exchange.Connection);
             }
@@ -139,6 +146,12 @@ namespace Fluxzy.Clients
                 : RemoteConnectionResultType.Http11;
 
             exchange.Connection.ReadStream = exchange.Connection.WriteStream = resultStream;
+            exchange.Connection.HttpVersion = protoType == RemoteConnectionResultType.Http2 ? "HTTP/2" : "HTTP/1.1";
+
+            FluxzyLogEvents.LogConnectionOpened(
+                setting.GetLogger<RemoteConnectionBuilder>(),
+                exchange.Connection,
+                proxyConfiguration != null);
 
             return new RemoteConnectionResult(protoType, exchange.Connection);
         }

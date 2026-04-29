@@ -11,10 +11,13 @@ using Fluxzy.Clients.H11;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Core;
+using Fluxzy.Logging;
 using Fluxzy.Misc;
 using Fluxzy.Rules;
 using Fluxzy.Utils;
 using Fluxzy.Writers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Fluxzy.Clients
 {
@@ -42,6 +45,7 @@ namespace Fluxzy.Clients
 
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
+        private readonly ILogger<PoolBuilder> _logger;
 
         private readonly ConcurrentDictionary<string, DefaultDnsResolver> _dnsSolversCache = new();
 
@@ -51,12 +55,14 @@ namespace Fluxzy.Clients
             RemoteConnectionBuilder remoteConnectionBuilder,
             ITimingProvider timingProvider,
             RealtimeArchiveWriter archiveWriter,
-            IDnsSolver dnsSolver)
+            IDnsSolver dnsSolver,
+            ILoggerFactory? loggerFactory = null)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
             _archiveWriter = archiveWriter;
             _dnsSolver = dnsSolver;
+            _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<PoolBuilder>();
         }
 
         /// <summary>
@@ -72,10 +78,23 @@ namespace Fluxzy.Clients
                 ProxyRuntimeSetting proxyRuntimeSetting,
                 CancellationToken cancellationToken = default)
         {
+            var pool = await GetPoolCore(exchange, proxyRuntimeSetting, _logger, cancellationToken)
+                .ConfigureAwait(false);
+            FluxzyLogEvents.LogConnectionPoolResolved(_logger, exchange, pool);
+            return pool;
+        }
+
+        private async ValueTask<IHttpConnectionPool>
+            GetPoolCore(
+                Exchange exchange,
+                ProxyRuntimeSetting proxyRuntimeSetting,
+                ILogger<PoolBuilder> logger,
+                CancellationToken cancellationToken)
+        {
             var dnsSolver = ResolveDnsProvider(exchange, proxyRuntimeSetting);
 
-            var computeDnsPromise = 
-                DnsUtility.ComputeDnsUpdateExchange(exchange, _timingProvider, dnsSolver, proxyRuntimeSetting);
+            var computeDnsPromise =
+                DnsUtility.ComputeDnsUpdateExchange(exchange, _timingProvider, dnsSolver, proxyRuntimeSetting, logger);
 
             var dnsResolutionResult = await computeDnsPromise.ConfigureAwait(false);
 
@@ -222,7 +241,8 @@ namespace Fluxzy.Clients
                     openingResult.Connection
                                  .ReadStream!, // Read and write stream are the same after the sslhandshake
                     exchange.Context.AdvancedTlsSettings.H2StreamSetting ?? new H2StreamSetting(),
-                    exchange.Authority, exchange.Connection!, OnConnectionFaulted);
+                    exchange.Authority, exchange.Connection!, OnConnectionFaulted,
+                    proxyRuntimeSetting.GetLogger<H2ConnectionPool>());
 
                 exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
 
@@ -259,6 +279,8 @@ namespace Fluxzy.Clients
 
             if (!removed)
                 return;
+
+            FluxzyLogEvents.LogConnectionEvicted(_logger, h2ConnectionPool, "PoolFaulted");
 
             // Disposal runs asynchronously after the H2ConnectionPool's own
             // OnLoopEnd cleanup has completed (see the reordering in

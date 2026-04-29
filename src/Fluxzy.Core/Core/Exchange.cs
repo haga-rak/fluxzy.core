@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -152,6 +153,8 @@ namespace Fluxzy.Core
 
         internal TaskCompletionSource<bool> ExchangeCompletionSource { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        internal Activity? LogActivity { get; set; }
 
         public ExchangeContext Context { get; }
 

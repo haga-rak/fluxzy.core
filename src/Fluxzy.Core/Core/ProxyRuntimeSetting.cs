@@ -12,6 +12,8 @@ using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Fluxzy.Core
 {
@@ -27,6 +29,7 @@ namespace Fluxzy.Core
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
             ActionMapping = new SetUserAgentActionMapping(null);
+            LoggerFactory = NullLoggerFactory.Instance;
         }
 
         public ProxyRuntimeSetting(
@@ -35,7 +38,8 @@ namespace Fluxzy.Core
             ITcpConnectionProvider tcpConnectionProvider,
             RealtimeArchiveWriter archiveWriter,
             IIdProvider idProvider,
-            IUserAgentInfoProvider? userAgentProvider)
+            IUserAgentInfoProvider? userAgentProvider,
+            ILoggerFactory? loggerFactory = null)
         {
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
@@ -48,6 +52,7 @@ namespace Fluxzy.Core
             ConcurrentConnection = startupSetting.ConnectionPerHost;
             ExpectContinueTimeout = startupSetting.ExpectContinueTimeout;
             ActionMapping = new SetUserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
+            LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         }
 
         internal static ProxyRuntimeSetting CreateDefault => new() {
@@ -85,6 +90,10 @@ namespace Fluxzy.Core
         public IIdProvider IdProvider { get; set; } = new FromIndexIdProvider(0, 0);
 
         public IUserAgentInfoProvider? UserAgentProvider { get; }
+
+        public ILoggerFactory LoggerFactory { get; }
+
+        public ILogger<T> GetLogger<T>() => LoggerFactory.CreateLogger<T>();
 
         public VariableContext VariableContext { get; } = new();
 

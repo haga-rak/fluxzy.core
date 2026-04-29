@@ -16,13 +16,15 @@ using Fluxzy.Clients.Ssl;
 using Fluxzy.Clients.Ssl.BouncyCastle;
 using Fluxzy.Clients.Ssl.SChannel;
 using Fluxzy.Core;
+using Fluxzy.Logging;
 using Fluxzy.Misc;
 using Fluxzy.Misc.ResizableBuffers;
-using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Fluxzy
 {
@@ -38,6 +40,8 @@ namespace Fluxzy
 
         private readonly ProxyOrchestrator _proxyOrchestrator;
         private readonly ProxyRuntimeSetting _runTimeSetting;
+        private readonly ILogger<Proxy> _logger;
+        private long _nextProxyConnectionId;
         private volatile int _currentConcurrentCount;
         private bool _disposed;
         private List<ProxyDiscoveryService>? _discoveryServices;
@@ -52,14 +56,17 @@ namespace Fluxzy
         /// <param name="startupSetting">The startup Setting</param>
         /// <param name="tcpConnectionProvider">The tcp connection provider, if null the default is used</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
+        /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
         public Proxy(
             FluxzySetting startupSetting,
             ITcpConnectionProvider? tcpConnectionProvider = null,
-            ProxyAuthenticationMethod? proxyAuthenticationMethod = null)
+            ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
+            ILoggerFactory? loggerFactory = null)
             : this(startupSetting,
                 new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()),
                 new DefaultCertificateAuthorityManager(), tcpConnectionProvider,
-                proxyAuthenticationMethod: proxyAuthenticationMethod)
+                proxyAuthenticationMethod: proxyAuthenticationMethod,
+                loggerFactory: loggerFactory)
         {
         }
 
@@ -76,6 +83,7 @@ namespace Fluxzy
         /// <param name="dnsSolver">Add a custom DNS solver</param>
         /// <param name="externalCancellationSource">An external cancellation token</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
+        /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
         /// <exception cref="ArgumentNullException"></exception>
         public Proxy(
             FluxzySetting startupSetting,
@@ -86,7 +94,8 @@ namespace Fluxzy
             FromIndexIdProvider? idProvider = null,
             IDnsSolver? dnsSolver = null,
             CancellationTokenSource? externalCancellationSource = null,
-            ProxyAuthenticationMethod? proxyAuthenticationMethod = null)
+            ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
+            ILoggerFactory? loggerFactory = null)
         {
             _certificateProvider = certificateProvider;
             _externalCancellationSource = externalCancellationSource;
@@ -97,7 +106,9 @@ namespace Fluxzy
             _downStreamConnectionProvider =
                 new DownStreamConnectionProvider(StartupSetting.BoundPoints);
 
-            var secureConnectionManager = new SecureConnectionUpdater(certificateProvider, startupSetting.ServeH2);
+            var secureConnectionManager = new SecureConnectionUpdater(
+                certificateProvider, startupSetting.ServeH2,
+                (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SecureConnectionUpdater>());
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory
                 && StartupSetting.ArchivingPolicy.Directory != null) {
@@ -118,12 +129,15 @@ namespace Fluxzy
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, sslConnectionBuilder),
                 ITimingProvider.Default,
-                Writer, dnsSolver ?? new DefaultDnsResolver());
+                Writer, dnsSolver ?? new DefaultDnsResolver(),
+                loggerFactory);
             
             ExecutionContext = new ProxyExecutionContext(startupSetting);
 
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
-                Writer, IdProvider, userAgentProvider);
+                Writer, IdProvider, userAgentProvider, loggerFactory);
+
+            _logger = _runTimeSetting.GetLogger<Proxy>();
 
             proxyAuthenticationMethod ??= ProxyAuthenticationMethodBuilder.Create(startupSetting.ProxyAuthentication);
 
@@ -241,6 +255,16 @@ namespace Fluxzy
             }
         }
 
+        private static string SafeRemoteEndPoint(TcpClient client)
+        {
+            try {
+                return client.Client.RemoteEndPoint?.ToString() ?? string.Empty;
+            }
+            catch {
+                return string.Empty;
+            }
+        }
+
         private async void ProcessingConnection(TcpClient client)
         {
             var currentCount = Interlocked.Increment(ref _currentConcurrentCount);
@@ -261,6 +285,15 @@ namespace Fluxzy
                     var closeImmediately = FluxzySharedSetting.OverallMaxConcurrentConnections <
                                            currentCount;
 
+                    var proxyConnectionId = Interlocked.Increment(ref _nextProxyConnectionId);
+                    var remoteEp = client.Client.RemoteEndPoint?.ToString() ?? string.Empty;
+                    var localEp = client.Client.LocalEndPoint?.ToString() ?? string.Empty;
+
+                    using var connectionScope = FluxzyLoggerScopes.BeginConnectionScope(
+                        _logger, proxyConnectionId, remoteEp, localEp);
+
+                    FluxzyLogEvents.ClientConnectionAccepted(_logger, currentCount, closeImmediately);
+
                     await _proxyOrchestrator!.Operate(client, buffer, closeImmediately, _proxyHaltTokenSource.Token)
                                              .ConfigureAwait(false);
                 }
@@ -269,13 +302,8 @@ namespace Fluxzy
                 }
             }
             catch (Exception ex) {
-                // We ignore any parsing errors that may block the proxy
-                // TODO : escalate from Serilog To Here
-
-                if (D.EnableTracing) {
-                    var message = $"Processing error {client.Client.RemoteEndPoint}";
-                    D.TraceException(ex, message);
-                }
+                var remote = SafeRemoteEndPoint(client);
+                FluxzyLogEvents.ConnectionProcessingError(_logger, ex, remote);
             }
             finally {
                 Interlocked.Decrement(ref _currentConcurrentCount);

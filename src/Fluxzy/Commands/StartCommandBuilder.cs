@@ -17,7 +17,6 @@ using Fluxzy.Core;
 using Fluxzy.Core.Pcap;
 using Fluxzy.Core.Pcap.Cli.Clients;
 using Fluxzy.Extensions;
-using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
 using Fluxzy.Utils.NativeOps.SystemProxySetup;
 using Fluxzy.Cli.Commands.PrettyOutput;
@@ -75,7 +74,6 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateBouncyCastleOption());
             command.AddOption(StartCommandOptions.CreateTcpDumpOption());
             command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
-            command.AddOption(StartCommandOptions.CreateEnableTracingOption());
             command.AddOption(StartCommandOptions.CreateSkipCertInstallOption());
             command.AddOption(StartCommandOptions.CreateNoCertCacheOption());
             command.AddOption(StartCommandOptions.CreateCertificateFileOption());
@@ -126,7 +124,6 @@ namespace Fluxzy.Cli.Commands
             var requestBuffer = invocationContext.Value<int?>("request-buffer");
             var maxConnectionPerHost = invocationContext.Value<int>("max-upstream-connection");
             var count = invocationContext.Value<int?>("max-capture-count");
-            var trace = invocationContext.Value<bool>("trace");
             var use502 = invocationContext.Value<bool>("use-502");
             var proxyMode = invocationContext.Value<ProxyMode>("mode");
             var modeReversePort = invocationContext.Value<int?>("mode-reverse-port");
@@ -138,10 +135,6 @@ namespace Fluxzy.Cli.Commands
             var serveH2 = invocationContext.Value<bool>("serve-h2");
             var enableDiscovery = invocationContext.Value<bool>("enable-discovery");
             var protoDirectories = invocationContext.Value<List<string>>("proto-dir");
-
-            if (trace) {
-                D.EnableTracing = true;
-            }
 
             FluxzySharedSetting.Use528 = !use502;
 

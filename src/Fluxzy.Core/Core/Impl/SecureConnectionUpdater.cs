@@ -10,8 +10,10 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Logging;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Misc.Traces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Fluxzy.Core
 {
@@ -23,11 +25,14 @@ namespace Fluxzy.Core
 
         private readonly ICertificateProvider _certificateProvider;
         private readonly bool _serveH2;
+        private readonly ILogger _logger;
 
-        public SecureConnectionUpdater(ICertificateProvider certificateProvider, bool serveH2)
+        public SecureConnectionUpdater(
+            ICertificateProvider certificateProvider, bool serveH2, ILogger? logger = null)
         {
             _certificateProvider = certificateProvider;
             _serveH2 = serveH2;
+            _logger = logger ?? NullLogger.Instance;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -64,10 +69,7 @@ namespace Fluxzy.Core
                 certificate = context.ServerCertificate ?? _certificateProvider.GetCertificate(host);
             }
             catch (Exception e) {
-                if (D.EnableTracing) {
-                    D.TraceException(e, "An error occured while getting certificate");
-                }
-                
+                FluxzyLogEvents.CertificateResolutionFailed(_logger, e, host);
                 throw;
             }
 

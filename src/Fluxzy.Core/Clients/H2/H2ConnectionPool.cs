@@ -13,8 +13,11 @@ using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Core;
+using Fluxzy.Logging;
 using Fluxzy.Misc;
 using Fluxzy.Misc.ResizableBuffers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Fluxzy.Clients.H2
 {
@@ -72,7 +75,8 @@ namespace Fluxzy.Clients.H2
             Stream baseStream,
             H2StreamSetting setting,
             Authority authority,
-            Connection connection, Action<H2ConnectionPool> onConnectionFaulted)
+            Connection connection, Action<H2ConnectionPool> onConnectionFaulted,
+            ILogger? logger = null)
         {
             Id = Interlocked.Increment(ref _connectionIdCounter);
 
@@ -101,9 +105,10 @@ namespace Fluxzy.Clients.H2
 
             _streamPool = new StreamPool(
                 new StreamContext(
-                    Id, authority, setting, 
+                    Id, authority, setting,
                     headerEncoder, UpStreamChannel,
-                    _overallWindowSizeHolder));
+                    _overallWindowSizeHolder,
+                    logger ?? NullLogger.Instance));
         }
 
         public int Id { get; }
@@ -813,6 +818,8 @@ namespace Fluxzy.Clients.H2
 
                 if (!hasRequestBody) {
                     exchange.Metrics.RequestBodySent = exchange.Metrics.RequestHeaderSent;
+                    FluxzyLogEvents.LogRequestSent(
+                        _streamPool.Context.Logger, exchange, earlyResponse: false);
                 }
 
                 // Run request body upload and response processing concurrently.

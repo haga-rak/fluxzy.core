@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Core;
+using Fluxzy.Logging;
 using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Clients.H2
@@ -219,6 +220,9 @@ namespace Fluxzy.Clients.H2
                 buffer, endStream);
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
+            exchange.Metrics.RequestHeaderLength = readyToBeSent.Length;
+
+            FluxzyLogEvents.LogRequestSending(Parent.Context.Logger, exchange);
 
             var writeHeaderTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority,
                 StreamDependency, readyToBeSent);
@@ -227,8 +231,6 @@ namespace Fluxzy.Clients.H2
 
             return writeHeaderTask.DoneTask
                                   .ContinueWith(t => {
-                                      exchange.Metrics.RequestHeaderLength = readyToBeSent.Length;
-
                                       return _exchange.Metrics.TotalSent += readyToBeSent.Length;
                                   }, token);
         }
@@ -243,6 +245,7 @@ namespace Fluxzy.Clients.H2
             // which would otherwise trip the loop's "!CanSeek" entry condition.
             if (_headerEndedStream) {
                 exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+                FluxzyLogEvents.LogRequestSent(Parent.Context.Logger, exchange, earlyResponse: false);
                 return;
             }
 
@@ -299,6 +302,7 @@ namespace Fluxzy.Clients.H2
 
                     if (dataFramePayloadLength == 0 || endStream) {
                         exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
+                        FluxzyLogEvents.LogRequestSent(Parent.Context.Logger, exchange, earlyResponse: false);
                         return;
                     }
 
@@ -394,7 +398,9 @@ namespace Fluxzy.Clients.H2
                     _totalHeaderReceived -= buffer.Length;
                     return; // We wait for more header and ignore 103
                 }
-                
+
+                FluxzyLogEvents.LogResponseHeaderReceived(Parent.Context.Logger, _exchange);
+
                 if (DebugContext.InsertFluxzyMetricsOnResponseHeader) {
                     var headerName = "fluxzy-h2-debug";
 

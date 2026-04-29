@@ -400,19 +400,6 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
-        public static Option CreateEnableTracingOption()
-        {
-            var option = new Option<bool>(
-                "--trace",
-                "Output trace on stdout");
-
-            option.AddAlias("-t");
-            option.SetDefaultValue(false);
-            option.Arity = ArgumentArity.Zero;
-
-            return option;
-        }
-
         public static Option CreateEnableProcessTrackingOption()
         {
             var option = new Option<bool>(

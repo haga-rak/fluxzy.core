@@ -104,7 +104,9 @@ namespace Fluxzy.Clients.H11
                         _archiveWriter.Update(exchange.Connection, cancellationToken);
                 }
 
-                var poolProcessing = new Http11PoolProcessing(_proxyRuntimeSetting.ExpectContinueTimeout);
+                var poolProcessing = new Http11PoolProcessing(
+                    _proxyRuntimeSetting.ExpectContinueTimeout,
+                    _proxyRuntimeSetting.GetLogger<Http11PoolProcessing>());
 
                 try {
                     await poolProcessing.Process(exchange, buffer, exchangeScope, cancellationToken)
