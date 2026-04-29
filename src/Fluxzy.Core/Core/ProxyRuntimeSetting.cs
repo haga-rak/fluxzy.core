@@ -39,7 +39,8 @@ namespace Fluxzy.Core
             RealtimeArchiveWriter archiveWriter,
             IIdProvider idProvider,
             IUserAgentInfoProvider? userAgentProvider,
-            ILoggerFactory? loggerFactory = null)
+            ILoggerFactory? loggerFactory = null,
+            Guid proxyInstanceId = default)
         {
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
@@ -53,6 +54,7 @@ namespace Fluxzy.Core
             ExpectContinueTimeout = startupSetting.ExpectContinueTimeout;
             ActionMapping = new SetUserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
             LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
+            ProxyInstanceId = proxyInstanceId;
         }
 
         internal static ProxyRuntimeSetting CreateDefault => new() {
@@ -100,6 +102,8 @@ namespace Fluxzy.Core
         public HashSet<IPEndPoint> EndPoints { get; set; } = new();
 
         public int ProxyListenPort { get; set; }
+
+        public Guid ProxyInstanceId { get; }
 
         public ProxyConfiguration?  GetInternalProxyAuthentication()
         {

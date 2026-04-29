@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Diagnostics;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
@@ -18,7 +19,7 @@ namespace Fluxzy.Logging
             SourceName,
             typeof(FluxzyActivitySource).Assembly.GetName().Version?.ToString() ?? "0.0.0");
 
-        public static Activity? StartExchangeActivity(Exchange exchange)
+        public static Activity? StartExchangeActivity(Exchange exchange, Guid proxyInstanceId)
         {
             var traceparent = exchange.GetRequestHeaderValue("traceparent");
             var tracestate = exchange.GetRequestHeaderValue("tracestate");
@@ -42,6 +43,7 @@ namespace Fluxzy.Logging
             activity.SetTag("server.address", exchange.Authority.HostName);
             activity.SetTag("server.port", exchange.Authority.Port);
             activity.SetTag("fluxzy.exchange_id", exchange.Id);
+            activity.SetTag("fluxzy.proxy.instance_id", proxyInstanceId);
 
             var ua = exchange.GetRequestHeaderValue("User-Agent");
             if (ua != null)

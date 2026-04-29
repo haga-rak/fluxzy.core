@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
@@ -37,15 +38,22 @@ namespace Fluxzy.Tests.Cases
             await response.Content.ReadAsByteArrayAsync();
             response.Dispose();
 
+            // ActivitySource/ActivityListener are process-global, so concurrent test classes
+            // running in parallel may emit activities into the same listener. Match only the
+            // activity produced by this test's Proxy via its unique instance id.
+            var instanceId = setup.Proxy.InstanceId;
+            bool IsThisExchange(Activity a) =>
+                a.GetTagItem("fluxzy.proxy.instance_id") is Guid id && id == instanceId;
+
             // The exchange-completion event drains the response body asynchronously,
             // so give the in-flight activity stop a brief window before asserting.
-            for (var i = 0; i < 50 && stopped.IsEmpty; i++)
+            for (var i = 0; i < 50 && !stopped.Any(IsThisExchange); i++)
                 await Task.Delay(50);
 
-            Assert.True(started.Any(),
-                $"No Fluxzy.Core activity started. ActivitySource.HasListeners()? See: started={started.Count} stopped={stopped.Count}");
+            Assert.True(started.Any(IsThisExchange),
+                $"No Fluxzy.Core activity started for {setup.BaseUrl}. See: started={started.Count} stopped={stopped.Count}");
 
-            var activity = stopped.FirstOrDefault();
+            var activity = stopped.FirstOrDefault(IsThisExchange);
             Assert.NotNull(activity);
             Assert.Equal(ActivityKind.Server, activity.Kind);
             Assert.Equal("HTTP GET", activity.OperationName);

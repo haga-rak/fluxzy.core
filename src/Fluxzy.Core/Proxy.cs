@@ -135,7 +135,7 @@ namespace Fluxzy
             ExecutionContext = new ProxyExecutionContext(startupSetting);
 
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
-                Writer, IdProvider, userAgentProvider, loggerFactory);
+                Writer, IdProvider, userAgentProvider, loggerFactory, InstanceId);
 
             _logger = _runTimeSetting.GetLogger<Proxy>();
 
@@ -178,6 +178,14 @@ namespace Fluxzy
         ///     Get the unique identifier of this proxy instance.
         /// </summary>
         public string SessionIdentifier { get; } = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+
+        /// <summary>
+        ///     A unique identifier for this proxy instance. Emitted as the
+        ///     <c>fluxzy.proxy.instance_id</c> tag on every activity produced by
+        ///     <c>Fluxzy.Core</c>, so OpenTelemetry consumers can correlate or
+        ///     filter activities to a specific Proxy when several run in-process.
+        /// </summary>
+        public Guid InstanceId { get; } = Guid.NewGuid();
 
         /// <summary>
         ///     Gets the collection of IP endpoints associated with this proxy. Returns null if the proxy is not started.

@@ -354,7 +354,8 @@ namespace Fluxzy.Core
 
             if (!exchange.Unprocessed)
             {
-                exchange.LogActivity = FluxzyActivitySource.StartExchangeActivity(exchange);
+                exchange.LogActivity = FluxzyActivitySource.StartExchangeActivity(
+                    exchange, _proxyRuntimeSetting.ProxyInstanceId);
                 FluxzyLogEvents.LogRequestResolutionStarted(_logger, exchange);
             }
 
