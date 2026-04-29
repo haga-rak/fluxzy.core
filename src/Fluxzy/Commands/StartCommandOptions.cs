@@ -489,5 +489,39 @@ namespace Fluxzy.Cli.Commands
 
             return option;
         }
+
+        public static Option<TraceMode> CreateTraceOption()
+        {
+            var option = new Option<TraceMode>(
+                "--trace",
+                result => {
+                    if (result.Tokens.Count == 0) {
+                        return TraceMode.Debug;
+                    }
+
+                    var value = result.Tokens.First().Value;
+
+                    if (string.Equals(value, "deep", StringComparison.OrdinalIgnoreCase)) {
+                        return TraceMode.Deep;
+                    }
+
+                    if (string.Equals(value, "debug", StringComparison.OrdinalIgnoreCase)) {
+                        return TraceMode.Debug;
+                    }
+
+                    result.ErrorMessage = $"Invalid trace value '{value}'. Expected: deep (or omit value for debug).";
+
+                    return TraceMode.None;
+                });
+
+            option.AddAlias("-t");
+            option.Description =
+                "Emit Fluxzy diagnostic logs to the console. " +
+                "Without a value, logs at Debug level. Use '-t deep' for verbose (Trace) level.";
+            option.SetDefaultValue(TraceMode.None);
+            option.Arity = ArgumentArity.ZeroOrOne;
+
+            return option;
+        }
     }
 }

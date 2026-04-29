@@ -20,6 +20,7 @@ using Fluxzy.Extensions;
 using Fluxzy.Rules;
 using Fluxzy.Utils.NativeOps.SystemProxySetup;
 using Fluxzy.Cli.Commands.PrettyOutput;
+using Microsoft.Extensions.Logging;
 
 namespace Fluxzy.Cli.Commands
 {
@@ -93,6 +94,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateServeH2Option());
             command.AddOption(StartCommandOptions.CreateEnableDiscoveryOption());
             command.AddOption(StartCommandOptions.CreateProtoDirectoryOption());
+            command.AddOption(StartCommandOptions.CreateTraceOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -135,6 +137,7 @@ namespace Fluxzy.Cli.Commands
             var serveH2 = invocationContext.Value<bool>("serve-h2");
             var enableDiscovery = invocationContext.Value<bool>("enable-discovery");
             var protoDirectories = invocationContext.Value<List<string>>("proto-dir");
+            var traceMode = invocationContext.Value<TraceMode>("trace");
 
             FluxzySharedSetting.Use528 = !use502;
 
@@ -305,6 +308,8 @@ namespace Fluxzy.Cli.Commands
             var uaParserProvider = parseUserAgent ? new UaParserUserAgentInfoProvider() : null;
             var systemProxyManager = new SystemProxyRegistrationManager(new NativeProxySetterManager().Get());
 
+            using var loggerFactory = CreateTraceLoggerFactory(traceMode);
+
             // Scope owns the out-of-proc capture subprocess lifetime. It must be disposed
             // BEFORE PackDirectoryToFile runs so the subprocess closes its pcapng FileStreams
             // and flushes all buffered packet data to disk; otherwise small captures can sit
@@ -322,7 +327,8 @@ namespace Fluxzy.Cli.Commands
                              : ITcpConnectionProvider.Default) {
                 await using (var proxy = new Proxy(proxyStartUpSetting, certificateProvider,
                                  new DefaultCertificateAuthorityManager(), tcpConnectionProvider, uaParserProvider,
-                                 externalCancellationSource: linkedTokenSource)) {
+                                 externalCancellationSource: linkedTokenSource,
+                                 loggerFactory: loggerFactory)) {
 
 
                     var endPoints = proxy.Run();
@@ -406,6 +412,24 @@ namespace Fluxzy.Cli.Commands
 
                 invocationContext.Console.WriteLine("Packing output done.");
             }
+        }
+
+        private static ILoggerFactory? CreateTraceLoggerFactory(TraceMode traceMode)
+        {
+            if (traceMode == TraceMode.None) {
+                return null;
+            }
+
+            var minimumLevel = traceMode == TraceMode.Deep ? LogLevel.Trace : LogLevel.Debug;
+
+            return LoggerFactory.Create(builder => {
+                builder.SetMinimumLevel(minimumLevel);
+                builder.AddFilter("Fluxzy", minimumLevel);
+                builder.AddSimpleConsole(options => {
+                    options.SingleLine = true;
+                    options.TimestampFormat = "HH:mm:ss.fff ";
+                });
+            });
         }
 
         private static bool ValidateSetting(InvocationContext invocationContext, FluxzySetting proxyStartUpSetting)
