@@ -48,7 +48,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="Google.Protobuf" Version="3.34.1" />
-    <PackageReference Include="YamlDotNet" Version="13.7.1" />
+    <PackageReference Include="YamlDotNet" Version="17.1.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
