@@ -22,8 +22,6 @@ namespace Fluxzy.Clients.H11
         private readonly RealtimeArchiveWriter _archiveWriter;
         private readonly DnsResolutionResult _resolutionResult;
 
-        private readonly H1Logger _logger;
-
         private readonly Channel<Http11ProcessingState> _pendingConnections;
         
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
@@ -52,8 +50,6 @@ namespace Fluxzy.Clients.H11
                     SingleWriter = false
             });
 
-            _logger = new H1Logger(authority);
-
             ITimingProvider.Default.Instant();
         }
 
@@ -74,9 +70,6 @@ namespace Fluxzy.Clients.H11
             exchange.HttpVersion = "HTTP/1.1";
 
             try {
-                _logger.Trace(exchange, "Begin wait for authority slot");
-                _logger.Trace(exchange.Id, "Acquiring slot");
-
                 var requestDate = _timingProvider.Instant();
 
                 while (_pendingConnections.Reader.TryRead(out var state)) {
@@ -90,14 +83,10 @@ namespace Fluxzy.Clients.H11
                     }
 
                     exchange.Connection = state.Connection;
-                    _logger.Trace(exchange.Id, () => $"Recycling connection : {exchange.Connection.Id}");
-
                     break;
                 }
 
                 if (exchange.Connection == null) {
-                    _logger.Trace(exchange.Id, () => "New connection request");
-
                     var openingResult =
                         await _remoteConnectionBuilder.OpenConnectionToRemote(
                             exchange, _resolutionResult , Http11Protocols,
@@ -113,11 +102,11 @@ namespace Fluxzy.Clients.H11
 
                     if (_archiveWriter != null!)
                         _archiveWriter.Update(exchange.Connection, cancellationToken);
-
-                    _logger.Trace(exchange.Id, () => $"New connection obtained: {exchange.Connection.Id}");
                 }
 
-                var poolProcessing = new Http11PoolProcessing(_logger, _proxyRuntimeSetting.ExpectContinueTimeout);
+                var poolProcessing = new Http11PoolProcessing(
+                    _proxyRuntimeSetting.ExpectContinueTimeout,
+                    _proxyRuntimeSetting.GetLogger<Http11PoolProcessing>());
 
                 try {
                     await poolProcessing.Process(exchange, buffer, exchangeScope, cancellationToken)
@@ -125,9 +114,7 @@ namespace Fluxzy.Clients.H11
 
                     if (exchange.Response.Header != null)
                         exchange.Connection.TimeoutIdleSeconds = exchange.Response.Header.TimeoutIdleSeconds; 
-
-                    _logger.Trace(exchange.Id, () => "[Process] return");
-
+                    
                     var lastUsed = _timingProvider.Instant(); 
 
                     void OnExchangeCompleteFunction(Task<bool> completeTask)
@@ -143,8 +130,6 @@ namespace Fluxzy.Clients.H11
                             exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
                         if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any()) {
-                            _logger.Trace(exchange.Id, () => $"Complete on error {completeTask.Exception.GetType()} : {completeTask.Exception.Message}");
-
                             foreach (var exception in completeTask.Exception.InnerExceptions) {
                                 exchange.Errors.Add(new Error("Error while reading response", exception));
                             }
@@ -154,13 +139,10 @@ namespace Fluxzy.Clients.H11
                             if (_pendingConnections.Writer.TryWrite(
                                     new Http11ProcessingState(exchange.Connection, lastUsed)))
                             {
-                                _logger.Trace(exchange.Id, () => "Complete on success, recycling connection ...");
                                 return;
                             }
                         }
                         else {
-                            _logger.Trace(exchange.Id, () => "Complete on success, closing connection ...");
-
                             // should close connection 
                         }
                         
@@ -178,9 +160,7 @@ namespace Fluxzy.Clients.H11
 
                         exchange.Connection = null; 
                     }
-
-                    _logger.Trace(exchange.Id, () => $"Processing error {ex}");
-
+                    
                     throw;
                 }
             }

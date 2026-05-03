@@ -12,6 +12,8 @@ using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Writers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Fluxzy.Core
 {
@@ -27,6 +29,7 @@ namespace Fluxzy.Core
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
             ActionMapping = new SetUserAgentActionMapping(null);
+            LoggerFactory = NullLoggerFactory.Instance;
         }
 
         public ProxyRuntimeSetting(
@@ -35,7 +38,9 @@ namespace Fluxzy.Core
             ITcpConnectionProvider tcpConnectionProvider,
             RealtimeArchiveWriter archiveWriter,
             IIdProvider idProvider,
-            IUserAgentInfoProvider? userAgentProvider)
+            IUserAgentInfoProvider? userAgentProvider,
+            ILoggerFactory? loggerFactory = null,
+            Guid proxyInstanceId = default)
         {
             ExecutionContext = null!;
             CertificateValidationCallback = null!;
@@ -48,6 +53,8 @@ namespace Fluxzy.Core
             ConcurrentConnection = startupSetting.ConnectionPerHost;
             ExpectContinueTimeout = startupSetting.ExpectContinueTimeout;
             ActionMapping = new SetUserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
+            LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
+            ProxyInstanceId = proxyInstanceId;
         }
 
         internal static ProxyRuntimeSetting CreateDefault => new() {
@@ -86,11 +93,17 @@ namespace Fluxzy.Core
 
         public IUserAgentInfoProvider? UserAgentProvider { get; }
 
+        public ILoggerFactory LoggerFactory { get; }
+
+        public ILogger<T> GetLogger<T>() => LoggerFactory.CreateLogger<T>();
+
         public VariableContext VariableContext { get; } = new();
 
         public HashSet<IPEndPoint> EndPoints { get; set; } = new();
 
         public int ProxyListenPort { get; set; }
+
+        public Guid ProxyInstanceId { get; }
 
         public ProxyConfiguration?  GetInternalProxyAuthentication()
         {

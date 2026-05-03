@@ -10,12 +10,13 @@ using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.Mock;
 using Fluxzy.Extensions;
+using Fluxzy.Logging;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
-using Fluxzy.Misc.Traces;
 using Fluxzy.Rules;
 using Fluxzy.Utils.ProcessTracking;
 using Fluxzy.Writers;
+using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Core
@@ -26,6 +27,7 @@ namespace Fluxzy.Core
         private readonly ExchangeSourceProvider _exchangeSourceProvider;
         private readonly PoolBuilder _poolBuilder;
         private readonly ProxyRuntimeSetting _proxyRuntimeSetting;
+        private readonly ILogger<ProxyOrchestrator> _logger;
 
         public ProxyOrchestrator(
             ProxyRuntimeSetting proxyRuntimeSetting,
@@ -36,10 +38,21 @@ namespace Fluxzy.Core
             _exchangeSourceProvider = exchangeSourceProvider;
             _poolBuilder = poolBuilder;
             _archiveWriter = proxyRuntimeSetting.ArchiveWriter;
+            _logger = proxyRuntimeSetting.GetLogger<ProxyOrchestrator>();
         }
 
         public void Dispose()
         {
+        }
+
+        private static string SafeRemoteEndPoint(TcpClient client)
+        {
+            try {
+                return client.Client.RemoteEndPoint?.ToString() ?? string.Empty;
+            }
+            catch {
+                return string.Empty;
+            }
         }
 
         public async ValueTask Operate(
@@ -51,12 +64,6 @@ namespace Fluxzy.Core
 
             try
             {
-                if (D.EnableTracing)
-                {
-                    var message = $"Receive from {client.Client.RemoteEndPoint}";
-                    D.TraceInfo(message);
-                }
-
                 using var callerTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
 
                 token = callerTokenSource.Token;
@@ -77,17 +84,12 @@ namespace Fluxzy.Core
                 {
                     // Failure from the local connection
 
-                    if (D.EnableTracing)
-                    {
-                        var message = $"Client connection failure {client.Client.RemoteEndPoint}";
-                        D.TraceException(ex, message);
-                    }
+                    var remote = SafeRemoteEndPoint(client);
+                    FluxzyLogEvents.ClientConnectionInitFailed(_logger, ex, remote);
 
                     var errorInfo = DownstreamErrorInfo.CreateFrom(client, ex);
 
                     _archiveWriter.Update(errorInfo, token);
-
-                    // Logs into the secure logger
 
                     if (ex is SocketException || ex is IOException)
                     {
@@ -129,12 +131,6 @@ namespace Fluxzy.Core
             {
                 if (ex is OperationCanceledException)
                 {
-                    if (D.EnableTracing)
-                    {
-                        var message = $"Error from {client.Client.RemoteEndPoint}";
-                        D.TraceException(ex, message);
-                    }
-
                     return;
                 }
 
@@ -184,14 +180,9 @@ namespace Fluxzy.Core
 
                     lastExchangeHolder.Exchange = exchange;
                 }
-                catch (IOException ex)
+                catch (IOException)
                 {
-                    if (D.EnableTracing)
-                    {
-                        var message = $"Error from {client.Client.RemoteEndPoint}";
-                        D.TraceException(ex, message);
-                    }
-
+                    // Client closed mid-read — normal connection-close path.
                     return;
                 }
 
@@ -343,6 +334,8 @@ namespace Fluxzy.Core
             UpdateExchangeMetrics(exchange, remoteEndPoint, downStreamClientAddress, localEndPoint,
                 localEndPointsAddress);
 
+            using var exchangeLogScope = FluxzyLoggerScopes.BeginExchangeScope(_logger, exchange);
+
             if (!exchange.Unprocessed && _proxyRuntimeSetting.UserAgentProvider != null)
             {
                 var userAgentValue = exchange.GetRequestHeaderValue("User-Agent");
@@ -357,6 +350,13 @@ namespace Fluxzy.Core
                 && IPAddress.IsLoopback(remoteEndPoint.Address))
             {
                 exchange.ProcessInfo = ProcessTracker.Instance.GetProcessInfo(remoteEndPoint.Port);
+            }
+
+            if (!exchange.Unprocessed)
+            {
+                exchange.LogActivity = FluxzyActivitySource.StartExchangeActivity(
+                    exchange, _proxyRuntimeSetting.ProxyInstanceId);
+                FluxzyLogEvents.LogRequestResolutionStarted(_logger, exchange);
             }
 
             var shouldCloseDownStreamConnection = await InternalProcessExchange(exchange,
@@ -394,13 +394,7 @@ namespace Fluxzy.Core
 
             if (processMessage)
             {
-                // Check whether the local browser ask for a connection close 
-
-                if (D.EnableTracing)
-                {
-                    var message = $"[#{exchange.Id}] Processing {exchange.Request.Header.Authority}";
-                    D.TraceInfo(message);
-                }
+                // Check whether the local browser ask for a connection close
 
                 shouldCloseConnectionToDownStream = closeImmediately || exchange.ShouldClose();
 
@@ -488,19 +482,13 @@ namespace Fluxzy.Core
                         }
                         else
                         {
-                            // get a connection pool for the current exchange 
+                            // get a connection pool for the current exchange
                             connectionPool = await _poolBuilder
                                                    .GetPool(exchange, _proxyRuntimeSetting, token)
                                                    .ConfigureAwait(false);
                         }
 
-                        if (D.EnableTracing)
-                        {
-                            var message = $"[#{exchange.Id}] Pool received";
-                            D.TraceInfo(message);
-                        }
-
-                        // Actual request send 
+                        // Actual request send
 
                         try
                         {
@@ -511,12 +499,6 @@ namespace Fluxzy.Core
                             if (exchange.ReadUntilClose)
                             {
                                 shouldCloseConnectionToDownStream = true;
-                            }
-
-                            if (D.EnableTracing)
-                            {
-                                var message = $"[#{exchange.Id}] Response received";
-                                D.TraceInfo(message);
                             }
                         }
                         catch (Exception ex)
@@ -668,12 +650,6 @@ namespace Fluxzy.Core
                                     CancellationToken.None
                                 );
 
-                                if (D.EnableTracing)
-                                {
-                                    var message = $"[#{ext.Id}] Response body done";
-                                    D.TraceInfo(message);
-                                }
-
                                 return default;
                             };
 
@@ -786,6 +762,8 @@ namespace Fluxzy.Core
                     {
                         // Enhance your calm
                     }
+
+                    FluxzyLogEvents.LogExchangeCompleted(_logger, exchange, _proxyRuntimeSetting.StartupSetting);
                 }
                 else
                 {

@@ -20,9 +20,6 @@ namespace Fluxzy.Clients.H2.Encoder.HPack
             _currentMaxSize = initialSize;
             _ring = new HeaderField[Math.Max(16, initialSize / 32)];
         }
-
-        internal H2Logger? Logger { get; set; }
-
         private void EvictUntil(int toBeRemovedSize)
         {
             var evictedSize = 0;

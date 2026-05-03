@@ -80,8 +80,6 @@ namespace Fluxzy.Clients.H2
 
             _runningStreams[streamId] = activeStream;
 
-            Context.Logger.Trace(exchange, "Affecting streamIdentifier", streamIdentifier: streamId);
-
             return activeStream;
         }
 

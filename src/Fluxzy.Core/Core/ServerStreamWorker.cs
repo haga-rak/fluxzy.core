@@ -52,14 +52,13 @@ namespace Fluxzy.Core
         public ServerStreamWorker(
             int streamIdentifier,
             IHeaderEncoder headerEncoder,
-            H2StreamSetting h2StreamSetting,
-            H2Logger logger)
+            H2StreamSetting h2StreamSetting)
         {
             StreamIdentifier = streamIdentifier;
             _headerEncoder = headerEncoder;
             _h2StreamSetting = h2StreamSetting;
             _headerBuffer = ArrayPool<byte>.Shared.Rent(h2StreamSetting.MaxHeaderSize);
-            _streamWindowSizeHolder = new WindowSizeHolder(logger, h2StreamSetting.Remote.WindowSize, streamIdentifier);
+            _streamWindowSizeHolder = new WindowSizeHolder(h2StreamSetting.Remote.WindowSize, streamIdentifier);
         }
 
         private H2ErrorCode ReceiveHeaderFragment(ReadOnlySpan<byte> data, bool endHeaders)

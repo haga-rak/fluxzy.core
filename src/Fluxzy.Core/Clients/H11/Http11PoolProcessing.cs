@@ -8,21 +8,24 @@ using System.Threading.Tasks;
 using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Core;
 using Fluxzy.Formatters.Producers.Requests;
+using Fluxzy.Logging;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Clients.H11
 {
     internal class Http11PoolProcessing
     {
-        private readonly H1Logger _logger;
         private readonly TimeSpan _expectContinueTimeout;
+        private readonly ILogger _logger;
 
-        public Http11PoolProcessing(H1Logger logger, TimeSpan expectContinueTimeout)
+        public Http11PoolProcessing(TimeSpan expectContinueTimeout, ILogger? logger = null)
         {
-            _logger = logger;
             _expectContinueTimeout = expectContinueTimeout;
+            _logger = logger ?? NullLogger.Instance;
         }
 
         /// <summary>
@@ -43,11 +46,13 @@ namespace Fluxzy.Clients.H11
 
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
 
-            _logger.Trace(exchange.Id, () => "Begin writing header");
-
             var headerLength = exchange.Request.Header.WriteHttp11(
                 !exchange.Authority.Secure,
                 buffer, skipNonForwardableHeader: true, writeExtraHeaderField: true, requestClose: false);
+
+            exchange.Metrics.RequestHeaderLength = headerLength;
+
+            FluxzyLogEvents.LogRequestSending(_logger, exchange);
 
             // Sending request header
 
@@ -55,11 +60,8 @@ namespace Fluxzy.Clients.H11
                           .WriteAsync(buffer.Memory.Slice(0, headerLength), cancellationToken)
                           .ConfigureAwait(false);
 
-            _logger.Trace(exchange.Id, () => "Header sent");
-
             exchange.Metrics.TotalSent += headerLength;
             exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
-            exchange.Metrics.RequestHeaderLength = headerLength;
 
             // Expect: 100-continue path — read any interim/final response from
             // upstream before streaming the body, otherwise the body-copy below
@@ -132,7 +134,7 @@ namespace Fluxzy.Clients.H11
                 exchange.Metrics.RequestBodySent = exchange.Metrics.RequestHeaderSent;
             }
 
-            _logger.Trace(exchange.Id, () => "Body sent");
+            FluxzyLogEvents.LogRequestSent(_logger, exchange, hasEarlyResponseHeader);
 
             // Waiting for header block — unless the Expect pre-read already
             // produced the final response header.
@@ -187,7 +189,10 @@ namespace Fluxzy.Clients.H11
             exchange.Response.Header = new ResponseHeader(
                 headerContent, exchange.Authority.Secure, true);
 
-            _logger.TraceResponse(exchange);
+            exchange.Metrics.TotalReceived += headerBlockDetectResult.HeaderLength;
+            exchange.Metrics.ResponseHeaderLength = headerBlockDetectResult.HeaderLength;
+
+            FluxzyLogEvents.LogResponseHeaderReceived(_logger, exchange);
 
             var shouldCloseConnection = exchange.Response.Header.ConnectionCloseRequest;
 
@@ -202,9 +207,7 @@ namespace Fluxzy.Clients.H11
                 exchange.Response.Body = Stream.Null;
 
                 exchange.ExchangeCompletionSource.TrySetResult(shouldCloseConnection || shouldClose);
-
-                _logger.Trace(exchange.Id, () => "No response body");
-
+                
                 return true;
             }
 
@@ -232,9 +235,6 @@ namespace Fluxzy.Clients.H11
                 );
             }
 
-            exchange.Metrics.TotalReceived += headerBlockDetectResult.HeaderLength;
-            exchange.Metrics.ResponseHeaderLength = headerBlockDetectResult.HeaderLength;
-
             ChunkedTransferReadStream? chunkedReadStream = null;
 
             if (exchange.Response.Header.ChunkedBody) {
@@ -249,7 +249,6 @@ namespace Fluxzy.Clients.H11
             exchange.Response.Body = new MetricsStream(bodyStream,
                     () => {
                         exchange.Metrics.ResponseBodyStart = ITimingProvider.Default.Instant();
-                        _logger.Trace(exchange.Id, () => "First body bytes read");
                     },
                     (endConnection, length) => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
@@ -259,13 +258,10 @@ namespace Fluxzy.Clients.H11
                             exchange.Response.Trailers = chunkedReadStream.Trailers;
 
                         exchange.ExchangeCompletionSource.TrySetResult(endConnection);
-                        _logger.Trace(exchange.Id, () => $"Last body bytes end : {length} total bytes");
                     },
                     exception => {
                         exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
                         exchange.ExchangeCompletionSource.SetException(exception);
-
-                        _logger.Trace(exchange.Id, () => $"Read error : {exception}");
                     },
                     shouldCloseConnection,
                     exchange.Response.Header.ContentLength >= 0 ? exchange.Response.Header.ContentLength : null,

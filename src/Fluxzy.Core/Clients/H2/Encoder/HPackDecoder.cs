@@ -42,8 +42,6 @@ namespace Fluxzy.Clients.H2.Encoder
             _memoryProvider = memoryProvider ?? ArrayPoolMemoryProvider<char>.Default;
         }
 
-        internal H2Logger? Logger { get; set; }
-
         public DecodingContext Context { get; }
 
         public void Dispose()
