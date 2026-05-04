@@ -151,6 +151,14 @@ namespace Fluxzy.Clients.H11
                             cancellationToken,
                             true).ConfigureAwait(false);
 
+                        // Close-notify path: GetNext signals close_notify by returning
+                        // HeaderLength = -1. Skip the interim-response sniff (which would
+                        // index into the buffer with a negative length) and fall through
+                        // so the post-try CloseNotify branch can throw the relaunch
+                        // exception.
+                        if (headerBlockDetectResult.CloseNotify)
+                            break;
+
                         var earlyStatus = HttpHelper.ReadStatusCode(
                             buffer.Buffer.AsSpan(0, headerBlockDetectResult.HeaderLength));
 
@@ -171,10 +179,10 @@ namespace Fluxzy.Clients.H11
                     // A read failure on a connection that came from the pool, before any
                     // response byte has been seen, means the upstream tore the connection
                     // down while it was idle (TLS close_notify + FIN, or an outright RST).
-                    // The request never reached the origin — relaunching on a fresh
-                    // connection is safe regardless of HTTP method. The recycled-and-no-
-                    // response gate is what keeps a genuine fresh-connection failure
-                    // (server closes before responding) from looping forever.
+                    // Map to ConnectionCloseException so the orchestrator retries on a
+                    // fresh connection. The recycled-and-no-response gate is what keeps a
+                    // genuine fresh-connection failure (server closes before responding)
+                    // surfacing as 528 instead of looping.
 
                     var noResponseByteYet = exchange.Metrics.ResponseHeaderStart == default;
                     var recycledAndDead = exchange.RecycledConnection && noResponseByteYet;

@@ -162,16 +162,30 @@ namespace Fluxzy.Clients.H11
                     // original code only handled ConnectionCloseException, leaking the
                     // read stream when TlsFatalAlert / IOException / SocketException
                     // bubbled through unconverted (e.g. from the request-write path).
-                    if (ex is ConnectionCloseException
+                    var deadConnSignal = ex is ConnectionCloseException
                         || ex is TlsFatalAlert
                         || ex is IOException
-                        || ex is SocketException) {
+                        || ex is SocketException;
+
+                    if (deadConnSignal) {
                         if (exchange.Connection?.ReadStream != null)
                             await exchange.Connection.ReadStream.DisposeAsync();
 
                         exchange.Connection = null;
                     }
-                    
+
+                    // Recycled connection that died before producing any response byte —
+                    // safe to relaunch on a fresh connection regardless of whether the
+                    // failure happened on the request write or the response read. The
+                    // recycled-and-no-response gate keeps a fresh-connection failure
+                    // (server closes immediately) flowing through as 528.
+                    if (deadConnSignal
+                        && !(ex is ConnectionCloseException)
+                        && exchange.RecycledConnection
+                        && exchange.Metrics.ResponseHeaderStart == default) {
+                        throw new ConnectionCloseException("Relaunch");
+                    }
+
                     throw;
                 }
             }
