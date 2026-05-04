@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -167,7 +168,20 @@ namespace Fluxzy.Clients.H11
                     }
                 }
                 catch (Exception ex) {
-                    if (ex is TlsFatalAlert || (exchange.Context.EventNotifierStream?.Faulted ?? false)) {
+                    // A read failure on a connection that came from the pool, before any
+                    // response byte has been seen, means the upstream tore the connection
+                    // down while it was idle (TLS close_notify + FIN, or an outright RST).
+                    // The request never reached the origin — relaunching on a fresh
+                    // connection is safe regardless of HTTP method. The recycled-and-no-
+                    // response gate is what keeps a genuine fresh-connection failure
+                    // (server closes before responding) from looping forever.
+
+                    var noResponseByteYet = exchange.Metrics.ResponseHeaderStart == default;
+                    var recycledAndDead = exchange.RecycledConnection && noResponseByteYet;
+
+                    if (ex is TlsFatalAlert
+                        || (exchange.Context.EventNotifierStream?.Faulted ?? false)
+                        || (recycledAndDead && (ex is IOException || ex is SocketException))) {
                         throw new ConnectionCloseException("Relaunch");
                     }
 

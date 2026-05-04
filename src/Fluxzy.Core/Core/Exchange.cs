@@ -188,6 +188,17 @@ namespace Fluxzy.Core
 
         public bool ReadUntilClose { get; set; }
 
+        /// <summary>
+        ///     True when this exchange is being processed on a connection that
+        ///     was reused from the pool (rather than freshly opened). The
+        ///     HTTP/1.1 pool sets this so the response-read failure path can
+        ///     tell "stale pooled connection died on us" (safe to relaunch on
+        ///     a fresh connection) apart from "fresh connection failed
+        ///     immediately" (genuine upstream error — must surface to caller,
+        ///     not retry).
+        /// </summary>
+        public bool RecycledConnection { get; set; }
+
         public int StreamIdentifier { get; set; }
 
         /// <summary>
