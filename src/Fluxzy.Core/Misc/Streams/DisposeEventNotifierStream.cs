@@ -73,7 +73,14 @@ namespace Fluxzy.Misc.Streams
 
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
-            return await InnerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
+            try {
+                return await InnerStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
+            }
+            catch {
+                Faulted = true;
+
+                throw;
+            }
         }
 
         public override async Task<int> ReadAsync(

@@ -2,14 +2,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Fluxzy.Core;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Writers;
+using Org.BouncyCastle.Tls;
 
 namespace Fluxzy.Clients.H11
 {
@@ -83,6 +86,7 @@ namespace Fluxzy.Clients.H11
                     }
 
                     exchange.Connection = state.Connection;
+                    exchange.RecycledConnection = true;
                     break;
                 }
 
@@ -153,14 +157,35 @@ namespace Fluxzy.Clients.H11
                 }
                 catch (Exception ex) {
 
-                    if (ex is ConnectionCloseException)
-                    {
-                        if (exchange.Connection.ReadStream != null)
+                    // Any "connection is dead" signal must dispose the read stream and
+                    // null the connection so the next attempt opens a fresh one. The
+                    // original code only handled ConnectionCloseException, leaking the
+                    // read stream when TlsFatalAlert / IOException / SocketException
+                    // bubbled through unconverted (e.g. from the request-write path).
+                    var deadConnSignal = ex is ConnectionCloseException
+                        || ex is TlsFatalAlert
+                        || ex is IOException
+                        || ex is SocketException;
+
+                    if (deadConnSignal) {
+                        if (exchange.Connection?.ReadStream != null)
                             await exchange.Connection.ReadStream.DisposeAsync();
 
-                        exchange.Connection = null; 
+                        exchange.Connection = null;
                     }
-                    
+
+                    // Recycled connection that died before producing any response byte —
+                    // safe to relaunch on a fresh connection regardless of whether the
+                    // failure happened on the request write or the response read. The
+                    // recycled-and-no-response gate keeps a fresh-connection failure
+                    // (server closes immediately) flowing through as 528.
+                    if (deadConnSignal
+                        && !(ex is ConnectionCloseException)
+                        && exchange.RecycledConnection
+                        && exchange.Metrics.ResponseHeaderStart == default) {
+                        throw new ConnectionCloseException("Relaunch");
+                    }
+
                     throw;
                 }
             }
