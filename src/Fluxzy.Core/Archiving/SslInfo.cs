@@ -60,12 +60,11 @@ namespace Fluxzy
         /// <param name="dumpCertificate"></param>
         internal SslInfo(FluxzyClientProtocol clientProtocol, bool dumpCertificate)
         {
-//#if NET6_0
-//            CipherAlgorithm = ((System.Net.Security.TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite).ToString();
-//#endif
-
             NegotiatedApplicationProtocol = clientProtocol.GetApplicationProtocol().ToString();
             SslProtocol = clientProtocol.GetSChannelProtocol();
+
+            NegotiatedCipherSuite = (TlsCipherSuite) clientProtocol.SessionParameters.CipherSuite;
+            (CipherAlgorithm, HashAlgorithm) = DeriveAlgorithmsFromCipherSuite(NegotiatedCipherSuite);
 
             if (BcCertificateHelper.TryReadDetailedInfo(clientProtocol.SessionParameters.LocalCertificate,
                     out var localSubject, out var localIssuer,
@@ -172,5 +171,51 @@ namespace Fluxzy
         public DateTime? LocalCertificateNotAfter { get; }
 
         public string? LocalCertificateSerialNumber { get; }
+
+        private static (CipherAlgorithmType Cipher, HashAlgorithmType Hash) DeriveAlgorithmsFromCipherSuite(
+            TlsCipherSuite cipherSuite)
+        {
+            var name = cipherSuite.ToString();
+
+            // TLS 1.2 and earlier use TLS_<kex>_WITH_<cipher>_<hash>; TLS 1.3 uses TLS_<cipher>_<hash>.
+            var withIdx = name.IndexOf("_WITH_", StringComparison.Ordinal);
+            var body = withIdx >= 0
+                ? name.Substring(withIdx + "_WITH_".Length)
+                : name.StartsWith("TLS_", StringComparison.Ordinal) ? name.Substring(4) : name;
+
+            var lastUnderscore = body.LastIndexOf('_');
+            var hashName = lastUnderscore >= 0 ? body.Substring(lastUnderscore + 1) : string.Empty;
+            var cipherPart = lastUnderscore >= 0 ? body.Substring(0, lastUnderscore) : body;
+
+            var hash = hashName switch {
+                "SHA" => HashAlgorithmType.Sha1,
+                "SHA256" => HashAlgorithmType.Sha256,
+                "SHA384" => HashAlgorithmType.Sha384,
+                "SHA512" => HashAlgorithmType.Sha512,
+                "MD5" => HashAlgorithmType.Md5,
+                _ => HashAlgorithmType.None
+            };
+
+            var cipher = CipherAlgorithmType.None;
+
+            if (cipherPart.Contains("AES_128"))
+                cipher = CipherAlgorithmType.Aes128;
+            else if (cipherPart.Contains("AES_256"))
+                cipher = CipherAlgorithmType.Aes256;
+            else if (cipherPart.Contains("AES_192"))
+                cipher = CipherAlgorithmType.Aes192;
+            else if (cipherPart.Contains("3DES"))
+                cipher = CipherAlgorithmType.TripleDes;
+            else if (cipherPart.Contains("DES"))
+                cipher = CipherAlgorithmType.Des;
+            else if (cipherPart.Contains("RC4"))
+                cipher = CipherAlgorithmType.Rc4;
+            else if (cipherPart.Contains("RC2"))
+                cipher = CipherAlgorithmType.Rc2;
+            else if (cipherPart.Contains("NULL"))
+                cipher = CipherAlgorithmType.Null;
+
+            return (cipher, hash);
+        }
     }
 }
