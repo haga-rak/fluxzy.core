@@ -75,7 +75,8 @@ namespace Fluxzy.Readers
                             secure
                                 ? new SslInfo(SslProtocols.None, null, null, null, null,
                                     entry.Request.HttpVersion, null!,
-                                    HashAlgorithmType.None, CipherAlgorithmType.None, default, default, default)
+                                    HashAlgorithmType.None, CipherAlgorithmType.None, default, default, default,
+                                    null, null, null, null, null, null)
                                 : null, 1, dnsStart,
                             dnsEnd, connectStart, connectEnd, sslStart, sslEnd, 0, string.Empty,
                             entry.ServerIPAddress ?? string.Empty, entry.Request.HttpVersion
