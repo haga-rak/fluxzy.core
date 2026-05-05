@@ -42,8 +42,11 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             Assert.NotEqual(CipherAlgorithmType.None, sslInfo.CipherAlgorithm);
         }
 
+        // OsDefault is intentionally excluded: SslStream.HashAlgorithm is obsolete and returns
+        // None for TLS 1.3 on OpenSSL (Linux/macOS), even though the negotiated suite carries
+        // a hash. The BouncyCastle path derives Sha256/Sha384 from the suite name and so
+        // exposes a useful value where .NET no longer does.
         [Theory]
-        [InlineData(SslProvider.OsDefault)]
         [InlineData(SslProvider.BouncyCastle)]
         public async Task HashAlgorithm_IsPopulated(SslProvider sslProvider)
         {
