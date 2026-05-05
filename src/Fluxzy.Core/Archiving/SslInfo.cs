@@ -40,11 +40,11 @@ namespace Fluxzy
 
             RemoteCertificateNotBefore = remote?.NotBefore;
             RemoteCertificateNotAfter = remote?.NotAfter;
-            RemoteCertificateSha1Thumbprint = remote?.GetCertHashString();
+            RemoteCertificateSerialNumber = remote?.SerialNumber;
 
             LocalCertificateNotBefore = local?.NotBefore;
             LocalCertificateNotAfter = local?.NotAfter;
-            LocalCertificateSha1Thumbprint = local?.GetCertHashString();
+            LocalCertificateSerialNumber = local?.SerialNumber;
 
             if (dumpCertificate)
             {
@@ -69,12 +69,12 @@ namespace Fluxzy
 
             if (BcCertificateHelper.TryReadDetailedInfo(clientProtocol.SessionParameters.LocalCertificate,
                     out var localSubject, out var localIssuer,
-                    out var localNotBefore, out var localNotAfter, out var localSha1)) {
+                    out var localNotBefore, out var localNotAfter, out var localSerial)) {
                 LocalCertificateIssuer = localIssuer;
                 LocalCertificateSubject = localSubject;
                 LocalCertificateNotBefore = localNotBefore;
                 LocalCertificateNotAfter = localNotAfter;
-                LocalCertificateSha1Thumbprint = localSha1;
+                LocalCertificateSerialNumber = localSerial;
 
                 if (dumpCertificate) {
                     LocalCertificatePem = clientProtocol.SessionParameters.LocalCertificate
@@ -85,12 +85,12 @@ namespace Fluxzy
 
             if (BcCertificateHelper.TryReadDetailedInfo(clientProtocol.SessionParameters.PeerCertificate,
                     out var remoteSubject, out var remoteIssuer,
-                    out var remoteNotBefore, out var remoteNotAfter, out var remoteSha1)) {
+                    out var remoteNotBefore, out var remoteNotAfter, out var remoteSerial)) {
                 RemoteCertificateIssuer = remoteIssuer;
                 RemoteCertificateSubject = remoteSubject;
                 RemoteCertificateNotBefore = remoteNotBefore;
                 RemoteCertificateNotAfter = remoteNotAfter;
-                RemoteCertificateSha1Thumbprint = remoteSha1;
+                RemoteCertificateSerialNumber = remoteSerial;
 
                 if (dumpCertificate) {
                     RemoteCertificatePem = clientProtocol.SessionParameters.PeerCertificate
@@ -109,9 +109,9 @@ namespace Fluxzy
             CipherAlgorithmType cipherAlgorithm, TlsCipherSuite negotiatedCipherSuite,
             string? localCertificatePem, string? remoteCertificatePem,
             DateTime? remoteCertificateNotBefore, DateTime? remoteCertificateNotAfter,
-            string? remoteCertificateSha1Thumbprint,
+            string? remoteCertificateSerialNumber,
             DateTime? localCertificateNotBefore, DateTime? localCertificateNotAfter,
-            string? localCertificateSha1Thumbprint)
+            string? localCertificateSerialNumber)
         {
             SslProtocol = sslProtocol;
             RemoteCertificateIssuer = remoteCertificateIssuer;
@@ -127,10 +127,10 @@ namespace Fluxzy
             RemoteCertificatePem = remoteCertificatePem;
             RemoteCertificateNotBefore = remoteCertificateNotBefore;
             RemoteCertificateNotAfter = remoteCertificateNotAfter;
-            RemoteCertificateSha1Thumbprint = remoteCertificateSha1Thumbprint;
+            RemoteCertificateSerialNumber = remoteCertificateSerialNumber;
             LocalCertificateNotBefore = localCertificateNotBefore;
             LocalCertificateNotAfter = localCertificateNotAfter;
-            LocalCertificateSha1Thumbprint = localCertificateSha1Thumbprint;
+            LocalCertificateSerialNumber = localCertificateSerialNumber;
         }
 
         public SslProtocols SslProtocol { get; }
@@ -165,12 +165,12 @@ namespace Fluxzy
 
         public DateTime? RemoteCertificateNotAfter { get; }
 
-        public string? RemoteCertificateSha1Thumbprint { get; }
+        public string? RemoteCertificateSerialNumber { get; }
 
         public DateTime? LocalCertificateNotBefore { get; }
 
         public DateTime? LocalCertificateNotAfter { get; }
 
-        public string? LocalCertificateSha1Thumbprint { get; }
+        public string? LocalCertificateSerialNumber { get; }
     }
 }

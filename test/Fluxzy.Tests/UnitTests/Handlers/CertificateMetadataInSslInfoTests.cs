@@ -34,38 +34,38 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         [Theory]
         [InlineData(SslProvider.OsDefault)]
         [InlineData(SslProvider.BouncyCastle)]
-        public async Task RemoteCertificate_Sha1Thumbprint_IsUppercaseHex40(SslProvider sslProvider)
+        public async Task RemoteCertificate_SerialNumber_IsUppercaseHex(SslProvider sslProvider)
         {
             var sslInfo = await GetSslInfoForGoogle(sslProvider);
 
             Assert.NotNull(sslInfo);
-            Assert.NotNull(sslInfo.RemoteCertificateSha1Thumbprint);
+            Assert.NotNull(sslInfo.RemoteCertificateSerialNumber);
 
-            var thumbprint = sslInfo.RemoteCertificateSha1Thumbprint!;
-            Assert.Equal(40, thumbprint.Length);
-            Assert.All(thumbprint, c => Assert.True(
+            var serial = sslInfo.RemoteCertificateSerialNumber!;
+            Assert.NotEmpty(serial);
+            Assert.All(serial, c => Assert.True(
                 (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F'),
                 $"Character '{c}' is not uppercase hex"));
         }
 
         [Fact]
-        public async Task RemoteCertificate_Sha1Thumbprint_IsConsistentAcrossProviders()
+        public async Task RemoteCertificate_SerialNumber_IsConsistentAcrossProviders()
         {
             // Hit both providers back-to-back to maximise odds of landing on the same cert.
             // If the host rotates certs between calls this will flake; the value of the test
-            // is catching a wrong-bytes hash bug in the BC path, not load-balancer behaviour.
+            // is catching a wrong-bytes bug in the BC path, not load-balancer behaviour.
             var fromOs = await GetSslInfoForGoogle(SslProvider.OsDefault);
             var fromBc = await GetSslInfoForGoogle(SslProvider.BouncyCastle);
 
-            Assert.NotNull(fromOs?.RemoteCertificateSha1Thumbprint);
-            Assert.NotNull(fromBc?.RemoteCertificateSha1Thumbprint);
+            Assert.NotNull(fromOs?.RemoteCertificateSerialNumber);
+            Assert.NotNull(fromBc?.RemoteCertificateSerialNumber);
 
-            // Same subject => same cert => same thumbprint.
+            // Same subject => same cert => same serial.
             if (string.Equals(fromOs.RemoteCertificateSubject, fromBc.RemoteCertificateSubject,
                     StringComparison.Ordinal))
             {
-                Assert.Equal(fromOs.RemoteCertificateSha1Thumbprint,
-                    fromBc.RemoteCertificateSha1Thumbprint);
+                Assert.Equal(fromOs.RemoteCertificateSerialNumber,
+                    fromBc.RemoteCertificateSerialNumber);
             }
         }
 
@@ -80,7 +80,7 @@ namespace Fluxzy.Tests.UnitTests.Handlers
             Assert.NotNull(sslInfo);
             Assert.Null(sslInfo.LocalCertificateNotBefore);
             Assert.Null(sslInfo.LocalCertificateNotAfter);
-            Assert.Null(sslInfo.LocalCertificateSha1Thumbprint);
+            Assert.Null(sslInfo.LocalCertificateSerialNumber);
         }
 
         private static async Task<SslInfo?> GetSslInfoForGoogle(SslProvider sslProvider)
