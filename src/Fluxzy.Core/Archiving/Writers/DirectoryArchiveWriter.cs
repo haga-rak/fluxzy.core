@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
@@ -16,10 +17,10 @@ namespace Fluxzy.Writers
 {
     public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {
-        private readonly ArchiveMetaInformation _archiveMetaInformation = CreateNewCaptureArchiveMetaInformation();
+        private readonly ArchiveMetaInformation _archiveMetaInformation;
         private readonly object _metaLock = new object();
 
-        private static ArchiveMetaInformation CreateNewCaptureArchiveMetaInformation()
+        private static ArchiveMetaInformation CreateNewCaptureArchiveMetaInformation(FluxzySetting? capturedSetting)
         {
             var metaInformation = new ArchiveMetaInformation
             {
@@ -31,10 +32,21 @@ namespace Fluxzy.Writers
                     "unknown",
 #endif
                     FluxzySharedSetting.SkipCollectingEnvironmentInformation ? "" : Environment.MachineName
-                )
+                ),
+                CapturedSetting = FreezeCapturedSetting(capturedSetting)
             };
 
             return metaInformation;
+        }
+
+        private static FluxzySetting? FreezeCapturedSetting(FluxzySetting? capturedSetting)
+        {
+            if (capturedSetting == null)
+                return null;
+
+            // Snapshot the live setting so subsequent mutations don't leak into persisted meta.
+            var json = JsonSerializer.Serialize(capturedSetting, GlobalArchiveOption.ConfigSerializerOptions);
+            return JsonSerializer.Deserialize<FluxzySetting>(json, GlobalArchiveOption.ConfigSerializerOptions);
         }
 
         private readonly string _archiveMetaInformationPath;
@@ -47,7 +59,13 @@ namespace Fluxzy.Writers
         private readonly string _connectionDirectory;
 
         public DirectoryArchiveWriter(string baseDirectory, Filter? saveFilter)
+            : this(baseDirectory, saveFilter, capturedSetting: null)
         {
+        }
+
+        public DirectoryArchiveWriter(string baseDirectory, Filter? saveFilter, FluxzySetting? capturedSetting)
+        {
+            _archiveMetaInformation = CreateNewCaptureArchiveMetaInformation(capturedSetting);
             _baseDirectory = baseDirectory;
             _saveFilter = saveFilter;
             _contentDirectory = Path.Combine(baseDirectory, "contents");
@@ -57,6 +75,14 @@ namespace Fluxzy.Writers
             _connectionDirectory = Path.Combine(baseDirectory, "connections");
 
             _archiveMetaInformationPath = DirectoryArchiveHelper.GetMetaPath(baseDirectory);
+        }
+
+        public void SetResolvedEndPoints(IEnumerable<IPEndPoint> endPoints)
+        {
+            lock (_metaLock) {
+                _archiveMetaInformation.ResolvedEndPoints = endPoints.ToList();
+                UpdateMeta(true);
+            }
         }
 
         public override void Init()

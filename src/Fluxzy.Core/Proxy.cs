@@ -115,7 +115,7 @@ namespace Fluxzy
                 Directory.CreateDirectory(StartupSetting.ArchivingPolicy.Directory);
 
                 Writer = new DirectoryArchiveWriter(StartupSetting.ArchivingPolicy.Directory,
-                    StartupSetting.SaveFilter);
+                    StartupSetting.SaveFilter, StartupSetting);
             }
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None) {
@@ -347,6 +347,10 @@ namespace Fluxzy
             _loopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
 
             EndPoints = endPoints;
+
+            if (Writer is DirectoryArchiveWriter directoryWriter) {
+                directoryWriter.SetResolvedEndPoints(endPoints);
+            }
 
             if (StartupSetting.EnableDiscoveryService) {
                 StartDiscoveryServices(endPoints);

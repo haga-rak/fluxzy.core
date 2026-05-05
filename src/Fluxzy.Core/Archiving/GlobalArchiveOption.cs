@@ -25,7 +25,7 @@ namespace Fluxzy
             new IFormatterResolver[] { StandardResolverAllowPrivate.Instance, ContractlessStandardResolver.Instance }));
 
         /// <summary>
-        /// STJ default archive option 
+        /// STJ default archive option
         /// </summary>
         public static JsonSerializerOptions DefaultSerializerOptions { get; } = new() {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -37,7 +37,8 @@ namespace Fluxzy
                 new IpAddressConverter(),
                 new IpEndPointConverter(),
                 new PolymorphicConverter<Filter>(),
-                new PolymorphicConverter<Action>()
+                new PolymorphicConverter<Action>(),
+                new RedactingFluxzySettingConverter()
             },
             NumberHandling = JsonNumberHandling.AllowReadingFromString
         };

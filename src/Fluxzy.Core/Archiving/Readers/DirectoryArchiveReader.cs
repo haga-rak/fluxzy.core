@@ -47,10 +47,8 @@ namespace Fluxzy.Readers
                 return new ArchiveMetaInformation();
             }
 
-            using var metaStream = File.Open(metaPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-            return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream,
-                GlobalArchiveOption.DefaultSerializerOptions)!;
+            var bytes = File.ReadAllBytes(metaPath);
+            return ArchiveMetaInformationReader.Read(bytes);
         }
 
         public IEnumerable<ExchangeInfo> ReadAllExchanges()

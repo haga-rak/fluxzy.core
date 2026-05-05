@@ -43,9 +43,10 @@ namespace Fluxzy.Readers
             }
 
             using var metaStream = metaEntry.Open();
+            using var ms = new MemoryStream();
+            metaStream.CopyTo(ms);
 
-            return JsonSerializer.Deserialize<ArchiveMetaInformation>(metaStream,
-                GlobalArchiveOption.DefaultSerializerOptions)!;
+            return ArchiveMetaInformationReader.Read(ms.ToArray());
         }
 
         public IEnumerable<ExchangeInfo> ReadAllExchanges()
