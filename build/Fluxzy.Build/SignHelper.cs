@@ -13,9 +13,6 @@ namespace Fluxzy.Build
             var azureVaultDescriptionUrl = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_DESCRIPTION_URL");
             var azureVaultUrl = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_URL");
             var azureVaultCertificate = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_CERTIFICATE");
-            var azureVaultClientId = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_CLIENT_ID");
-            var azureVaultClientSecret = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_CLIENT_SECRET");
-            var azureVaultTenantId = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_TENANT_ID");
 
             foreach (var file in signableFiles)
             {
@@ -29,10 +26,7 @@ namespace Fluxzy.Build
                         " --description \"Fluxzy Signed\"" +
                         $" --description-url {azureVaultDescriptionUrl}" +
                         $" --azure-key-vault-url {azureVaultUrl}" +
-                        $" --azure-key-vault-certificate {azureVaultCertificate}" +
-                        $" --azure-key-vault-client-id {azureVaultClientId}" +
-                        $" --azure-key-vault-client-secret {azureVaultClientSecret}" +
-                        $" --azure-key-vault-tenant-id {azureVaultTenantId}"
+                        $" --azure-key-vault-certificate {azureVaultCertificate}"
                         , noEcho: true,
                         workingDirectory: workingDirectory
                     );
@@ -49,9 +43,6 @@ namespace Fluxzy.Build
             var azureVaultDescriptionUrl = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_DESCRIPTION_URL");
             var azureVaultUrl = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_URL");
             var azureVaultCertificate = "FluxzyCodeSigningGS"; // EnvironmentHelper.GetEvOrFail("AZURE_VAULT_CERTIFICATE");
-            var azureVaultClientId = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_CLIENT_ID");
-            var azureVaultClientSecret = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_CLIENT_SECRET");
-            var azureVaultTenantId = EnvironmentHelper.GetEvOrFail("AZURE_VAULT_TENANT_ID");
 
             await RunAsync("sign",
                 "code azure-key-vault *.nupkg " +
@@ -59,10 +50,7 @@ namespace Fluxzy.Build
                 " --description \"Fluxzy Signed\"" +
                 $" --description-url {azureVaultDescriptionUrl}" +
                 $" --azure-key-vault-url {azureVaultUrl}" +
-                $" --azure-key-vault-certificate {azureVaultCertificate}" +
-                $" --azure-key-vault-client-id {azureVaultClientId}" +
-                $" --azure-key-vault-client-secret {azureVaultClientSecret}" +
-                $" --azure-key-vault-tenant-id {azureVaultTenantId}"
+                $" --azure-key-vault-certificate {azureVaultCertificate}"
                 , noEcho: true,
                 workingDirectory: workingDirectory
             );
