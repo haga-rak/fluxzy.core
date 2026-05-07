@@ -129,13 +129,20 @@ namespace Fluxzy.Clients.Dns
 
                     if (dnsResponse == null)
                     {
-                        throw new ClientErrorException(0, "Invalid DNS response (null)");
+                        throw new ClientErrorException(0, "Invalid DNS response (null)",
+                            networkErrorCode: NetworkErrorCodes.DnsFailure);
                     }
 
                     if (dnsResponse.Status != 0)
                     {
+                        // RFC 8484 / DNS RCODE 3 = NXDOMAIN
+                        var token = dnsResponse.Status == 3
+                            ? NetworkErrorCodes.DnsNotFound
+                            : NetworkErrorCodes.DnsFailure;
+
                         throw new ClientErrorException(0,
-                            $"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}");
+                            $"Failed to resolve DNS over HTTPS. Status response = {dnsResponse.Status}",
+                            networkErrorCode: token);
                     }
 
                     var result = dnsResponse.Answers

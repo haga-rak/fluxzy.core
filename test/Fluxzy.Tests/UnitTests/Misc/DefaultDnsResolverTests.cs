@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Dns;
@@ -21,12 +22,13 @@ namespace Fluxzy.Tests.UnitTests.Misc
 
             if (rawIp != null) {
 
-                var ip = await solver.SolveDns(host); 
+                var ip = await solver.SolveDns(host);
                 Assert.Equal(IPAddress.Parse(rawIp), ip);
 
             }
             else {
-                 await Assert.ThrowsAsync<ClientErrorException>(() => solver.SolveDns(host));
+                 var ex = await Assert.ThrowsAsync<ClientErrorException>(() => solver.SolveDns(host));
+                 Assert.Equal(NetworkErrorCodes.DnsNotFound, ex.ClientError.NetworkErrorCode);
             }
         }
 
@@ -112,6 +114,35 @@ namespace Fluxzy.Tests.UnitTests.Misc
             {
                 await Assert.ThrowsAsync<ClientErrorException>(() => solver.SolveDns(host));
             }
+        }
+
+        [Fact]
+        public async Task SolveDns_Sets_DnsNoData_When_Resolver_Returns_Empty()
+        {
+            var solver = new EmptyResultResolver();
+
+            var ex = await Assert.ThrowsAsync<ClientErrorException>(
+                () => solver.SolveDns("probe.example"));
+
+            Assert.Equal(NetworkErrorCodes.DnsNoData, ex.ClientError.NetworkErrorCode);
+        }
+
+        [Theory]
+        [InlineData(System.Net.Sockets.SocketError.HostNotFound, NetworkErrorCodes.DnsNotFound)]
+        [InlineData(System.Net.Sockets.SocketError.NoData, NetworkErrorCodes.DnsNoData)]
+        [InlineData(System.Net.Sockets.SocketError.TryAgain, NetworkErrorCodes.DnsTryAgain)]
+        [InlineData(System.Net.Sockets.SocketError.NoRecovery, NetworkErrorCodes.DnsFailure)]
+        [InlineData(System.Net.Sockets.SocketError.AccessDenied, NetworkErrorCodes.DnsFailure)]
+        public void MapDnsSocketError_Returns_Expected_Token(
+            System.Net.Sockets.SocketError code, string expected)
+        {
+            Assert.Equal(expected, DefaultDnsResolver.MapDnsSocketError(code));
+        }
+
+        private sealed class EmptyResultResolver : DefaultDnsResolver
+        {
+            protected override Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
+                => Task.FromResult(Enumerable.Empty<IPAddress>());
         }
     }
 }

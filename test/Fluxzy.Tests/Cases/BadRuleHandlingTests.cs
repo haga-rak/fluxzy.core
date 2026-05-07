@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Fluxzy.Core;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Extensions;
@@ -55,6 +56,11 @@ namespace Fluxzy.Tests.Cases
             Assert.True(hasHeader);
             Assert.NotNull(values);
             Assert.Contains(nameof(RuleExecutionFailureException), values.First());
+
+            Assert.True(
+                response.Headers.TryGetValues("x-fluxzy-network-error", out var networkErrorValues),
+                "Response is missing the x-fluxzy-network-error header.");
+            Assert.Equal(NetworkErrorCodes.RuleFailure, networkErrorValues!.Single());
         }
     }
 }

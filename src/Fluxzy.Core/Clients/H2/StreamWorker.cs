@@ -465,7 +465,8 @@ namespace Fluxzy.Clients.H2
                 }
 
                 throw new ClientErrorException(1,
-                    "The connection was interrupted before receiving response header");
+                    "The connection was interrupted before receiving response header",
+                    networkErrorCode: NetworkErrorCodes.ProtocolError);
             }
             catch (Exception) {
                 Parent.NotifyDispose(this);
