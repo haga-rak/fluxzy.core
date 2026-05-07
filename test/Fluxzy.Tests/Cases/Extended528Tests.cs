@@ -95,15 +95,20 @@ namespace Fluxzy.Tests.Cases
         [InlineData(false)]
         public async Task Validate_Abrupt_Close(bool useBouncyCastle)
         {
-            // Server sends an RST. Different stacks/OSes report this as either
-            // ConnectionReset or ConnectionAborted — either is a correct surfacing.
+            // Server sends an RST. The exact surfacing depends on the OS/stack and
+            // the race between our write and the peer's RST:
+            //   - write hit before kernel saw RST → ECONNRESET / ECONNABORTED
+            //   - write hit after kernel saw RST  → EPIPE on Linux (Shutdown → ConnectionReset)
+            //   - write succeeded, read sees EOF  → ConnectionClosed (no SocketException)
+            // All three are correct surfacings of the same upstream behaviour.
             await using var server = MisbehavingTcpServer.Start(MisbehaveMode.AbruptClose);
             var response = await Run($"http://127.0.0.1:{server.Port}/", useBouncyCastle);
 
             Assert.Equal(528, (int) response.StatusCode);
             AssertNetworkErrorCodeOneOf(response,
                 NetworkErrorCodes.ConnectionReset,
-                NetworkErrorCodes.ConnectionAborted);
+                NetworkErrorCodes.ConnectionAborted,
+                NetworkErrorCodes.ConnectionClosed);
         }
 
         [Theory]
