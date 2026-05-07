@@ -31,16 +31,21 @@ namespace Fluxzy.Clients.Dns
             catch (Exception ex)
             {
                 var errorCode = -1;
+                var networkErrorCode = NetworkErrorCodes.DnsFailure;
 
-                if (ex is SocketException sex)
+                if (ex is SocketException sex) {
                     errorCode = sex.ErrorCode;
+                    networkErrorCode = MapDnsSocketError(sex.SocketErrorCode);
+                }
 
                 var clientErrorException = new ClientErrorException(
-                    errorCode, $"Failed to solve DNS for {hostName}", ex.Message);
+                    errorCode, $"Failed to solve DNS for {hostName}",
+                    innerMessageException: ex.Message,
+                    networkErrorCode: networkErrorCode);
 
                 throw clientErrorException;
             }
-            
+
         }
 
         public async Task<IPAddress> SolveDns(string hostName)
@@ -53,7 +58,8 @@ namespace Fluxzy.Clients.Dns
 
             if (found == null)
                 throw new ClientErrorException(-1, $"Failed to solve DNS for {hostName}",
-                    "No IP address found");
+                    innerMessageException: "No IP address found",
+                    networkErrorCode: NetworkErrorCodes.DnsNoData);
 
             return found;
         }
@@ -71,9 +77,19 @@ namespace Fluxzy.Clients.Dns
                 return await SolveDns(hostName).ConfigureAwait(false);
             }
             catch {
-                // it's quiet solving 
+                // it's quiet solving
                 return null;
             }
+        }
+
+        internal static string MapDnsSocketError(SocketError socketError)
+        {
+            return socketError switch {
+                SocketError.HostNotFound => NetworkErrorCodes.DnsNotFound,
+                SocketError.NoData => NetworkErrorCodes.DnsNoData,
+                SocketError.TryAgain => NetworkErrorCodes.DnsTryAgain,
+                _ => NetworkErrorCodes.DnsFailure
+            };
         }
     }
 }

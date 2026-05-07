@@ -6,7 +6,7 @@ using MessagePack;
 namespace Fluxzy
 {
     /// <summary>
-    /// Holds information about a client error 
+    /// Holds information about a client error
     /// </summary>
     [MessagePackObject]
     public class ClientError
@@ -23,7 +23,17 @@ namespace Fluxzy
         }
 
         /// <summary>
-        /// OS error code 
+        /// Create a new instance with an explicit network error code
+        /// </summary>
+        public ClientError(int errorCode, string message, string? networkErrorCode)
+        {
+            ErrorCode = errorCode;
+            Message = message;
+            NetworkErrorCode = networkErrorCode;
+        }
+
+        /// <summary>
+        /// OS error code
         /// </summary>
         [Key(0)]
         public int ErrorCode { get; }
@@ -40,10 +50,19 @@ namespace Fluxzy
         [Key(2)]
         public string? ExceptionMessage { get; set; }
 
+        /// <summary>
+        /// Stable errno-like identifier for the kind of network failure (e.g. <c>connection_refused</c>,
+        /// <c>dns_notfound</c>, <c>tls_cert_expired</c>). See <see cref="Fluxzy.Core.NetworkErrorCodes"/>.
+        /// </summary>
+        [Key(3)]
+        public string? NetworkErrorCode { get; set; }
+
 
         protected bool Equals(ClientError other)
         {
-            return ErrorCode == other.ErrorCode && Message == other.Message && ExceptionMessage == other.ExceptionMessage;
+            return ErrorCode == other.ErrorCode && Message == other.Message
+                && ExceptionMessage == other.ExceptionMessage
+                && NetworkErrorCode == other.NetworkErrorCode;
         }
 
         public override bool Equals(object? obj)
@@ -62,7 +81,7 @@ namespace Fluxzy
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(ErrorCode, Message, ExceptionMessage);
+            return HashCode.Combine(ErrorCode, Message, ExceptionMessage, NetworkErrorCode);
         }
     }
 }

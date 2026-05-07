@@ -6,11 +6,13 @@ namespace Fluxzy.Core
 {
     public class ClientErrorException : Exception
     {
-        public ClientErrorException(int errorCode, string message, string? innerMessageException = null,
-            Exception ? innerException = null)
+        public ClientErrorException(int errorCode, string message,
+            string? innerMessageException = null,
+            Exception? innerException = null,
+            string? networkErrorCode = null)
             : base(message, innerException)
         {
-            ClientError = new ClientError(errorCode, message) {
+            ClientError = new ClientError(errorCode, message, networkErrorCode) {
                 ExceptionMessage = innerMessageException
             };
         }

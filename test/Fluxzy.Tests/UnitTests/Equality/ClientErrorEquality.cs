@@ -15,6 +15,7 @@ namespace Fluxzy.Tests.UnitTests.Equality
             = new[] {
                 new ClientError(9, "messages"),
                 new ClientError(90, "message"),
+                new ClientError(9, "message", "connection_refused"),
             };
     }
 }
