@@ -246,6 +246,12 @@ namespace Fluxzy.Core
                     $"The connection was reset by remote peer {remoteIpAddress}.",
                     NetworkErrorCodes.ConnectionReset),
 
+                // EPIPE on Linux: peer sent RST (or closed) and we then tried to write.
+                // .NET surfaces this as SocketError.Shutdown — semantically a reset by peer.
+                SocketError.Shutdown => (
+                    $"The connection was reset by remote peer {remoteIpAddress}.",
+                    NetworkErrorCodes.ConnectionReset),
+
                 SocketError.TimedOut => (
                     $"The remote peer ({remoteIpAddress}) " +
                     $"could not be contacted within the configured timeout on the port {port}.",

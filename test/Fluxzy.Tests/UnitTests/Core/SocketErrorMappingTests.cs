@@ -12,6 +12,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         [InlineData(SocketError.ConnectionRefused, NetworkErrorCodes.ConnectionRefused)]
         [InlineData(SocketError.ConnectionReset, NetworkErrorCodes.ConnectionReset)]
         [InlineData(SocketError.ConnectionAborted, NetworkErrorCodes.ConnectionAborted)]
+        [InlineData(SocketError.Shutdown, NetworkErrorCodes.ConnectionReset)]
         [InlineData(SocketError.TimedOut, NetworkErrorCodes.ConnectionTimeout)]
         [InlineData(SocketError.HostUnreachable, NetworkErrorCodes.HostUnreachable)]
         [InlineData(SocketError.NetworkUnreachable, NetworkErrorCodes.NetworkUnreachable)]
