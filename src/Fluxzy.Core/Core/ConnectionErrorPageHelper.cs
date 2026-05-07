@@ -61,11 +61,22 @@ namespace Fluxzy.Core
                 errorMessage = originalException?.Message ?? "Internal fluxzy error.";
             }
 
+            var networkErrorCode = clientErrors
+                                   .Select(e => e.NetworkErrorCode)
+                                   .FirstOrDefault(c => !string.IsNullOrEmpty(c));
+
+            var networkErrorBlock = string.IsNullOrEmpty(networkErrorCode)
+                ? string.Empty
+                : "<p style=\"margin-top: 12px; font-size: 0.95em;\">Network error code: " +
+                  "<code style=\"padding: 2px 8px; border-radius: 4px; background: black;\" " +
+                  "class=\"white\">" + networkErrorCode + "</code></p>";
+
             var bodyTemplate = BodyTemplate;
 
             bodyTemplate = bodyTemplate.Replace("@@error-status-code@@", rawStatusCode);
             bodyTemplate = bodyTemplate.Replace("@@error-host@@", authority.ToString());
             bodyTemplate = bodyTemplate.Replace("@@error-message@@", errorMessage);
+            bodyTemplate = bodyTemplate.Replace("@@network-error-code-block@@", networkErrorBlock);
 
             var body = Encoding.UTF8.GetBytes(bodyTemplate);
             var header = string.Format(ErrorHeaderHtml, headerStatus, body.Length);
