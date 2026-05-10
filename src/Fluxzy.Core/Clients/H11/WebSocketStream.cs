@@ -22,7 +22,6 @@ namespace Fluxzy.Clients.H11
         private readonly Pipe _pipe;
         private readonly Task _runningTask;
         private readonly ITimingProvider _timingProvider;
-        private readonly CancellationToken _token;
 
         private WsMessage? _current;
 
@@ -35,7 +34,11 @@ namespace Fluxzy.Clients.H11
         {
             _innerStream = innerStream;
             _timingProvider = timingProvider;
-            _token = token;
+            // token is kept on the constructor for API compatibility but intentionally
+            // not propagated to the internal pipe loop: InitRead must drain via
+            // _pipe.Writer.Complete() (called from Dispose) so a Sent frame buffered
+            // just before disposal isn't lost when the proxy halt token races ahead.
+            _ = token;
             _onMessage = onMessage;
             _outStream = outStream;
             _pipe = new Pipe();
@@ -56,9 +59,9 @@ namespace Fluxzy.Clients.H11
         {
             while (true) {
                 if (!_pipe.Reader.TryRead(out var readResult))
-                    readResult = await _pipe.Reader.ReadAsync(_token).ConfigureAwait(false);
+                    readResult = await _pipe.Reader.ReadAsync().ConfigureAwait(false);
 
-                if (readResult.IsCompleted || readResult.IsCanceled)
+                if (readResult.IsCanceled)
                     return;
 
                 var buffer = readResult.Buffer;
@@ -67,9 +70,13 @@ namespace Fluxzy.Clients.H11
                 WsFrame wsFrame = default;
 
                 if ((headerLength = TryReadWsFrameHeader(ref buffer, ref wsFrame)) < 0) {
-                    // not enough data to complete the header frame send back to read 
-
+                    // Not enough data to complete the header — wait for more.
                     _pipe.Reader.AdvanceTo(buffer.Start);
+
+                    // Writer has finished and the residual bytes can't form a header,
+                    // so no more frames are coming. Drain done.
+                    if (readResult.IsCompleted)
+                        return;
 
                     continue;
                 }
@@ -82,7 +89,7 @@ namespace Fluxzy.Clients.H11
                     var immediateMessage = new WsMessage(++_messageCounter);
                     wsFrame.FinalFragment = true;
 
-                    await immediateMessage.AddFrame(wsFrame, _maxBufferedWsMessage, _pipe.Reader, _outStream, _token)
+                    await immediateMessage.AddFrame(wsFrame, _maxBufferedWsMessage, _pipe.Reader, _outStream, CancellationToken.None)
                                           .ConfigureAwait(false);
                     immediateMessage.MessageEnd = _timingProvider.Instant();
                     _onMessage(immediateMessage);
@@ -96,7 +103,7 @@ namespace Fluxzy.Clients.H11
 
                 await _current
                     .AddFrame(wsFrame, _maxBufferedWsMessage,
-                        _pipe.Reader, _outStream, _token).ConfigureAwait(false);
+                        _pipe.Reader, _outStream, CancellationToken.None).ConfigureAwait(false);
 
                 if (wsFrame.FinalFragment) {
                     _current.MessageEnd = _timingProvider.Instant();
