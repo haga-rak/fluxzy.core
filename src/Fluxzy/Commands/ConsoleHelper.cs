@@ -1,18 +1,18 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.CommandLine;
-using System.CommandLine.IO;
+using Fluxzy.Core;
 
 namespace Fluxzy.Cli.Commands
 {
     public static class ConsoleHelper
     {
-        public static void WriteValidationResult(this IConsole console, ValidationResult validationResult)
+        public static void WriteValidationResult(this IFluxzyConsole console, ValidationResult validationResult)
         {
-            var consoleColor = Console.ForegroundColor;
+            var previousColor = Console.ForegroundColor;
+            var isRealConsole = console is RealFluxzyConsole;
 
-            if (console is SystemConsole) {
+            if (isRealConsole) {
                 if (validationResult.Level == ValidationRuleLevel.Information) {
                     Console.ForegroundColor = ConsoleColor.Cyan;
                 }
@@ -25,12 +25,13 @@ namespace Fluxzy.Cli.Commands
             }
 
             try {
-                console.WriteLine(
-                    $@"[{validationResult.Level} {validationResult.SenderName}] {validationResult.Message}");
+                console.Out.Write(
+                    $"[{validationResult.Level} {validationResult.SenderName}] {validationResult.Message}"
+                    + Environment.NewLine);
             }
             finally {
-                if (console is SystemConsole) {
-                    Console.ForegroundColor = consoleColor;
+                if (isRealConsole) {
+                    Console.ForegroundColor = previousColor;
                 }
             }
         }

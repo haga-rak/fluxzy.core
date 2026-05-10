@@ -1,15 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
-using System;
-using System.CommandLine;
-using System.CommandLine.IO;
 using System.IO;
 
 namespace Fluxzy.Cli.Commands
 {
-    public class OutputConsole : IConsole
+    public class OutputConsole : IFluxzyConsole
     {
-        public OutputConsole(IStandardStreamWriter @out, IStandardStreamWriter error, string? standardInputContent)
+        public OutputConsole(IConsoleWriter @out, IConsoleWriter error, string? standardInputContent)
         {
             Out = @out;
             Error = error;
@@ -18,28 +15,26 @@ namespace Fluxzy.Cli.Commands
 
         public string? StandardInputContent { get; }
 
-        public IStandardStreamWriter Out { get; }
+        public IConsoleWriter Out { get; }
 
-        public bool IsOutputRedirected => false;
-
-        public IStandardStreamWriter Error { get; }
-
-        public bool IsErrorRedirected => false;
-
-        public bool IsInputRedirected => false;
+        public IConsoleWriter Error { get; }
 
         public MemoryStream BinaryStdout { get; } = new();
 
         public MemoryStream BinaryStderr { get; } = new();
+
+        Stream IFluxzyConsole.BinaryStdout => BinaryStdout;
+
+        Stream IFluxzyConsole.BinaryStderr => BinaryStderr;
 
         public static OutputConsole CreateEmpty()
         {
             return new OutputConsole(EmptyWriter, EmptyWriter, null);
         }
 
-        private static IStandardStreamWriter EmptyWriter { get; } = new NullStreamWriter();
-        
-        class NullStreamWriter : IStandardStreamWriter
+        private static IConsoleWriter EmptyWriter { get; } = new NullConsoleWriter();
+
+        private sealed class NullConsoleWriter : IConsoleWriter
         {
             public void Write(string? value)
             {

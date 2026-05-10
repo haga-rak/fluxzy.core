@@ -1,17 +1,17 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
-using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Fluxzy.Cli.Commands;
 
 namespace Fluxzy.Tests.Cli.Scaffolding
 {
-    public class OutputWriterNotifier : TextWriter, IStandardStreamWriter
+    public class OutputWriterNotifier : TextWriter, IConsoleWriter
     {
         private readonly bool _hook;
         private readonly Dictionary<string, TimeoutTaskCompletionSource<string>> _runningWait = new();
