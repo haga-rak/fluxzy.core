@@ -95,6 +95,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateEnableDiscoveryOption());
             command.AddOption(StartCommandOptions.CreateProtoDirectoryOption());
             command.AddOption(StartCommandOptions.CreateTraceOption());
+            command.AddOption(StartCommandOptions.CreateSkipInternalRulesOption());
 
             command.SetHandler(context => Run(context, cancellationToken));
 
@@ -138,6 +139,7 @@ namespace Fluxzy.Cli.Commands
             var enableDiscovery = invocationContext.Value<bool>("enable-discovery");
             var protoDirectories = invocationContext.Value<List<string>>("proto-dir");
             var traceMode = invocationContext.Value<TraceMode>("trace");
+            var skipInternalRules = invocationContext.Value<bool>("skip-internal-rules");
 
             FluxzySharedSetting.Use528 = !use502;
 
@@ -293,6 +295,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.SetIncludeAndroidEmulatorHost(!noAndroidEmulator);
             proxyStartUpSetting.SetServeH2(serveH2);
             proxyStartUpSetting.SetEnableDiscoveryService(enableDiscovery);
+            proxyStartUpSetting.SetSkipInternalRules(skipInternalRules);
 
             if (protoDirectories != null) {
                 foreach (var dir in protoDirectories) {

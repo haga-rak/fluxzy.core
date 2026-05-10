@@ -110,6 +110,18 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
+        public static Option CreateSkipInternalRulesOption()
+        {
+            var option = new Option<bool>(
+                "--skip-internal-rules",
+                "Do not add Fluxzy's built-in rules (welcome page, /ca certificate endpoint)");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
         public static Option CreateListenLocalhost()
         {
             var option = new Option<bool>(
