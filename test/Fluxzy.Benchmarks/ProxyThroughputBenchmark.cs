@@ -61,6 +61,7 @@ public class ProxyThroughputBenchmark
             // 2. Start Fluxzy proxy (equivalent to: fluxzy start -k --serve-h2)
             var setting = FluxzySetting.CreateLocalRandomPort();
             setting.SetServeH2(ServeH2);
+            setting.SetSkipInternalRules(true);
             setting.ConfigureRule()
                 .WhenAny()
                 .Do(new SkipRemoteCertificateValidationAction()); // -k flag
