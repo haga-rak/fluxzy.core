@@ -291,6 +291,19 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     If true, Fluxzy will not register its built-in rules
+        ///     (welcome page on self-requests, CA download endpoint at /ca).
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetSkipInternalRules(bool value)
+        {
+            SkipInternalRules = value;
+
+            return this;
+        }
+
+        /// <summary>
         ///     Change the default certificate used by fluxzy
         /// </summary>
         /// <returns></returns>

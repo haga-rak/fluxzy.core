@@ -281,10 +281,21 @@ namespace Fluxzy
                 "X-Auth-Token"
             };
 
+        /// <summary>
+        ///     When true, Fluxzy will not register its built-in rules
+        ///     (welcome page on self-requests, CA download endpoint at /ca).
+        /// </summary>
+        [JsonInclude]
+        public bool SkipInternalRules { get; internal set; }
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (GlobalSkipSslDecryption) {
                 yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
+            }
+
+            if (SkipInternalRules) {
+                yield break;
             }
 
             yield return new Rule(
