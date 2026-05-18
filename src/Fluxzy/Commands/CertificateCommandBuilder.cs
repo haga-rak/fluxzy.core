@@ -199,7 +199,8 @@ namespace Fluxzy.Cli.Commands
 
             var keySizeOption = new Option<int>(
                 new[] { "--key-size", "-k" },
-                description: "Key size of the certificate. Valid values are multiple of 1024 (max 16384)",
+                description: "RSA key size of the certificate. Valid values are multiple of 1024 (max 16384). " +
+                             "Ignored when --key-algorithm is an ECDSA curve",
                 parseArgument: r => {
                     var inputValueString = r.Tokens.FirstOrDefault()?.Value;
 
@@ -219,6 +220,45 @@ namespace Fluxzy.Cli.Commands
                     }
 
                     return inputValue;
+                }) {
+                Arity = ArgumentArity.ExactlyOne
+            };
+
+            var keyAlgorithmOption = new Option<CertificateKeyAlgorithm>(
+                new[] { "--key-algorithm", "-a" },
+                description: "Key algorithm of the certificate: rsa, ecdsa-p224, ecdsa-p256, ecdsa-p384 or ecdsa-p521",
+                parseArgument: r => {
+                    var rawValue = r.Tokens.FirstOrDefault()?.Value;
+
+                    if (string.IsNullOrWhiteSpace(rawValue))
+                        return CertificateKeyAlgorithm.Rsa;
+
+                    // Accept hyphenated (ecdsa-p256), bare (p256) and enum-name (EcdsaP256) forms
+                    switch (rawValue.Trim().ToLowerInvariant().Replace("-", "").Replace("_", "")) {
+                        case "rsa":
+                            return CertificateKeyAlgorithm.Rsa;
+
+                        case "ecdsap224":
+                        case "p224":
+                            return CertificateKeyAlgorithm.EcdsaP224;
+
+                        case "ecdsap256":
+                        case "p256":
+                            return CertificateKeyAlgorithm.EcdsaP256;
+
+                        case "ecdsap384":
+                        case "p384":
+                            return CertificateKeyAlgorithm.EcdsaP384;
+
+                        case "ecdsap521":
+                        case "p521":
+                            return CertificateKeyAlgorithm.EcdsaP521;
+
+                        default:
+                            throw new ArgumentException(
+                                $"Invalid key algorithm `{rawValue}`. Valid values are rsa, ecdsa-p224, " +
+                                "ecdsa-p256, ecdsa-p384 and ecdsa-p521.");
+                    }
                 }) {
                 Arity = ArgumentArity.ExactlyOne
             };
@@ -268,11 +308,13 @@ namespace Fluxzy.Cli.Commands
             };
 
             keySizeOption.SetDefaultValue(2048);
+            keyAlgorithmOption.SetDefaultValue(CertificateKeyAlgorithm.Rsa);
 
             createCommand.AddArgument(argumentFileInfo);
             createCommand.AddArgument(argumentCn);
             createCommand.AddOption(validityOption);
             createCommand.AddOption(keySizeOption);
+            createCommand.AddOption(keyAlgorithmOption);
             createCommand.AddOption(oOption);
             createCommand.AddOption(ouOption);
             createCommand.AddOption(lOption);
@@ -295,6 +337,7 @@ namespace Fluxzy.Cli.Commands
                     Country = invocationContext.Value<string>("C"),
                     DaysBeforeExpiration = invocationContext.Value<int>("validity"),
                     KeySize = invocationContext.Value<int>("key-size"),
+                    KeyAlgorithm = invocationContext.Value<CertificateKeyAlgorithm>("key-algorithm"),
                     P12Password = invocationContext.Value<string>("password")
                 };
 
