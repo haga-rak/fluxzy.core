@@ -56,9 +56,16 @@ namespace Fluxzy.Certificates
         public string? P12Password { get; set; }
 
         /// <summary>
-        /// The key size of the certificate
+        /// The key size of the certificate. Only relevant when <see cref="KeyAlgorithm"/> is
+        /// <see cref="CertificateKeyAlgorithm.Rsa"/>.
         /// </summary>
         public int KeySize { get; set; } = 2048;
+
+        /// <summary>
+        /// The asymmetric key algorithm of the certificate. Defaults to <see cref="CertificateKeyAlgorithm.Rsa"/>.
+        /// Use one of the ECDSA values to produce an elliptic curve certificate.
+        /// </summary>
+        public CertificateKeyAlgorithm KeyAlgorithm { get; set; } = CertificateKeyAlgorithm.Rsa;
 
         /// <summary>
         /// 
@@ -70,9 +77,9 @@ namespace Fluxzy.Certificates
                 throw new ArgumentException("CommonName is required");
 
             // KeySize must be a multiple of 1024 and less or equal to 16384
-            // Control that any certificate subject attribute is valid (no comma)  
+            // Control that any certificate subject attribute is valid (no comma)
 
-            if (KeySize % 1024 != 0 || KeySize > 16384 || KeySize < 1024)
+            if (KeyAlgorithm == CertificateKeyAlgorithm.Rsa && (KeySize % 1024 != 0 || KeySize > 16384 || KeySize < 1024))
                 throw new ArgumentException("KeySize must be a multiple of 1024 and less or equal to 16384");
 
             if (CommonName.Contains(","))
