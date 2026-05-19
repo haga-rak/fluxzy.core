@@ -45,8 +45,16 @@ namespace Fluxzy.Writers
                 return null;
 
             // Snapshot the live setting so subsequent mutations don't leak into persisted meta.
-            var json = JsonSerializer.Serialize(capturedSetting, GlobalArchiveOption.ConfigSerializerOptions);
-            return JsonSerializer.Deserialize<FluxzySetting>(json, GlobalArchiveOption.ConfigSerializerOptions);
+            try {
+                var json = JsonSerializer.Serialize(capturedSetting, GlobalArchiveOption.ConfigSerializerOptions);
+                return JsonSerializer.Deserialize<FluxzySetting>(json, GlobalArchiveOption.ConfigSerializerOptions);
+            }
+            catch (Exception) {
+                // A custom Action/Filter defined outside the Fluxzy.Core assembly cannot be
+                // round-tripped by PolymorphicConverter. The snapshot is best-effort meta data,
+                // so fall back to the live reference rather than failing proxy startup.
+                return capturedSetting;
+            }
         }
 
         private readonly string _archiveMetaInformationPath;
