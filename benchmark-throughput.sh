@@ -11,6 +11,14 @@ while [[ $# -gt 0 ]]; do
             SHORT_ARGS="--warmupCount 10 --iterationCount 10 --launchCount 1"
             shift
             ;;
+        --rsa-vs-ecc)
+            # Compare an RSA root CA against an ECDSA P-224 root CA on the proxy path.
+            # Same iteration length as --short; the benchmark drops the non-proxy baseline
+            # in this mode, so the case count stays identical to a plain --short run.
+            SHORT_ARGS="--warmupCount 10 --iterationCount 10 --launchCount 1"
+            export FLUXZY_BENCH_CA=1
+            shift
+            ;;
         --contention)
             # Opt-in CLR contention ETW trace (EventPipe). Produces .nettrace per run
             # in BenchmarkDotNet.Artifacts/. Open in PerfView / VS / speedscope.

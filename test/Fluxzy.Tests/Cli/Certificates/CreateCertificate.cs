@@ -44,6 +44,29 @@ namespace Fluxzy.Tests.Cli.Certificates
             Assert.Equal("CN=TestCN", certificate.Subject);
         }
 
+        [Theory]
+        [InlineData("ecdsa-p224", 224)]
+        [InlineData("ecdsa-p256", 256)]
+        [InlineData("ecdsa-p384", 384)]
+        [InlineData("ecdsa-p521", 521)]
+        [InlineData("p256", 256)]
+        public async Task Check_With_Ecdsa_Algorithm(string algorithm, int expectedKeySize)
+        {
+            var getTempPath = GetTempFile();
+
+            var runResult = await InternalRun("create", getTempPath.FullName, "TestCN", "-a", algorithm);
+
+            var certificate = new X509Certificate2(getTempPath.FullName);
+            using var ecdsaKey = certificate.GetECDsaPublicKey();
+
+            Assert.Equal(0, runResult.ExitCode);
+            Assert.True(getTempPath.Exists);
+            Assert.NotNull(ecdsaKey);
+            Assert.Equal(expectedKeySize, ecdsaKey!.KeySize);
+            Assert.Null(certificate.GetRSAPublicKey());
+            Assert.Equal("CN=TestCN", certificate.Subject);
+        }
+
         [Fact]
         public async Task Check_With_Option()
         {

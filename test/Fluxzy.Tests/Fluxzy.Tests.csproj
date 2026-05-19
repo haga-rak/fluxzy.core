@@ -54,6 +54,12 @@
     <None Update="_Files\Certificates\client-cert.pifix">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="_Files\Certificates\ecdsa-p256-root-ca.p12">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_Files\Certificates\ecdsa-p224-root-ca.p12">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_Files\Certificates\fluxzytest.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

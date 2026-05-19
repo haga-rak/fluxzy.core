@@ -11,6 +11,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
+using Fluxzy.Certificates;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Tests._Fixtures;
 using Microsoft.Diagnostics.NETCore.Client;
@@ -31,21 +32,46 @@ public class ProxyThroughputBenchmark
     private const int RequestsPerIteration = 500;
     private const int Concurrency = 56;
 
+    // Toggled by benchmark-throughput.sh --rsa-vs-ecc.
+    private static bool CompareCertificateAlgorithms =>
+        string.Equals(Environment.GetEnvironmentVariable("FLUXZY_BENCH_CA"), "1", StringComparison.Ordinal);
+
     private BenchmarkServerProcess _server = null!;
     private Proxy? _proxy;
     private HttpClient _client = null!;
     private SemaphoreSlim _semaphore = null!;
     private string _targetUrl = null!;
     private ByteCounter _byteCounter = null!;
+    private string? _caCertificatePath;
 
-    [Params(true, false)]
+    [ParamsSource(nameof(UseProxyValues))]
     public bool UseProxy { get; set; }
+
+    [ParamsSource(nameof(CaKeyAlgorithmValues))]
+    public CertificateKeyAlgorithm CaKeyAlgorithm { get; set; }
 
     [Params(true, false)]
     public bool ServeH2 { get; set; }
 
     [Params(0, 8192)]
     public int ResponseBodyLength { get; set; }
+
+    /// <summary>
+    ///     The root CA only sits in the request path when the proxy is used, so the non-proxy
+    ///     baseline is dropped in CA comparison mode. This keeps the case count identical to a
+    ///     plain run: the ECDSA axis replaces the dropped UseProxy axis.
+    /// </summary>
+    public static IEnumerable<bool> UseProxyValues =>
+        CompareCertificateAlgorithms ? new[] { true } : new[] { true, false };
+
+    /// <summary>
+    ///     Default runs use RSA only (single value, no extra cases). The --rsa-vs-ecc option of
+    ///     benchmark-throughput.sh adds an ECDSA P-224 root CA to compare TLS handshake key types.
+    /// </summary>
+    public static IEnumerable<CertificateKeyAlgorithm> CaKeyAlgorithmValues =>
+        CompareCertificateAlgorithms
+            ? new[] { CertificateKeyAlgorithm.Rsa, CertificateKeyAlgorithm.EcdsaP224 }
+            : new[] { CertificateKeyAlgorithm.Rsa };
 
     [GlobalSetup]
     public async Task Setup()
@@ -62,6 +88,7 @@ public class ProxyThroughputBenchmark
             var setting = FluxzySetting.CreateLocalRandomPort();
             setting.SetServeH2(ServeH2);
             setting.SetSkipInternalRules(true);
+            setting.SetCaCertificate(BuildRootCa(CaKeyAlgorithm));
             setting.ConfigureRule()
                 .WhenAny()
                 .Do(new SkipRemoteCertificateValidationAction()); // -k flag
@@ -138,6 +165,26 @@ public class ProxyThroughputBenchmark
             $"bandwidth-{useProxy}-{serveH2}-{responseBodyLength}.txt");
     }
 
+    /// <summary>
+    ///     Build a fresh self-signed root CA on the requested key algorithm and load it as the
+    ///     proxy CA. RSA and ECDSA go through the exact same path so the comparison stays fair;
+    ///     the file is removed in <see cref="Cleanup" />.
+    /// </summary>
+    private Certificate BuildRootCa(CertificateKeyAlgorithm algorithm)
+    {
+        var builderOptions = new CertificateBuilderOptions($"Fluxzy Benchmark {algorithm} CA") {
+            KeyAlgorithm = algorithm,
+            P12Password = "benchmark"
+        };
+
+        _caCertificatePath = Path.Combine(
+            Path.GetTempPath(), $"fluxzy-bench-ca-{Guid.NewGuid():N}.p12");
+
+        File.WriteAllBytes(_caCertificatePath, new CertificateBuilder(builderOptions).CreateSelfSigned());
+
+        return Certificate.LoadFromPkcs12(_caCertificatePath, "benchmark");
+    }
+
     private static HttpClient CreateDirectClient(Version httpVersion, ByteCounter byteCounter)
     {
         var sslOptions = new SslClientAuthenticationOptions {
@@ -181,6 +228,15 @@ public class ProxyThroughputBenchmark
 
         if (_server != null)
             await _server.DisposeAsync();
+
+        if (_caCertificatePath != null && File.Exists(_caCertificatePath)) {
+            try {
+                File.Delete(_caCertificatePath);
+            }
+            catch {
+                // best effort temp file cleanup
+            }
+        }
     }
 
     /// <summary>
