@@ -6,7 +6,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
+using Fluxzy.Core;
+using Fluxzy.Core.Breakpoints;
 using Fluxzy.Readers;
+using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Writers;
@@ -175,6 +178,46 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             var meta = reader.ReadMetaInformation();
 
             Assert.Null(meta.CapturedSetting);
+        }
+
+        [Fact]
+        public void Captured_Setting_With_Custom_Action_Does_Not_Throw()
+        {
+            // Regression (#653): a custom Action subclass declared outside the Fluxzy.Core
+            // assembly cannot be resolved by PolymorphicConverter, so the snapshot round-trip
+            // in FreezeCapturedSetting fails. Constructing the archive writer (and therefore
+            // the Proxy) must degrade gracefully instead of throwing a JsonException.
+            var setting = FluxzySetting.CreateDefault();
+            setting.AddAlterationRules(new CustomLabelingAction { Label = "vip" },
+                new HostFilter("example.com"));
+
+            var exception = Record.Exception(() => {
+                var writer = new DirectoryArchiveWriter(_baseDirectory, saveFilter: null, capturedSetting: setting);
+                writer.Init();
+                writer.Dispose();
+            });
+
+            Assert.Null(exception);
+        }
+    }
+
+    /// <summary>
+    /// A custom action declared in the test assembly, i.e. outside Fluxzy.Core, used to
+    /// reproduce the polymorphic deserialization failure of <see cref="CapturedSettingTests"/>.
+    /// </summary>
+    internal class CustomLabelingAction : Fluxzy.Rules.Action
+    {
+        public string Label { get; set; } = "default";
+
+        public override FilterScope ActionScope => FilterScope.RequestHeaderReceivedFromClient;
+
+        public override string DefaultDescription => "Custom labeling action";
+
+        public override ValueTask InternalAlter(
+            ExchangeContext context, Exchange? exchange, Connection? connection, FilterScope scope,
+            BreakPointManager breakPointManager)
+        {
+            return default;
         }
     }
 }
