@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Core;
 using Xunit;
 
@@ -302,6 +303,86 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             // Assert
             Assert.Equal(1, builderCallCount); // Regenerated because within buffer
             Assert.Equal(newCertBytes, result);
+        }
+
+        [Theory]
+        [InlineData("a/../../../../escaped")]
+        [InlineData("a\\..\\..\\..\\..\\escaped")]
+        [InlineData("../escaped")]
+        [InlineData("..\\escaped")]
+        [InlineData("sub/dir")]
+        public void Load_MaliciousRootDomain_DoesNotWriteOutsideCacheDirectory(string maliciousDomain)
+        {
+            // Arrange
+            var cache = new FileSystemCertificateCache(_setting);
+            var certBytes = CreateFakeCertificateBytes(DateTime.UtcNow.AddMonths(6));
+
+            var pfxBefore = EnumeratePfxFiles(_tempDirectory);
+
+            var normalized = maliciousDomain.Replace('\\', Path.DirectorySeparatorChar)
+                                            .Replace('/', Path.DirectorySeparatorChar);
+            var escapedTarget = Path.GetFullPath(
+                Path.Combine(_tempDirectory, "serial123", $"{normalized}.validitychecked.pfx"));
+
+            // Drop any leftover from a previous run to avoid a false positive.
+            if (File.Exists(escapedTarget) &&
+                !escapedTarget.StartsWith(Path.GetFullPath(_tempDirectory), StringComparison.Ordinal))
+                File.Delete(escapedTarget);
+
+            byte[] Builder(string domain) => certBytes;
+
+            // Act - call twice to also exercise the cache hit path
+            var result1 = cache.Load("serial123", maliciousDomain, Builder);
+            var result2 = cache.Load("serial123", maliciousDomain, Builder);
+
+            // Assert
+            Assert.False(File.Exists(escapedTarget),
+                $"A certificate was written to {escapedTarget}, escaping the cache directory");
+
+            var pfxAfter = EnumeratePfxFiles(_tempDirectory);
+            Assert.Equal(pfxBefore, pfxAfter);
+
+            using var cert1 = new X509Certificate2(result1);
+            using var cert2 = new X509Certificate2(result2);
+            Assert.NotNull(cert1);
+            Assert.NotNull(cert2);
+            Assert.Equal(certBytes, result1);
+            Assert.Equal(certBytes, result2);
+        }
+
+        private static System.Collections.Generic.HashSet<string> EnumeratePfxFiles(string root)
+        {
+            if (!Directory.Exists(root))
+                return new System.Collections.Generic.HashSet<string>();
+
+            return new System.Collections.Generic.HashSet<string>(
+                Directory.EnumerateFiles(root, "*.pfx", SearchOption.AllDirectories));
+        }
+
+        [Fact]
+        public void Load_LegitimateDomain_IsCachedToDisk()
+        {
+            // Arrange
+            var cache = new FileSystemCertificateCache(_setting);
+            var certBytes = CreateFakeCertificateBytes(DateTime.UtcNow.AddMonths(6));
+            var builderCallCount = 0;
+
+            byte[] Builder(string domain)
+            {
+                builderCallCount++;
+                return certBytes;
+            }
+
+            // Act
+            var result1 = cache.Load("serial123", "example.com", Builder);
+            var result2 = cache.Load("serial123", "example.com", Builder);
+
+            // Assert
+            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.validitychecked.pfx");
+            Assert.True(File.Exists(fileName));
+            Assert.Equal(1, builderCallCount);
+            Assert.Equal(certBytes, result1);
+            Assert.Equal(certBytes, result2);
         }
 
         /// <summary>

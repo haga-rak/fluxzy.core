@@ -36,7 +36,8 @@ namespace Fluxzy.Core
             if (_startupSetting.DisableCertificateCache)
                 return certificateBuilder(rootDomain);
 
-            var fullFileName = GetCertificateFileName(baseCertificateSerialNumber, rootDomain);
+            if (!TryGetCertificateFileName(baseCertificateSerialNumber, rootDomain, out var fullFileName))
+                return certificateBuilder(rootDomain);
 
             if (File.Exists(fullFileName)) {
                 using var stream = File.OpenRead(fullFileName);
@@ -89,9 +90,30 @@ namespace Fluxzy.Core
             return cert.NotAfter;
         }
 
-        private string GetCertificateFileName(string baseSerialNumber, string rootDomain)
+        private bool TryGetCertificateFileName(string baseSerialNumber, string rootDomain, out string fullFileName)
         {
-            return Path.Combine(_baseDirectory, baseSerialNumber, $"{rootDomain}.validitychecked.pfx");
+            fullFileName = string.Empty;
+
+            // rootDomain comes from the client supplied authority. Reject separators up front
+            // ('\' is not normalized by GetFullPath on Unix) before resolving the path.
+            if (rootDomain.IndexOf('/') >= 0 || rootDomain.IndexOf('\\') >= 0)
+                return false;
+
+            var baseDirectory = Path.GetFullPath(_baseDirectory);
+            var serialDirectory = Path.GetFullPath(Path.Combine(baseDirectory, baseSerialNumber));
+
+            if (!serialDirectory.StartsWith(baseDirectory, StringComparison.Ordinal))
+                return false;
+
+            var candidate = Path.GetFullPath(
+                Path.Combine(serialDirectory, $"{rootDomain}.validitychecked.pfx"));
+
+            // Reject traversal that escapes the per-serial cache directory.
+            if (Path.GetDirectoryName(candidate) != serialDirectory)
+                return false;
+
+            fullFileName = candidate;
+            return true;
         }
     }
 
