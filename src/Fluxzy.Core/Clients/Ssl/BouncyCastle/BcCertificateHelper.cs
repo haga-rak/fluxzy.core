@@ -55,7 +55,9 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
             issuer = structure.Issuer.ToString();
             notBefore = structure.StartDate.ToDateTime();
             notAfter = structure.EndDate.ToDateTime();
-            serialNumber = Convert.ToHexString(structure.SerialNumber.Value.ToByteArrayUnsigned());
+            // ToByteArray keeps the DER sign byte (leading 00 when the MSB high bit is set),
+            // matching .NET X509Certificate2.SerialNumber so both providers report the same serial.
+            serialNumber = Convert.ToHexString(structure.SerialNumber.Value.ToByteArray());
 
             return true;
         }
