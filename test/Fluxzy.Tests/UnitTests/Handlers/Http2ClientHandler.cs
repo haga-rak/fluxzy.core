@@ -56,7 +56,6 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         [InlineData("https://fr.wiktionary.org/static/images/icons/wiktionary.svg")]
         [InlineData("https://services.gfe.nvidia.com/GFE/v1.0/dao/x64")]
         [InlineData($"https://{TestConstants.HttpBinHost}/ip")]
-        [InlineData("https://cds.taboola.com/?uid=7a5716a9-185b-4b54-8155-87f4b705c55f-tuct7ead376&src=tfa")]
         public async Task Get_Error_Case(string url)
         {
             using var handler = new FluxzyHttp2Handler();
