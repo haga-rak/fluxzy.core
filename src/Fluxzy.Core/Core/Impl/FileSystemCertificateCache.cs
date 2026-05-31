@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Fluxzy.Core
@@ -70,11 +71,16 @@ namespace Fluxzy.Core
 
             var directory = Path.GetDirectoryName(fullFileName);
 
-            if (directory != null)
+            if (directory != null) {
                 Directory.CreateDirectory(directory);
+                RestrictToOwner(directory, isDirectory: true);
+            }
 
             // Write header (8 bytes ticks) + certificate bytes
             using (var stream = File.Create(fullFileName)) {
+                // Lock down to owner before writing the embedded private key.
+                RestrictToOwner(fullFileName, isDirectory: false);
+
                 Span<byte> header = stackalloc byte[ExpirationHeaderSize];
                 BitConverter.TryWriteBytes(header, notAfterDate.Ticks);
                 stream.Write(header);
@@ -82,6 +88,19 @@ namespace Fluxzy.Core
             }
 
             return certContent;
+        }
+
+        private static void RestrictToOwner(string path, bool isDirectory)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
+            var mode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+
+            if (isDirectory)
+                mode |= UnixFileMode.UserExecute; // traversal bit, yields 0700
+
+            File.SetUnixFileMode(path, mode);
         }
 
         private static DateTime GetCertificateNotAfter(byte[] certificateBytes)
