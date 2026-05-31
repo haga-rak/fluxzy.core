@@ -22,24 +22,124 @@ namespace Fluxzy.Core
         {
             _rawHeaderFields = headerFields as List<HeaderField> ?? new List<HeaderField>(headerFields);
 
-            // Single pass to compute ChunkedBody and ContentLength
-            var contentLength = -1L;
+            NormalizeMessageFraming();
+        }
+
+        /// <summary>
+        ///     Reconciles Transfer-Encoding and Content-Length once, at parse time, so the
+        ///     body we frame on the read side matches the framing we forward to the peer.
+        ///     Closes the HTTP/1.1 smuggling vectors (RFC 7230 §3.3.3): a Content-Length kept
+        ///     alongside Transfer-Encoding: chunked, duplicate/conflicting Content-Length, and
+        ///     invalid (negative, non-numeric, overflowing) Content-Length values.
+        /// </summary>
+        private void NormalizeMessageFraming()
+        {
+            var chunked = false;
 
             foreach (var field in _rawHeaderFields) {
-                if (!ChunkedBody &&
-                    field.Name.Span.Equals(Http11Constants.TransferEncodingVerb.Span,
-                        StringComparison.OrdinalIgnoreCase) &&
-                    field.Value.Span.Equals("chunked", StringComparison.OrdinalIgnoreCase)) {
-                    ChunkedBody = true;
-                }
-
-                if (field.Name.Span.Equals(Http11Constants.ContentLength.Span,
-                        StringComparison.OrdinalIgnoreCase) &&
-                    long.TryParse(field.Value.Span, out contentLength)) {
-                    // In case of multiple content length we take the last
-                    ContentLength = contentLength;
+                if (field.Name.Span.Equals(Http11Constants.TransferEncodingVerb.Span,
+                        StringComparison.OrdinalIgnoreCase)) {
+                    // Multiple Transfer-Encoding fields fold into one ordered list; the body
+                    // is chunked when the final coding is chunked.
+                    chunked = EndsWithChunkedToken(field.Value.Span);
                 }
             }
+
+            if (chunked) {
+                // Transfer-Encoding overrides Content-Length; a forwarding proxy MUST drop
+                // Content-Length so the peer cannot frame the body a second way.
+                RemoveHeader("content-length");
+                ChunkedBody = true;
+                ContentLength = -1;
+
+                return;
+            }
+
+            long? agreedLength = null;
+            var contentLengthCount = 0;
+
+            foreach (var field in _rawHeaderFields) {
+                if (!field.Name.Span.Equals(Http11Constants.ContentLength.Span,
+                        StringComparison.OrdinalIgnoreCase)) {
+                    continue;
+                }
+
+                contentLengthCount++;
+
+                if (!TryParseContentLength(field.Value.Span, out var value)) {
+                    throw new InvalidHttpFramingException(
+                        $"Rejected message: invalid Content-Length value '{field.Value.ToString()}'.");
+                }
+
+                if (agreedLength is { } previous && previous != value) {
+                    throw new InvalidHttpFramingException(
+                        "Rejected message: conflicting Content-Length header values.");
+                }
+
+                agreedLength = value;
+            }
+
+            if (agreedLength is { } length) {
+                ContentLength = length;
+
+                if (contentLengthCount > 1) {
+                    // Equal duplicates are recoverable: collapse to a single canonical field
+                    // so we never forward more than one Content-Length downstream.
+                    RemoveHeader("content-length");
+                    _rawHeaderFields.Add(new HeaderField("Content-Length", length.ToString()));
+                }
+            }
+        }
+
+        // RFC 7230 §3.3.2: Content-Length = 1*DIGIT. Reject signs, lists, and other
+        // non-digit content; tolerate surrounding OWS (SP / HTAB) only.
+        private static bool TryParseContentLength(ReadOnlySpan<char> value, out long result)
+        {
+            result = -1;
+
+            var start = 0;
+            var end = value.Length;
+
+            while (start < end && (value[start] == ' ' || value[start] == '\t')) {
+                start++;
+            }
+
+            while (end > start && (value[end - 1] == ' ' || value[end - 1] == '\t')) {
+                end--;
+            }
+
+            if (start == end) {
+                return false;
+            }
+
+            long acc = 0;
+
+            for (var i = start; i < end; i++) {
+                var c = value[i];
+
+                if (c < '0' || c > '9') {
+                    return false;
+                }
+
+                acc = acc * 10 + (c - '0');
+
+                if (acc < 0) {
+                    return false; // overflowed past long.MaxValue
+                }
+            }
+
+            result = acc;
+
+            return true;
+        }
+
+        // True when the last comma-separated transfer-coding token is "chunked".
+        private static bool EndsWithChunkedToken(ReadOnlySpan<char> value)
+        {
+            var lastComma = value.LastIndexOf(',');
+            var token = lastComma < 0 ? value : value.Slice(lastComma + 1);
+
+            return token.Trim().Equals("chunked", StringComparison.OrdinalIgnoreCase);
         }
 
         protected Header(
@@ -408,6 +508,11 @@ namespace Fluxzy.Core
                 // Appending a second entry breaks strict HTTP clients (issue #615).
                 return;
             }
+
+            // Switching to chunked: drop any Content-Length so the peer cannot frame the
+            // body two different ways (CL/TE desync = smuggling).
+            RemoveHeader("content-length");
+            ContentLength = -1;
 
             _rawHeaderFields.Add(new HeaderField("Transfer-Encoding", "chunked"));
             ChunkedBody = true;
