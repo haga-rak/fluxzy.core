@@ -3,32 +3,31 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip;
 
 namespace Fluxzy
 {
     /// <summary>
-    ///     Utilities for zipping a directory
+    ///     Utilities for zipping a directory using the runtime's <see cref="System.IO.Compression" />.
     /// </summary>
     internal static class ZipHelper
     {
-        public static Task DecompressAsync(
+        // ZipArchiveEntry timestamps must not predate the MS-DOS epoch (1980-01-01).
+        private static readonly DateTime DosEpoch = new(1980, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+
+        public static async Task DecompressAsync(
             Stream input,
             DirectoryInfo directoryInfo)
         {
-            new FastZip().ExtractZip(input, directoryInfo.FullName, FastZip.Overwrite.Always,
-                s => true, ".*", ".*", true, true);
-
-            return Task.CompletedTask;
+            await InternalDecompress(input, directoryInfo, true);
         }
 
         public static void Decompress(
             Stream input,
             DirectoryInfo directoryInfo)
         {
-            new FastZip().ExtractZip(input, directoryInfo.FullName, FastZip.Overwrite.Always,
-                s => true, ".*", ".*", true, true);
+            InternalDecompress(input, directoryInfo, false).GetAwaiter().GetResult();
         }
 
         public static async Task Compress(
@@ -39,13 +38,14 @@ namespace Fluxzy
             if (!directoryInfo.Exists)
                 throw new ArgumentException($"Directory {directoryInfo.FullName} does not exists");
 
-            await using var zipStream = new ZipOutputStream(output) {
-                IsStreamOwner = false
-            };
+            using var zipArchive = new ZipArchive(output, ZipArchiveMode.Create, true);
 
-            zipStream.SetLevel(3);
+            foreach (var fileInfo in directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories)) {
+                if (!fileInfo.Exists || !policy(fileInfo))
+                    continue;
 
-            await InternalCompressDirectory(directoryInfo, zipStream, policy);
+                await AddEntry(zipArchive, directoryInfo, fileInfo, false);
+            }
         }
 
         public static async Task CompressWithFileInfos(
@@ -55,90 +55,130 @@ namespace Fluxzy
             if (!directoryInfo.Exists)
                 throw new InvalidOperationException($"Directory {directoryInfo.FullName} does not exists");
 
-            await using var zipStream = new ZipOutputStream(output);
-
-            zipStream.SetLevel(3);
-
-            await InternaCompressDirectoryWithFileInfos(directoryInfo, zipStream, fileInfos);
-        }
-
-        private static async Task InternalCompressDirectory(
-            DirectoryInfo directoryInfo, ZipOutputStream zipStream,
-            Func<FileInfo, bool> policy)
-        {
-            var fileInfos = directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories);
-            var directoryName = directoryInfo.FullName;
+            using var zipArchive = new ZipArchive(output, ZipArchiveMode.Create, false);
 
             foreach (var fileInfo in fileInfos) {
-                if (!fileInfo.Exists)
-                    continue;
+                await AddEntry(zipArchive, directoryInfo, fileInfo, true);
+            }
+        }
 
-                if (!policy(fileInfo))
-                    continue;
+        private static async Task AddEntry(
+            ZipArchive zipArchive, DirectoryInfo directoryInfo, FileInfo fileInfo, bool ignoreIoErrors)
+        {
+            try {
+                if (!fileInfo.Exists)
+                    return;
 
                 await using var fsInput = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 if (fsInput.Length == 0)
-                    continue;
+                    return;
 
-                var entryName = fileInfo.FullName.Replace(directoryName, string.Empty);
+                var entryName = CleanEntryName(fileInfo.FullName, directoryInfo.FullName);
 
-                entryName = ZipEntry.CleanName(entryName);
+                // pcap/pcapng files are already large binary captures that don't compress well.
+                var compressionLevel =
+                    fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase) ||
+                    fileInfo.Name.EndsWith("pcapng", StringComparison.OrdinalIgnoreCase)
+                        ? CompressionLevel.NoCompression
+                        : CompressionLevel.Fastest;
 
-                var newEntry = new ZipEntry(entryName) {
-                    DateTime = fileInfo.LastWriteTime
-                };
+                var newEntry = zipArchive.CreateEntry(entryName, compressionLevel);
 
-                if (fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase) ||
-                    fileInfo.Name.EndsWith("pcapng", StringComparison.OrdinalIgnoreCase)) {
-                    // We don't want to compress pcap files
-                    newEntry.CompressionMethod = CompressionMethod.Stored;
-                }
+                var lastWriteTime = fileInfo.LastWriteTime;
+                newEntry.LastWriteTime = lastWriteTime < DosEpoch ? DosEpoch : lastWriteTime;
 
-                await zipStream.PutNextEntryAsync(newEntry);
-                await fsInput.CopyToAsync(zipStream);
-                zipStream.CloseEntry();
+                await using var entryStream = newEntry.Open();
+                await fsInput.CopyToAsync(entryStream);
+            }
+            catch (IOException) when (ignoreIoErrors) {
+                // read input is ignored, file may currently be used by engine
             }
         }
 
-        private static async Task InternaCompressDirectoryWithFileInfos(
-            DirectoryInfo directoryInfo, ZipOutputStream zipStream,
-            IEnumerable<FileInfo> fileInfos)
+        private static async Task InternalDecompress(Stream input, DirectoryInfo directoryInfo, bool useAsync)
         {
-            var directoryName = directoryInfo.FullName;
+            // ZipArchive (Read) needs a seekable stream to locate the central directory.
+            Stream seekableInput;
+            MemoryStream? bufferedInput = null;
 
-            foreach (var fileInfo in fileInfos) {
-                try {
-                    if (!fileInfo.Exists)
+            if (input.CanSeek) {
+                seekableInput = input;
+            }
+            else {
+                bufferedInput = new MemoryStream();
+
+                if (useAsync)
+                    await input.CopyToAsync(bufferedInput);
+                else
+                    input.CopyTo(bufferedInput);
+
+                bufferedInput.Position = 0;
+                seekableInput = bufferedInput;
+            }
+
+            try {
+                using var zipArchive = new ZipArchive(seekableInput, ZipArchiveMode.Read, true);
+
+                var destinationRoot = Path.GetFullPath(directoryInfo.FullName);
+
+                Directory.CreateDirectory(destinationRoot);
+
+                foreach (var entry in zipArchive.Entries) {
+                    var fullPath = Path.GetFullPath(Path.Combine(destinationRoot, entry.FullName));
+
+                    // Zip-slip protection: reject entries that resolve outside the destination directory.
+                    if (!fullPath.StartsWith(destinationRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                        && !string.Equals(fullPath, destinationRoot, StringComparison.Ordinal))
                         continue;
 
-                    await using var fsInput = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    // Directory entries have an empty name.
+                    if (string.IsNullOrEmpty(entry.Name)) {
+                        Directory.CreateDirectory(fullPath);
 
-                    if (fsInput.Length == 0)
                         continue;
-
-                    var entryName = fileInfo.FullName.Replace(directoryName, string.Empty);
-                    entryName = ZipEntry.CleanName(entryName);
-
-                    var newEntry = new ZipEntry(entryName) {
-                        DateTime = fileInfo.LastWriteTime
-                    };
-
-                    if (
-                        fileInfo.Name.EndsWith("pcap", StringComparison.OrdinalIgnoreCase) ||
-                        fileInfo.Name.EndsWith("pcapng", StringComparison.OrdinalIgnoreCase)) {
-                        // We don't want to compress pcap files
-                        newEntry.CompressionMethod = CompressionMethod.Stored;
                     }
 
-                    await zipStream.PutNextEntryAsync(newEntry);
-                    await fsInput.CopyToAsync(zipStream);
-                    zipStream.CloseEntry();
-                }
-                catch (IOException) {
-                    // read input is ignored, file may currently used by engine
+                    var parentDirectory = Path.GetDirectoryName(fullPath);
+
+                    if (parentDirectory != null)
+                        Directory.CreateDirectory(parentDirectory);
+
+                    await using (var entryStream = entry.Open())
+                    await using (var outputFileStream = File.Create(fullPath)) {
+                        if (useAsync)
+                            await entryStream.CopyToAsync(outputFileStream);
+                        else
+                            entryStream.CopyTo(outputFileStream);
+                    }
+
+                    try {
+                        File.SetLastWriteTime(fullPath, entry.LastWriteTime.LocalDateTime);
+                    }
+                    catch (IOException) {
+                        // restoring the timestamp is best-effort
+                    }
+                    catch (ArgumentOutOfRangeException) {
+                        // entry timestamp out of range, ignored
+                    }
                 }
             }
+            finally {
+                if (bufferedInput != null)
+                    await bufferedInput.DisposeAsync();
+            }
+        }
+
+        /// <summary>
+        ///     Builds a normalized, forward-slash zip entry name relative to <paramref name="directoryName" />.
+        /// </summary>
+        private static string CleanEntryName(string fullName, string directoryName)
+        {
+            var entryName = fullName.Replace(directoryName, string.Empty);
+
+            entryName = entryName.Replace('\\', '/');
+
+            return entryName.TrimStart('/');
         }
     }
 }

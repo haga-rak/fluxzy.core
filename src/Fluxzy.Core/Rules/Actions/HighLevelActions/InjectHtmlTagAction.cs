@@ -15,12 +15,15 @@ namespace Fluxzy.Rules.Actions.HighLevelActions
     /// <summary>
     ///     This action stream a response body and inject a text after the first specified html tag.
     ///     This action can be used to inject a html code snippet after opening `<head>` tag in a html page.
-    ///     This action supports chunked transfer stream and the following body encodings: gzip, deflate, brotli and lzw.This action supports chunked transfer stream and the following content encodings: gzip, deflate, brotli and lzw.
+    ///     This action supports chunked transfer stream and decodes gzip, deflate and brotli out of the box.
+    ///     Other content encodings (e.g. compress/LZW, zstd) are supported only when a matching decoder is
+    ///     registered through <see cref="ContentDecoderRegistry" />.
     /// </summary>
     [ActionMetadata(
         "This action stream a response body and inject a text after the first specified html tag." +
         "This action can be used to inject a html code snippet after opening `<head>` tag in any traversing html page." +
-        "This action supports chunked transfer stream and the following body encodings: gzip, deflate, brotli and lzw.",
+        "This action supports chunked transfer stream and decodes gzip, deflate and brotli out of the box; " +
+        "other content encodings require a decoder registered via ContentDecoderRegistry.",
         NonDesktopAction = true)]
     public class InjectHtmlTagAction : Action
     {
