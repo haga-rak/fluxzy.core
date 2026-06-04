@@ -2,10 +2,8 @@
 
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Threading.Tasks;
 using Fluxzy.Extensions;
-using ICSharpCode.SharpZipLib.Lzw;
 
 namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
 {
@@ -38,48 +36,17 @@ namespace Fluxzy.Formatters.Producers.ProducerActions.Actions
                 return true;
             }
 
-            if (context.CompressionInfo?.CompressionName == null ||
-                context.CompressionInfo?.CompressionName == nameof(CompressionType.None)) {
+            var encodingToken = context.CompressionInfo?.EncodingToken;
+
+            if (string.IsNullOrEmpty(encodingToken)) {
                 await rawFileStream.CopyToAsync(outStream);
 
                 return true;
             }
 
-            var compressionType = Enum.Parse<CompressionType>(context.CompressionInfo!.CompressionName);
-
-            Stream resultStream;
-
-            switch (compressionType) {
-                case CompressionType.None:
-                    resultStream = rawFileStream;
-
-                    break;
-
-                case CompressionType.Gzip:
-                    resultStream = new GZipStream(rawFileStream, CompressionMode.Decompress, true);
-
-                    break;
-
-                case CompressionType.Deflate:
-                    resultStream = new DeflateStream(rawFileStream, CompressionMode.Decompress, true);
-
-                    break;
-
-                case CompressionType.Compress:
-                    resultStream = new LzwInputStream(rawFileStream);
-
-                    break;
-
-                case CompressionType.Brotli:
-                    resultStream = new BrotliStream(rawFileStream, CompressionMode.Decompress, true);
-
-                    break;
-
-                default:
-                    resultStream = rawFileStream;
-
-                    break;
-            }
+            // gzip/deflate/brotli are decoded natively; other encodings (e.g. compress/LZW, zstd) require a
+            // decoder registered via ContentDecoderRegistry, otherwise a FluxzyException is thrown.
+            var resultStream = CompressionHelper.GetDecodedStream(encodingToken, rawFileStream);
 
             await resultStream.CopyToAsync(outStream);
 

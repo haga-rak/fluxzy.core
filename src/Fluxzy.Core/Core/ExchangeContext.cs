@@ -243,9 +243,9 @@ namespace Fluxzy.Core
         }
 
         internal ValueTask<Stream> GetSubstitutedResponseBody(
-            Stream original, bool chunkedTransfer, CompressionType compressionType)
+            Stream original, bool chunkedTransfer, string? encodingToken)
         {
-            // remove compression from exchange 
+            // remove compression from exchange
 
             var decoded = original;
 
@@ -253,8 +253,8 @@ namespace Fluxzy.Core
                 decoded = CompressionHelper.GetUnChunkedStream(decoded);
             }
 
-            if (compressionType != CompressionType.None) {
-                decoded = CompressionHelper.GetDecodedStream(compressionType, decoded);
+            if (!string.IsNullOrEmpty(encodingToken)) {
+                decoded = CompressionHelper.GetDecodedStream(encodingToken, decoded);
             }
 
             return SubstitutionHelper.GetSubstitutedStream(decoded, _responseBodySubstitutions ??
@@ -263,9 +263,10 @@ namespace Fluxzy.Core
 
         internal ValueTask<Stream> GetSubstitutedRequestBody(Stream original, Exchange exchange)
         {
-            var decoded = exchange.GetDecodedRequestBodyStream(original, out var compressionType);
+            var encodingToken = exchange.GetRequestContentEncoding();
+            var decoded = exchange.GetDecodedRequestBodyStream(original, out _);
 
-            if (compressionType != CompressionType.None) {
+            if (!string.IsNullOrEmpty(encodingToken)) {
                 exchange.Request.Header.RemoveHeader("content-encoding");
             }
 

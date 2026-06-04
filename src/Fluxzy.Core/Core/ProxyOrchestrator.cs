@@ -572,14 +572,14 @@ namespace Fluxzy.Core
                     var responseBodyStream = exchange.Response.Body;
 
                     var responseBodyChunked = false;
-                    var compressionType = CompressionType.None;
+                    string? responseEncodingToken = null;
 
                     if (exchange.Context.HasResponseBodySubstitution)
                     {
                         responseBodyChunked = exchange.IsResponseChunkedTransferEncoded();
-                        compressionType = exchange.GetResponseCompressionType();
+                        responseEncodingToken = exchange.GetResponseContentEncoding();
 
-                        if (compressionType != CompressionType.None)
+                        if (!string.IsNullOrEmpty(responseEncodingToken))
                         {
                             exchange.Response.Header.RemoveHeader("content-encoding");
                         }
@@ -634,7 +634,7 @@ namespace Fluxzy.Core
 
                                 responseBodyStream = await
                                     exchange.Context.GetSubstitutedResponseBody(
-                                                responseBodyStream, responseBodyChunked, compressionType)
+                                                responseBodyStream, responseBodyChunked, responseEncodingToken)
                                             .ConfigureAwait(false);
                             }
 
