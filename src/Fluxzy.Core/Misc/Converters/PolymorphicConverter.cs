@@ -10,23 +10,14 @@ namespace Fluxzy.Misc.Converters
 {
     public class PolymorphicConverter<T> : JsonConverter<T> where T : PolymorphicObject
     {
-        private readonly Dictionary<string, Type> _typeMapping;
+        private readonly IReadOnlyDictionary<string, Type> _typeMapping;
 
         public PolymorphicConverter(params Type[] args)
         {
-            if (args.Any()) {
-                _typeMapping = args.ToDictionary(t => t.Name, t => t, StringComparer.OrdinalIgnoreCase);
-
-                return;
-            }
-
-            var foundTypes = typeof(T).Assembly.GetTypes()
-                                      .Where(derivedType => typeof(T).IsAssignableFrom(derivedType)
-                                                            && derivedType != typeof(T)
-                                                            && !derivedType.IsAbstract
-                                                            && derivedType.IsClass).ToList();
-
-            _typeMapping = foundTypes.ToDictionary(t => t.Name, t => t, StringComparer.OrdinalIgnoreCase);
+            // Assembly scan shared with the YAML rule reader via PolymorphicTypeResolver.
+            _typeMapping = args.Any()
+                ? args.ToDictionary(t => t.Name, t => t, StringComparer.OrdinalIgnoreCase)
+                : PolymorphicTypeResolver.GetMap(typeof(T));
         }
 
         public override bool CanConvert(Type typeToConvert)

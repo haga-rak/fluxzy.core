@@ -41,8 +41,20 @@ namespace Fluxzy.Rules
             // Retains only inverted 
 
             return properties.Where(p =>
-                p.Name.Equals(nameof(Filter.TypeKind), 
+                p.Name.Equals(nameof(Filter.TypeKind),
                     StringComparison.OrdinalIgnoreCase));
         }
+
+        public override string GetEnumName(Type enumType, string name)
+            => _innerTypeInspector.GetEnumName(enumType, name);
+
+        public override string GetEnumValue(object enumValue)
+            => _innerTypeInspector.GetEnumValue(enumValue);
+
+        public override bool HasParseMethod(Type type)
+            => _innerTypeInspector.HasParseMethod(type);
+
+        public override object? Parse(string value, Type expectedType)
+            => _innerTypeInspector.Parse(value, expectedType);
     }
 }

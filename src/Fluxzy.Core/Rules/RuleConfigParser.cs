@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
+using Fluxzy.Rules.Yaml;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -28,147 +28,111 @@ namespace Fluxzy.Rules
 
         public RuleSet? TryGetRuleSetFromYaml(string yamlContent, out List<RuleConfigReaderError>? readErrors)
         {
-            var deserializer = BuildDefaultDeserializer();
-            using var stringReader = new StringReader(yamlContent);
+            readErrors = new List<RuleConfigReaderError>();
 
-            Dictionary<string, object> rawObject;
+            RuleSet? ruleSet;
 
             try {
-                rawObject = deserializer.Deserialize<Dictionary<string, object>>(stringReader);
-
-                if (rawObject.Any(r => r.Key != "rules")) {
-                    readErrors = new List<RuleConfigReaderError> {
-                        new(
-                            $"Unknown entries found {string.Join(", ", rawObject.Where(r => r.Key != "rules").Select(s => s.Key))}. Expected \"rules\"")
-                    };
-
-                    return null;
-                }
+                using var stringReader = new StringReader(yamlContent);
+                ruleSet = RuleYamlDeserializerFactory.Instance.Deserialize<RuleSet>(stringReader);
             }
-            catch (Exception e) {
-                if (e is SemanticErrorException see) {
-                    readErrors = new List<RuleConfigReaderError> {
-                        new($"{see.Message} {see.End}")
-                    };
+            catch (YamlException ex) {
+                readErrors.Add(ToError(ex));
 
-                    return null;
-                }
-
-                readErrors = new List<RuleConfigReaderError> {
-                    new($"Unable to read yaml file : {e.Message}")
-                };
+                return null;
+            }
+            catch (Exception ex) {
+                readErrors.Add(new RuleConfigReaderError($"Unable to read yaml file : {ex.Message}"));
 
                 return null;
             }
 
-            readErrors = new List<RuleConfigReaderError>();
+            if (ruleSet?.Rules == null || ruleSet.Rules.Count == 0) {
+                readErrors.Add(new RuleConfigReaderError("No rule found. Expected a top-level \"rules\" entry."));
+
+                return null;
+            }
 
             var ruleIndex = 1;
 
-            var result = new RuleSet();
+            foreach (var container in ruleSet.Rules) {
+                var ruleName = container.Name ?? $"Rule #{ruleIndex}";
 
-            if (rawObject.TryGetValue("rules", out var tempList) && tempList is ICollection<object> items) {
-                foreach (var item in items) {
-                    var current = InternalTryGetRuleFromYaml(out var partialErrors, item);
+                ValidateContainer(container, ruleName, $"rules[{ruleIndex - 1}]", readErrors);
 
-                    var ruleName = current?.Name ?? $"Rule #{ruleIndex}";
-
-                    ruleIndex++;
-
-                    if (current == null) {
-                        readErrors.Add(new RuleConfigReaderError($"Error in “{ruleName}”"));
-                        readErrors.AddRange(partialErrors);
-
-                        continue;
-                    }
-
-                    result.Rules.Add(current);
-                }
+                ruleIndex++;
             }
 
-            return readErrors.Any() ? null : result;
+            return readErrors.Any() ? null : ruleSet;
         }
 
         public RuleConfigContainer? TryGetRuleFromYaml(
             string yamlContent,
             out List<RuleConfigReaderError>? readErrors)
         {
-            var deserializer = BuildDefaultDeserializer();
-
-            using var stringReader = new StringReader(yamlContent);
-
-            try {
-                var rawObject = deserializer.Deserialize(stringReader);
-
-                return InternalTryGetRuleFromYaml(out readErrors, rawObject);
-            }
-            catch (Exception ex) {
-                if (ex is SemanticErrorException see) {
-                    readErrors = new List<RuleConfigReaderError> {
-                        new($"{see.Message} {see.End}")
-                    };
-
-                    return null;
-                }
-
-                readErrors = new List<RuleConfigReaderError> {
-                    new("Not a valid yaml " + ex.Message)
-                };
-
-                return null;
-            }
-        }
-
-        private static RuleConfigContainer? InternalTryGetRuleFromYaml(
-            out List<RuleConfigReaderError> readErrors, object? rawObject)
-        {
-            var flatJson = JsonSerializer.Serialize(rawObject, GlobalArchiveOption.ConfigSerializerOptions);
-
             readErrors = new List<RuleConfigReaderError>();
 
-            // TODO skip entirely System.Text.Json bridge 
-            // Main downside of current method is the user is unable to determine in which line the error occurs
-            // 
             RuleConfigContainer? rule;
 
             try {
-                rule = JsonSerializer.Deserialize<RuleConfigContainer?>(flatJson,
-                    GlobalArchiveOption.ConfigSerializerOptions);
+                using var stringReader = new StringReader(yamlContent);
+                rule = RuleYamlDeserializerFactory.Instance.Deserialize<RuleConfigContainer>(stringReader);
             }
-            catch (Exception e) {
-                readErrors.Add(new RuleConfigReaderError(e.Message));
+            catch (YamlException ex) {
+                readErrors.Add(ToError(ex));
+
+                return null;
+            }
+            catch (Exception ex) {
+                readErrors.Add(new RuleConfigReaderError("Not a valid yaml " + ex.Message));
 
                 return null;
             }
 
-            if (rule == null) {
-                readErrors.Add(new RuleConfigReaderError("Cannot parse rule"));
+            ValidateContainer(rule, "rule", path: null, readErrors);
 
-                return null;
-            }
-
-            if (rule.Filter == null!) {
-                readErrors.Add(new RuleConfigReaderError("Unable to detect filter matching this rule"));
-
-                return null;
-            }
-
-            if (!rule.GetAllActions().Any()) {
-                readErrors.Add(new RuleConfigReaderError("Unable to detect action matching this rule"));
-
-                return null;
-            }
-
-            return rule;
+            return readErrors.Any() ? null : rule;
         }
 
-        private static IDeserializer BuildDefaultDeserializer()
+        private static void ValidateContainer(
+            RuleConfigContainer? container, string ruleName, string? path,
+            List<RuleConfigReaderError> readErrors)
         {
-            var deserializer = new DeserializerBuilder()
-                               .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                               .Build();
+            if (container == null) {
+                readErrors.Add(new RuleConfigReaderError("Cannot parse rule"));
 
-            return deserializer;
+                return;
+            }
+
+            if (container.Filter == null!) {
+                readErrors.Add(new RuleConfigReaderError(
+                    $"Unable to detect filter matching this rule (“{ruleName}”)", null, null, path));
+            }
+
+            if (!container.GetAllActions().Any()) {
+                readErrors.Add(new RuleConfigReaderError(
+                    $"Unable to detect action matching this rule (“{ruleName}”)", null, null, path));
+            }
+        }
+
+        /// <summary>
+        ///     Maps a <see cref="YamlException" /> to a reader error, using the innermost exception for the
+        ///     most specific message and position.
+        /// </summary>
+        private static RuleConfigReaderError ToError(YamlException exception)
+        {
+            var innermost = exception;
+
+            while (innermost.InnerException is YamlException inner) {
+                innermost = inner;
+            }
+
+            var start = innermost.Start;
+
+            return new RuleConfigReaderError(
+                innermost.Message,
+                start.Line > 0 ? (int) start.Line : (int?) null,
+                start.Column > 0 ? (int) start.Column : (int?) null);
         }
 
         private static ISerializer BuildDefaultSerializer()
