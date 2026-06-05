@@ -14,9 +14,14 @@ namespace Fluxzy.Cli
 {
     public static class FluxzyStartup
     {
-        public static async Task<int> Run(string[] args, OutputConsole? outputConsole, CancellationToken token, 
+        private static int _decodersRegistered;
+
+        public static async Task<int> Run(string[] args, OutputConsole? outputConsole, CancellationToken token,
             EnvironmentProvider? environmentProvider = null)
         {
+            if (Interlocked.Exchange(ref _decodersRegistered, 1) == 0)
+                ContentDecoderRegistry.Register(new ZstandardContentDecoder());
+
             var currentEnvironmentProvider = environmentProvider ?? new SystemEnvironmentProvider();
 
             if (currentEnvironmentProvider.GetEnvironmentVariable("FLUXZY_STDOUT_ARGS") == "1") {
