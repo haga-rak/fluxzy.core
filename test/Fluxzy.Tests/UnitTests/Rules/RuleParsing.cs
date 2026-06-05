@@ -354,6 +354,48 @@ namespace Fluxzy.Tests.UnitTests.Rules
             Assert.False(filter.Children.Last().Inverted);
         }
 
+        [Fact]
+        public void Reading_Should_Parse_Nested_Filter_Collection_With_Deep_Values()
+        {
+            var ruleConfigReader = new RuleConfigParser();
+
+            var yamlContent = """
+                filter:
+                  typeKind: FilterCollection
+                  operation: And
+                  children:
+                    - typeKind: HostFilter
+                      pattern: a.com
+                      operation: Exact
+                    - typeKind: FilterCollection
+                      operation: Or
+                      children:
+                        - typeKind: AuthorityFilter
+                          port: 8443
+                          pattern: deep.example
+                          operation: Exact
+                action:
+                  typeKind: ApplyCommentAction
+                  comment: hi
+                """;
+
+            var rule = ruleConfigReader.TryGetRuleFromYaml(yamlContent, out var errors)!;
+
+            Assert.True(errors == null || errors.Count == 0);
+
+            var root = Assert.IsType<FilterCollection>(rule.Filter);
+            Assert.Equal(SelectorCollectionOperation.And, root.Operation);
+            Assert.Equal(2, root.Children.Count);
+            Assert.IsType<HostFilter>(root.Children[0]);
+
+            var nested = Assert.IsType<FilterCollection>(root.Children[1]);
+            Assert.Equal(SelectorCollectionOperation.Or, nested.Operation);
+
+            var leaf = Assert.IsType<AuthorityFilter>(Assert.Single(nested.Children));
+            Assert.Equal(8443, leaf.Port);              // get-only, constructor-bound, two levels deep
+            Assert.Equal("deep.example", leaf.Pattern);
+        }
+
         [Theory]
         [InlineData(SelectorCollectionOperation.And)]
         [InlineData(SelectorCollectionOperation.Or)]
