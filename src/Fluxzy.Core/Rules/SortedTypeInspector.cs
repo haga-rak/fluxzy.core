@@ -23,5 +23,17 @@ namespace Fluxzy.Rules
 
             return properties.OrderByDescending(x => x.Name == "typeKind");
         }
+
+        public override string GetEnumName(Type enumType, string name)
+            => _innerTypeInspector.GetEnumName(enumType, name);
+
+        public override string GetEnumValue(object enumValue)
+            => _innerTypeInspector.GetEnumValue(enumValue);
+
+        public override bool HasParseMethod(Type type)
+            => _innerTypeInspector.HasParseMethod(type);
+
+        public override object? Parse(string value, Type expectedType)
+            => _innerTypeInspector.Parse(value, expectedType);
     }
 }
