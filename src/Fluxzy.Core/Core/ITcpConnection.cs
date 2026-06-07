@@ -8,9 +8,12 @@ using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Core
 {
-    public interface ITcpConnection : IAsyncDisposable 
+    public interface ITcpConnection : IAsyncDisposable
     {
         Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress address, int port);
+
+        Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress address, int port, UpstreamConnectOptions options)
+            => ConnectAsync(address, port);
     }
 
     public interface ITcpConnectionConnectResult

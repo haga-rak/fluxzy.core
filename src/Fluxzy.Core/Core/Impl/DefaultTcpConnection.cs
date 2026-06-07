@@ -25,16 +25,28 @@ namespace Fluxzy.Core
 
     internal class DefaultTcpConnection : ITcpConnection
     {
-        public async Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress address, int port)
+        public Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress address, int port)
+            => ConnectAsync(address, port, UpstreamConnectOptions.None);
+
+        public async Task<ITcpConnectionConnectResult> ConnectAsync(
+            IPAddress address, int port, UpstreamConnectOptions options)
         {
+            TcpClient? client = null;
+
             try {
-                var client = new TcpClient();
+                client = new TcpClient(address.AddressFamily);
                 client.NoDelay = true;
+                options.Apply(client.Client, new IPEndPoint(address, port));
                 await client.ConnectAsync(address, port).ConfigureAwait(false);
                 var stream = new DisposeEventNotifierStream(client, null);
                 return new DefaultTcpConnectionConnectResult(stream);
             }
             catch (Exception ex) {
+                client?.Dispose();
+
+                if (ex is ClientErrorException)
+                    throw;
+
                 if (ex is AggregateException aggregateException && aggregateException.InnerExceptions.Any()) {
                     throw aggregateException.InnerExceptions.First();
                 }

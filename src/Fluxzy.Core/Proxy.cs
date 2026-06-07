@@ -81,6 +81,7 @@ namespace Fluxzy
         /// <param name="userAgentProvider">An user Agent provider</param>
         /// <param name="idProvider">An id provider</param>
         /// <param name="dnsSolver">Add a custom DNS solver</param>
+        /// <param name="configureUpstreamSocket">Callback applied to every upstream socket before it connects</param>
         /// <param name="externalCancellationSource">An external cancellation token</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
@@ -93,6 +94,7 @@ namespace Fluxzy
             IUserAgentInfoProvider? userAgentProvider = null,
             FromIndexIdProvider? idProvider = null,
             IDnsSolver? dnsSolver = null,
+            ConfigureUpstreamSocket? configureUpstreamSocket = null,
             CancellationTokenSource? externalCancellationSource = null,
             ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
             ILoggerFactory? loggerFactory = null)
@@ -139,7 +141,9 @@ namespace Fluxzy
             ExecutionContext = new ProxyExecutionContext(startupSetting);
 
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
-                Writer, IdProvider, userAgentProvider, loggerFactory, InstanceId);
+                Writer, IdProvider, userAgentProvider, loggerFactory, InstanceId) {
+                ConfigureUpstreamSocket = configureUpstreamSocket
+            };
 
             _logger = _runTimeSetting.GetLogger<Proxy>();
 
