@@ -32,7 +32,7 @@ namespace Fluxzy.Core.Pcap
 
     internal class CapturableTcpConnection : ITcpConnection
     {
-        private readonly TcpClient _innerTcpClient;
+        private TcpClient? _innerTcpClient;
         private readonly ICaptureContext _captureContext;
         private readonly string _outTraceFileName;
 
@@ -44,15 +44,28 @@ namespace Fluxzy.Core.Pcap
         {
             _captureContext = captureContext;
             _outTraceFileName = outTraceFileName;
-            _innerTcpClient = new TcpClient();
         }
 
-        public async Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress remoteAddress, int remotePort)
+        public Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress remoteAddress, int remotePort)
+            => ConnectAsync(remoteAddress, remotePort, UpstreamConnectOptions.None);
+
+        public async Task<ITcpConnectionConnectResult> ConnectAsync(
+            IPAddress remoteAddress, int remotePort, UpstreamConnectOptions options)
         {
             if (_stream != null)
                 throw new InvalidOperationException("A previous connect attempt was already made");
 
             var connectError = false;
+
+            _innerTcpClient = new TcpClient(remoteAddress.AddressFamily);
+
+            try {
+                options.Apply(_innerTcpClient.Client, new IPEndPoint(remoteAddress, remotePort));
+            }
+            catch {
+                _innerTcpClient.Dispose();
+                throw;
+            }
 
             _captureContext.Include(remoteAddress, remotePort);
 
