@@ -57,14 +57,17 @@ namespace Fluxzy
         /// <param name="tcpConnectionProvider">The tcp connection provider, if null the default is used</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
+        /// <param name="configureUpstreamSocket">Callback applied to every upstream socket before it connects</param>
         public Proxy(
             FluxzySetting startupSetting,
             ITcpConnectionProvider? tcpConnectionProvider = null,
             ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
-            ILoggerFactory? loggerFactory = null)
+            ILoggerFactory? loggerFactory = null,
+            ConfigureUpstreamSocket? configureUpstreamSocket = null)
             : this(startupSetting,
                 new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()),
                 new DefaultCertificateAuthorityManager(), tcpConnectionProvider,
+                configureUpstreamSocket: configureUpstreamSocket,
                 proxyAuthenticationMethod: proxyAuthenticationMethod,
                 loggerFactory: loggerFactory)
         {
@@ -81,10 +84,10 @@ namespace Fluxzy
         /// <param name="userAgentProvider">An user Agent provider</param>
         /// <param name="idProvider">An id provider</param>
         /// <param name="dnsSolver">Add a custom DNS solver</param>
-        /// <param name="configureUpstreamSocket">Callback applied to every upstream socket before it connects</param>
         /// <param name="externalCancellationSource">An external cancellation token</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
+        /// <param name="configureUpstreamSocket">Callback applied to every upstream socket before it connects</param>
         /// <exception cref="ArgumentNullException"></exception>
         public Proxy(
             FluxzySetting startupSetting,
@@ -94,10 +97,10 @@ namespace Fluxzy
             IUserAgentInfoProvider? userAgentProvider = null,
             FromIndexIdProvider? idProvider = null,
             IDnsSolver? dnsSolver = null,
-            ConfigureUpstreamSocket? configureUpstreamSocket = null,
             CancellationTokenSource? externalCancellationSource = null,
             ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
-            ILoggerFactory? loggerFactory = null)
+            ILoggerFactory? loggerFactory = null,
+            ConfigureUpstreamSocket? configureUpstreamSocket = null)
         {
             _certificateProvider = certificateProvider;
             _externalCancellationSource = externalCancellationSource;
