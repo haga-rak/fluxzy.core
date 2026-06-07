@@ -57,20 +57,37 @@ namespace Fluxzy
         /// <param name="tcpConnectionProvider">The tcp connection provider, if null the default is used</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
-        /// <param name="configureUpstreamSocket">Callback applied to every upstream socket before it connects</param>
         public Proxy(
             FluxzySetting startupSetting,
             ITcpConnectionProvider? tcpConnectionProvider = null,
             ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
-            ILoggerFactory? loggerFactory = null,
-            ConfigureUpstreamSocket? configureUpstreamSocket = null)
+            ILoggerFactory? loggerFactory = null)
             : this(startupSetting,
                 new CertificateProvider(startupSetting.CaCertificate, new InMemoryCertificateCache()),
                 new DefaultCertificateAuthorityManager(), tcpConnectionProvider,
-                configureUpstreamSocket: configureUpstreamSocket,
                 proxyAuthenticationMethod: proxyAuthenticationMethod,
                 loggerFactory: loggerFactory)
         {
+        }
+
+        /// <summary>
+        ///     Create a new instance of Proxy with an upstream socket configuration callback.
+        ///     An InMemoryCertificateCache will be used as the certificate cache.
+        /// </summary>
+        /// <param name="startupSetting">The startup Setting</param>
+        /// <param name="configureUpstreamSocket">Callback applied to every upstream socket before it connects</param>
+        /// <param name="tcpConnectionProvider">The tcp connection provider, if null the default is used</param>
+        /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
+        /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
+        public Proxy(
+            FluxzySetting startupSetting,
+            ConfigureUpstreamSocket configureUpstreamSocket,
+            ITcpConnectionProvider? tcpConnectionProvider = null,
+            ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
+            ILoggerFactory? loggerFactory = null)
+            : this(startupSetting, tcpConnectionProvider, proxyAuthenticationMethod, loggerFactory)
+        {
+            _runTimeSetting.ConfigureUpstreamSocket = configureUpstreamSocket;
         }
 
         /// <summary>
@@ -87,7 +104,6 @@ namespace Fluxzy
         /// <param name="externalCancellationSource">An external cancellation token</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
-        /// <param name="configureUpstreamSocket">Callback applied to every upstream socket before it connects</param>
         /// <exception cref="ArgumentNullException"></exception>
         public Proxy(
             FluxzySetting startupSetting,
@@ -99,8 +115,7 @@ namespace Fluxzy
             IDnsSolver? dnsSolver = null,
             CancellationTokenSource? externalCancellationSource = null,
             ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
-            ILoggerFactory? loggerFactory = null,
-            ConfigureUpstreamSocket? configureUpstreamSocket = null)
+            ILoggerFactory? loggerFactory = null)
         {
             _certificateProvider = certificateProvider;
             _externalCancellationSource = externalCancellationSource;
@@ -146,9 +161,7 @@ namespace Fluxzy
             ExecutionContext = new ProxyExecutionContext(startupSetting);
 
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
-                Writer, IdProvider, userAgentProvider, loggerFactory, InstanceId) {
-                ConfigureUpstreamSocket = configureUpstreamSocket
-            };
+                Writer, IdProvider, userAgentProvider, loggerFactory, InstanceId);
 
             _logger = _runTimeSetting.GetLogger<Proxy>();
 
@@ -172,6 +185,40 @@ namespace Fluxzy
             }
 
             ThreadPoolUtility.AutoAdjustThreadPoolSize(StartupSetting.ConnectionPerHost);
+        }
+
+        /// <summary>
+        ///     Create a new instance with specific providers and an upstream socket configuration callback.
+        ///     If a provider is not provided the default will be used.
+        /// </summary>
+        /// <param name="startupSetting">The startup Setting</param>
+        /// <param name="certificateProvider">A certificate provider</param>
+        /// <param name="certificateAuthorityManager">A certificate authority manager</param>
+        /// <param name="configureUpstreamSocket">Callback applied to every upstream socket before it connects</param>
+        /// <param name="tcpConnectionProvider">A tcp connection Provider</param>
+        /// <param name="userAgentProvider">An user Agent provider</param>
+        /// <param name="idProvider">An id provider</param>
+        /// <param name="dnsSolver">Add a custom DNS solver</param>
+        /// <param name="externalCancellationSource">An external cancellation token</param>
+        /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
+        /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
+        public Proxy(
+            FluxzySetting startupSetting,
+            ICertificateProvider certificateProvider,
+            CertificateAuthorityManager certificateAuthorityManager,
+            ConfigureUpstreamSocket configureUpstreamSocket,
+            ITcpConnectionProvider? tcpConnectionProvider = null,
+            IUserAgentInfoProvider? userAgentProvider = null,
+            FromIndexIdProvider? idProvider = null,
+            IDnsSolver? dnsSolver = null,
+            CancellationTokenSource? externalCancellationSource = null,
+            ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
+            ILoggerFactory? loggerFactory = null)
+            : this(startupSetting, certificateProvider, certificateAuthorityManager, tcpConnectionProvider,
+                userAgentProvider, idProvider, dnsSolver, externalCancellationSource,
+                proxyAuthenticationMethod, loggerFactory)
+        {
+            _runTimeSetting.ConfigureUpstreamSocket = configureUpstreamSocket;
         }
 
         internal ProxyExecutionContext ExecutionContext { get; }
