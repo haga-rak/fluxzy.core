@@ -35,17 +35,25 @@ namespace Samples.No024.BindUpstreamSocket
 
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 
-            // Pin the egress interface to a physical NIC. Requires the right interface index and,
+            // Pin the egress interface to a physical NIC. Needs the interface index (or name) and,
             // on Linux, elevated privilege. Branch on the family because the option differs.
             //
-            // const int interfaceIndex = 12;
+            // const int interfaceIndex = 12; // NetworkInterface.GetIPProperties().Get*Properties().Index
+            //
+            // Windows IP_UNICAST_IF (IPv4 index in network order, IPv6 index in host order):
             // if (socket.AddressFamily == AddressFamily.InterNetwork)
             //     socket.SetSocketOption(SocketOptionLevel.IP, (SocketOptionName) 31,
-            //         IPAddress.HostToNetworkOrder(interfaceIndex));            // IPv4, network order
+            //         IPAddress.HostToNetworkOrder(interfaceIndex));
             // else
-            //     socket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName) 31, interfaceIndex); // IPv6, host order
+            //     socket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName) 31, interfaceIndex);
             //
-            // Linux SO_BINDTODEVICE:
+            // macOS IP_BOUND_IF (25) / IPV6_BOUND_IF (125), interface index, no privilege:
+            // if (socket.AddressFamily == AddressFamily.InterNetwork)
+            //     socket.SetRawSocketOption(0, 25, BitConverter.GetBytes(interfaceIndex));
+            // else
+            //     socket.SetRawSocketOption(41, 125, BitConverter.GetBytes(interfaceIndex));
+            //
+            // Linux SO_BINDTODEVICE (interface name, needs CAP_NET_RAW/root):
             // socket.SetRawSocketOption(1, 25, System.Text.Encoding.ASCII.GetBytes("eth0"));
 
             Console.WriteLine(
