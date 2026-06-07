@@ -68,9 +68,12 @@ namespace Fluxzy.Clients
                                            ? setting.ArchiveWriter.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
             
+            var connectOptions = new UpstreamConnectOptions(
+                exchange.Authority.HostName, exchange.Authority.Port, setting.ConfigureUpstreamSocket);
+
             var connectResult = await tcpConnection.ConnectAsync(
                 resolutionResult.EndPoint.Address,
-                resolutionResult.EndPoint.Port).ConfigureAwait(false);
+                resolutionResult.EndPoint.Port, connectOptions).ConfigureAwait(false);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
             exchange.Connection.LocalPort = connectResult.Stream.LocalEndPoint.Port;

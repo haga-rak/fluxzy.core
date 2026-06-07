@@ -20,18 +20,21 @@ namespace Fluxzy.Core.Socks5
         private readonly IIdProvider _idProvider;
         private readonly Socks5AuthenticationAdapter _authAdapter;
         private readonly IExchangeContextBuilder _contextBuilder;
+        private readonly IDnsSolver _dnsSolver;
 
         public Socks5SourceProvider(
             SecureConnectionUpdater secureConnectionUpdater,
             IIdProvider idProvider,
             ProxyAuthenticationMethod proxyAuthenticationMethod,
-            IExchangeContextBuilder contextBuilder)
+            IExchangeContextBuilder contextBuilder,
+            IDnsSolver dnsSolver)
             : base(idProvider)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
             _idProvider = idProvider;
             _authAdapter = new Socks5AuthenticationAdapter(proxyAuthenticationMethod);
             _contextBuilder = contextBuilder;
+            _dnsSolver = dnsSolver;
         }
 
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
@@ -114,19 +117,15 @@ namespace Fluxzy.Core.Socks5
 
             if (request.AddressType == Socks5Constants.AddrTypeDomain)
             {
-                var addresses = await Dns.GetHostAddressesAsync(request.DestinationAddress, token)
-                    .ConfigureAwait(false);
-
-                if (addresses.Length > 0)
-                {
-                    var resolvedAddress = addresses[0];
+                try {
+                    var resolvedAddress = await _dnsSolver.SolveDns(request.DestinationAddress).ConfigureAwait(false);
                     replyRawAddress = resolvedAddress.GetAddressBytes();
                     replyAddressType = resolvedAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
                         ? Socks5Constants.AddrTypeIPv6
                         : Socks5Constants.AddrTypeIPv4;
                 }
-                else {
-                    // If resolution fails, fall back to IPv4 with zero address
+                catch {
+                    // Resolution is only needed for the reply BND.ADDR, fall back to IPv4 zero
                     replyRawAddress = ZeroIPv4Address;
                     replyAddressType = Socks5Constants.AddrTypeIPv4;
                 }

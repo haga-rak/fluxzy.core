@@ -30,6 +30,8 @@ namespace Fluxzy.Core.Pcap
             _activeContext.Flush();
         }
 
+        public bool RequiresArchiveWriter => true;
+
         public async ValueTask DisposeAsync()
         {
             if (_ownedCaptureContext != null)

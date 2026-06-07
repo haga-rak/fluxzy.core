@@ -77,6 +77,11 @@ namespace Fluxzy.Core
         public RemoteCertificateValidationCallback CertificateValidationCallback { get; set; }
 
         /// <summary>
+        ///     Optional callback applied to every upstream socket before it connects.
+        /// </summary>
+        public ConfigureUpstreamSocket? ConfigureUpstreamSocket { get; set; }
+
+        /// <summary>
         /// </summary>
         public int ConcurrentConnection { get; set; } = 16;
 

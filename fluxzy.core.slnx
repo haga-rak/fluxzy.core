@@ -39,6 +39,7 @@
     <Project Path="examples/Samples.No021.SessionCaptureAndReplay/Samples.No021.SessionCaptureAndReplay.csproj" />
     <Project Path="examples/Samples.No022.RejectRequests/Samples.No022.RejectRequests.csproj" />
     <Project Path="examples/Samples.No023.GrpcThroughProxy/Samples.No023.GrpcThroughProxy.csproj" />
+    <Project Path="examples/Samples.No024.BindUpstreamSocket/Samples.No024.BindUpstreamSocket.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="test/Fluxzy.Benchmarks/Fluxzy.Benchmarks.csproj" />
