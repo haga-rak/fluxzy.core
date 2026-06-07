@@ -26,7 +26,8 @@ namespace Fluxzy.Core
             SecureConnectionUpdater secureConnectionUpdater,
             IIdProvider idProvider,
             ProxyAuthenticationMethod proxyAuthenticationMethod,
-            IExchangeContextBuilder contextBuilder)
+            IExchangeContextBuilder contextBuilder,
+            IDnsSolver dnsSolver)
             : base(idProvider)
         {
             _httpProvider = new FromProxyConnectSourceProvider(
@@ -39,7 +40,8 @@ namespace Fluxzy.Core
                 secureConnectionUpdater,
                 idProvider,
                 proxyAuthenticationMethod,
-                contextBuilder);
+                contextBuilder,
+                dnsSolver);
         }
 
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(

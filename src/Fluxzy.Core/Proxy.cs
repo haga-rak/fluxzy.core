@@ -132,10 +132,12 @@ namespace Fluxzy
                 ? (ISslConnectionBuilder) new BouncyCastleConnectionBuilder()
                 : new SChannelConnectionBuilder();
 
+            var dnsSolver1 = dnsSolver ?? new DefaultDnsResolver();
+
             var poolBuilder = new PoolBuilder(
                 new RemoteConnectionBuilder(ITimingProvider.Default, sslConnectionBuilder),
                 ITimingProvider.Default,
-                Writer, dnsSolver ?? new DefaultDnsResolver(),
+                Writer, dnsSolver1,
                 loggerFactory);
             
             ExecutionContext = new ProxyExecutionContext(startupSetting);
@@ -155,7 +157,8 @@ namespace Fluxzy
                 _runTimeSetting,
                 ExchangeSourceProviderHelper.GetSourceProvider(
                     startupSetting, secureConnectionManager,
-                    IdProvider, certificateProvider, proxyAuthenticationMethod, exchangeContextBuilder),
+                    IdProvider, certificateProvider, proxyAuthenticationMethod, exchangeContextBuilder,
+                    dnsSolver1),
                 poolBuilder);
 
             if (!StartupSetting.AlterationRules.Any(t => t.Action is SkipSslTunnelingAction &&
