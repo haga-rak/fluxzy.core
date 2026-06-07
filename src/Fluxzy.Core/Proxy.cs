@@ -118,7 +118,11 @@ namespace Fluxzy
                     StartupSetting.SaveFilter, StartupSetting);
             }
 
-            if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None) {
+            if (tcpConnectionProvider1.RequiresArchiveWriter
+                && StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.None) {
+                (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<Proxy>()
+                    .LogWarning("Ignoring capture-aware connection provider because ArchivingPolicy is None.");
+
                 tcpConnectionProvider1 = ITcpConnectionProvider.Default;
             }
 

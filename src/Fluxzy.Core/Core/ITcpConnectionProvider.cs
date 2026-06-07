@@ -10,6 +10,12 @@ namespace Fluxzy.Core
 
         ITcpConnection Create(string dumpFileName);
 
-        void TryFlush(); 
+        void TryFlush();
+
+        /// <summary>
+        ///     When true, this provider cannot function without a writable archive and may be ignored
+        ///     when the archiving policy is None. Custom providers return false and are always honored.
+        /// </summary>
+        bool RequiresArchiveWriter => false;
     }
 }
