@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Security;
@@ -21,7 +22,8 @@ namespace Fluxzy.Tests.UnitTests.Core
 {
     /// <summary>
     ///     Provider-level coverage of RecoverHostNameFromSni: authority rewrite + IP pin over SOCKS5,
-    ///     transparent CONNECT and blind tunnel, and that the pinned IP keeps upstream off the resolver.
+    ///     transparent CONNECT and blind tunnel, and that the pinned IP keeps upstream off the resolver
+    ///     for the provisional exchange and every per-request exchange after it.
     /// </summary>
     public class SniHostRecoveryProviderTests
     {
@@ -31,11 +33,11 @@ namespace Fluxzy.Tests.UnitTests.Core
         [Fact]
         public async Task Socks5_IpTarget_WithHostnameSni_RewritesAuthorityAndPinsIp()
         {
-            var (result, _) = await RunSocks5(
+            var run = await RunSocks5(
                 recoverHostNameFromSni: true, blindMode: false,
                 target: Ipv4ConnectRequest(TargetIp, TargetPort), TlsHandshake("example.com"));
 
-            var exchange = AssertResult(result);
+            var exchange = AssertResult(run.Result);
 
             Assert.Equal("example.com", exchange.Authority.HostName);
             Assert.Equal(TargetPort, exchange.Authority.Port);
@@ -46,11 +48,11 @@ namespace Fluxzy.Tests.UnitTests.Core
         [Fact]
         public async Task Socks5_IpTarget_WithoutUsableSni_KeepsIpAuthorityAndDoesNotPin()
         {
-            var (result, _) = await RunSocks5(
+            var run = await RunSocks5(
                 recoverHostNameFromSni: true, blindMode: false,
                 target: Ipv4ConnectRequest(TargetIp, TargetPort), TlsHandshake(TargetIp.ToString()));
 
-            var exchange = AssertResult(result);
+            var exchange = AssertResult(run.Result);
 
             Assert.Equal(TargetIp.ToString(), exchange.Authority.HostName);
             Assert.Null(exchange.Context.RemoteHostIp);
@@ -59,11 +61,11 @@ namespace Fluxzy.Tests.UnitTests.Core
         [Fact]
         public async Task Socks5_HostnameTarget_IsNeverRewritten()
         {
-            var (result, _) = await RunSocks5(
+            var run = await RunSocks5(
                 recoverHostNameFromSni: true, blindMode: false,
                 target: DomainConnectRequest("example.org", TargetPort), TlsHandshake("example.com"));
 
-            var exchange = AssertResult(result);
+            var exchange = AssertResult(run.Result);
 
             Assert.Equal("example.org", exchange.Authority.HostName);
             Assert.Null(exchange.Context.RemoteHostIp);
@@ -72,11 +74,11 @@ namespace Fluxzy.Tests.UnitTests.Core
         [Fact]
         public async Task Connect_IpTarget_WithHostnameSni_RewritesAuthorityAndPinsIp()
         {
-            var (result, _) = await RunConnect(
+            var run = await RunConnect(
                 recoverHostNameFromSni: true, connectTarget: $"{TargetIp}:{TargetPort}",
                 TlsHandshake("example.com"));
 
-            var exchange = AssertResult(result);
+            var exchange = AssertResult(run.Result);
 
             Assert.Equal("example.com", exchange.Authority.HostName);
             Assert.Equal(TargetPort, exchange.Authority.Port);
@@ -88,11 +90,11 @@ namespace Fluxzy.Tests.UnitTests.Core
         [Fact]
         public async Task Socks5_BlindMode_IpTarget_RecordsHostnameAndPinsIp()
         {
-            var (result, _) = await RunSocks5(
+            var run = await RunSocks5(
                 recoverHostNameFromSni: true, blindMode: true,
                 target: Ipv4ConnectRequest(TargetIp, TargetPort), RawClientHello("blind.example.com"));
 
-            var exchange = AssertResult(result);
+            var exchange = AssertResult(run.Result);
 
             Assert.Equal("blind.example.com", exchange.Authority.HostName);
             Assert.Equal(TargetIp, exchange.Context.RemoteHostIp);
@@ -101,38 +103,90 @@ namespace Fluxzy.Tests.UnitTests.Core
         [Fact]
         public async Task Recovery_PinnedIp_KeepsUpstreamOffTheDnsResolver()
         {
-            var (result, dns) = await RunSocks5(
+            var run = await RunSocks5(
                 recoverHostNameFromSni: true, blindMode: false,
                 target: Ipv4ConnectRequest(TargetIp, TargetPort), TlsHandshake("example.com"));
 
-            var exchange = AssertResult(result);
+            var exchange = AssertResult(run.Result);
             Assert.Equal("example.com", exchange.Authority.HostName);
             Assert.Equal(TargetIp, exchange.Context.RemoteHostIp);
 
             var resolution = await DnsUtility.ComputeDnsUpdateExchange(
-                exchange, ITimingProvider.Default, dns, null);
+                exchange, ITimingProvider.Default, run.Dns, null);
 
             Assert.Equal(TargetIp, resolution.EndPoint.Address);
             Assert.Equal(TargetPort, resolution.EndPoint.Port);
-            Assert.Empty(dns.Queries);
+            Assert.Empty(run.Dns.Queries);
         }
 
         [Fact]
         public async Task WithoutRecovery_UpstreamGoesThroughTheDnsResolver()
         {
-            var (result, dns) = await RunSocks5(
+            var run = await RunSocks5(
                 recoverHostNameFromSni: false, blindMode: false,
                 target: Ipv4ConnectRequest(TargetIp, TargetPort), TlsHandshake("example.com"));
 
-            var exchange = AssertResult(result);
+            var exchange = AssertResult(run.Result);
             Assert.Equal(TargetIp.ToString(), exchange.Authority.HostName);
             Assert.Null(exchange.Context.RemoteHostIp);
 
             var resolution = await DnsUtility.ComputeDnsUpdateExchange(
-                exchange, ITimingProvider.Default, dns, null);
+                exchange, ITimingProvider.Default, run.Dns, null);
 
-            Assert.Equal(dns.Answer, resolution.EndPoint.Address);
-            Assert.Contains(TargetIp.ToString(), dns.Queries);
+            Assert.Equal(run.Dns.Answer, resolution.EndPoint.Address);
+            Assert.Contains(TargetIp.ToString(), run.Dns.Queries);
+        }
+
+        // The provisional CONNECT exchange never drives an upstream connection; the pin matters on the
+        // per-request exchanges produced by the downstream pipe after the TLS upgrade.
+        [Fact]
+        public async Task Socks5_PerRequestExchange_KeepsRecoveredHostAndIpPin()
+        {
+            var run = await RunSocks5(
+                recoverHostNameFromSni: true, blindMode: false,
+                target: Ipv4ConnectRequest(TargetIp, TargetPort),
+                TlsHandshakeThenRequest("example.com"),
+                readNextExchange: true);
+
+            Assert.NotNull(run.NextExchange);
+            Assert.Equal("example.com", run.NextExchange!.Authority.HostName);
+            Assert.Equal(TargetIp, run.NextExchange.Context.RemoteHostIp);
+
+            var resolution = await DnsUtility.ComputeDnsUpdateExchange(
+                run.NextExchange, ITimingProvider.Default, run.Dns, null);
+
+            Assert.Equal(TargetIp, resolution.EndPoint.Address);
+            Assert.Empty(run.Dns.Queries);
+        }
+
+        // The exchange context must be built with the recovered authority, so rules evaluated at
+        // OnAuthorityReceived scope (blind mode, skip decryption...) match the host, not the IP.
+        [Fact]
+        public async Task Recovery_AuthorityScopeRules_SeeTheRecoveredHost()
+        {
+            var run = await RunSocks5(
+                recoverHostNameFromSni: true, blindMode: false,
+                target: Ipv4ConnectRequest(TargetIp, TargetPort), TlsHandshake("example.com"));
+
+            var authority = Assert.Single(run.ContextBuilder.SeenAuthorities);
+            Assert.Equal("example.com", authority.HostName);
+        }
+
+        // A rule that forces a remote IP at authority scope (e.g. SpoofDnsAction) wins over the pin.
+        [Fact]
+        public async Task Recovery_RuleForcedRemoteIp_IsNotOverriddenByThePin()
+        {
+            var ruleIp = IPAddress.Parse("5.6.7.8");
+
+            var run = await RunSocks5(
+                recoverHostNameFromSni: true, blindMode: false,
+                target: Ipv4ConnectRequest(TargetIp, TargetPort), TlsHandshake("example.com"),
+                ruleForcedRemoteIp: ruleIp);
+
+            var exchange = AssertResult(run.Result);
+
+            Assert.Equal("example.com", exchange.Authority.HostName);
+            Assert.Equal(ruleIp, exchange.Context.RemoteHostIp);
         }
 
         private static Exchange AssertResult(ExchangeSourceInitResult? result)
@@ -151,6 +205,21 @@ namespace Fluxzy.Tests.UnitTests.Core
             };
         }
 
+        // Handshake, then send a request so the pipe can produce a per-request exchange.
+        private static Func<Stream, CancellationToken, Task<IDisposable?>> TlsHandshakeThenRequest(string targetHost)
+        {
+            return async (clientStream, token) => {
+                var ssl = new SslStream(clientStream, false, (_, _, _, _) => true);
+                await ssl.AuthenticateAsClientAsync(targetHost);
+
+                var request = Encoding.ASCII.GetBytes($"GET / HTTP/1.1\r\nHost: {targetHost}\r\n\r\n");
+                await ssl.WriteAsync(request, token);
+                await ssl.FlushAsync(token);
+
+                return ssl;
+            };
+        }
+
         // Just emit a ClientHello carrying the SNI (blind path: the proxy only sniffs and tunnels).
         private static Func<Stream, CancellationToken, Task<IDisposable?>> RawClientHello(string serverName)
         {
@@ -160,46 +229,49 @@ namespace Fluxzy.Tests.UnitTests.Core
             };
         }
 
-        private static async Task<(ExchangeSourceInitResult? Result, SpyDnsSolver Dns)> RunSocks5(
+        private static async Task<RunResult> RunSocks5(
             bool recoverHostNameFromSni, bool blindMode, byte[] target,
-            Func<Stream, CancellationToken, Task<IDisposable?>> clientTlsAction)
+            Func<Stream, CancellationToken, Task<IDisposable?>> clientTlsAction,
+            bool readNextExchange = false, IPAddress? ruleForcedRemoteIp = null)
         {
             return await RunProvider(recoverHostNameFromSni, blindMode,
                 (updater, idProvider, contextBuilder, dnsSolver) =>
                     new Socks5SourceProvider(updater, idProvider, NoAuthenticationMethod.Instance,
-                        contextBuilder, dnsSolver),
+                        contextBuilder, dnsSolver, recoverHostNameFromSni),
                 async (clientStream, token) => {
                     await clientStream.WriteAsync(new byte[] { 0x05, 0x01, 0x00 }, token);
                     await clientStream.ReadExactlyAsync(new byte[2], token); // method selection
                     await clientStream.WriteAsync(target, token);
                     await clientStream.ReadExactlyAsync(new byte[10], token); // IPv4 reply
                 },
-                clientTlsAction);
+                clientTlsAction, readNextExchange, ruleForcedRemoteIp);
         }
 
-        private static async Task<(ExchangeSourceInitResult? Result, SpyDnsSolver Dns)> RunConnect(
+        private static async Task<RunResult> RunConnect(
             bool recoverHostNameFromSni, string connectTarget,
-            Func<Stream, CancellationToken, Task<IDisposable?>> clientTlsAction)
+            Func<Stream, CancellationToken, Task<IDisposable?>> clientTlsAction,
+            bool readNextExchange = false, IPAddress? ruleForcedRemoteIp = null)
         {
             return await RunProvider(recoverHostNameFromSni, blindMode: false,
                 (updater, idProvider, contextBuilder, _) =>
                     new FromProxyConnectSourceProvider(updater, idProvider, NoAuthenticationMethod.Instance,
-                        contextBuilder),
+                        contextBuilder, recoverHostNameFromSni),
                 async (clientStream, token) => {
                     var connect = Encoding.ASCII.GetBytes(
                         $"CONNECT {connectTarget} HTTP/1.1\r\nHost: {connectTarget}\r\n\r\n");
                     await clientStream.WriteAsync(connect, token);
                     await ReadUntilDoubleCrlf(clientStream, token);
                 },
-                clientTlsAction);
+                clientTlsAction, readNextExchange, ruleForcedRemoteIp);
         }
 
-        private static async Task<(ExchangeSourceInitResult? Result, SpyDnsSolver Dns)> RunProvider(
+        private static async Task<RunResult> RunProvider(
             bool recoverHostNameFromSni, bool blindMode,
             Func<SecureConnectionUpdater, IIdProvider, IExchangeContextBuilder, IDnsSolver, ExchangeSourceProvider>
                 providerFactory,
             Func<Stream, CancellationToken, Task> preTlsClientDriver,
-            Func<Stream, CancellationToken, Task<IDisposable?>> clientTlsAction)
+            Func<Stream, CancellationToken, Task<IDisposable?>> clientTlsAction,
+            bool readNextExchange = false, IPAddress? ruleForcedRemoteIp = null)
         {
             var root = Certificate.UseDefault();
             using var certProvider = new CertificateProvider(root, new InMemoryCertificateCache());
@@ -207,8 +279,12 @@ namespace Fluxzy.Tests.UnitTests.Core
 
             var updater = new SecureConnectionUpdater(certProvider, serveH2: false);
             var dns = new SpyDnsSolver(IPAddress.Parse("9.9.9.9"));
-            var provider = providerFactory(updater, new FromIndexIdProvider(0, 0),
-                new TestExchangeContextBuilder(setting, blindMode), dns);
+
+            var contextBuilder = new TestExchangeContextBuilder(setting, blindMode) {
+                RuleForcedRemoteHostIp = ruleForcedRemoteIp
+            };
+
+            var provider = providerFactory(updater, new FromIndexIdProvider(0, 0), contextBuilder, dns);
 
             using var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
@@ -220,11 +296,22 @@ namespace Fluxzy.Tests.UnitTests.Core
                 using var serverConnection = await listener.AcceptTcpClientAsync(cts.Token);
                 using var buffer = Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(1024 * 8);
 
-                return await provider.InitClientConnection(
+                var initResult = await provider.InitClientConnection(
                     serverConnection.GetStream(), buffer,
                     (IPEndPoint) serverConnection.Client.LocalEndPoint!,
                     (IPEndPoint) serverConnection.Client.RemoteEndPoint!,
                     cts.Token);
+
+                Exchange? nextExchange = null;
+
+                if (readNextExchange && initResult != null) {
+                    using var exchangeScope = new ExchangeScope();
+
+                    nextExchange = await initResult.DownStreamPipe
+                                                   .ReadNextExchange(buffer, exchangeScope, cts.Token);
+                }
+
+                return (InitResult: initResult, NextExchange: nextExchange);
             });
 
             using var client = new TcpClient();
@@ -242,10 +329,10 @@ namespace Fluxzy.Tests.UnitTests.Core
                 clientError = ex;
             }
 
-            ExchangeSourceInitResult? result;
+            (ExchangeSourceInitResult? InitResult, Exchange? NextExchange) serverOutcome;
 
             try {
-                result = await serverTask;
+                serverOutcome = await serverTask;
             }
             catch (Exception serverEx) {
                 throw new Xunit.Sdk.XunitException(
@@ -259,7 +346,7 @@ namespace Fluxzy.Tests.UnitTests.Core
             if (clientError != null)
                 throw clientError;
 
-            return (result, dns);
+            return new RunResult(serverOutcome.InitResult, dns, contextBuilder, serverOutcome.NextExchange);
         }
 
         private static byte[] Ipv4ConnectRequest(IPAddress ip, int port)
@@ -300,6 +387,12 @@ namespace Fluxzy.Tests.UnitTests.Core
             }
         }
 
+        private sealed record RunResult(
+            ExchangeSourceInitResult? Result,
+            SpyDnsSolver Dns,
+            TestExchangeContextBuilder ContextBuilder,
+            Exchange? NextExchange);
+
         private sealed class TestExchangeContextBuilder : IExchangeContextBuilder
         {
             private readonly FluxzySetting _setting;
@@ -312,12 +405,21 @@ namespace Fluxzy.Tests.UnitTests.Core
                 _blindMode = blindMode;
             }
 
+            /// <summary>Authorities passed to Create, i.e. what authority-scope rules would see.</summary>
+            public List<Authority> SeenAuthorities { get; } = new();
+
+            /// <summary>Simulates a rule forcing a remote IP at OnAuthorityReceived scope.</summary>
+            public IPAddress? RuleForcedRemoteHostIp { get; init; }
+
             public ValueTask<ExchangeContext> Create(Authority authority, bool secure)
             {
+                SeenAuthorities.Add(authority);
+
                 return new ValueTask<ExchangeContext>(
                     new ExchangeContext(authority, _variableContext, _setting, null!) {
                         Secure = secure,
-                        BlindMode = _blindMode
+                        BlindMode = _blindMode,
+                        RemoteHostIp = RuleForcedRemoteHostIp
                     });
             }
         }
@@ -331,7 +433,7 @@ namespace Fluxzy.Tests.UnitTests.Core
 
             public IPAddress Answer { get; }
 
-            public System.Collections.Generic.List<string> Queries { get; } = new();
+            public List<string> Queries { get; } = new();
 
             public Task<IPAddress> SolveDns(string hostName)
             {

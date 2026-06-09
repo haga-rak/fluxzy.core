@@ -15,7 +15,8 @@ namespace Fluxzy.Core
             if (!setting.ReverseMode)
                 return new ProtocolDetectingSourceProvider(
                     secureConnectionUpdater, idProvider,
-                    proxyAuthenticationMethod, contextBuilder, dnsSolver);
+                    proxyAuthenticationMethod, contextBuilder, dnsSolver,
+                    setting.RecoverHostNameFromSni);
             
             if (setting.ReverseModePlainHttp)
                 return new ReverseProxyPlainExchangeSourceProvider(idProvider, setting.ReverseModeForcedPort, contextBuilder);

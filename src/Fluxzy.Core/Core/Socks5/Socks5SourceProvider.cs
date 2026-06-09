@@ -22,13 +22,15 @@ namespace Fluxzy.Core.Socks5
         private readonly Socks5AuthenticationAdapter _authAdapter;
         private readonly IExchangeContextBuilder _contextBuilder;
         private readonly IDnsSolver _dnsSolver;
+        private readonly bool _recoverHostNameFromSni;
 
         public Socks5SourceProvider(
             SecureConnectionUpdater secureConnectionUpdater,
             IIdProvider idProvider,
             ProxyAuthenticationMethod proxyAuthenticationMethod,
             IExchangeContextBuilder contextBuilder,
-            IDnsSolver dnsSolver)
+            IDnsSolver dnsSolver,
+            bool recoverHostNameFromSni = false)
             : base(idProvider)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
@@ -36,6 +38,7 @@ namespace Fluxzy.Core.Socks5
             _authAdapter = new Socks5AuthenticationAdapter(proxyAuthenticationMethod);
             _contextBuilder = contextBuilder;
             _dnsSolver = dnsSolver;
+            _recoverHostNameFromSni = recoverHostNameFromSni;
         }
 
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(
@@ -108,10 +111,7 @@ namespace Fluxzy.Core.Socks5
             // 7. Create authority from the request
             var authority = new Authority(request.DestinationAddress, request.DestinationPort, true);
 
-            // 8. Create exchange context
-            var exchangeContext = await _contextBuilder.Create(authority, true).ConfigureAwait(false);
-
-            // 9. Send success reply before establishing the tunnel
+            // 8. Send success reply before establishing the tunnel
             // Some SOCKS5 clients don't support domain name replies, so resolve to IP if needed
             var replyAddressType = request.AddressType;
             var replyRawAddress = request.RawAddress;
@@ -141,26 +141,31 @@ namespace Fluxzy.Core.Socks5
                 workBuffer,
                 token).ConfigureAwait(false);
 
-            // 10. Create synthetic header for the SOCKS5 connection
-            var syntheticHeaderText = CreateSyntheticConnectHeader(request);
+            // 9. When the SOCKS target is an IP, recover the host from the TLS SNI before the exchange
+            // context exists, so authority-scope rules see the recovered host. The original IP is pinned
+            // on every context created for this connection (unless a rule forces another one), keeping
+            // the upstream off the resolver. Peeked bytes are replayed, so the handshake/tunnel is intact.
+            var contextBuilder = _contextBuilder;
 
-            // When the SOCKS target is an IP, recover the host from the TLS SNI and pin the IP so the
-            // upstream still targets it. Peeked bytes are replayed, so the handshake/tunnel is intact.
-            if (exchangeContext.FluxzySetting?.RecoverHostNameFromSni == true
-                && IPAddress.TryParse(request.DestinationAddress, out var targetIp))
+            if (_recoverHostNameFromSni && IPAddress.TryParse(request.DestinationAddress, out var targetIp))
             {
                 var recovery = await TlsClientHelloParser.RecoverAsync(stream, token).ConfigureAwait(false);
                 stream = recovery.RecomposedStream;
 
                 if (recovery.SniHost is { } sniHost)
                 {
-                    exchangeContext.RemoteHostIp = targetIp;
                     authority = new Authority(sniHost, authority.Port, authority.Secure);
-                    exchangeContext.Authority = authority;
+                    contextBuilder = new PinnedIpExchangeContextBuilder(_contextBuilder, targetIp);
                 }
             }
 
-            // 11. Handle blind mode (no decryption)
+            // 10. Create exchange context
+            var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
+
+            // 11. Create synthetic header for the SOCKS5 connection
+            var syntheticHeaderText = CreateSyntheticConnectHeader(request);
+
+            // 12. Handle blind mode (no decryption)
             if (exchangeContext.BlindMode)
             {
                 var blindExchange = Exchange.CreateUntrackedExchange(
@@ -178,11 +183,11 @@ namespace Fluxzy.Core.Socks5
                 blindExchange.Unprocessed = false;
 
                 return new ExchangeSourceInitResult(
-                    new Http11DownStreamPipe(_idProvider, authority, stream, stream, _contextBuilder),
+                    new Http11DownStreamPipe(_idProvider, authority, stream, stream, contextBuilder),
                     blindExchange);
             }
 
-            // 12. Perform TLS upgrade if not blind mode
+            // 13. Perform TLS upgrade if not blind mode
             var certStart = ITimingProvider.Default.Instant();
             var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
                 stream, authority.HostName, exchangeContext, token).ConfigureAwait(false);
@@ -210,7 +215,7 @@ namespace Fluxzy.Core.Socks5
             if (authenticateResult.NegotiatedApplicationProtocol == System.Net.Security.SslApplicationProtocol.Http2) {
                 var h2Pipe = new H2DownStreamPipe(
                     _idProvider, authority,
-                    authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
+                    authenticateResult.InStream, authenticateResult.OutStream, contextBuilder);
 
                 using var rsBuffer = RsBuffer.Allocate(1024);
                 await h2Pipe.Init(rsBuffer);
@@ -219,7 +224,7 @@ namespace Fluxzy.Core.Socks5
             else {
                 downStreamPipe = new Http11DownStreamPipe(
                     _idProvider, authority,
-                    authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
+                    authenticateResult.InStream, authenticateResult.OutStream, contextBuilder);
             }
 
             return new ExchangeSourceInitResult(downStreamPipe, exchange);

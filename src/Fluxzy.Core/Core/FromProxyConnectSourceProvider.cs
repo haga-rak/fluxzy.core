@@ -29,18 +29,21 @@ namespace Fluxzy.Core
         private readonly ProxyAuthenticationMethod _proxyAuthenticationMethod;
         private readonly IExchangeContextBuilder _contextBuilder;
         private readonly SecureConnectionUpdater _secureConnectionUpdater;
+        private readonly bool _recoverHostNameFromSni;
         private readonly int _attemptCount;
 
         public FromProxyConnectSourceProvider(
             SecureConnectionUpdater secureConnectionUpdater,
             IIdProvider idProvider, ProxyAuthenticationMethod proxyAuthenticationMethod,
-            IExchangeContextBuilder contextBuilder) :
+            IExchangeContextBuilder contextBuilder,
+            bool recoverHostNameFromSni = false) :
             base (idProvider)
         {
             _secureConnectionUpdater = secureConnectionUpdater;
             _idProvider = idProvider;
             _proxyAuthenticationMethod = proxyAuthenticationMethod;
             _contextBuilder = contextBuilder;
+            _recoverHostNameFromSni = recoverHostNameFromSni;
 
             _attemptCount = proxyAuthenticationMethod.AuthenticationType == ProxyAuthenticationType.None ? 
                 1 : FluxzySharedSetting.ProxyAuthenticationMaxAttempt;
@@ -100,21 +103,21 @@ namespace Fluxzy.Core
                 }
 
                 await stream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
-                var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
 
-                // See Socks5SourceProvider: recover the host from the TLS SNI when the target is an IP,
-                // pinning the IP so the upstream connection is unchanged.
-                if (exchangeContext.FluxzySetting?.RecoverHostNameFromSni == true
-                    && IPAddress.TryParse(authority.HostName, out var targetIp)) {
+                // See Socks5SourceProvider: when the CONNECT target is an IP, recover the host from the
+                // TLS SNI before the exchange context exists, so authority-scope rules see the recovered
+                // host. The original IP is pinned on every context created for this connection.
+                if (_recoverHostNameFromSni && IPAddress.TryParse(authority.HostName, out var targetIp)) {
                     var recovery = await TlsClientHelloParser.RecoverAsync(stream, token).ConfigureAwait(false);
                     stream = recovery.RecomposedStream;
 
                     if (recovery.SniHost is { } sniHost) {
-                        exchangeContext.RemoteHostIp = targetIp;
                         authority = new Authority(sniHost, authority.Port, authority.Secure);
-                        exchangeContext.Authority = authority;
+                        contextBuilder = new PinnedIpExchangeContextBuilder(contextBuilder, targetIp);
                     }
                 }
+
+                var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
 
                 if (exchangeContext.BlindMode) {
 
@@ -129,7 +132,7 @@ namespace Fluxzy.Core
 
                     return
                         new (false, new ExchangeSourceInitResult(
-                            new Http11DownStreamPipe(_idProvider, authority, stream, stream, _contextBuilder), 
+                            new Http11DownStreamPipe(_idProvider, authority, stream, stream, contextBuilder),
                             provisionalExchange));
                 }
 
@@ -155,7 +158,7 @@ namespace Fluxzy.Core
 
                 if (authenticateResult.NegotiatedApplicationProtocol == System.Net.Security.SslApplicationProtocol.Http2) {
                     var h2Pipe = new H2DownStreamPipe(_idProvider, authority,
-                        authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
+                        authenticateResult.InStream, authenticateResult.OutStream, contextBuilder);
 
                     using var rsBuffer = RsBuffer.Allocate(1024);
                     await h2Pipe.Init(rsBuffer);
@@ -163,7 +166,7 @@ namespace Fluxzy.Core
                 }
                 else {
                     downStreamPipe = new Http11DownStreamPipe(_idProvider, authority,
-                        authenticateResult.InStream, authenticateResult.OutStream, _contextBuilder);
+                        authenticateResult.InStream, authenticateResult.OutStream, contextBuilder);
                 }
 
                 return new(false, new ExchangeSourceInitResult(downStreamPipe, exchange));
