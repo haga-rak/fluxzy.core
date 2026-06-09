@@ -224,6 +224,19 @@ namespace Fluxzy
         public bool ServeH2 { get; internal set; }
 
         /// <summary>
+        ///     When enabled and the connection target is an IP address (typically full-system or
+        ///     SOCKS5 capture, where the client connected straight to a resolved IP), Fluxzy names
+        ///     the generated leaf certificate, the recorded authority and the upstream SNI from the
+        ///     TLS SNI sent by the client instead of from the IP. The original IP is pinned for the
+        ///     upstream connection, so no extra DNS resolution is performed and traffic still goes to
+        ///     the exact target. Connections to distinct IPs that share the recovered hostname are
+        ///     pooled together. Falls back to the IP when no usable SNI is present (raw-IP TLS, ECH).
+        ///     Default false, which leaves behavior and performance unchanged.
+        /// </summary>
+        [JsonInclude]
+        public bool RecoverHostNameFromSni { get; internal set; }
+
+        /// <summary>
         ///     When set to true, the server certificate will be exported as PEM in the SSL connection information.
         ///     This is useful for diagnostics or auditing purposes.
         /// </summary>

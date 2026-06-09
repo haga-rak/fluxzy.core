@@ -531,6 +531,20 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     When enabled, recover the hostname from the TLS SNI to name leaf certificates (and the
+        ///     recorded authority and upstream SNI) whenever the connect target is an IP address. The
+        ///     original IP is pinned, so the upstream connection still targets it exactly without an
+        ///     extra DNS resolution. Falls back to the IP when no usable SNI is present. Default false.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetRecoverHostNameFromSni(bool value)
+        {
+            RecoverHostNameFromSni = value;
+            return this;
+        }
+
+        /// <summary>
         ///     When set to true, the server certificate will be exported as PEM in the SSL connection information.
         ///     This is useful for diagnostics or auditing purposes.
         /// </summary>

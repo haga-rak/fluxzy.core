@@ -128,6 +128,7 @@ namespace Fluxzy
 
             var secureConnectionManager = new SecureConnectionUpdater(
                 certificateProvider, startupSetting.ServeH2,
+                startupSetting.RecoverHostNameFromSni,
                 (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SecureConnectionUpdater>());
 
             if (StartupSetting.ArchivingPolicy.Type == ArchivingPolicyType.Directory

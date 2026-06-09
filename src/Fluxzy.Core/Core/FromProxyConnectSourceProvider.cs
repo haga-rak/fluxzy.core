@@ -124,7 +124,17 @@ namespace Fluxzy.Core
                 var authenticateResult = await _secureConnectionUpdater.AuthenticateAsServer(
                     stream, authority.HostName, exchangeContext, token).ConfigureAwait(false);
 
-                authority = new Authority(authority.HostName, authority.Port, authenticateResult.IsSsl);
+                // See Socks5SourceProvider: when the target was an IP and the client sent a usable
+                // SNI, adopt the hostname for the authority and upstream SNI while pinning the
+                // original IP so the upstream connection is unchanged.
+                if (authenticateResult.SniHost is { } sniHost
+                    && IPAddress.TryParse(authority.HostName, out var pinnedIp)) {
+                    exchangeContext.RemoteHostIp = pinnedIp;
+                    authority = new Authority(sniHost, authority.Port, authenticateResult.IsSsl);
+                }
+                else {
+                    authority = new Authority(authority.HostName, authority.Port, authenticateResult.IsSsl);
+                }
 
                 var exchange = Exchange.CreateUntrackedExchange(_idProvider, exchangeContext,
                     authority, plainHeaderChars, Stream.Null,

@@ -476,6 +476,21 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
+        public static Option CreateRecoverHostNameFromSniOption()
+        {
+            var option = new Option<bool>(
+                "--recover-host-from-sni",
+                "When the connection target is an IP address (typically full-system or SOCKS5 " +
+                "capture), name the generated certificate, the recorded host and the upstream SNI " +
+                "from the TLS SNI sent by the client. The original IP is kept for the upstream " +
+                "connection, so no extra DNS resolution is performed.");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
         public static Option CreateProtoDirectoryOption()
         {
             var option = new Option<List<string>>(

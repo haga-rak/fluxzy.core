@@ -171,7 +171,17 @@ namespace Fluxzy.Core.Socks5
                 stream, authority.HostName, exchangeContext, token).ConfigureAwait(false);
             var certEnd = ITimingProvider.Default.Instant();
 
-            authority = new Authority(authority.HostName, authority.Port, authenticateResult.IsSsl);
+            // The SOCKS5 target was an IP and the client revealed a hostname through the TLS SNI:
+            // adopt that hostname for the recorded authority and the upstream SNI, but pin the
+            // original IP so the upstream connection still targets it exactly (no DNS, no reroute).
+            if (authenticateResult.SniHost is { } sniHost
+                && IPAddress.TryParse(authority.HostName, out var pinnedIp)) {
+                exchangeContext.RemoteHostIp = pinnedIp;
+                authority = new Authority(sniHost, authority.Port, authenticateResult.IsSsl);
+            }
+            else {
+                authority = new Authority(authority.HostName, authority.Port, authenticateResult.IsSsl);
+            }
 
             var exchange = Exchange.CreateUntrackedExchange(
                 _idProvider,
