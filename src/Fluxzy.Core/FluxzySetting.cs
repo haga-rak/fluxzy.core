@@ -224,6 +224,14 @@ namespace Fluxzy
         public bool ServeH2 { get; internal set; }
 
         /// <summary>
+        ///     When the connection target is an IP, read the host name from the client's TLS SNI and use
+        ///     it for the certificate, the recorded authority and the upstream SNI, pinning the original
+        ///     IP (no extra DNS). Falls back to the IP when no usable SNI is present. Default false.
+        /// </summary>
+        [JsonInclude]
+        public bool RecoverHostNameFromSni { get; internal set; }
+
+        /// <summary>
         ///     When set to true, the server certificate will be exported as PEM in the SSL connection information.
         ///     This is useful for diagnostics or auditing purposes.
         /// </summary>

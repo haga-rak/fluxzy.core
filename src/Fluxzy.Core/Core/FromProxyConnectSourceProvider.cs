@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
 using Fluxzy.Utils;
@@ -100,6 +101,20 @@ namespace Fluxzy.Core
 
                 await stream.WriteAsync(new ReadOnlyMemory<byte>(AcceptTunnelResponse), token);
                 var exchangeContext = await contextBuilder.Create(authority, true).ConfigureAwait(false);
+
+                // See Socks5SourceProvider: recover the host from the TLS SNI when the target is an IP,
+                // pinning the IP so the upstream connection is unchanged.
+                if (exchangeContext.FluxzySetting?.RecoverHostNameFromSni == true
+                    && IPAddress.TryParse(authority.HostName, out var targetIp)) {
+                    var recovery = await TlsClientHelloParser.RecoverAsync(stream, token).ConfigureAwait(false);
+                    stream = recovery.RecomposedStream;
+
+                    if (recovery.SniHost is { } sniHost) {
+                        exchangeContext.RemoteHostIp = targetIp;
+                        authority = new Authority(sniHost, authority.Port, authority.Secure);
+                        exchangeContext.Authority = authority;
+                    }
+                }
 
                 if (exchangeContext.BlindMode) {
 

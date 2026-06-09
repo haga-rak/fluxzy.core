@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
+using Fluxzy.Clients.Ssl;
 using Fluxzy.Misc.ResizableBuffers;
 
 namespace Fluxzy.Core.Socks5
@@ -142,6 +143,22 @@ namespace Fluxzy.Core.Socks5
 
             // 10. Create synthetic header for the SOCKS5 connection
             var syntheticHeaderText = CreateSyntheticConnectHeader(request);
+
+            // When the SOCKS target is an IP, recover the host from the TLS SNI and pin the IP so the
+            // upstream still targets it. Peeked bytes are replayed, so the handshake/tunnel is intact.
+            if (exchangeContext.FluxzySetting?.RecoverHostNameFromSni == true
+                && IPAddress.TryParse(request.DestinationAddress, out var targetIp))
+            {
+                var recovery = await TlsClientHelloParser.RecoverAsync(stream, token).ConfigureAwait(false);
+                stream = recovery.RecomposedStream;
+
+                if (recovery.SniHost is { } sniHost)
+                {
+                    exchangeContext.RemoteHostIp = targetIp;
+                    authority = new Authority(sniHost, authority.Port, authority.Secure);
+                    exchangeContext.Authority = authority;
+                }
+            }
 
             // 11. Handle blind mode (no decryption)
             if (exchangeContext.BlindMode)

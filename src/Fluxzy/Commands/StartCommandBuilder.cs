@@ -92,6 +92,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreatePrettyOutputOption());
             command.AddOption(StartCommandOptions.CreatePrettyMaxRowsOption());
             command.AddOption(StartCommandOptions.CreateServeH2Option());
+            command.AddOption(StartCommandOptions.CreateRecoverHostNameFromSniOption());
             command.AddOption(StartCommandOptions.CreateEnableDiscoveryOption());
             command.AddOption(StartCommandOptions.CreateProtoDirectoryOption());
             command.AddOption(StartCommandOptions.CreateTraceOption());
@@ -136,6 +137,7 @@ namespace Fluxzy.Cli.Commands
             var prettyOutput = invocationContext.Value<bool>("pretty");
             var prettyMaxRows = invocationContext.Value<int>("pretty-max-rows");
             var serveH2 = invocationContext.Value<bool>("serve-h2");
+            var recoverHostNameFromSni = invocationContext.Value<bool>("recover-host-from-sni");
             var enableDiscovery = invocationContext.Value<bool>("enable-discovery");
             var protoDirectories = invocationContext.Value<List<string>>("proto-dir");
             var traceMode = invocationContext.Value<TraceMode>("trace");
@@ -294,6 +296,7 @@ namespace Fluxzy.Cli.Commands
             proxyStartUpSetting.SetEnableProcessTracking(enableProcessTracking);
             proxyStartUpSetting.SetIncludeAndroidEmulatorHost(!noAndroidEmulator);
             proxyStartUpSetting.SetServeH2(serveH2);
+            proxyStartUpSetting.SetRecoverHostNameFromSni(recoverHostNameFromSni);
             proxyStartUpSetting.SetEnableDiscoveryService(enableDiscovery);
             proxyStartUpSetting.SetSkipInternalRules(skipInternalRules);
 
