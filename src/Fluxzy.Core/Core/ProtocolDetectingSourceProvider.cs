@@ -27,21 +27,24 @@ namespace Fluxzy.Core
             IIdProvider idProvider,
             ProxyAuthenticationMethod proxyAuthenticationMethod,
             IExchangeContextBuilder contextBuilder,
-            IDnsSolver dnsSolver)
+            IDnsSolver dnsSolver,
+            bool recoverHostNameFromSni = false)
             : base(idProvider)
         {
             _httpProvider = new FromProxyConnectSourceProvider(
                 secureConnectionUpdater,
                 idProvider,
                 proxyAuthenticationMethod,
-                contextBuilder);
+                contextBuilder,
+                recoverHostNameFromSni);
 
             _socks5Provider = new Socks5SourceProvider(
                 secureConnectionUpdater,
                 idProvider,
                 proxyAuthenticationMethod,
                 contextBuilder,
-                dnsSolver);
+                dnsSolver,
+                recoverHostNameFromSni);
         }
 
         public override async ValueTask<ExchangeSourceInitResult?> InitClientConnection(

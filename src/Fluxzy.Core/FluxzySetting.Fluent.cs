@@ -531,6 +531,18 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     Enable reading the host name from the TLS SNI when the connect target is an IP (the IP is
+        ///     pinned for the upstream connection). Default false.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public FluxzySetting SetRecoverHostNameFromSni(bool value)
+        {
+            RecoverHostNameFromSni = value;
+            return this;
+        }
+
+        /// <summary>
         ///     When set to true, the server certificate will be exported as PEM in the SSL connection information.
         ///     This is useful for diagnostics or auditing purposes.
         /// </summary>
