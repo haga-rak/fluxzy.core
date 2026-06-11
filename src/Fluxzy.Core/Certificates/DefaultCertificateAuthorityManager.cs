@@ -27,20 +27,26 @@ namespace Fluxzy.Certificates
                 return ExtendedMacOsCertificateInstaller.IsCertificateInstalled(certificate, AttemptAskElevation);
             }
 
-            // TODO implementation for Linux should be here 
-            
-            using var store = new X509Store(StoreName.Root);
+            using var store = new X509Store(StoreName.Root, ResolveRootStoreLocation(RuntimeInformation.IsOSPlatform));
             store.Open(OpenFlags.ReadOnly);
             var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, certificate.Thumbprint, false);
             return certificates.Count > 0;
+        }
+
+        // On Linux CurrentUser\Root is private to .NET and invisible to the OS; the system bundle is LocalMachine\Root
+        internal static StoreLocation ResolveRootStoreLocation(Func<OSPlatform, bool> isOsPlatform)
+        {
+            return isOsPlatform(OSPlatform.Linux)
+                ? StoreLocation.LocalMachine
+                : StoreLocation.CurrentUser;
         }
 
         public override ValueTask<bool> RemoveCertificate(string thumbPrint)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                ExtendedLinuxCertificateInstaller.Uninstall(thumbPrint, AttemptAskElevation);
-                return new ValueTask<bool>(true); 
+                var removed = ExtendedLinuxCertificateInstaller.Uninstall(thumbPrint, AttemptAskElevation);
+                return new ValueTask<bool>(removed);
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
@@ -73,12 +79,13 @@ namespace Fluxzy.Certificates
         public override ValueTask<bool> InstallCertificate(X509Certificate2 certificate)
         {
             try {
+                // The per-user X509Store below is not the OS trust scope on Linux, so the system installer is authoritative
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    ExtendedLinuxCertificateInstaller.Install(certificate, AttemptAskElevation);
+                    return new ValueTask<bool>(ExtendedLinuxCertificateInstaller.Install(certificate, AttemptAskElevation));
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                     ExtendedMacOsCertificateInstaller.Install(certificate, AttemptAskElevation);
-                
+
                 using var newCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
                 using var store = new X509Store(StoreName.Root);
 
@@ -88,10 +95,10 @@ namespace Fluxzy.Certificates
                 }
                 catch (Exception) {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        throw; 
-                    // we ignore errors for macos and linux
+                        throw;
+                    // we ignore errors for macos
                 }
-                
+
                 return new ValueTask<bool>(true);
             }
             catch (Exception ex) {
