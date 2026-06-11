@@ -94,7 +94,12 @@ namespace Fluxzy.Cli.Commands
                     certificate = new X509Certificate2(await File.ReadAllBytesAsync(fileInfo.FullName));
                 }
 
-                await certificateManager.InstallCertificate(certificate);
+                var installed = await certificateManager.InstallCertificate(certificate);
+
+                if (!installed) {
+                    throw new Exception($"Failed to trust {certificate.SubjectName.Name}. The system trust store " +
+                                        "was not updated (insufficient privileges or cancelled elevation).");
+                }
             }, argumentFileInfo);
 
             return exportCommand;

@@ -88,33 +88,51 @@ namespace Fluxzy.Certificates
         /// </summary>
         /// <param name="x509Certificate2"></param>
         /// <param name="askElevation"></param>
-        public static void Uninstall(X509Certificate2 x509Certificate2, bool askElevation)
+        public static bool Uninstall(X509Certificate2 x509Certificate2, bool askElevation)
         {
-            Uninstall(x509Certificate2.Thumbprint, askElevation);
+            return Uninstall(x509Certificate2.Thumbprint, askElevation);
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="thumbPrint"></param>
         /// <param name="askElevation"></param>
-        public static void Uninstall(string thumbPrint, bool askElevation)
+        public static bool Uninstall(string thumbPrint, bool askElevation)
         {
+            var anyDirectory = false;
+            var success = true;
+
             foreach (var installableCertificate in InstallableCertificates) {
+                if (!Directory.Exists(installableCertificate.Directory))
+                    continue;
+
+                anyDirectory = true;
+
                 var filePath = Path.Combine(installableCertificate.Directory,
                     $"fluxzy-{thumbPrint}.crt");
 
                 if (askElevation) {
-                    // run RM command 
+                    var rmResult = ProcessUtils.RunElevated("rm", new[] { "-f", $"{filePath}" }, false, "");
 
-                    ProcessUtils.RunElevated("rm", new[] {$"{filePath}"}, false, "");
-                    return;
+                    if (rmResult == null) {
+                        success = false;
+                        continue;
+                    }
+
+                    rmResult.WaitForExit();
+
+                    if (rmResult.ExitCode != 0)
+                        success = false;
+
+                    continue;
                 }
-
 
                 if (File.Exists(filePath))
                     File.Delete(filePath);
             }
+
+            return anyDirectory && success;
         }
     }
 }
