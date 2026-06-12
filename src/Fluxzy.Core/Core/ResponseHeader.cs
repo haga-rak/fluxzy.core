@@ -27,8 +27,7 @@ namespace Fluxzy.Core
             StatusCode = ParseStatusCode();
 
             if (parseConnectionInfo) {
-                ConnectionCloseRequest =
-                    HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "close", "upgrade");
+                ConnectionCloseRequest = ReadConnectionCloseRequest();
 
                 if (!ConnectionCloseRequest) {
                     ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
@@ -45,8 +44,7 @@ namespace Fluxzy.Core
         {
             StatusCode = ParseStatusCode();
 
-            ConnectionCloseRequest =
-                HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "close", "upgrade");
+            ConnectionCloseRequest = ReadConnectionCloseRequest();
 
             if (!ConnectionCloseRequest) {
                 ConnectionCloseRequest = ReadKeepAliveSettings() || ConnectionCloseRequest;
@@ -69,6 +67,18 @@ namespace Fluxzy.Core
         public int StatusCode { get; }
 
         public bool ConnectionCloseRequest { get; }
+
+        private bool ReadConnectionCloseRequest()
+        {
+            if (HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "close")) {
+                return true;
+            }
+
+            // upgrade token only ends the http/1.1 usage when the protocol switch
+            // actually happens (101); on any other status it is a mere advertisement
+            return StatusCode == 101 &&
+                   HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "upgrade");
+        }
 
         private bool ReadKeepAliveSettings()
         {
