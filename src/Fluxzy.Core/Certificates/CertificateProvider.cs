@@ -28,6 +28,11 @@ namespace Fluxzy.Certificates
 
         private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new();
 
+        // CA/Browser Forum ballot SC-081v3 caps TLS certificate validity at 200 days
+        // since 2026-03-15. Browsers reject longer-lived certificates, so generated
+        // leaf certificates must stay within this limit.
+        private const int MaxLeafValidityDays = 200;
+
         private readonly Dictionary<string, string> _rootDomainCache = new(StringComparer.OrdinalIgnoreCase);
 
         public CertificateProvider(
@@ -224,7 +229,7 @@ namespace Fluxzy.Certificates
             // Sign the certificate according to parent 
 
             var offSetEnd = new DateTimeOffset(rootCertificate.NotAfter.AddSeconds(-1));
-            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(12));
+            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddDays(MaxLeafValidityDays));
 
             if (offSetEnd > offsetLimit) {
                 offSetEnd = offsetLimit;
@@ -294,7 +299,7 @@ namespace Fluxzy.Certificates
             // Sign the certificate according to parent 
 
             var offSetEnd = new DateTimeOffset(rootCertificate.NotAfter.AddSeconds(-1));
-            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddMonths(12));
+            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddDays(MaxLeafValidityDays));
 
             if (offSetEnd > offsetLimit) {
                 offSetEnd = offsetLimit;
