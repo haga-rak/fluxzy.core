@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
+using Fluxzy.Utils.ProcessTracking;
 using Fluxzy.Writers;
 
 namespace Fluxzy.Tests._Fixtures
@@ -24,10 +25,11 @@ namespace Fluxzy.Tests._Fixtures
 
         private int _requestCount;
 
-        public AddHocProxy(int expectedRequestCount = 1, int timeoutSeconds = 5, Action<FluxzySetting>? configureSetting = null)
+        public AddHocProxy(int expectedRequestCount = 1, int timeoutSeconds = 5, Action<FluxzySetting>? configureSetting = null,
+            IProcessInfoResolver? processInfoResolver = null)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                timeoutSeconds = timeoutSeconds * 5; 
+                timeoutSeconds = timeoutSeconds * 5;
 
             _expectedRequestCount = expectedRequestCount;
 
@@ -41,7 +43,8 @@ namespace Fluxzy.Tests._Fixtures
 
             _proxy = new Proxy(_startupSetting,
                 new CertificateProvider(_startupSetting.CaCertificate,
-                    new InMemoryCertificateCache()), new DefaultCertificateAuthorityManager());
+                    new InMemoryCertificateCache()), new DefaultCertificateAuthorityManager(),
+                processInfoResolver: processInfoResolver);
 
             _proxy.Writer.ExchangeUpdated += ProxyOnBeforeResponse;
 

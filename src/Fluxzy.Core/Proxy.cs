@@ -22,6 +22,7 @@ using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Utils.ProcessTracking;
 using Fluxzy.Writers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -104,6 +105,7 @@ namespace Fluxzy
         /// <param name="externalCancellationSource">An external cancellation token</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
+        /// <param name="processInfoResolver">Resolves the originating process for a downstream connection. Defaults to a local OS TCP table lookup.</param>
         /// <exception cref="ArgumentNullException"></exception>
         public Proxy(
             FluxzySetting startupSetting,
@@ -115,7 +117,8 @@ namespace Fluxzy
             IDnsSolver? dnsSolver = null,
             CancellationTokenSource? externalCancellationSource = null,
             ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
-            ILoggerFactory? loggerFactory = null)
+            ILoggerFactory? loggerFactory = null,
+            IProcessInfoResolver? processInfoResolver = null)
         {
             _certificateProvider = certificateProvider;
             _externalCancellationSource = externalCancellationSource;
@@ -163,6 +166,9 @@ namespace Fluxzy
             _runTimeSetting = new ProxyRuntimeSetting(startupSetting, ExecutionContext, tcpConnectionProvider1,
                 Writer, IdProvider, userAgentProvider, loggerFactory, InstanceId);
 
+            if (processInfoResolver != null)
+                _runTimeSetting.ProcessInfoResolver = processInfoResolver;
+
             _logger = _runTimeSetting.GetLogger<Proxy>();
 
             proxyAuthenticationMethod ??= ProxyAuthenticationMethodBuilder.Create(startupSetting.ProxyAuthentication);
@@ -202,6 +208,7 @@ namespace Fluxzy
         /// <param name="externalCancellationSource">An external cancellation token</param>
         /// <param name="proxyAuthenticationMethod">Use this authentication method instead of the one provided in FluxzySetting</param>
         /// <param name="loggerFactory">Optional logger factory. When null, no logs are emitted.</param>
+        /// <param name="processInfoResolver">Resolves the originating process for a downstream connection. Defaults to a local OS TCP table lookup.</param>
         public Proxy(
             FluxzySetting startupSetting,
             ICertificateProvider certificateProvider,
@@ -213,10 +220,11 @@ namespace Fluxzy
             IDnsSolver? dnsSolver = null,
             CancellationTokenSource? externalCancellationSource = null,
             ProxyAuthenticationMethod? proxyAuthenticationMethod = null,
-            ILoggerFactory? loggerFactory = null)
+            ILoggerFactory? loggerFactory = null,
+            IProcessInfoResolver? processInfoResolver = null)
             : this(startupSetting, certificateProvider, certificateAuthorityManager, tcpConnectionProvider,
                 userAgentProvider, idProvider, dnsSolver, externalCancellationSource,
-                proxyAuthenticationMethod, loggerFactory)
+                proxyAuthenticationMethod, loggerFactory, processInfoResolver)
         {
             _runTimeSetting.ConfigureUpstreamSocket = configureUpstreamSocket;
         }
