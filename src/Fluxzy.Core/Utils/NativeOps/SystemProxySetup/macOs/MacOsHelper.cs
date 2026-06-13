@@ -11,72 +11,71 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 {
     internal class MacOsHelper
     {
-        // Adding root certificate on macos s
-
-        public static async Task<IEnumerable<NetworkInterface>> GetEnabledInterfaces()
+        public static async Task<IReadOnlyList<NetworkInterface>> GetEnabledInterfaces()
         {
-            var runResult = await ProcessUtils.QuickRunAsync("networksetup", "-listnetworkserviceorder");
+            var runResult = await ProcessUtils.QuickRunAsync("networksetup", new[] { "-listnetworkserviceorder" });
 
             if (runResult.ExitCode != 0 || runResult.StandardOutputMessage == null)
                 throw new InvalidOperationException("Failed to get interfaces");
 
-            var commandResponse = runResult.StandardOutputMessage;
-
-            return ParseInterfaces(commandResponse);
+            return ParseInterfaces(runResult.StandardOutputMessage);
         }
 
-        public static IEnumerable<NetworkInterface> ParseInterfaces(string commandResponse)
+        public static IReadOnlyList<NetworkInterface> ParseInterfaces(string commandResponse)
         {
-            var networkInterfaces = System.Net.NetworkInformation.NetworkInterface
-                                          .GetAllNetworkInterfaces()
-                                          .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
-                                          .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Unknown)
-                                          .Where(n => n.OperationalStatus == OperationalStatus.Up)
-                                          .Where(n => n.GetIPProperties().UnicastAddresses.Any())
-                                          .ToList();
-            
-            var hardwarePorMapping = NetworkInterface.ParseHardwarePortMapping(
+            var services = NetworkInterface.ParseNetworkServices(
                 commandResponse.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries));
 
-            return networkInterfaces.Select(s => !hardwarePorMapping.TryGetValue(s.Name, out var hardwarePort) ?
-                null : 
-                new NetworkInterface(s.Name, s.Name, hardwarePort))
-                                    .OfType<NetworkInterface>();
+            var activeDevices = System.Net.NetworkInformation.NetworkInterface
+                                       .GetAllNetworkInterfaces()
+                                       .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                                       .Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Unknown)
+                                       .Where(n => n.OperationalStatus == OperationalStatus.Up)
+                                       .Where(n => n.GetIPProperties().UnicastAddresses.Any())
+                                       .Select(n => n.Name)
+                                       .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return services.Where(s => activeDevices.Contains(s.DeviceName)).ToList();
         }
 
-        public static async Task<Dictionary<string, NetworkInterfaceProxySetting?>> ReadProxySettings(IEnumerable<string> interfaceNames)
+        /// <summary>
+        /// Fills <see cref="NetworkInterface.ProxySetting"/> for each interface by querying
+        /// <c>networksetup</c> by service name. Read failures leave the setting null.
+        /// </summary>
+        public static async Task PopulateProxySettings(IEnumerable<NetworkInterface> interfaces)
         {
-            var result = new Dictionary<string, NetworkInterfaceProxySetting?>();
+            foreach (var iface in interfaces) {
 
-            foreach (var interfaceName in interfaceNames) {
+                var proxyResult = await ProcessUtils.QuickRunAsync(
+                    "networksetup", new[] { "-getsecurewebproxy", iface.ServiceName });
 
-                var getwebProxyResult = await ProcessUtils.QuickRunAsync("networksetup", $"-getsecurewebproxy \"{interfaceName}\"");
-
-                if (getwebProxyResult.ExitCode != 0 || getwebProxyResult.StandardOutputMessage == null)
+                if (proxyResult.ExitCode != 0 || proxyResult.StandardOutputMessage == null)
                     continue;
 
-                var commandResponse = getwebProxyResult.StandardOutputMessage;
+                var proxySetting = NetworkInterfaceProxySetting.ParseFromCommandLineResult(proxyResult.StandardOutputMessage);
 
-                var proxySetting = NetworkInterfaceProxySetting.ParseFromCommandLineResult(commandResponse);
+                if (proxySetting == null)
+                    continue;
 
-                result[interfaceName] = proxySetting;
+                var byPassResult = await ProcessUtils.QuickRunAsync(
+                    "networksetup", new[] { "-getproxybypassdomains", iface.ServiceName });
 
-                if (proxySetting != null) {
-                    // Proxy settigns is available we try to set bypass domains
+                if (byPassResult.ExitCode == 0 && byPassResult.StandardOutputMessage != null)
+                    proxySetting.ByPassDomains = ParseByPassDomains(byPassResult.StandardOutputMessage);
 
-                    var byPassDomainsRunResult = await ProcessUtils.QuickRunAsync("networksetup", $"-getproxybypassdomains \"{interfaceName}\"");
-
-                    if (byPassDomainsRunResult.ExitCode != 0 || byPassDomainsRunResult.StandardOutputMessage == null)
-                        continue;
-
-                    var byPassDomains = byPassDomainsRunResult.StandardOutputMessage.Split(new[] { "\r", "\n" },
-                        StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray();
-
-                    proxySetting.ByPassDomains = byPassDomains;
-                }
+                iface.ProxySetting = proxySetting;
             }
+        }
 
-            return result;
+        public static string[] ParseByPassDomains(string commandResponse)
+        {
+            // When the list is empty, networksetup prints "There aren't any bypass domains set on <service>."
+            return commandResponse.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                                  .Select(l => l.Trim())
+                                  .Where(l => l.Length > 0)
+                                  .Where(l => !l.Contains("aren't any bypass", StringComparison.OrdinalIgnoreCase))
+                                  .Distinct()
+                                  .ToArray();
         }
     }
 }
