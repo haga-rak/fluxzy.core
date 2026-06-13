@@ -12,6 +12,15 @@ namespace Fluxzy.Utils.ProcessTracking
     /// </summary>
     internal static class MacOsProcessHelper
     {
+        // Byte offsets into struct socket_fdinfo (see GetSocketLocalPort) and the socket constants we
+        // filter on. AF_INET / AF_INET6 / IPPROTO_TCP from <sys/socket.h> / <netinet/in.h>.
+        private const int ProtocolOffset = 180; // psi.soi_protocol
+        private const int FamilyOffset = 184;   // psi.soi_family
+        private const int LocalPortOffset = 268; // psi.soi_proto.pri_tcp.tcpsi_ini.insi_lport (net order)
+        private const int AfInet = 2;
+        private const int AfInet6 = 30;
+        private const int IpProtoTcp = 6;
+
         public static ProcessInfo? GetProcessInfo(int localPort)
         {
             // Get all PIDs
@@ -102,11 +111,9 @@ namespace Fluxzy.Utils.ProcessTracking
                             i * MacOsNativeMethods.PROC_FDINFO_SIZE,
                             MacOsNativeMethods.PROC_FDINFO_SIZE);
 
-                        // proc_fdinfo structure:
-                        // uint32_t proc_fdtype (offset 0)
-                        // int32_t proc_fd (offset 4)
-                        var fdType = MemoryMarshal.Read<uint>(fdInfoSpan);
-                        var fd = MemoryMarshal.Read<int>(fdInfoSpan.Slice(4));
+                        // struct proc_fdinfo { int32_t proc_fd; uint32_t proc_fdtype; }
+                        var fd = MemoryMarshal.Read<int>(fdInfoSpan);
+                        var fdType = MemoryMarshal.Read<uint>(fdInfoSpan.Slice(4));
 
                         // Check if it's a socket
                         if (fdType != MacOsNativeMethods.PROX_FDTYPE_SOCKET)
@@ -144,53 +151,27 @@ namespace Fluxzy.Utils.ProcessTracking
                         pid, fd, MacOsNativeMethods.PROC_PIDFDSOCKETINFO,
                         handle.AddrOfPinnedObject(), MacOsNativeMethods.SOCKET_FDINFO_SIZE);
 
-                    if (result != MacOsNativeMethods.SOCKET_FDINFO_SIZE)
+                    // proc_pidfdinfo returns the number of bytes written. Require enough to reach the
+                    // local-port field rather than an exact struct-size match: struct socket_fdinfo can
+                    // grow across OS versions, and an exact compare silently broke the whole lookup.
+                    if (result < LocalPortOffset + sizeof(int))
                         return -1;
 
                     var bufferSpan = buffer.AsSpan(0, result);
 
-                    // socket_fdinfo structure layout:
-                    // proc_fileinfo pfi (offset 0, size 80)
-                    // socket_info psi (offset 80)
-                    //   - soi_stat (vinfo_stat, offset 80, size 120)
-                    //   - soi_so (offset 200, size 8)
-                    //   - soi_pcb (offset 208, size 8)
-                    //   - soi_type (offset 216, size 4)
-                    //   - soi_protocol (offset 220, size 4)
-                    //   - soi_family (offset 224, size 4)
-                    //   - soi_options (offset 228, size 2)
-                    //   - soi_linger (offset 230, size 2)
-                    //   - soi_state (offset 232, size 2)
-                    //   - soi_qlen (offset 234, size 2)
-                    //   - soi_incqlen (offset 236, size 2)
-                    //   - soi_qlimit (offset 238, size 2)
-                    //   - soi_timeo (offset 240, size 2)
-                    //   - soi_error (offset 242, size 2)
-                    //   - soi_oobmark (offset 244, size 4)
-                    //   - soi_rcv/soi_snd sockbuf_info (offset 248, 256 for each)
-                    //   - soi_kind (offset 280, size 4)
-                    //   - padding (offset 284, size 4)
-                    //   - union pri (offset 288) - for TCP this is pri_tcp (in_sockinfo + tcp_sockinfo)
-
-                    // Check socket family (AF_INET = 2, AF_INET6 = 30)
-                    var family = MemoryMarshal.Read<int>(bufferSpan.Slice(224));
-                    if (family != 2 && family != 30) // AF_INET or AF_INET6
+                    // Byte offsets into struct socket_fdinfo, LP64 (identical on x86_64 and arm64),
+                    // computed from <sys/proc_info.h>: proc_fileinfo pfi (24 bytes) then socket_info psi.
+                    // psi.soi_protocol @180, psi.soi_family @184,
+                    // psi.soi_proto.pri_tcp.tcpsi_ini.insi_lport @268 (network byte order).
+                    var family = MemoryMarshal.Read<int>(bufferSpan.Slice(FamilyOffset));
+                    if (family != AfInet && family != AfInet6)
                         return -1;
 
-                    // Check if TCP (IPPROTO_TCP = 6)
-                    var protocol = MemoryMarshal.Read<int>(bufferSpan.Slice(220));
-                    if (protocol != 6)
+                    var protocol = MemoryMarshal.Read<int>(bufferSpan.Slice(ProtocolOffset));
+                    if (protocol != IpProtoTcp)
                         return -1;
 
-                    // For TCP sockets, the local port is in the in_sockinfo structure
-                    // pri_tcp.tcpsi_ini (in_sockinfo) starts at offset 288
-                    // in_sockinfo layout:
-                    //   insi_fport (offset 0, 4 bytes) - foreign port
-                    //   insi_lport (offset 4, 4 bytes) - local port
-                    //   ... rest of structure
-
-                    // Local port is at offset 288 + 4 = 292, stored in network byte order
-                    var localPortNetworkOrder = MemoryMarshal.Read<int>(bufferSpan.Slice(292));
+                    var localPortNetworkOrder = MemoryMarshal.Read<int>(bufferSpan.Slice(LocalPortOffset));
                     return NetworkToHostPort(localPortNetworkOrder);
                 }
                 finally
