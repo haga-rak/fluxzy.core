@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -41,11 +42,9 @@ namespace Fluxzy.Misc
             return process.ExitCode == 0 ? stringBuilder.ToString() : null;
         }
 
-        public static async Task<ProcessRunResult> QuickRunAsync(
+        public static Task<ProcessRunResult> QuickRunAsync(
             string commandName, string args, Stream? stdinStream = null, bool throwOnFail = false)
         {
-            // Run process and return process run result 
-
             var processStartInfo = new ProcessStartInfo(commandName, args) {
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
@@ -54,10 +53,36 @@ namespace Fluxzy.Misc
                 CreateNoWindow = true
             };
 
+            return RunAsync(processStartInfo, stdinStream, throwOnFail);
+        }
+
+        /// <summary>
+        /// Passes each argument verbatim via <see cref="ProcessStartInfo.ArgumentList"/>, so spaces and
+        /// empty values survive without any shell/quoting layer.
+        /// </summary>
+        public static Task<ProcessRunResult> QuickRunAsync(
+            string commandName, IEnumerable<string> args, bool throwOnFail = false)
+        {
+            var processStartInfo = new ProcessStartInfo(commandName) {
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            foreach (var arg in args)
+                processStartInfo.ArgumentList.Add(arg);
+
+            return RunAsync(processStartInfo, null, throwOnFail);
+        }
+
+        private static async Task<ProcessRunResult> RunAsync(
+            ProcessStartInfo processStartInfo, Stream? stdinStream, bool throwOnFail)
+        {
             var process = Process.Start(processStartInfo);
 
             if (process == null) {
-                throw new InvalidOperationException("Unable to start process " + commandName + " " + args);
+                throw new InvalidOperationException("Unable to start process " + processStartInfo.FileName);
             }
 
             Task? copyTask = null;
@@ -84,7 +109,7 @@ namespace Fluxzy.Misc
 
             if (process.ExitCode != 0 && throwOnFail) {
                 throw new InvalidOperationException(
-                    $"Process {commandName} {args} exited" +
+                    $"Process {processStartInfo.FileName} exited" +
                     $" with code {process.ExitCode} {standardOutput} {standardError}");
             }
 

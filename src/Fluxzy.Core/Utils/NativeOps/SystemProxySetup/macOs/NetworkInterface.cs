@@ -9,46 +9,65 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 {
     internal class NetworkInterface
     {
-        public NetworkInterface(string name, string deviceName, string hardwarePort)
+        public NetworkInterface(string deviceName, string serviceName, string hardwarePort)
         {
-            Name = name;
             DeviceName = deviceName;
+            ServiceName = serviceName;
             HardwarePort = hardwarePort;
         }
 
-        public string Name { get;  } 
+        /// <summary>BSD device name (e.g. <c>en0</c>).</summary>
+        public string DeviceName { get; }
 
-        public string DeviceName { get;  }
+        /// <summary>
+        /// Network service name (e.g. <c>Wi-Fi</c>). This is the identifier every
+        /// <c>networksetup</c> proxy sub-command expects - not the device name.
+        /// </summary>
+        public string ServiceName { get; }
 
+        /// <summary>Hardware port (e.g. <c>Wi-Fi</c>), used only as a stable key for priority ordering.</summary>
         public string HardwarePort { get; }
 
         public NetworkInterfaceProxySetting? ProxySetting { get; set; }
 
-        
-        
+        private static readonly Regex ServiceHeaderRegex =
+            new(@"^\((?:\d+|\*)\)\s+(?<service>.+)$");
+
+        private static readonly Regex DeviceLineRegex =
+            new(@"^\(Hardware Port:\s*(?<hardwarePort>.*),\s*Device:\s*(?<deviceName>[a-zA-Z0-9_]+)\)$");
+
         /// <summary>
-        /// Mapping between device name and hardward port 
+        /// Parses <c>networksetup -listnetworkserviceorder</c>, pairing each "(n) ServiceName"
+        /// header with the "(Hardware Port: ..., Device: ...)" line that follows it.
         /// </summary>
-        /// <param name="lines"></param>
-        /// <returns></returns>
-        public static Dictionary<string, string> ParseHardwarePortMapping(string[] lines)
+        public static IReadOnlyList<NetworkInterface> ParseNetworkServices(IEnumerable<string> lines)
         {
-            var regexDeviceName = @"Hardware Port: (?<hardwarePort>.*), Device: (?<deviceName>[a-zA-Z0-9_]+)\)$";
+            var result = new List<NetworkInterface>();
+            string? currentService = null;
 
-            var result = new Dictionary<string, string>();
-            
-            foreach (var line in lines) {
-                var matchResult = Regex.Match(line, regexDeviceName);
+            foreach (var rawLine in lines) {
+                var line = rawLine.Trim();
 
-                if (!matchResult.Success)
-                    continue; 
-                
-                var deviceName = matchResult.Groups["deviceName"].Value;
-                var hardwarePort = matchResult.Groups["hardwarePort"].Value;
-                
-                result[deviceName] = hardwarePort;
+                var header = ServiceHeaderRegex.Match(line);
+
+                if (header.Success) {
+                    currentService = header.Groups["service"].Value.Trim();
+                    continue;
+                }
+
+                var device = DeviceLineRegex.Match(line);
+
+                if (device.Success && currentService != null) {
+                    result.Add(new NetworkInterface(
+                        device.Groups["deviceName"].Value,
+                        currentService,
+                        device.Groups["hardwarePort"].Value.Trim()));
+
+                    currentService = null;
+                }
             }
-            return result; 
+
+            return result;
         }
     }
 
@@ -66,14 +85,12 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
         public string Server { get; }
 
         public int Port { get;  }
-        
-        public string[] ByPassDomains { get; set; } = new string[0];
+
+        public string[] ByPassDomains { get; set; } = Array.Empty<string>();
 
         /// <summary>
-        /// Parses result of command line "networksetup -getwebproxy {interfaceName}"
+        /// Parses result of command line "networksetup -getsecurewebproxy {serviceName}"
         /// </summary>
-        /// <param name="commandLineResult"></param>
-        /// <returns></returns>
         public static NetworkInterfaceProxySetting? ParseFromCommandLineResult(string commandLineResult)
         {
             var lines = commandLineResult.Split(new[] { "\r", "\n"}, StringSplitOptions.RemoveEmptyEntries)
@@ -93,14 +110,14 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
                 return null;
 
             if (!dictionaryOfValue.TryGetValue("Server", out var serverValue))
-                return null; 
+                return null;
 
             if (!dictionaryOfValue.TryGetValue("Port", out var portValue))
                 return null;
 
             var enabled = string.Equals(enabledValue.Trim(), "Yes", StringComparison.OrdinalIgnoreCase);
-            var server = serverValue.Trim(); 
-            
+            var server = serverValue.Trim();
+
             if (!int.TryParse(portValue.Trim(), out var port))
                 return null;
 
