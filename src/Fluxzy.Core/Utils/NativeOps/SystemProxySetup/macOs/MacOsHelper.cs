@@ -11,9 +11,11 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
 {
     internal class MacOsHelper
     {
+        private static string NetworkSetup => MacOsProxyConfiguration.NetworkSetupCommand;
+
         public static async Task<IReadOnlyList<NetworkInterface>> GetEnabledInterfaces()
         {
-            var runResult = await ProcessUtils.QuickRunAsync("networksetup", new[] { "-listnetworkserviceorder" });
+            var runResult = await ProcessUtils.QuickRunAsync(NetworkSetup, new[] { "-listnetworkserviceorder" });
 
             if (runResult.ExitCode != 0 || runResult.StandardOutputMessage == null)
                 throw new InvalidOperationException("Failed to get interfaces");
@@ -47,7 +49,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
             foreach (var iface in interfaces) {
 
                 var proxyResult = await ProcessUtils.QuickRunAsync(
-                    "networksetup", new[] { "-getsecurewebproxy", iface.ServiceName });
+                    NetworkSetup, new[] { "-getsecurewebproxy", iface.ServiceName });
 
                 if (proxyResult.ExitCode != 0 || proxyResult.StandardOutputMessage == null)
                     continue;
@@ -58,7 +60,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
                     continue;
 
                 var byPassResult = await ProcessUtils.QuickRunAsync(
-                    "networksetup", new[] { "-getproxybypassdomains", iface.ServiceName });
+                    NetworkSetup, new[] { "-getproxybypassdomains", iface.ServiceName });
 
                 if (byPassResult.ExitCode == 0 && byPassResult.StandardOutputMessage != null)
                     proxySetting.ByPassDomains = ParseByPassDomains(byPassResult.StandardOutputMessage);

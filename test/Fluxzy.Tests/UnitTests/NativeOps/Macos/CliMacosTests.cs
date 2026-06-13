@@ -108,5 +108,23 @@ namespace Fluxzy.Tests.UnitTests.NativeOps.Macos
 
             Assert.Equal(new[] { "*.local", "169.254/16", "example.com" }, domains);
         }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData(",, ,")]
+        public void TestParseServiceListEmptyIsNull(string? raw)
+        {
+            Assert.Null(MacOsProxyConfiguration.ParseList(raw));
+        }
+
+        [Fact]
+        public void TestParseServiceListTrimsAndDropsEmpty()
+        {
+            var list = MacOsProxyConfiguration.ParseList(" Wi-Fi , Ethernet ,, USB 10/100/1000 LAN ");
+
+            Assert.Equal(new[] { "Wi-Fi", "Ethernet", "USB 10/100/1000 LAN" }, list);
+        }
     }
 }

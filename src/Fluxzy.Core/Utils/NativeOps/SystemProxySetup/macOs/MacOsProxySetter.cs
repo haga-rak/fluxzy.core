@@ -14,18 +14,20 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
     {
         private const string NativeSettingKey = "nativeSetting";
 
-        private static readonly HashSet<string> PriorityDevices = new(
-            new[] { "Wi-Fi", "Ethernet"}, StringComparer.OrdinalIgnoreCase);
+        private static string NetworkSetup => MacOsProxyConfiguration.NetworkSetupCommand;
+
+        private static readonly HashSet<string> PriorityServices = new(
+            MacOsProxyConfiguration.PriorityServices, StringComparer.OrdinalIgnoreCase);
 
         public async Task<SystemProxySetting> ReadSetting()
         {
-            var interfaces = await MacOsHelper.GetEnabledInterfaces();
+            var interfaces = await GetManagedInterfaces();
 
             await MacOsHelper.PopulateProxySettings(interfaces);
 
             var enabledProxySetting = interfaces
                                       .Where(s => s.ProxySetting != null)
-                                      .OrderByDescending(t => PriorityDevices.Contains(t.HardwarePort))
+                                      .OrderByDescending(IsPriority)
                                       .FirstOrDefault(s => s.ProxySetting!.Enabled)?.ProxySetting;
 
             var proxyEnabled = enabledProxySetting != null;
@@ -56,14 +58,33 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
                 return;
             }
 
-            // Fresh setting: apply the same proxy to every active service.
-            var serviceNames = (await MacOsHelper.GetEnabledInterfaces()).Select(s => s.ServiceName);
+            // Fresh setting: apply the same proxy to every managed service.
+            var serviceNames = (await GetManagedInterfaces()).Select(s => s.ServiceName);
 
             var appliedHost = value.BoundHost == ProxyConstants.NoProxyWord ? string.Empty : value.BoundHost;
             var appliedPort = value.ListenPort <= 0 ? 0 : value.ListenPort;
 
             await Task.WhenAll(serviceNames.Select(
                 s => ApplyToService(s, appliedHost, appliedPort, value.ByPassHosts, value.Enabled, throwOnFail)));
+        }
+
+        private static bool IsPriority(NetworkInterface iface)
+        {
+            return PriorityServices.Contains(iface.ServiceName) || PriorityServices.Contains(iface.HardwarePort);
+        }
+
+        private static async Task<IReadOnlyList<NetworkInterface>> GetManagedInterfaces()
+        {
+            var interfaces = await MacOsHelper.GetEnabledInterfaces();
+
+            var allowList = MacOsProxyConfiguration.ServiceAllowList;
+
+            if (allowList == null)
+                return interfaces;
+
+            var allowed = new HashSet<string>(allowList, StringComparer.OrdinalIgnoreCase);
+
+            return interfaces.Where(i => allowed.Contains(i.ServiceName) || allowed.Contains(i.HardwarePort)).ToList();
         }
 
         private static async Task RestoreInterface(NetworkInterface iface, bool throwOnFail)
@@ -82,10 +103,10 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
         private static async Task ApplyToService(
             string serviceName, string host, int port, IEnumerable<string> byPassHosts, bool enabled, bool throwOnFail)
         {
-            await ProcessUtils.QuickRunAsync("networksetup",
+            await ProcessUtils.QuickRunAsync(NetworkSetup,
                 new[] { "-setwebproxy", serviceName, host, port.ToString() }, throwOnFail);
 
-            await ProcessUtils.QuickRunAsync("networksetup",
+            await ProcessUtils.QuickRunAsync(NetworkSetup,
                 new[] { "-setsecurewebproxy", serviceName, host, port.ToString() }, throwOnFail);
 
             await SetByPassDomains(serviceName, byPassHosts, throwOnFail);
@@ -103,17 +124,17 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.macOs
             // would otherwise be stored as a single blank bypass entry.
             args.AddRange(domains.Count == 0 ? new[] { "Empty" } : domains);
 
-            await ProcessUtils.QuickRunAsync("networksetup", args, throwOnFail);
+            await ProcessUtils.QuickRunAsync(NetworkSetup, args, throwOnFail);
         }
 
         private static async Task SetState(string serviceName, bool enabled, bool throwOnFail)
         {
             var onOff = enabled ? "on" : "off";
 
-            await ProcessUtils.QuickRunAsync("networksetup",
+            await ProcessUtils.QuickRunAsync(NetworkSetup,
                 new[] { "-setwebproxystate", serviceName, onOff }, throwOnFail);
 
-            await ProcessUtils.QuickRunAsync("networksetup",
+            await ProcessUtils.QuickRunAsync(NetworkSetup,
                 new[] { "-setsecurewebproxystate", serviceName, onOff }, throwOnFail);
         }
     }
