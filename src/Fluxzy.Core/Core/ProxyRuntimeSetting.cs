@@ -11,6 +11,7 @@ using Fluxzy.Clients;
 using Fluxzy.Rules;
 using Fluxzy.Rules.Actions;
 using Fluxzy.Rules.Filters;
+using Fluxzy.Utils.ProcessTracking;
 using Fluxzy.Writers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -80,6 +81,12 @@ namespace Fluxzy.Core
         ///     Optional callback applied to every upstream socket before it connects.
         /// </summary>
         public ConfigureUpstreamSocket? ConfigureUpstreamSocket { get; set; }
+
+        /// <summary>
+        ///     Resolves the originating process for a downstream connection when process tracking is enabled.
+        ///     Defaults to a local OS TCP table lookup.
+        /// </summary>
+        public IProcessInfoResolver ProcessInfoResolver { get; set; } = new LocalTcpTableProcessResolver();
 
         /// <summary>
         /// </summary>

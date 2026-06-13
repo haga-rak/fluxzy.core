@@ -110,13 +110,17 @@ namespace Fluxzy.Core
                 downStreamPipe = exchangeSourceInitResult.DownStreamPipe;
                 var provisionalExchange = exchangeSourceInitResult.ProvisionalExchange;
 
+                // Resolve the originating process once per connection; every exchange shares it.
+                var processInfo = await ResolveProcessInfo(
+                    provisionalExchange, remoteEndPoint, localEndPoint, token);
+
                 if (downStreamPipe.SupportsMultiplexing) {
                     await OperateMultiplexed(
                         buffer, closeImmediately, token,
                         provisionalExchange, downStreamPipe,
                         remoteEndPoint, downStreamClientAddress,
                         localEndPoint, localEndPointsAddress,
-                        callerTokenSource);
+                        callerTokenSource, processInfo);
                 }
                 else {
                     await OperateSequential(
@@ -124,7 +128,7 @@ namespace Fluxzy.Core
                         provisionalExchange, downStreamPipe,
                         remoteEndPoint, downStreamClientAddress,
                         localEndPoint, localEndPointsAddress,
-                        callerTokenSource, client, lastExchangeHolder);
+                        callerTokenSource, client, lastExchangeHolder, processInfo);
                 }
             }
             catch (Exception ex)
@@ -155,7 +159,7 @@ namespace Fluxzy.Core
             IPEndPoint remoteEndPoint, string downStreamClientAddress,
             IPEndPoint localEndPoint, string localEndPointsAddress,
             CancellationTokenSource callerTokenSource, TcpClient client,
-            ExchangeHolder lastExchangeHolder)
+            ExchangeHolder lastExchangeHolder, ProcessInfo? processInfo)
         {
             var processedProvisional = false;
 
@@ -203,7 +207,7 @@ namespace Fluxzy.Core
                     buffer, closeImmediately, token, exchange,
                     remoteEndPoint, downStreamClientAddress,
                     localEndPoint, localEndPointsAddress,
-                    downStreamPipe, callerTokenSource);
+                    downStreamPipe, callerTokenSource, processInfo);
 
                 if (shouldCloseDownStreamConnection)
                 {
@@ -217,7 +221,7 @@ namespace Fluxzy.Core
             Exchange? provisionalExchange, IDownStreamPipe downStreamPipe,
             IPEndPoint remoteEndPoint, string downStreamClientAddress,
             IPEndPoint localEndPoint, string localEndPointsAddress,
-            CancellationTokenSource callerTokenSource)
+            CancellationTokenSource callerTokenSource, ProcessInfo? processInfo)
         {
             var tracker = new ActiveExchangeTracker();
             var processedProvisional = false;
@@ -275,7 +279,7 @@ namespace Fluxzy.Core
                     remoteEndPoint, downStreamClientAddress,
                     localEndPoint, localEndPointsAddress,
                     downStreamPipe, callerTokenSource,
-                    tracker);
+                    tracker, processInfo);
             }
 
             // Wait for all in-flight exchanges to complete
@@ -288,7 +292,7 @@ namespace Fluxzy.Core
             IPEndPoint remoteEndPoint, string downStreamClientAddress,
             IPEndPoint localEndPoint, string localEndPointsAddress,
             IDownStreamPipe downStreamPipe, CancellationTokenSource callerTokenSource,
-            ActiveExchangeTracker tracker)
+            ActiveExchangeTracker tracker, ProcessInfo? processInfo)
         {
             using var exchangeBuffer = RsBuffer.Allocate(FluxzySharedSetting.RequestProcessingBuffer);
 
@@ -298,7 +302,7 @@ namespace Fluxzy.Core
                     exchangeBuffer, closeImmediately, token, exchange,
                     remoteEndPoint, downStreamClientAddress,
                     localEndPoint, localEndPointsAddress,
-                    downStreamPipe, callerTokenSource);
+                    downStreamPipe, callerTokenSource, processInfo);
             }
             catch (Exception ex)
             {
@@ -329,7 +333,7 @@ namespace Fluxzy.Core
             RsBuffer buffer, bool closeImmediately, CancellationToken token, Exchange exchange, IPEndPoint remoteEndPoint,
             string downStreamClientAddress,
             IPEndPoint localEndPoint, string localEndPointsAddress, IDownStreamPipe downStreamPipe,
-            CancellationTokenSource callerTokenSource)
+            CancellationTokenSource callerTokenSource, ProcessInfo? processInfo)
         {
             UpdateExchangeMetrics(exchange, remoteEndPoint, downStreamClientAddress, localEndPoint,
                 localEndPointsAddress);
@@ -345,12 +349,7 @@ namespace Fluxzy.Core
                     _proxyRuntimeSetting.UserAgentProvider);
             }
 
-            // Collect process info if enabled and connection is from localhost
-            if (_proxyRuntimeSetting.StartupSetting.EnableProcessTracking
-                && IPAddress.IsLoopback(remoteEndPoint.Address))
-            {
-                exchange.ProcessInfo = ProcessTracker.Instance.GetProcessInfo(remoteEndPoint.Port);
-            }
+            exchange.ProcessInfo = processInfo;
 
             if (!exchange.Unprocessed)
             {
@@ -363,6 +362,20 @@ namespace Fluxzy.Core
                 downStreamPipe, buffer, closeImmediately, callerTokenSource, token);
 
             return shouldCloseDownStreamConnection;
+        }
+
+        private async ValueTask<ProcessInfo?> ResolveProcessInfo(
+            Exchange provisionalExchange, IPEndPoint remoteEndPoint, IPEndPoint localEndPoint, CancellationToken token)
+        {
+            if (!_proxyRuntimeSetting.StartupSetting.EnableProcessTracking)
+                return null;
+
+            var context = new ProcessResolutionContext(
+                remoteEndPoint, localEndPoint, provisionalExchange.Authority);
+
+            return await _proxyRuntimeSetting.ProcessInfoResolver
+                                             .ResolveAsync(context, token)
+                                             .ConfigureAwait(false);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
