@@ -15,7 +15,7 @@ namespace Fluxzy.Utils.ProcessTracking
         public const int PROC_PIDFDSOCKETINFO = 3;
         public const uint PROX_FDTYPE_SOCKET = 2;
         public const int PROC_FDINFO_SIZE = 8; // sizeof(proc_fdinfo)
-        public const int SOCKET_FDINFO_SIZE = 808; // sizeof(socket_fdinfo)
+        public const int SOCKET_FDINFO_SIZE = 792; // sizeof(struct socket_fdinfo), LP64 (verified via offsetof)
         public const int PROC_PIDPATHINFO_MAXSIZE = 4096;
 
         public const int CTL_KERN = 1;
