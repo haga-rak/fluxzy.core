@@ -73,15 +73,21 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
                         previousSettings.Add(key, value);
                 }
 
+                var host = previousSettings["org.gnome.system.proxy.http host"]?.ToString();
+                var port = (int) previousSettings["org.gnome.system.proxy.http port"]!;
+
                 var finalSettings = new SystemProxySetting(
-                    previousSettings["org.gnome.system.proxy.http host"]?.ToString()!,
-                    (int) previousSettings["org.gnome.system.proxy.http port"]!,
+                    host!,
+                    port,
                     previousSettings["org.gnome.system.proxy ignore-hosts"] == null
                         ? Array.Empty<string>()
                         : (string[]) previousSettings["org.gnome.system.proxy ignore-hosts"]!
                 ) {
+                    // gsettings' "http enabled" key is unused (per its own schema): proxying is
+                    // active when mode is manual and a host/port are set.
                     Enabled = previousSettings["org.gnome.system.proxy mode"]?.ToString() == "manual"
-                              && (bool) previousSettings["org.gnome.system.proxy.http enabled"]!,
+                              && !string.IsNullOrEmpty(host)
+                              && port != 0,
                     PrivateValues = {
                         ["GSettings.Proxy"] = previousSettings
                     }
