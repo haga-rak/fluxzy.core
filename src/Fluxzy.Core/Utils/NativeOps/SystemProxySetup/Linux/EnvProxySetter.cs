@@ -32,7 +32,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
 
             Environment.SetEnvironmentVariable("https_proxy", word, EnvironmentVariableTarget.User);
             Environment.SetEnvironmentVariable("http_proxy", word, EnvironmentVariableTarget.User);
-            Environment.SetEnvironmentVariable("no_proxy", word, EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("no_proxy", noProxy, EnvironmentVariableTarget.User);
 
             return Task.CompletedTask;
         }
