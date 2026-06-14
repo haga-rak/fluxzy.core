@@ -39,18 +39,20 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
 
             // Gnome based process we set proxy settings via gsettings
 
-            if (!proxySetting.Enabled) {
-                if (proxySetting.PrivateValues.TryGetValue("GSettings.Proxy", out var prev)
-                    && prev is Dictionary<string, object> previousValues) {
-                    // Restore the existing settings
-
-                    foreach (var (key, value) in previousValues) {
+            // A captured snapshot always wins: replay every key verbatim so the user's prior
+            // configuration is restored exactly, whether or not it had a proxy enabled. Otherwise
+            // a pre-existing manual proxy would be reduced to just mode/host/port.
+            if (proxySetting.PrivateValues.TryGetValue("GSettings.Proxy", out var prev)
+                && prev is Dictionary<string, object?> previousValues) {
+                foreach (var (key, value) in previousValues) {
+                    if (value != null)
                         SetGSettingValue(key, value);
-                    }
-
-                    return;
                 }
 
+                return;
+            }
+
+            if (!proxySetting.Enabled) {
                 // Just disable proxy
 
                 await ProcessUtils.QuickRunAsync("gsettings set org.gnome.system.proxy mode 'none'");
