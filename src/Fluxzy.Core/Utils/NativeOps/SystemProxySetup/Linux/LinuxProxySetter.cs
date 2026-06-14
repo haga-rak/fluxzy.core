@@ -28,33 +28,40 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
 
         public async Task ApplySetting(SystemProxySetting proxySetting)
         {
-            if (ProcessUtils.IsCommandAvailable("gsettings")) {
-                // Gnome based process we set proxy settings via gsettings
+            if (!ProcessUtils.IsCommandAvailable("gsettings")) {
+                // Not a Gnome based environment: keep read and write symmetric by routing
+                // to the same fallback ReadSetting uses.
 
-                if (!proxySetting.Enabled) {
-                    if (proxySetting.PrivateValues.TryGetValue("GSettings.Proxy", out var prev)
-                        && prev is Dictionary<string, object> previousValues) {
-                        // Restore the existing settings
+                await _internalSetter.ApplySetting(proxySetting);
 
-                        foreach (var (key, value) in previousValues) {
-                            SetGSettingValue(key, value);
-                        }
+                return;
+            }
 
-                        return;
+            // Gnome based process we set proxy settings via gsettings
+
+            if (!proxySetting.Enabled) {
+                if (proxySetting.PrivateValues.TryGetValue("GSettings.Proxy", out var prev)
+                    && prev is Dictionary<string, object> previousValues) {
+                    // Restore the existing settings
+
+                    foreach (var (key, value) in previousValues) {
+                        SetGSettingValue(key, value);
                     }
-
-                    // Just disable proxy 
-
-                    await ProcessUtils.QuickRunAsync("gsettings set org.gnome.system.proxy mode 'none'");
 
                     return;
                 }
 
-                SetGSettingValue("org.gnome.system.proxy mode", "manual");
-                SetGSettingValue("org.gnome.system.proxy use-same-proxy", true);
-                SetGSettingValue("org.gnome.system.proxy.http host", proxySetting.BoundHost);
-                SetGSettingValue("org.gnome.system.proxy.http port", proxySetting.ListenPort);
+                // Just disable proxy
+
+                await ProcessUtils.QuickRunAsync("gsettings set org.gnome.system.proxy mode 'none'");
+
+                return;
             }
+
+            SetGSettingValue("org.gnome.system.proxy mode", "manual");
+            SetGSettingValue("org.gnome.system.proxy use-same-proxy", true);
+            SetGSettingValue("org.gnome.system.proxy.http host", proxySetting.BoundHost);
+            SetGSettingValue("org.gnome.system.proxy.http port", proxySetting.ListenPort);
         }
 
         public Task<SystemProxySetting> ReadSetting()
