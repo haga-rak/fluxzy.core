@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
@@ -55,7 +56,8 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
             if (!proxySetting.Enabled) {
                 // Just disable proxy
 
-                await ProcessUtils.QuickRunAsync("gsettings set org.gnome.system.proxy mode 'none'");
+                var disableResult = await ProcessUtils.QuickRunAsync("gsettings set org.gnome.system.proxy mode 'none'");
+                LogIfFailed("org.gnome.system.proxy mode", disableResult);
 
                 return;
             }
@@ -123,6 +125,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
         private bool SetGSettingValue(string key, string value)
         {
             var result = ProcessUtils.QuickRun($"gsettings set {key}  \"{value}\"");
+            LogIfFailed(key, result);
 
             return result.ExitCode == 0;
         }
@@ -131,8 +134,16 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
         {
             var result = ProcessUtils.QuickRun($"gsettings set {key}  " +
                                                $"\"{JsonSerializer.Serialize(value, value.GetType()).ToGtkJson()}\"");
+            LogIfFailed(key, result);
 
             return result.ExitCode == 0;
+        }
+
+        [Conditional("DEBUG")]
+        private static void LogIfFailed(string key, ProcessRunResult result)
+        {
+            if (result.ExitCode != 0)
+                Debug.WriteLine($"gsettings set {key} failed ({result.ExitCode}): {result.StandardErrorMessage}");
         }
     }
 
