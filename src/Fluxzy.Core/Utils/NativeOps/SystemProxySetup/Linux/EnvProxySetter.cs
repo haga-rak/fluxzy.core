@@ -55,7 +55,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
             }
 
             if (!string.IsNullOrEmpty(httpsProxySetting)) {
-                var splitTab = httpsProxySetting.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                var splitTab = StripScheme(httpsProxySetting).Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (splitTab.Length > 1 && int.TryParse(splitTab.Last(), out var port) && port > 0 && port < 65535) {
                     return Task.FromResult(new SystemProxySetting(string.Join(":", splitTab.SkipLast(1)), port, byPassHosts) {
@@ -65,7 +65,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
             }
 
             if (!string.IsNullOrEmpty(httpProxySetting)) {
-                var splitTab = httpProxySetting.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                var splitTab = StripScheme(httpProxySetting).Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (splitTab.Length > 1 && int.TryParse(splitTab.Last(), out var port) && port > 0 && port < 65535) {
                     return Task.FromResult(new SystemProxySetting(string.Join(":", splitTab.SkipLast(1)), port, byPassHosts) {
@@ -77,6 +77,14 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
             return Task.FromResult(new SystemProxySetting("", -1) {
                 Enabled = false
             });
+        }
+
+        // Env values look like "http://host:port"; drop the scheme so it is not kept in the host.
+        private static string StripScheme(string value)
+        {
+            var schemeIndex = value.IndexOf("://", StringComparison.Ordinal);
+
+            return schemeIndex >= 0 ? value.Substring(schemeIndex + 3) : value;
         }
     }
 }
