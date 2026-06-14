@@ -23,6 +23,8 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
                 Environment.SetEnvironmentVariable("http_proxy", "", EnvironmentVariableTarget.User);
                 Environment.SetEnvironmentVariable("https_proxy", "", EnvironmentVariableTarget.User);
                 Environment.SetEnvironmentVariable("no_proxy", "", EnvironmentVariableTarget.User);
+
+                return Task.CompletedTask;
             }
 
             var word = $"http://{value.BoundHost}:{value.ListenPort}";
