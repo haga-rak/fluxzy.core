@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Fluxzy.Core.Proxy;
@@ -28,33 +29,43 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
 
         public async Task ApplySetting(SystemProxySetting proxySetting)
         {
-            if (ProcessUtils.IsCommandAvailable("gsettings")) {
-                // Gnome based process we set proxy settings via gsettings
+            if (!ProcessUtils.IsCommandAvailable("gsettings")) {
+                // Not a Gnome based environment: keep read and write symmetric by routing
+                // to the same fallback ReadSetting uses.
 
-                if (!proxySetting.Enabled) {
-                    if (proxySetting.PrivateValues.TryGetValue("GSettings.Proxy", out var prev)
-                        && prev is Dictionary<string, object> previousValues) {
-                        // Restore the existing settings
+                await _internalSetter.ApplySetting(proxySetting);
 
-                        foreach (var (key, value) in previousValues) {
-                            SetGSettingValue(key, value);
-                        }
+                return;
+            }
 
-                        return;
-                    }
+            // Gnome based process we set proxy settings via gsettings
 
-                    // Just disable proxy 
-
-                    await ProcessUtils.QuickRunAsync("gsettings set org.gnome.system.proxy mode 'none'");
-
-                    return;
+            // A captured snapshot always wins: replay every key verbatim so the user's prior
+            // configuration is restored exactly, whether or not it had a proxy enabled. Otherwise
+            // a pre-existing manual proxy would be reduced to just mode/host/port.
+            if (proxySetting.PrivateValues.TryGetValue("GSettings.Proxy", out var prev)
+                && prev is Dictionary<string, object?> previousValues) {
+                foreach (var (key, value) in previousValues) {
+                    if (value != null)
+                        SetGSettingValue(key, value);
                 }
 
-                SetGSettingValue("org.gnome.system.proxy mode", "manual");
-                SetGSettingValue("org.gnome.system.proxy use-same-proxy", true);
-                SetGSettingValue("org.gnome.system.proxy.http host", proxySetting.BoundHost);
-                SetGSettingValue("org.gnome.system.proxy.http port", proxySetting.ListenPort);
+                return;
             }
+
+            if (!proxySetting.Enabled) {
+                // Just disable proxy
+
+                var disableResult = await ProcessUtils.QuickRunAsync("gsettings set org.gnome.system.proxy mode 'none'");
+                LogIfFailed("org.gnome.system.proxy mode", disableResult);
+
+                return;
+            }
+
+            SetGSettingValue("org.gnome.system.proxy mode", "manual");
+            SetGSettingValue("org.gnome.system.proxy use-same-proxy", true);
+            SetGSettingValue("org.gnome.system.proxy.http host", proxySetting.BoundHost);
+            SetGSettingValue("org.gnome.system.proxy.http port", proxySetting.ListenPort);
         }
 
         public Task<SystemProxySetting> ReadSetting()
@@ -73,15 +84,21 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
                         previousSettings.Add(key, value);
                 }
 
+                var host = previousSettings["org.gnome.system.proxy.http host"]?.ToString();
+                var port = (int) previousSettings["org.gnome.system.proxy.http port"]!;
+
                 var finalSettings = new SystemProxySetting(
-                    previousSettings["org.gnome.system.proxy.http host"]?.ToString()!,
-                    (int) previousSettings["org.gnome.system.proxy.http port"]!,
+                    host!,
+                    port,
                     previousSettings["org.gnome.system.proxy ignore-hosts"] == null
                         ? Array.Empty<string>()
                         : (string[]) previousSettings["org.gnome.system.proxy ignore-hosts"]!
                 ) {
+                    // gsettings' "http enabled" key is unused (per its own schema): proxying is
+                    // active when mode is manual and a host/port are set.
                     Enabled = previousSettings["org.gnome.system.proxy mode"]?.ToString() == "manual"
-                              && (bool) previousSettings["org.gnome.system.proxy.http enabled"]!,
+                              && !string.IsNullOrEmpty(host)
+                              && port != 0,
                     PrivateValues = {
                         ["GSettings.Proxy"] = previousSettings
                     }
@@ -108,6 +125,7 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
         private bool SetGSettingValue(string key, string value)
         {
             var result = ProcessUtils.QuickRun($"gsettings set {key}  \"{value}\"");
+            LogIfFailed(key, result);
 
             return result.ExitCode == 0;
         }
@@ -116,8 +134,16 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Linux
         {
             var result = ProcessUtils.QuickRun($"gsettings set {key}  " +
                                                $"\"{JsonSerializer.Serialize(value, value.GetType()).ToGtkJson()}\"");
+            LogIfFailed(key, result);
 
             return result.ExitCode == 0;
+        }
+
+        [Conditional("DEBUG")]
+        private static void LogIfFailed(string key, ProcessRunResult result)
+        {
+            if (result.ExitCode != 0)
+                Debug.WriteLine($"gsettings set {key} failed ({result.ExitCode}): {result.StandardErrorMessage}");
         }
     }
 
