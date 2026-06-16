@@ -46,7 +46,7 @@
     <PackageReference Include="Fluxzy.BouncyCastle.Crypto.Async" Version="2.6.0" />
     <PackageReference Include="MessagePack" Version="2.5.301" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
-    <PackageReference Include="Google.Protobuf" Version="3.34.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.35.1" />
     <PackageReference Include="YamlDotNet" Version="18.0.0" />
   </ItemGroup>
 
