@@ -46,6 +46,29 @@ namespace Fluxzy.Tests.UnitTests.Rules
         }
 
         [Fact]
+        public void IsByPassed_Null_List_Never_Matches()
+        {
+            Assert.False(UpStreamProxyAction.IsByPassed(null, "example.com"));
+        }
+
+        [Fact]
+        public async Task InternalAlter_Sets_Proxy_When_ByPassHosts_Is_Null()
+        {
+            // ByPassHosts has a public setter and can be reset to null by a caller or by a
+            // rule file carrying an empty byPassHosts scalar. This must not throw.
+            var action = new UpStreamProxyAction("192.168.1.9", 8080) {
+                ByPassHosts = null!
+            };
+
+            var context = CreateContext("www.example.com");
+
+            await action.InternalAlter(context, null, null, FilterScope.OnAuthorityReceived, null!);
+
+            Assert.NotNull(context.ProxyConfiguration);
+            Assert.Equal("192.168.1.9", context.ProxyConfiguration!.Host);
+        }
+
+        [Fact]
         public async Task InternalAlter_Sets_Proxy_When_Host_Not_Bypassed()
         {
             var action = new UpStreamProxyAction("192.168.1.9", 8080) {
