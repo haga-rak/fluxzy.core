@@ -58,9 +58,9 @@ namespace Fluxzy.Rules.Actions
         ///     True when <paramref name="hostName" /> matches any entry of <paramref name="byPassHosts" />.
         ///     See <see cref="ByPassHosts" /> for the matching rules.
         /// </summary>
-        internal static bool IsByPassed(IReadOnlyCollection<string> byPassHosts, string? hostName)
+        internal static bool IsByPassed(IReadOnlyCollection<string>? byPassHosts, string? hostName)
         {
-            if (hostName == null || byPassHosts.Count == 0)
+            if (hostName == null || byPassHosts == null || byPassHosts.Count == 0)
                 return false;
 
             foreach (var rawEntry in byPassHosts) {
