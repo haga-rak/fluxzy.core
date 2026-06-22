@@ -308,8 +308,15 @@ namespace Fluxzy.Misc
 
             // sudo -S reads the password (up to the first newline) from stdin, then execs
             // the target. Remaining stdin flows to the child, so the caller can keep writing.
-            await process.StandardInput.WriteLineAsync(password).ConfigureAwait(false);
-            await process.StandardInput.FlushAsync().ConfigureAwait(false);
+            try {
+                await process.StandardInput.WriteLineAsync(password).ConfigureAwait(false);
+                await process.StandardInput.FlushAsync().ConfigureAwait(false);
+            }
+            catch (IOException) {
+                // Under NOPASSWD sudo (or any elevated command that ignores stdin and exits
+                // immediately), the pipe can already be closed before we write the password.
+                // That is benign: the command ran without needing it.
+            }
 
             return process;
         }
