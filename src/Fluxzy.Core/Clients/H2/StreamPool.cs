@@ -99,10 +99,23 @@ namespace Fluxzy.Clients.H2
             if (!_maxConcurrentStreamBarrier.Wait(TimeSpan.Zero))
                 await _maxConcurrentStreamBarrier.WaitAsync(callerCancellationToken).ConfigureAwait(false);
 
-            var res = await CreateActiveStreamAsync(exchange, callerCancellationToken, ongoingStreamInit, resetTokenSource)
-                            .ConfigureAwait(false);
-
-            return res;
+            try {
+                return await CreateActiveStreamAsync(
+                                 exchange, callerCancellationToken, ongoingStreamInit, resetTokenSource)
+                             .ConfigureAwait(false);
+            }
+            catch {
+                // The concurrency permit was acquired above, but stream setup failed before
+                // the StreamWorker was registered in _runningStreams — so NotifyDispose (the
+                // sole release path) will never run for it. Release here; otherwise a setup
+                // cancelled by the caller/pool token (HttpClient timeouts, client aborts, a
+                // GOAWAY flipping the pool to draining) permanently leaks a permit. On a
+                // long-lived pool the permits drain to zero and every new stream stalls,
+                // producing the escalating OperationCanceledException of
+                // haga-rak/fluxzy.core#634.
+                _maxConcurrentStreamBarrier.Release();
+                throw;
+            }
         }
 
         public void NotifyDispose(StreamWorker streamWorker)
