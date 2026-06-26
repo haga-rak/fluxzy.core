@@ -453,7 +453,12 @@ namespace Fluxzy.Clients.H2
         public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
         {
             try {
-                if (!cancellationToken.IsCancellationRequested)
+                // Skip the wait only when the header is already in hand (deliver a response
+                // that raced a late cancellation). Gating on !IsCancellationRequested would
+                // instead let an already-cancelled token fall through with a null
+                // Response.Header and leave this stream registered but undisposed — a silent
+                // permit leak with no exception for the caller to release on (#634).
+                if (!_responseHeadersComplete)
                     await _headerReceivedSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) {
