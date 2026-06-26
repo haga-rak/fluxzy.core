@@ -178,7 +178,7 @@ namespace Fluxzy.Clients
 
                 var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                     _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting,
-                    _archiveWriter!, dnsResolutionResult);
+                    _archiveWriter!, dnsResolutionResult, OnConnectionFaulted);
 
                 exchange.HttpVersion = "HTTP/1.1";
 
@@ -224,7 +224,7 @@ namespace Fluxzy.Clients
             if (openingResult.Type == RemoteConnectionResultType.Http11) {
                 var http11ConnectionPool = new Http11ConnectionPool(exchange.Authority,
                     _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter,
-                    dnsResolutionResult);
+                    dnsResolutionResult, OnConnectionFaulted);
 
                 exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/1.1";
 

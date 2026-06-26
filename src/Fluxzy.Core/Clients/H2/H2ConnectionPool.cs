@@ -881,6 +881,9 @@ namespace Fluxzy.Clients.H2
                 // orchestrator (ProxyOrchestrator.cs:524) treats it as retryable and
                 // Send() skips the pool-level OnLoopEnd teardown.
                 if (activeStream != null && activeStream.AbandonedByGoAway) {
+                    // Idempotent; covers an abandon that landed before ProcessResponse ran.
+                    _streamPool.NotifyDispose(activeStream);
+
                     throw new ConnectionCloseException(
                         "Stream abandoned after remote GOAWAY; request was not processed",
                         activeStream.AbandonInnerCause);
@@ -893,6 +896,20 @@ namespace Fluxzy.Clients.H2
                     // Send a reset on stream to prevent the remote
                     // from sending further data
                     activeStream.ResetByCaller();
+
+                // Cancellation landed after the stream was registered but before
+                // ProcessResponse could dispose it (e.g. awaiting waitForHeaderSentTask).
+                // NotifyDispose is the sole permit-release path and is idempotent; without
+                // this the permit leaks and ActiveStreamCount stays pinned (#634).
+                if (activeStream != null)
+                    _streamPool.NotifyDispose(activeStream);
+
+                throw;
+            }
+            catch (Exception) when (activeStream != null) {
+                // Same leak via a non-OCE failure (e.g. ProcessResponse's ClientErrorException
+                // on a header wait cancelled without GOAWAY). Idempotent (#634).
+                _streamPool.NotifyDispose(activeStream);
 
                 throw;
             }
