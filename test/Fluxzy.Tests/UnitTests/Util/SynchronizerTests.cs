@@ -102,6 +102,37 @@ namespace Fluxzy.Tests.UnitTests.Util
         }
 
         [Fact]
+        public async Task DefaultMode_HighChurnRemoveRecreateStress()
+        {
+            // Few keys and no work inside the critical section: entries constantly hit
+            // zero owners/waiters and cycle through remove, dispose and recreate
+            var synchronizer = new Synchronizer<Authority>();
+
+            var authorities = Enumerable.Range(0, 4)
+                                        .Select(i => new Authority($"host-{i}.example.com", 443, true))
+                                        .ToArray();
+
+            var owners = new int[authorities.Length];
+            var overlapDetected = false;
+
+            await Task.WhenAll(Enumerable.Range(0, 16).Select(worker => Task.Run(async () => {
+                for (var i = 0; i < 2500; i++) {
+                    var index = (worker + i) % authorities.Length;
+
+                    using var guard = await synchronizer.LockAsync(authorities[index]);
+
+                    if (Interlocked.Increment(ref owners[index]) > 1)
+                        overlapDetected = true;
+
+                    Interlocked.Decrement(ref owners[index]);
+                }
+            })));
+
+            Assert.False(overlapDetected);
+            Assert.Equal(0, GetRegistryCount(synchronizer));
+        }
+
+        [Fact]
         public void PoolBuilder_UsesSelfCleaningSynchronizer()
         {
             // Guards against reintroducing the unbounded per-authority lock registry
