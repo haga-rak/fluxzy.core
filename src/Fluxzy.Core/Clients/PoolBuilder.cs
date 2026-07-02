@@ -49,7 +49,9 @@ namespace Fluxzy.Clients
 
         private readonly ConcurrentDictionary<string, DefaultDnsResolver> _dnsSolversCache = new();
 
-        private readonly Synchronizer<Authority> _synchronizer = new(true);
+        // Self-cleaning mode: the per-authority LockInfo/SemaphoreSlim is removed as soon
+        // as no creation is in flight, otherwise the registry grows with each distinct host.
+        private readonly Synchronizer<Authority> _synchronizer = new();
 
         public PoolBuilder(
             RemoteConnectionBuilder remoteConnectionBuilder,
