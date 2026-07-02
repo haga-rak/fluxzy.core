@@ -9,6 +9,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Core
 {
@@ -16,6 +17,8 @@ namespace Fluxzy.Core
     {
         private readonly IIdProvider _idProvider;
         private readonly IExchangeContextBuilder _contextBuilder;
+        private readonly bool _plainAuthorityPerRequest;
+        private readonly int? _plainAuthorityForcedPort;
         private static int _count;
 
         private Stream? _readStream;
@@ -24,10 +27,14 @@ namespace Fluxzy.Core
         public Http11DownStreamPipe(
             IIdProvider idProvider,
             Authority requestedAuthority, Stream readStream, Stream writeStream,
-            IExchangeContextBuilder contextBuilder)
+            IExchangeContextBuilder contextBuilder,
+            bool plainAuthorityPerRequest = false,
+            int? plainAuthorityForcedPort = null)
         {
             _idProvider = idProvider;
             _contextBuilder = contextBuilder;
+            _plainAuthorityPerRequest = plainAuthorityPerRequest;
+            _plainAuthorityForcedPort = plainAuthorityForcedPort;
             RequestedAuthority = requestedAuthority;
             _readStream = readStream;
             _writeStream = writeStream;
@@ -84,11 +91,21 @@ namespace Fluxzy.Core
                     buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainingLength), _readStream);
             }
 
-            var exchangeContext = await _contextBuilder.Create(RequestedAuthority, RequestedAuthority.Secure).ConfigureAwait(false);
+            var authority = RequestedAuthority;
+
+            // Plain proxy connections carry a per-request authority: routing with the
+            // connection-level one sends the request to whichever host came first
+            // (cross-host contamination, 421). Tunnels (CONNECT, SOCKS5) keep it.
+            if (_plainAuthorityPerRequest
+                && !AuthorityUtility.TryParsePlainRequestAuthority(
+                    secureHeader, _plainAuthorityForcedPort, out authority))
+                return null;
+
+            var exchangeContext = await _contextBuilder.Create(authority, authority.Secure).ConfigureAwait(false);
 
             var bodyStream = SetChunkedBody(secureHeader, _readStream);
 
-            return new Exchange(_idProvider, exchangeContext, RequestedAuthority, secureHeader, bodyStream, null!, receivedFromProxy);
+            return new Exchange(_idProvider, exchangeContext, authority, secureHeader, bodyStream, null!, receivedFromProxy);
         }
 
         public async ValueTask WriteInterimResponse(int statusCode, ReadOnlyMemory<char> reasonPhrase, int _, CancellationToken token)

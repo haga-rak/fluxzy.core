@@ -1,10 +1,43 @@
 using System;
 using System.Net;
+using System.Text;
+using Fluxzy.Core;
 
 namespace Fluxzy.Utils
 {
     public static class AuthorityUtility
     {
+        /// <summary>
+        /// Resolve the target authority of a plain (non-tunneled) request, from an
+        /// absolute-form URI or the Host header.
+        /// </summary>
+        internal static bool TryParsePlainRequestAuthority(
+            RequestHeader header, int? forcedPort, out Authority authority)
+        {
+            authority = default;
+
+            var path = header.Path.ToString();
+
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri)
+                || !uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase)) {
+                var builder = new StringBuilder("http://");
+
+                builder.Append(header.Authority.Span);
+
+                if (!path.StartsWith("/"))
+                    builder.Append("/");
+
+                builder.Append(path);
+
+                if (!Uri.TryCreate(builder.ToString(), UriKind.Absolute, out uri))
+                    return false;
+            }
+
+            authority = new Authority(uri.Host, forcedPort ?? uri.Port, false);
+
+            return true;
+        }
+
         /// <summary>
         /// Parse an authority, accepted separator are ':' and '/'.
         /// </summary>

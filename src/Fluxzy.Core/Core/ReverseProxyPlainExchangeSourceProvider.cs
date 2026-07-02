@@ -10,6 +10,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Misc.ResizableBuffers;
 using Fluxzy.Misc.Streams;
+using Fluxzy.Utils;
 
 namespace Fluxzy.Core
 {
@@ -60,27 +61,12 @@ namespace Fluxzy.Core
                     plainStream);
             }
 
-            // Plain request 
+            // Plain request
 
-            var path = plainHeader.Path.ToString();
+            if (!AuthorityUtility.TryParsePlainRequestAuthority(
+                    plainHeader, _reverseModeForcedPort, out var plainAuthority))
+                return null; // UNABLE TO READ URI FROM CLIENT
 
-            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri)
-                || !uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-            {
-                var builder = new StringBuilder("http://");
-
-                builder.Append(plainHeader.Authority.Span);
-
-                if (!path.StartsWith("/"))
-                    builder.Append("/");
-
-                builder.Append(path);
-
-                if (!Uri.TryCreate(builder.ToString(), UriKind.Absolute, out uri))
-                    return null; // UNABLE TO READ URI FROM CLIENT
-            }
-
-            var plainAuthority = new Authority(uri.Host, _reverseModeForcedPort ?? uri.Port, false);
             var plainExchangeContext = await _contextBuilder.Create(plainAuthority, false).ConfigureAwait(false);
 
             var bodyStream = Http11DownStreamPipe.SetChunkedBody(plainHeader, plainStream);
@@ -92,7 +78,8 @@ namespace Fluxzy.Core
 
             return new ExchangeSourceInitResult(
                 new Http11DownStreamPipe(_idProvider, plainAuthority, plainStream, plainStream,
-                     _contextBuilder), provisionalExchange);
+                     _contextBuilder, plainAuthorityPerRequest: true,
+                     plainAuthorityForcedPort: _reverseModeForcedPort), provisionalExchange);
         }
     }
 }

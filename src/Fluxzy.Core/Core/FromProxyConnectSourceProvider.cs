@@ -183,25 +183,9 @@ namespace Fluxzy.Core
                     stream);
             }
 
-            var path = plainHeader.Path.ToString();
+            if (!AuthorityUtility.TryParsePlainRequestAuthority(plainHeader, null, out var plainAuthority))
+                return new (false, null); // UNABLE TO READ URI FROM CLIENT
 
-            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri)
-                || !uri.Scheme.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-            {
-                var builder = new StringBuilder("http://");
-
-                builder.Append(plainHeader.Authority.Span);
-
-                if (!path.StartsWith("/"))
-                    builder.Append("/");
-
-                builder.Append(path);
-
-                if (!Uri.TryCreate(builder.ToString(), UriKind.Absolute, out uri))
-                    return new (false, null); // UNABLE TO READ URI FROM CLIENT
-            }
-
-            var plainAuthority = new Authority(uri.Host, uri.Port, false);
             var plainExchangeContext = await contextBuilder.Create(plainAuthority, false).ConfigureAwait(false);
 
             var bodyStream = Http11DownStreamPipe.SetChunkedBody(plainHeader, stream);
@@ -212,7 +196,8 @@ namespace Fluxzy.Core
                 plainHeader, bodyStream, "HTTP/1.1", receivedFromProxy);
 
             return new(false, new ExchangeSourceInitResult(new Http11DownStreamPipe(
-                _idProvider, plainAuthority, stream, stream, _contextBuilder), nextExchange));
+                _idProvider, plainAuthority, stream, stream, _contextBuilder,
+                plainAuthorityPerRequest: true), nextExchange));
         }
 
         private record ReadNextBlockResult(
