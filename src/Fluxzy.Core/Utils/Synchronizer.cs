@@ -50,8 +50,10 @@ namespace Fluxzy.Utils
 
         private void Release(T key, LockInfo lockInfo)
         {
-            Interlocked.Decrement(ref lockInfo.OwnerCount);
+            // Release the semaphore before dropping the owner count: once both counters
+            // read zero, a concurrent cleanup may remove the entry and dispose the semaphore.
             lockInfo.Semaphore.Release();
+            Interlocked.Decrement(ref lockInfo.OwnerCount);
 
             if (_preserve)
                 return;
