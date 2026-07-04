@@ -216,24 +216,38 @@ namespace Fluxzy.Clients.H11
                 var poolProcessing = new Http11PoolProcessing(
                     _proxyRuntimeSetting.ExpectContinueTimeout,
                     _proxyRuntimeSetting.ResponseHeaderTimeout,
+                    _proxyRuntimeSetting.ResponseBodyIdleTimeout,
                     _proxyRuntimeSetting.GetLogger<Http11PoolProcessing>());
+
+                // Covers the whole exchange (request write, header read, body streaming):
+                // closing the transport is the only reliable unblock, the TLS stack may
+                // not observe the token once parked on a read. Disposed when the exchange
+                // completes, before the connection can be recycled.
+                var abortRegistration = cancellationToken.UnsafeRegister(
+                    static state => ((Connection) state!).AbortTransport(), exchange.Connection);
 
                 try {
                     await poolProcessing.Process(exchange, buffer, exchangeScope, cancellationToken)
                                         .ConfigureAwait(false);
 
                     if (exchange.Response.Header != null)
-                        exchange.Connection.TimeoutIdleSeconds = exchange.Response.Header.TimeoutIdleSeconds; 
-                    
-                    var lastUsed = _timingProvider.Instant(); 
+                        exchange.Connection.TimeoutIdleSeconds = exchange.Response.Header.TimeoutIdleSeconds;
+
+                    var lastUsed = _timingProvider.Instant();
 
                     void OnExchangeCompleteFunction(Task<bool> completeTask)
                     {
-                        var closeConnectionRequest = completeTask.Result;
+                        abortRegistration.Dispose();
+
+                        // A faulted or cancelled completion means the body read failed:
+                        // never recycle, always free. Reading .Result unguarded would
+                        // rethrow here and skip the teardown entirely.
+                        var closeConnectionRequest =
+                            !completeTask.IsCompletedSuccessfully || completeTask.Result;
 
                         if (exchange.Response.Header!.MaxConnection != -1 &&
                             exchange.Response.Header!.MaxConnection <= exchange.Connection.RequestProcessed) {
-                            closeConnectionRequest = true; 
+                            closeConnectionRequest = true;
                         }
 
                         if (exchange.Metrics.ResponseBodyEnd == default)
@@ -244,7 +258,7 @@ namespace Fluxzy.Clients.H11
                                 exchange.Errors.Add(new Error("Error while reading response", exception));
                             }
                         }
-                        else if (completeTask.IsCompletedSuccessfully && !closeConnectionRequest) { // 
+                        else if (completeTask.IsCompletedSuccessfully && !closeConnectionRequest) { //
 
                             if (_pendingConnections.Writer.TryWrite(
                                     new Http11ProcessingState(exchange.Connection, lastUsed)))
@@ -253,15 +267,20 @@ namespace Fluxzy.Clients.H11
                             }
                         }
                         else {
-                            // should close connection 
+                            // should close connection
                         }
-                        
+
                         FreeConnectionStreams(exchange.Connection);
                     }
 
-                    var _ = exchange.Complete.ContinueWith(OnExchangeCompleteFunction, cancellationToken);
+                    // CancellationToken.None: the cleanup must run even when the caller
+                    // has already cancelled, otherwise an aborted exchange leaks its
+                    // connection (the continuation would be cancelled instead of run).
+                    var _ = exchange.Complete.ContinueWith(OnExchangeCompleteFunction, CancellationToken.None);
                 }
                 catch (Exception ex) {
+
+                    abortRegistration.Dispose();
 
                     // Any exception escaping Process leaves an HTTP/1.1 connection with an
                     // outstanding request: it is unusable and must be torn down. This

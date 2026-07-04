@@ -239,10 +239,15 @@ namespace Fluxzy.Clients
             }
 
             if (openingResult.Type == RemoteConnectionResultType.Http2) {
+                var h2StreamSetting = exchange.Context.AdvancedTlsSettings.H2StreamSetting ?? new H2StreamSetting();
+
+                h2StreamSetting.ResponseHeaderTimeout = proxyRuntimeSetting.ResponseHeaderTimeout;
+                h2StreamSetting.ResponseBodyIdleTimeout = proxyRuntimeSetting.ResponseBodyIdleTimeout;
+
                 var h2ConnectionPool = new H2ConnectionPool(
                     openingResult.Connection
                                  .ReadStream!, // Read and write stream are the same after the sslhandshake
-                    exchange.Context.AdvancedTlsSettings.H2StreamSetting ?? new H2StreamSetting(),
+                    h2StreamSetting,
                     exchange.Authority, exchange.Connection!, OnConnectionFaulted,
                     proxyRuntimeSetting.GetLogger<H2ConnectionPool>());
 

@@ -254,6 +254,21 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     Configure the maximum time the proxy waits between two successive response
+        ///     body reads from the upstream before aborting the exchange (HTTP/1.1: the
+        ///     connection is closed, HTTP/2: the stream is reset). Off by default; a value
+        ///     of <see cref="TimeSpan.Zero"/>, negative or
+        ///     <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> disables it. Leave
+        ///     disabled when proxying streams that can legitimately stay quiet for long
+        ///     periods (server-sent events, long polling).
+        /// </summary>
+        public FluxzySetting SetResponseBodyIdleTimeout(TimeSpan timeout)
+        {
+            ResponseBodyIdleTimeout = timeout;
+            return this;
+        }
+
+        /// <summary>
         ///     Set the default protocols used by fluxzy
         /// </summary>
         /// <param name="protocols"></param>

@@ -10,6 +10,7 @@ using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Core;
 using Fluxzy.Logging;
 using Fluxzy.Misc.ResizableBuffers;
+using Fluxzy.Misc.Streams;
 
 namespace Fluxzy.Clients.H2
 {
@@ -458,8 +459,39 @@ namespace Fluxzy.Clients.H2
                 // instead let an already-cancelled token fall through with a null
                 // Response.Header and leave this stream registered but undisposed — a silent
                 // permit leak with no exception for the caller to release on (#634).
-                if (!_responseHeadersComplete)
-                    await _headerReceivedSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                if (!_responseHeadersComplete) {
+                    var headerTimeout = Parent.Context.Setting.ResponseHeaderTimeout;
+
+                    var headerTimeoutEnabled = headerTimeout > TimeSpan.Zero &&
+                                               headerTimeout != Timeout.InfiniteTimeSpan;
+
+                    if (!headerTimeoutEnabled) {
+                        await _headerReceivedSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    else {
+                        while (true) {
+                            var acquired = await _headerReceivedSemaphore
+                                                 .WaitAsync(headerTimeout, cancellationToken)
+                                                 .ConfigureAwait(false);
+
+                            if (acquired)
+                                break;
+
+                            // The response wait runs concurrently with the request body
+                            // upload (gRPC-style). The budget only counts once the request
+                            // has been fully sent, matching the HTTP/1.1 semantics.
+                            if (_exchange.Metrics.RequestBodySent == default)
+                                continue;
+
+                            ResetByCaller(H2ErrorCode.Cancel);
+
+                            throw new ClientErrorException(0,
+                                $"The remote server did not send a response header within " +
+                                $"{(int) headerTimeout.TotalSeconds} seconds",
+                                networkErrorCode: NetworkErrorCodes.ResponseHeaderTimeout);
+                        }
+                    }
+                }
             }
             catch (OperationCanceledException) {
                 if (_abandonedByGoAway) {
@@ -479,15 +511,46 @@ namespace Fluxzy.Clients.H2
                 throw;
             }
 
-            _exchange.Response.Body = _pipeResponseBody.Reader.AsStream();
+            var responseBodyStream = _pipeResponseBody.Reader.AsStream();
+            var bodyIdleTimeout = Parent.Context.Setting.ResponseBodyIdleTimeout;
+
+            if (!_noBodyStream
+                && bodyIdleTimeout > TimeSpan.Zero
+                && bodyIdleTimeout != Timeout.InfiniteTimeSpan) {
+                _exchange.Response.Body = new ReadIdleTimeoutStream(responseBodyStream, bodyIdleTimeout,
+                    $"The remote server sent no response body byte for more than " +
+                    $"{(int) bodyIdleTimeout.TotalSeconds} seconds",
+                    AbandonAsBodyIdleTimeout);
+            }
+            else {
+                _exchange.Response.Body = responseBodyStream;
+            }
 
             if (_noBodyStream) {
-                // This stream as no more body 
+                // This stream as no more body
                 await _pipeResponseBody.Writer.CompleteAsync().ConfigureAwait(false);
 
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
                 Parent.NotifyDispose(this);
             }
+        }
+
+        /// <summary>
+        ///     Body idle timeout: reset the stream and unblock the parked pipe read.
+        ///     Runs on a timer thread, so only thread-safe members are touched
+        ///     (RST via the write channel, idempotent completion and dispose,
+        ///     CancelPendingRead by contract).
+        /// </summary>
+        internal void AbandonAsBodyIdleTimeout()
+        {
+            ResetByCaller(H2ErrorCode.Cancel);
+
+            _exchange.ExchangeCompletionSource.TrySetException(
+                new ExchangeException("Response body idle timeout reached"));
+
+            _pipeResponseBody.Reader.CancelPendingRead();
+
+            Parent.NotifyDispose(this);
         }
 
         public void ReceiveBodyFragmentFromConnection(ReadOnlyMemory<byte> buffer, bool endStream)

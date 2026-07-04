@@ -54,6 +54,7 @@ namespace Fluxzy.Core
             ConcurrentConnection = startupSetting.ConnectionPerHost;
             ExpectContinueTimeout = startupSetting.ExpectContinueTimeout;
             ResponseHeaderTimeout = startupSetting.ResponseHeaderTimeout;
+            ResponseBodyIdleTimeout = startupSetting.ResponseBodyIdleTimeout;
             ActionMapping = new SetUserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
             LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             ProxyInstanceId = proxyInstanceId;
@@ -107,6 +108,12 @@ namespace Fluxzy.Core
         ///     been fully sent. Non-positive or infinite disables the timeout.
         /// </summary>
         public TimeSpan ResponseHeaderTimeout { get; set; } = TimeSpan.FromSeconds(100);
+
+        /// <summary>
+        ///     Maximum time between two successive upstream response body reads.
+        ///     Non-positive or infinite disables the timeout (the default).
+        /// </summary>
+        public TimeSpan ResponseBodyIdleTimeout { get; set; } = TimeSpan.Zero;
 
         public IIdProvider IdProvider { get; set; } = new FromIndexIdProvider(0, 0);
 

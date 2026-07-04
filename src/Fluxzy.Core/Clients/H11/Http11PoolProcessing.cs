@@ -22,13 +22,16 @@ namespace Fluxzy.Clients.H11
     {
         private readonly TimeSpan _expectContinueTimeout;
         private readonly TimeSpan _responseHeaderTimeout;
+        private readonly TimeSpan _responseBodyIdleTimeout;
         private readonly ILogger _logger;
 
         public Http11PoolProcessing(
-            TimeSpan expectContinueTimeout, TimeSpan responseHeaderTimeout, ILogger? logger = null)
+            TimeSpan expectContinueTimeout, TimeSpan responseHeaderTimeout,
+            TimeSpan responseBodyIdleTimeout, ILogger? logger = null)
         {
             _expectContinueTimeout = expectContinueTimeout;
             _responseHeaderTimeout = responseHeaderTimeout;
+            _responseBodyIdleTimeout = responseBodyIdleTimeout;
             _logger = logger ?? NullLogger.Instance;
         }
 
@@ -163,11 +166,8 @@ namespace Fluxzy.Clients.H11
                     }
                 }
 
-                // Closing the transport is the only reliable unblock: the TLS stack may
-                // not observe the token once parked on a read.
-                using var abortRegistration = cancellationToken.UnsafeRegister(
-                    static state => ((Connection) state!).AbortTransport(), connection);
-
+                // Caller-cancellation hard-close is registered by the pool for the whole
+                // exchange lifetime (request write, header read, body streaming).
                 var readToken = timeoutCts?.Token ?? cancellationToken;
 
                 try {
@@ -332,6 +332,16 @@ namespace Fluxzy.Clients.H11
 
             if (exchange.Response.Header.ContentLength > 0) {
                 bodyStream = new ContentBoundStream(bodyStream, exchange.Response.Header.ContentLength);
+            }
+
+            if (_responseBodyIdleTimeout > TimeSpan.Zero &&
+                _responseBodyIdleTimeout != System.Threading.Timeout.InfiniteTimeSpan) {
+                var bodyConnection = exchange.Connection;
+
+                bodyStream = new ReadIdleTimeoutStream(bodyStream, _responseBodyIdleTimeout,
+                    $"The remote server sent no response body byte for more than " +
+                    $"{(int) _responseBodyIdleTimeout.TotalSeconds} seconds",
+                    bodyConnection.AbortTransport);
             }
 
             exchange.Response.Body = new MetricsStream(bodyStream,
