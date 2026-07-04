@@ -52,26 +52,37 @@ public class MetricsStreamOverheadBenchmark
     }
 
     /// <summary>
-    ///     Read through MetricsStream — each ReadAsync creates a linked CTS.
+    ///     Read through MetricsStream where no linked CTS is needed.
     /// </summary>
     [Benchmark]
-    public async Task<long> ReadWithMetricsStream()
+    public async Task<long> ReadWithMetricsStream_NoLinkedToken()
     {
-        using var inner = new MemoryStream(_data);
-
-        var metrics = new MetricsStream(
-            inner,
-            firstBytesRead: static () => { },
-            endRead: static (_, _) => { },
-            onReadError: static _ => { },
-            endConnection: false,
-            expectedLength: TotalPayload,
-            parentToken: CancellationToken.None);
+        using var metrics = CreateMetricsStream(CancellationToken.None);
 
         long total = 0;
         int read;
 
         while ((read = await metrics.ReadAsync(_readBuffer.AsMemory())) > 0) {
+            total += read;
+        }
+
+        return total;
+    }
+
+    /// <summary>
+    ///     Read through MetricsStream where linked CTS is required on every read.
+    /// </summary>
+    [Benchmark]
+    public async Task<long> ReadWithMetricsStream_LinkedToken()
+    {
+        using var parentCts = new CancellationTokenSource();
+        using var requestCts = new CancellationTokenSource();
+        using var metrics = CreateMetricsStream(parentCts.Token);
+
+        long total = 0;
+        int read;
+
+        while ((read = await metrics.ReadAsync(_readBuffer.AsMemory(), requestCts.Token)) > 0) {
             total += read;
         }
 
@@ -98,5 +109,19 @@ public class MetricsStreamOverheadBenchmark
         parentCts.Dispose();
 
         return count;
+    }
+
+    private MetricsStream CreateMetricsStream(CancellationToken parentToken)
+    {
+        var inner = new MemoryStream(_data);
+
+        return new MetricsStream(
+            inner,
+            firstBytesRead: static () => { },
+            endRead: static (_, _) => { },
+            onReadError: static _ => { },
+            endConnection: false,
+            expectedLength: TotalPayload,
+            parentToken: parentToken);
     }
 }

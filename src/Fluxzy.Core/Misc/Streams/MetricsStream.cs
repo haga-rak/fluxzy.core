@@ -105,14 +105,11 @@ namespace Fluxzy.Misc.Streams
         public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new())
         {
             try {
-                using var combinedTokenSource =
-                    CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
-
                 int read;
 
                 try {
-                    read = await InnerStream.ReadAsync(buffer, combinedTokenSource.Token)
-                                                .ConfigureAwait(false);
+                    using var linkedTokenSource = CreateLinkedReadToken(cancellationToken, out var readToken);
+                    read = await InnerStream.ReadAsync(buffer, readToken).ConfigureAwait(false);
                 }
                 catch (Exception e) {
                     if (EndConnection && e is Org.BouncyCastle.Tls.TlsNoCloseNotifyException) {
@@ -146,6 +143,27 @@ namespace Fluxzy.Misc.Streams
 
                 throw;
             }
+        }
+
+        private CancellationTokenSource? CreateLinkedReadToken(
+            CancellationToken cancellationToken,
+            out CancellationToken readToken)
+        {
+            if (!_parentToken.CanBeCanceled)
+            {
+                readToken = cancellationToken;
+                return null;
+            }
+
+            if (!cancellationToken.CanBeCanceled || cancellationToken == _parentToken)
+            {
+                readToken = _parentToken;
+                return null;
+            }
+
+            var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_parentToken, cancellationToken);
+            readToken = linkedTokenSource.Token;
+            return linkedTokenSource;
         }
 
         private void NotifyFirstRead()
