@@ -163,72 +163,87 @@ namespace Fluxzy.Core
         {
             var processedProvisional = false;
 
-            while (true)
+            DownStreamAbortWatchdog? abortWatchdog = null;
+
+            try
             {
-                using var exchangeScope = new ExchangeScope();
-
-                Exchange? exchange = null;
-
-                try
+                while (true)
                 {
-                    if (!processedProvisional)
+                    using var exchangeScope = new ExchangeScope();
+
+                    Exchange? exchange = null;
+
+                    try
                     {
-                        exchange = provisionalExchange;
-                        processedProvisional = true;
+                        if (!processedProvisional)
+                        {
+                            exchange = provisionalExchange;
+                            processedProvisional = true;
+                        }
+                        else
+                        {
+                            exchange = await downStreamPipe.ReadNextExchange(buffer, exchangeScope, token)
+                                                           .ConfigureAwait(false);
+                        }
+
+                        lastExchangeHolder.Exchange = exchange;
                     }
-                    else
+                    catch (IOException)
                     {
-                        exchange = await downStreamPipe.ReadNextExchange(buffer, exchangeScope, token)
-                                                       .ConfigureAwait(false);
+                        // Client closed mid-read — normal connection-close path.
+                        return;
                     }
 
-                    lastExchangeHolder.Exchange = exchange;
-                }
-                catch (IOException)
-                {
-                    // Client closed mid-read — normal connection-close path.
-                    return;
-                }
+                    if (exchange == null)
+                    {
+                        return;
+                    }
 
-                if (exchange == null)
-                {
-                    return;
+                    // Bridge the upstream pool to the downstream pipe so it can
+                    // forward interim (1xx) responses — notably `100 Continue`
+                    // for `Expect: 100-continue` (issue #624).
+                    var capturedPipe = downStreamPipe;
+                    var capturedStreamId = exchange.StreamIdentifier;
+                    exchange.InterimResponseWriter = (statusCode, reason, ct) =>
+                        capturedPipe.WriteInterimResponse(statusCode, reason, capturedStreamId, ct);
+
+                    bool shouldCloseDownStreamConnection;
+
+                    var watched = DownStreamAbortWatchdog.IsEligible(exchange);
+
+                    if (watched)
+                    {
+                        abortWatchdog ??= new DownStreamAbortWatchdog(client.Client, callerTokenSource);
+                        abortWatchdog.Watch(exchange);
+                    }
+
+                    try
+                    {
+                        shouldCloseDownStreamConnection = await EnterProcessExchange(
+                            buffer, closeImmediately, token, exchange,
+                            remoteEndPoint, downStreamClientAddress,
+                            localEndPoint, localEndPointsAddress,
+                            downStreamPipe, callerTokenSource, processInfo);
+                    }
+                    finally
+                    {
+                        // Disarmed before the next ReadNextExchange touches the socket,
+                        // otherwise a concurrent poll could mistake a consumed pipelined
+                        // request for an abort.
+                        if (watched)
+                            abortWatchdog!.Unwatch();
+                    }
+
+                    if (shouldCloseDownStreamConnection)
+                    {
+                        return;
+                    }
                 }
-
-                // Bridge the upstream pool to the downstream pipe so it can
-                // forward interim (1xx) responses — notably `100 Continue`
-                // for `Expect: 100-continue` (issue #624).
-                var capturedPipe = downStreamPipe;
-                var capturedStreamId = exchange.StreamIdentifier;
-                exchange.InterimResponseWriter = (statusCode, reason, ct) =>
-                    capturedPipe.WriteInterimResponse(statusCode, reason, capturedStreamId, ct);
-
-                bool shouldCloseDownStreamConnection;
-
-                var abortWatchdog = DownStreamAbortWatchdog.Start(
-                    client.Client, exchange, callerTokenSource);
-
-                try
-                {
-                    shouldCloseDownStreamConnection = await EnterProcessExchange(
-                        buffer, closeImmediately, token, exchange,
-                        remoteEndPoint, downStreamClientAddress,
-                        localEndPoint, localEndPointsAddress,
-                        downStreamPipe, callerTokenSource, processInfo);
-                }
-                finally
-                {
-                    // Fully stopped before the next ReadNextExchange touches the socket,
-                    // otherwise a concurrent poll could mistake a consumed pipelined
-                    // request for an abort.
-                    if (abortWatchdog != null)
-                        await abortWatchdog.DisposeAsync();
-                }
-
-                if (shouldCloseDownStreamConnection)
-                {
-                    return;
-                }
+            }
+            finally
+            {
+                if (abortWatchdog != null)
+                    await abortWatchdog.DisposeAsync();
             }
         }
 

@@ -10,55 +10,72 @@ namespace Fluxzy.Core
     /// <summary>
     ///     Detects a downstream client abort (FIN/RST) while a sequential exchange is parked
     ///     on upstream I/O and cancels the connection token source so the upstream work is
-    ///     released. Nothing else observes the client socket during that window, which is
-    ///     also what makes the poll race-free: it only runs once the request body has been
-    ///     fully consumed (data still readable then means a pipelined request, not an abort).
+    ///     released. One instance lives per downstream connection; exchanges are armed and
+    ///     disarmed via <see cref="Watch"/>/<see cref="Unwatch"/>, so the per-request cost is
+    ///     two uncontended lock operations and no allocation. The poll only runs once the
+    ///     request body has been fully consumed, so nothing else reads the client socket
+    ///     during the check (data still readable then means a pipelined request, not an
+    ///     abort). The gate guarantees no cancel can fire after Unwatch returns.
     /// </summary>
     internal sealed class DownStreamAbortWatchdog : IAsyncDisposable
     {
         private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
 
-        private readonly CancellationTokenSource _stopSource = new();
+        private readonly Socket _socket;
+        private readonly CancellationTokenSource _callerTokenSource;
+        private readonly PeriodicTimer _timer = new(PollInterval);
         private readonly Task _runningTask;
+        private readonly object _gate = new();
 
-        private DownStreamAbortWatchdog(Socket socket, Exchange exchange, CancellationTokenSource callerTokenSource)
+        private Exchange? _watched;
+
+        public DownStreamAbortWatchdog(Socket socket, CancellationTokenSource callerTokenSource)
         {
-            _runningTask = RunAsync(socket, exchange, callerTokenSource, _stopSource.Token);
+            _socket = socket;
+            _callerTokenSource = callerTokenSource;
+            _runningTask = RunAsync();
         }
 
-        public static DownStreamAbortWatchdog? Start(
-            Socket? socket, Exchange exchange, CancellationTokenSource callerTokenSource)
+        public static bool IsEligible(Exchange exchange)
         {
-            if (socket == null
-                || exchange.Unprocessed
-                || exchange.Context.BlindMode
-                || exchange.Request.Header.IsWebSocketRequest) {
-                return null;
+            return !exchange.Unprocessed
+                   && !exchange.Context.BlindMode
+                   && !exchange.Request.Header.IsWebSocketRequest;
+        }
+
+        public void Watch(Exchange exchange)
+        {
+            lock (_gate) {
+                _watched = exchange;
             }
-
-            return new DownStreamAbortWatchdog(socket, exchange, callerTokenSource);
         }
 
-        private static async Task RunAsync(
-            Socket socket, Exchange exchange,
-            CancellationTokenSource callerTokenSource, CancellationToken stopToken)
+        public void Unwatch()
+        {
+            lock (_gate) {
+                _watched = null;
+            }
+        }
+
+        private async Task RunAsync()
         {
             try {
-                using var timer = new PeriodicTimer(PollInterval);
+                while (await _timer.WaitForNextTickAsync().ConfigureAwait(false)) {
+                    lock (_gate) {
+                        var exchange = _watched;
 
-                while (await timer.WaitForNextTickAsync(stopToken).ConfigureAwait(false)) {
-                    if (exchange.Metrics.RequestBodySent == default)
-                        continue;
+                        if (exchange == null || exchange.Metrics.RequestBodySent == default)
+                            continue;
 
-                    if (!IsSocketAborted(socket))
-                        continue;
+                        if (!IsSocketAborted(_socket))
+                            continue;
 
-                    callerTokenSource.Cancel();
+                        _watched = null;
+                        _callerTokenSource.Cancel();
 
-                    return;
+                        return;
+                    }
                 }
-            }
-            catch (OperationCanceledException) {
             }
             catch (ObjectDisposedException) {
             }
@@ -76,7 +93,7 @@ namespace Fluxzy.Core
 
         public async ValueTask DisposeAsync()
         {
-            _stopSource.Cancel();
+            _timer.Dispose();
 
             try {
                 await _runningTask.ConfigureAwait(false);
@@ -84,8 +101,6 @@ namespace Fluxzy.Core
             catch {
                 // watchdog never propagates
             }
-
-            _stopSource.Dispose();
         }
     }
 }

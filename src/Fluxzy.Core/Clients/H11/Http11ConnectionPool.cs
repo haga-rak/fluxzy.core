@@ -275,6 +275,8 @@ namespace Fluxzy.Clients.H11
                         || ex is ClientErrorException;
 
                     if (deadConnSignal) {
+                        exchange.Connection?.HeaderTimeoutCts?.Dispose();
+
                         if (exchange.Connection?.ReadStream != null) {
                             try {
                                 await exchange.Connection.ReadStream.DisposeAsync();
@@ -315,6 +317,7 @@ namespace Fluxzy.Clients.H11
 
         private static void FreeConnectionStreams(Connection connection)
         {
+            connection.HeaderTimeoutCts?.Dispose();
             connection.ReadStream?.Dispose();
 
             if (connection.ReadStream != connection.WriteStream)
