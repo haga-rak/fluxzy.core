@@ -241,6 +241,19 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     Configure how long the proxy waits for the upstream response header once the
+        ///     request has been fully sent. When the delay expires, the upstream connection
+        ///     is aborted and the client receives a 528 carrying the network error code
+        ///     `response_header_timeout`. A value of <see cref="TimeSpan.Zero"/>, negative or
+        ///     <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> disables the timeout.
+        /// </summary>
+        public FluxzySetting SetResponseHeaderTimeout(TimeSpan timeout)
+        {
+            ResponseHeaderTimeout = timeout;
+            return this;
+        }
+
+        /// <summary>
         ///     Set the default protocols used by fluxzy
         /// </summary>
         /// <param name="protocols"></param>

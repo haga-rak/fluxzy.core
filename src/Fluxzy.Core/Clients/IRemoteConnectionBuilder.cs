@@ -81,6 +81,8 @@ namespace Fluxzy.Clients
 
             var newlyOpenedStream = connectResult.Stream;
 
+            exchange.Connection.UnderlyingTransport = newlyOpenedStream;
+
             if (proxyConfiguration != null) {
                 exchange.Connection.ProxyConnectStart = _timeProvider.Instant();
 

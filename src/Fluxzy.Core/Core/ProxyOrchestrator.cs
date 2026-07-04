@@ -203,11 +203,27 @@ namespace Fluxzy.Core
                 exchange.InterimResponseWriter = (statusCode, reason, ct) =>
                     capturedPipe.WriteInterimResponse(statusCode, reason, capturedStreamId, ct);
 
-                var shouldCloseDownStreamConnection = await EnterProcessExchange(
-                    buffer, closeImmediately, token, exchange,
-                    remoteEndPoint, downStreamClientAddress,
-                    localEndPoint, localEndPointsAddress,
-                    downStreamPipe, callerTokenSource, processInfo);
+                bool shouldCloseDownStreamConnection;
+
+                var abortWatchdog = DownStreamAbortWatchdog.Start(
+                    client.Client, exchange, callerTokenSource);
+
+                try
+                {
+                    shouldCloseDownStreamConnection = await EnterProcessExchange(
+                        buffer, closeImmediately, token, exchange,
+                        remoteEndPoint, downStreamClientAddress,
+                        localEndPoint, localEndPointsAddress,
+                        downStreamPipe, callerTokenSource, processInfo);
+                }
+                finally
+                {
+                    // Fully stopped before the next ReadNextExchange touches the socket,
+                    // otherwise a concurrent poll could mistake a consumed pipelined
+                    // request for an abort.
+                    if (abortWatchdog != null)
+                        await abortWatchdog.DisposeAsync();
+                }
 
                 if (shouldCloseDownStreamConnection)
                 {
@@ -246,10 +262,16 @@ namespace Fluxzy.Core
                 }
                 catch (IOException)
                 {
+                    // Downstream connection is gone: release in-flight exchanges,
+                    // otherwise WaitForAll below can park forever on a wedged upstream.
+                    callerTokenSource.Cancel();
+
                     break;
                 }
                 catch (OperationCanceledException)
                 {
+                    callerTokenSource.Cancel();
+
                     break;
                 }
 

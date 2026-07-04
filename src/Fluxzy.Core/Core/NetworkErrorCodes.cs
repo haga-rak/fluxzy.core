@@ -17,6 +17,7 @@ namespace Fluxzy.Core
         public const string HostUnreachable = "host_unreachable";
         public const string NetworkUnreachable = "network_unreachable";
         public const string ConnectionClosed = "connection_closed";
+        public const string ResponseHeaderTimeout = "response_header_timeout";
 
         // DNS layer
         public const string DnsNotFound = "dns_notfound";

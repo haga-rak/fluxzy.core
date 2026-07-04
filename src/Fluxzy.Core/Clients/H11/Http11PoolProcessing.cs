@@ -21,11 +21,14 @@ namespace Fluxzy.Clients.H11
     internal class Http11PoolProcessing
     {
         private readonly TimeSpan _expectContinueTimeout;
+        private readonly TimeSpan _responseHeaderTimeout;
         private readonly ILogger _logger;
 
-        public Http11PoolProcessing(TimeSpan expectContinueTimeout, ILogger? logger = null)
+        public Http11PoolProcessing(
+            TimeSpan expectContinueTimeout, TimeSpan responseHeaderTimeout, ILogger? logger = null)
         {
             _expectContinueTimeout = expectContinueTimeout;
+            _responseHeaderTimeout = responseHeaderTimeout;
             _logger = logger ?? NullLogger.Instance;
         }
 
@@ -141,6 +144,19 @@ namespace Fluxzy.Clients.H11
             // produced the final response header.
 
             if (!hasEarlyResponseHeader) {
+                var headerTimeoutEnabled = _responseHeaderTimeout > TimeSpan.Zero &&
+                                           _responseHeaderTimeout != System.Threading.Timeout.InfiniteTimeSpan;
+
+                using var headerReadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+                // Closing the transport is the only reliable unblock: the TLS stack may
+                // not observe the token once parked on a read.
+                using var abortRegistration = headerReadCts.Token.Register(
+                    static state => ((Connection) state!).AbortTransport(), exchange.Connection);
+
+                if (headerTimeoutEnabled)
+                    headerReadCts.CancelAfter(_responseHeaderTimeout);
+
                 try {
                     while (true) {
                         headerBlockDetectResult = await Http11HeaderBlockReader.GetNext(exchange.Connection.ReadStream!,
@@ -148,16 +164,21 @@ namespace Fluxzy.Clients.H11
                             () => exchange.Metrics.ResponseHeaderStart = ITimingProvider.Default.Instant(),
                             () => exchange.Metrics.ResponseHeaderEnd = ITimingProvider.Default.Instant(),
                             true,
-                            cancellationToken,
+                            headerReadCts.Token,
                             true).ConfigureAwait(false);
 
                         // Close-notify path: GetNext signals close_notify by returning
                         // HeaderLength = -1. Skip the interim-response sniff (which would
                         // index into the buffer with a negative length) and fall through
                         // so the post-try CloseNotify branch can throw the relaunch
-                        // exception.
-                        if (headerBlockDetectResult.CloseNotify)
+                        // exception. A close caused by our own abort must not take that
+                        // relaunch path: surface the cancellation instead.
+                        if (headerBlockDetectResult.CloseNotify) {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            headerReadCts.Token.ThrowIfCancellationRequested();
+
                             break;
+                        }
 
                         var earlyStatus = HttpHelper.ReadStatusCode(
                             buffer.Buffer.AsSpan(0, headerBlockDetectResult.HeaderLength));
@@ -167,8 +188,12 @@ namespace Fluxzy.Clients.H11
                             // only 100 Continue was silently dropped). Apache-style
                             // origins can send a 100 here even without Expect:
                             // that still needs to reach the client per RFC 9110.
-                            await ForwardInterimToClient(exchange, earlyStatus, cancellationToken)
+                            await ForwardInterimToClient(exchange, earlyStatus, headerReadCts.Token)
                                   .ConfigureAwait(false);
+
+                            if (headerTimeoutEnabled)
+                                headerReadCts.CancelAfter(_responseHeaderTimeout);
+
                             continue;
                         }
 
@@ -176,6 +201,25 @@ namespace Fluxzy.Clients.H11
                     }
                 }
                 catch (Exception ex) {
+                    // Order matters: caller cancellation and timeout both hard-close the
+                    // transport, so the resulting IOException/ObjectDisposedException and
+                    // the Faulted flag must not be mistaken for a dead recycled connection
+                    // (which would relaunch, forever for a tarpit host).
+
+                    if (cancellationToken.IsCancellationRequested) {
+                        throw new OperationCanceledException(
+                            "Exchange was cancelled while waiting for the response header",
+                            ex, cancellationToken);
+                    }
+
+                    if (headerReadCts.IsCancellationRequested) {
+                        throw new ClientErrorException(0,
+                            $"The remote server did not send a response header within " +
+                            $"{(int) _responseHeaderTimeout.TotalSeconds} seconds",
+                            innerMessageException: ex.Message,
+                            networkErrorCode: NetworkErrorCodes.ResponseHeaderTimeout);
+                    }
+
                     // A read failure on a connection that came from the pool, before any
                     // response byte has been seen, means the upstream tore the connection
                     // down while it was idle (TLS close_notify + FIN, or an outright RST).

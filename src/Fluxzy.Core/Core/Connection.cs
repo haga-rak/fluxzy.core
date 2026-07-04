@@ -58,11 +58,33 @@ namespace Fluxzy.Core
 
         public Stream? ReadStream { get; set; }
 
-        public int TimeoutIdleSeconds { get; set; } = -1; 
+        /// <summary>
+        ///     Raw socket-level stream beneath any TLS layer. Closing it is the only
+        ///     reliable way to unblock a read parked inside a TLS stack that does not
+        ///     observe cancellation tokens.
+        /// </summary>
+        internal Stream? UnderlyingTransport { get; set; }
+
+        public int TimeoutIdleSeconds { get; set; } = -1;
 
         public void AddNewRequestProcessed()
         {
             Interlocked.Increment(ref _requestProcessed);
+        }
+
+        internal void AbortTransport()
+        {
+            try {
+                if (UnderlyingTransport != null) {
+                    UnderlyingTransport.Close();
+                    return;
+                }
+
+                ReadStream?.Close();
+            }
+            catch {
+                // already torn down
+            }
         }
     }
 }
