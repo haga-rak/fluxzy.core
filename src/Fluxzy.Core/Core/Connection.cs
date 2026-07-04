@@ -58,11 +58,40 @@ namespace Fluxzy.Core
 
         public Stream? ReadStream { get; set; }
 
-        public int TimeoutIdleSeconds { get; set; } = -1; 
+        /// <summary>
+        ///     Raw socket-level stream beneath any TLS layer. Closing it is the only
+        ///     reliable way to unblock a read parked inside a TLS stack that does not
+        ///     observe cancellation tokens.
+        /// </summary>
+        internal Stream? UnderlyingTransport { get; set; }
+
+        /// <summary>
+        ///     Reusable response-header timeout source, armed and disarmed per request via
+        ///     CancelAfter so recycled connections pay no per-request allocation. Once fired,
+        ///     the connection is dead and never recycled, so it is never reused cancelled.
+        /// </summary>
+        internal CancellationTokenSource? HeaderTimeoutCts { get; set; }
+
+        public int TimeoutIdleSeconds { get; set; } = -1;
 
         public void AddNewRequestProcessed()
         {
             Interlocked.Increment(ref _requestProcessed);
+        }
+
+        internal void AbortTransport()
+        {
+            try {
+                if (UnderlyingTransport != null) {
+                    UnderlyingTransport.Close();
+                    return;
+                }
+
+                ReadStream?.Close();
+            }
+            catch {
+                // already torn down
+            }
         }
     }
 }

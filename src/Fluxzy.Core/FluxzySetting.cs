@@ -68,6 +68,16 @@ namespace Fluxzy
         public TimeSpan ExpectContinueTimeout { get; internal set; } = TimeSpan.FromSeconds(1);
 
         /// <summary>
+        ///     Maximum time fluxzy waits for the upstream response header after the request
+        ///     has been fully sent. When exceeded, the upstream connection is aborted and a
+        ///     528 with network error code `response_header_timeout` is returned. Zero,
+        ///     negative or <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> disables
+        ///     the timeout. Default: 100 seconds (matches `HttpClient.Timeout`).
+        /// </summary>
+        [JsonInclude]
+        public TimeSpan ResponseHeaderTimeout { get; internal set; } = TimeSpan.FromSeconds(100);
+
+        /// <summary>
         ///     Ssl protocols for remote host connection
         /// </summary>
         [JsonInclude]

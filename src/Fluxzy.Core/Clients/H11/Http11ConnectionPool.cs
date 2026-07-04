@@ -175,6 +175,11 @@ namespace Fluxzy.Clients.H11
             try {
                 var requestDate = _timingProvider.Instant();
 
+                // May still be true from a previous relaunched attempt: it must reflect
+                // the connection actually used by this attempt, otherwise a fresh
+                // connection dying before any response byte relaunches unboundedly.
+                exchange.RecycledConnection = false;
+
                 while (_pendingConnections.Reader.TryRead(out var state)) {
 
                     if (HasConnectionExpired(requestDate, state))
@@ -210,6 +215,7 @@ namespace Fluxzy.Clients.H11
 
                 var poolProcessing = new Http11PoolProcessing(
                     _proxyRuntimeSetting.ExpectContinueTimeout,
+                    _proxyRuntimeSetting.ResponseHeaderTimeout,
                     _proxyRuntimeSetting.GetLogger<Http11PoolProcessing>());
 
                 try {
@@ -257,19 +263,28 @@ namespace Fluxzy.Clients.H11
                 }
                 catch (Exception ex) {
 
-                    // Any "connection is dead" signal must dispose the read stream and
-                    // null the connection so the next attempt opens a fresh one. The
-                    // original code only handled ConnectionCloseException, leaking the
-                    // read stream when TlsFatalAlert / IOException / SocketException
-                    // bubbled through unconverted (e.g. from the request-write path).
+                    // Any exception escaping Process leaves an HTTP/1.1 connection with an
+                    // outstanding request: it is unusable and must be torn down. This
+                    // includes cancellation and timeout, which would otherwise orphan a
+                    // connection whose transport was already aborted.
                     var deadConnSignal = ex is ConnectionCloseException
                         || ex is TlsFatalAlert
                         || ex is IOException
-                        || ex is SocketException;
+                        || ex is SocketException
+                        || ex is OperationCanceledException
+                        || ex is ClientErrorException;
 
                     if (deadConnSignal) {
-                        if (exchange.Connection?.ReadStream != null)
-                            await exchange.Connection.ReadStream.DisposeAsync();
+                        exchange.Connection?.HeaderTimeoutCts?.Dispose();
+
+                        if (exchange.Connection?.ReadStream != null) {
+                            try {
+                                await exchange.Connection.ReadStream.DisposeAsync();
+                            }
+                            catch {
+                                // transport may already be aborted
+                            }
+                        }
 
                         exchange.Connection = null;
                     }
@@ -278,9 +293,9 @@ namespace Fluxzy.Clients.H11
                     // safe to relaunch on a fresh connection regardless of whether the
                     // failure happened on the request write or the response read. The
                     // recycled-and-no-response gate keeps a fresh-connection failure
-                    // (server closes immediately) flowing through as 528.
-                    if (deadConnSignal
-                        && !(ex is ConnectionCloseException)
+                    // (server closes immediately) flowing through as 528. Cancellation
+                    // and timeout (ClientErrorException) never relaunch.
+                    if ((ex is TlsFatalAlert || ex is IOException || ex is SocketException)
                         && exchange.RecycledConnection
                         && exchange.Metrics.ResponseHeaderStart == default) {
                         throw new ConnectionCloseException("Relaunch");
@@ -302,6 +317,7 @@ namespace Fluxzy.Clients.H11
 
         private static void FreeConnectionStreams(Connection connection)
         {
+            connection.HeaderTimeoutCts?.Dispose();
             connection.ReadStream?.Dispose();
 
             if (connection.ReadStream != connection.WriteStream)
