@@ -542,7 +542,11 @@ namespace Fluxzy.Clients.H2
                         }
 
                         // Batch all non-window-update frames into single write
-                        if (otherTasks.Count > 0) {
+                        if (otherTasks.Count == 1) {
+                            await WriteSingleNonWindowUpdateAsync(otherTasks[0], _baseStream, token)
+                                .ConfigureAwait(false);
+                        }
+                        else if (otherTasks.Count > 0) {
                             var batchBuffer = ArrayPool<byte>.Shared.Rent(totalOtherSize);
 
                             try {
@@ -598,6 +602,19 @@ namespace Fluxzy.Clients.H2
             }
             finally {
                 OnLoopEnd(outException, true);
+            }
+        }
+
+        internal static async ValueTask WriteSingleNonWindowUpdateAsync(
+            WriteTask writeTask, Stream baseStream, CancellationToken token)
+        {
+            try {
+                await baseStream.WriteAsync(writeTask.BufferBytes, token).ConfigureAwait(false);
+                writeTask.OnComplete(null);
+            }
+            catch (Exception ex) when (ex is SocketException || ex is IOException) {
+                writeTask.OnComplete(ex);
+                throw;
             }
         }
 
