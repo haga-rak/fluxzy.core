@@ -2,6 +2,8 @@
 
 using System;
 using System.Buffers;
+using System.Buffers.Binary;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -21,6 +23,7 @@ namespace Fluxzy.Misc.Streams
 
         private static readonly byte[] LineTerminator = { (byte) '\r', (byte) '\n' };
         private readonly Stream _innerStream;
+        private byte[]? _asyncHeaderBuffer;
 
         private bool _eof;
 
@@ -86,17 +89,21 @@ namespace Fluxzy.Misc.Streams
             ReadOnlyMemory<byte> buffer,
             CancellationToken cancellationToken = new())
         {
-            var poolBuffer = ArrayPool<byte>.Shared.Rent(64);
+            var headerBuffer = _asyncHeaderBuffer ??= new byte[10];
+            var headerLength = FormatChunkHeader(buffer.Length, headerBuffer);
+            await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(headerBuffer, 0, headerLength), cancellationToken).ConfigureAwait(false);
+            await _innerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+            await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(LineTerminator), cancellationToken).ConfigureAwait(false);
+        }
 
-            try {
-                var cs = Encoding.ASCII.GetBytes($"{buffer.Length:X}\r\n", poolBuffer);
-                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(poolBuffer, 0, cs), cancellationToken).ConfigureAwait(false);
-                await _innerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
-                await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(LineTerminator), cancellationToken).ConfigureAwait(false);
-            }
-            finally {
-                ArrayPool<byte>.Shared.Return(poolBuffer);
-            }
+        private static int FormatChunkHeader(int count, Span<byte> destination)
+        {
+            if (!Utf8Formatter.TryFormat(count, destination, out var written, 'X'))
+                throw new InvalidOperationException("Chunk header buffer too small.");
+
+            BinaryPrimitives.WriteUInt16BigEndian(destination.Slice(written), 0x0D0A);
+
+            return written + 2;
         }
 
         public ValueTask WriteEof()
