@@ -21,6 +21,9 @@ namespace Fluxzy.Logging
 
         public static Activity? StartExchangeActivity(Exchange exchange, Guid proxyInstanceId)
         {
+            if (!Instance.HasListeners())
+                return null;
+
             var traceparent = exchange.GetRequestHeaderValue("traceparent");
             var tracestate = exchange.GetRequestHeaderValue("tracestate");
 
