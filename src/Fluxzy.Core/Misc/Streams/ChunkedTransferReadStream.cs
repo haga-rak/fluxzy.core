@@ -98,9 +98,7 @@ namespace Fluxzy.Misc.Streams
                         throw new IOException("Error while reading chunked stream: Chunk size too large.");
                     }
 
-                    var hex = GetHexValue(b);
-
-                    if (hex < 0)
+                    if (GetHexValue(b) is var hex and < 0)
                     {
                         throw new IOException(
                             $"Error while reading chunked stream: Invalid chunk size character: {(char)b}.");
@@ -204,9 +202,7 @@ namespace Fluxzy.Misc.Streams
                         throw new IOException("Error while reading chunked stream: Chunk size too large.");
                     }
 
-                    var hex = GetHexValue(b);
-
-                    if (hex < 0)
+                    if (GetHexValue(b) is var hex and < 0)
                     {
                         throw new IOException(
                             $"Error while reading chunked stream: Invalid chunk size character: {(char)b}.");
@@ -285,19 +281,13 @@ namespace Fluxzy.Misc.Streams
             throw new NotSupportedException();
         }
 
-        private static int GetHexValue(byte value)
+        private static int GetHexValue(byte value) => value switch
         {
-            if (value >= '0' && value <= '9')
-                return value - '0';
-
-            if (value >= 'A' && value <= 'F')
-                return value - 'A' + 10;
-
-            if (value >= 'a' && value <= 'f')
-                return value - 'a' + 10;
-
-            return -1;
-        }
+            >= (byte)'0' and <= (byte)'9' => value - '0',
+            >= (byte)'A' and <= (byte)'F' => value - 'A' + 10,
+            >= (byte)'a' and <= (byte)'f' => value - 'a' + 10,
+            _ => -1
+        };
 
         /// <summary>
         ///     Reads trailer headers (or just the terminating CRLF) after the final 0-length chunk.
