@@ -92,20 +92,8 @@ namespace Fluxzy.Misc.Streams
                                && singleByte.Span[0] != 0x0D) { }
                         break;
                     }
-
-                    if (hexCount >= 16)
-                    { // Max hex digits for long
-                        throw new IOException("Error while reading chunked stream: Chunk size too large.");
-                    }
-
-                    if (GetHexValue(b) is var hex and < 0)
-                    {
-                        throw new IOException(
-                            $"Error while reading chunked stream: Invalid chunk size character: {(char)b}.");
-                    }
-
-                    chunkSize = (chunkSize << 4) + hex;
-                    hexCount++;
+                    
+                    AppendChunkSizeHexDigit(b, ref chunkSize, ref hexCount);
                 }
 
                 // Skip LF after CR
@@ -197,19 +185,7 @@ namespace Fluxzy.Misc.Streams
                         break;
                     }
 
-                    if (hexCount >= 16)
-                    { // Max hex digits for long
-                        throw new IOException("Error while reading chunked stream: Chunk size too large.");
-                    }
-
-                    if (GetHexValue(b) is var hex and < 0)
-                    {
-                        throw new IOException(
-                            $"Error while reading chunked stream: Invalid chunk size character: {(char)b}.");
-                    }
-
-                    chunkSize = (chunkSize << 4) + hex;
-                    hexCount++;
+                    AppendChunkSizeHexDigit(b, ref chunkSize, ref hexCount);
                 }
 
                 // Skip LF after CR
@@ -417,6 +393,23 @@ namespace Fluxzy.Misc.Streams
                     line.Substring(0, colonIdx).Trim(),
                     line.Substring(colonIdx + 1).Trim()));
             }
+        }
+
+        private static void AppendChunkSizeHexDigit(byte value, ref long chunkSize, ref int hexCount)
+        {
+            if (hexCount >= 16)
+            {
+                throw new IOException("Error while reading chunked stream: Chunk size too large.");
+            }
+        
+            if (GetHexValue(value) is var hex and < 0)
+            {
+                throw new IOException(
+                    $"Error while reading chunked stream: Invalid chunk size character: {(char)value}.");
+            }
+        
+            chunkSize = (chunkSize << 4) + hex;
+            hexCount++;
         }
     }
 }
