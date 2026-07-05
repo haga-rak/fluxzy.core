@@ -59,5 +59,69 @@ namespace Fluxzy.Tests.UnitTests.Misc
             await Assert.ThrowsAsync<IOException>(async () =>
                 await chunked.ReadExactlyAsync(buffer.AsMemory(0, 1), CancellationToken.None));
         }
+
+        [Theory]
+        [InlineData("a\r\nhellohello\r\n0\r\n\r\n", "hellohello")]
+        [InlineData("A\r\nhellohello\r\n0\r\n\r\n", "hellohello")]
+        [InlineData("000000000000000A\r\nhellohello\r\n0\r\n\r\n", "hellohello")]
+        public async Task ReadAsync_ParsesValidHexChunkSizes(string payload, string expected)
+        {
+            await using var source = new MemoryStream(Encoding.ASCII.GetBytes(payload));
+            await using var chunked = new ChunkedTransferReadStream(source, closeOnDone: true);
+            var buffer = new byte[expected.Length];
+
+            await chunked.ReadExactlyAsync(buffer, CancellationToken.None);
+
+            Assert.Equal(expected, Encoding.ASCII.GetString(buffer));
+        }
+
+        [Theory]
+        [InlineData("\r\nhello\r\n0\r\n\r\n")]
+        [InlineData(" 5\r\nhello\r\n0\r\n\r\n")]
+        [InlineData("5 \r\nhello\r\n0\r\n\r\n")]
+        [InlineData("8000000000000000\r\nhello\r\n0\r\n\r\n")]
+        [InlineData("10000000000000000\r\nhello\r\n0\r\n\r\n")]
+        [InlineData("5\rhello\r\n0\r\n\r\n")]
+        public async Task ReadAsync_InvalidChunkSizeLines_Throw(string payload)
+        {
+            await using var source = new MemoryStream(Encoding.ASCII.GetBytes(payload));
+            await using var chunked = new ChunkedTransferReadStream(source, closeOnDone: true);
+            var buffer = new byte[8];
+
+            await Assert.ThrowsAsync<IOException>(async () =>
+                await chunked.ReadExactlyAsync(buffer.AsMemory(0, 1), CancellationToken.None));
+        }
+
+        [Theory]
+        [InlineData("a\r\nhellohello\r\n0\r\n\r\n", "hellohello")]
+        [InlineData("A\r\nhellohello\r\n0\r\n\r\n", "hellohello")]
+        [InlineData("000000000000000A\r\nhellohello\r\n0\r\n\r\n", "hellohello")]
+        public void Read_ParsesValidHexChunkSizes(string payload, string expected)
+        {
+            using var source = new MemoryStream(Encoding.ASCII.GetBytes(payload));
+            using var chunked = new ChunkedTransferReadStream(source, closeOnDone: true);
+            var buffer = new byte[expected.Length];
+
+            var read = chunked.Read(buffer, 0, buffer.Length);
+
+            Assert.Equal(expected.Length, read);
+            Assert.Equal(expected, Encoding.ASCII.GetString(buffer));
+        }
+
+        [Theory]
+        [InlineData("\r\nhello\r\n0\r\n\r\n")]
+        [InlineData(" 5\r\nhello\r\n0\r\n\r\n")]
+        [InlineData("5 \r\nhello\r\n0\r\n\r\n")]
+        [InlineData("8000000000000000\r\nhello\r\n0\r\n\r\n")]
+        [InlineData("10000000000000000\r\nhello\r\n0\r\n\r\n")]
+        [InlineData("5\rhello\r\n0\r\n\r\n")]
+        public void Read_InvalidChunkSizeLines_Throw(string payload)
+        {
+            using var source = new MemoryStream(Encoding.ASCII.GetBytes(payload));
+            using var chunked = new ChunkedTransferReadStream(source, closeOnDone: true);
+            var buffer = new byte[8];
+
+            Assert.Throws<IOException>(() => chunked.Read(buffer, 0, 1));
+        }
     }
 }
