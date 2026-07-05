@@ -31,6 +31,13 @@ namespace Fluxzy.Clients.H2
         public int MaxIdleSeconds { get; set; } = 500;
 
         /// <summary>
+        ///     Assigned by the pool builder from the proxy runtime setting; not a user H2 knob.
+        /// </summary>
+        internal TimeSpan ResponseHeaderTimeout { get; set; } = TimeSpan.FromSeconds(100);
+
+        internal TimeSpan ResponseBodyIdleTimeout { get; set; } = TimeSpan.Zero;
+
+        /// <summary>
         ///     Read buffer used by the connection. Should be at least MAX_FRAME_SIZE
         /// </summary>
         public int ReadBufferLength { get; set; } = 0x4000;

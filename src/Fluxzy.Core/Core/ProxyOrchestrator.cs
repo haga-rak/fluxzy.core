@@ -758,10 +758,12 @@ namespace Fluxzy.Core
                         {
                             if (ex is IOException || ex is OperationCanceledException)
                             {
-                                // Local connection may close the underlying stream before 
-                                // receiving the entire message. Particulary when waiting for the last 0\r\n\r\n on chunked stream.
-                                // In that case, we just leave
-                                // without any error
+                                // Two cases land here: the client closed early (harmless),
+                                // or the upstream body read failed mid-response (reset,
+                                // idle timeout, abort). Either way the response is
+                                // incomplete, so the downstream connection must be closed:
+                                // keeping it alive would leave the client waiting for
+                                // bytes that will never come, or desync the next exchange.
 
                                 if (ex is IOException && ex.InnerException is SocketException sex)
                                 {
@@ -775,7 +777,7 @@ namespace Fluxzy.Core
                                     }
                                 }
 
-                                return false;
+                                return true;
                             }
 
                             throw;

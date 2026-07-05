@@ -287,9 +287,15 @@ namespace Fluxzy.Clients.H2
                 // ConnectionCloseException here means either (a) the pool was already
                 // draining/complete when the exchange arrived, or (b) this stream was
                 // proactively abandoned because the server's GOAWAY LastStreamId ruled
-                // it out. Neither case is a pool-level transport failure — other
-                // in-flight streams on this pool may still complete. Skip OnLoopEnd.
-                if (ex is not ConnectionCloseException)
+                // it out. A response header timeout is a per-stream failure already
+                // settled with RST_STREAM. None of these are pool-level transport
+                // failures — other in-flight streams on this pool may still complete.
+                // Skip OnLoopEnd.
+                var perStreamFailure = ex is ClientErrorException clientError &&
+                                       clientError.ClientError.NetworkErrorCode ==
+                                       NetworkErrorCodes.ResponseHeaderTimeout;
+
+                if (ex is not ConnectionCloseException && !perStreamFailure)
                     OnLoopEnd(ex, true);
 
                 throw;

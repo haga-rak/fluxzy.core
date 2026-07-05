@@ -78,6 +78,15 @@ namespace Fluxzy
         public TimeSpan ResponseHeaderTimeout { get; internal set; } = TimeSpan.FromSeconds(100);
 
         /// <summary>
+        ///     Maximum time fluxzy waits between two successive response body reads from the
+        ///     upstream. When exceeded, the exchange is aborted (HTTP/1.1: the connection is
+        ///     closed, HTTP/2: the stream is reset). Disabled by default because legitimate
+        ///     streams can stay quiet for long periods (server-sent events, long polling).
+        /// </summary>
+        [JsonInclude]
+        public TimeSpan ResponseBodyIdleTimeout { get; internal set; } = TimeSpan.Zero;
+
+        /// <summary>
         ///     Ssl protocols for remote host connection
         /// </summary>
         [JsonInclude]
