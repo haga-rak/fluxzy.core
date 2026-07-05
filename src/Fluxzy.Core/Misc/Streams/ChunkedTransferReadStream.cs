@@ -17,8 +17,7 @@ namespace Fluxzy.Misc.Streams
     {
         private readonly bool _closeOnDone;
         private readonly Stream _innerStream;
-        private readonly byte[] _lengthHolderBytes = new byte[64];
-        private readonly byte[] _singleByte = new byte[1];
+        private readonly byte[] _scratch = new byte[2];
 
         private long _nextChunkSize;
 
@@ -63,7 +62,7 @@ namespace Fluxzy.Misc.Streams
         {
             if (_nextChunkSize == 0)
             {
-                Memory<byte> singleByte = _singleByte;
+                Memory<byte> singleByte = _scratch.AsMemory(0, 1);
 
                 var chunkSize = 0L;
                 var hexCount = 0;
@@ -144,7 +143,7 @@ namespace Fluxzy.Misc.Streams
             if (_nextChunkSize == 0)
             {
                 // Read trailing CRLF after chunk data
-                await _innerStream.ReadExactAsync(new Memory<byte>(_lengthHolderBytes, 0, 2), cancellationToken).ConfigureAwait(false);
+                await _innerStream.ReadExactAsync(_scratch.AsMemory(0, 2), cancellationToken).ConfigureAwait(false);
             }
 
             return read;
@@ -156,7 +155,7 @@ namespace Fluxzy.Misc.Streams
 
             if (_nextChunkSize == 0)
             {
-                Span<byte> singleByte = _singleByte;
+                Span<byte> singleByte = _scratch.AsSpan(0, 1);
 
                 var chunkSize = 0L;
                 var hexCount = 0;
@@ -236,7 +235,7 @@ namespace Fluxzy.Misc.Streams
             if (_nextChunkSize == 0)
             {
                 // Read trailing CRLF after chunk data
-                _innerStream.ReadExact(new Span<byte>(_lengthHolderBytes, 0, 2));
+                _innerStream.ReadExact(_scratch.AsSpan(0, 2));
             }
 
             return read;
@@ -272,11 +271,11 @@ namespace Fluxzy.Misc.Streams
         /// </summary>
         private ValueTask ParseTrailersAsync(CancellationToken ct)
         {
-            var readTask = _innerStream.ReadExactAsync(_lengthHolderBytes.AsMemory(0, 2), ct);
+            var readTask = _innerStream.ReadExactAsync(_scratch.AsMemory(0, 2), ct);
 
             if (readTask.IsCompletedSuccessfully) {
                 // Synchronous completion — check for common case inline
-                if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+                if (_scratch[0] == 0x0D && _scratch[1] == 0x0A)
                     return default; // No trailers — zero overhead
 
                 return ParseTrailersSlowPathAsync(ct);
@@ -289,7 +288,7 @@ namespace Fluxzy.Misc.Streams
         {
             await readTask.ConfigureAwait(false);
 
-            if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+            if (_scratch[0] == 0x0D && _scratch[1] == 0x0A)
                 return;
 
             await ParseTrailersSlowPathAsync(ct).ConfigureAwait(false);
@@ -303,20 +302,22 @@ namespace Fluxzy.Misc.Streams
 
             for (var i = 0; i < 2; i++)
             {
-                if (_lengthHolderBytes[i] != 0x0A && _lengthHolderBytes[i] != 0x0D)
-                    lineBuilder.Append((char)_lengthHolderBytes[i]);
+                if (_scratch[i] != 0x0A && _scratch[i] != 0x0D)
+                    lineBuilder.Append((char)_scratch[i]);
             }
+
+            Memory<byte> singleByte = _scratch.AsMemory(0, 1);
 
             while (true)
             {
-                if (!await _innerStream.ReadExactAsync(_singleByte, ct).ConfigureAwait(false))
+                if (!await _innerStream.ReadExactAsync(singleByte, ct).ConfigureAwait(false))
                     break;
 
-                var b = _singleByte[0];
+                var b = singleByte.Span[0];
 
                 if (b == 0x0D) // CR
                 {
-                    await _innerStream.ReadExactAsync(_singleByte, ct).ConfigureAwait(false);
+                    await _innerStream.ReadExactAsync(singleByte, ct).ConfigureAwait(false);
 
                     if (lineBuilder.Length == 0)
                         break; // Empty line = end of trailers
@@ -339,19 +340,19 @@ namespace Fluxzy.Misc.Streams
         private void ParseTrailers()
         {
             // Fast path: read 2 bytes. If \r\n → no trailers.
-            _innerStream.ReadExact(new Span<byte>(_lengthHolderBytes, 0, 2));
+            _innerStream.ReadExact(_scratch.AsSpan(0, 2));
 
-            if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+            if (_scratch[0] == 0x0D && _scratch[1] == 0x0A)
                 return;
 
             var trailerList = new List<HeaderField>();
             var lineBuilder = new StringBuilder();
-            Span<byte> single = _singleByte;
+            Span<byte> single = _scratch.AsSpan(0, 1);
 
             for (var i = 0; i < 2; i++)
             {
-                if (_lengthHolderBytes[i] != 0x0A && _lengthHolderBytes[i] != 0x0D)
-                    lineBuilder.Append((char)_lengthHolderBytes[i]);
+                if (_scratch[i] != 0x0A && _scratch[i] != 0x0D)
+                    lineBuilder.Append((char)_scratch[i]);
             }
 
             while (true)
