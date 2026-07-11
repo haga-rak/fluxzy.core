@@ -59,12 +59,18 @@ namespace Fluxzy.Clients.Ssl.BouncyCastle
 
             var protocol = new FluxzyClientProtocol(innerStream, fingerPrintEnforcer, nssWriter);
 
+            // BC's ConnectAsync does not take a token: closing the inner stream is the
+            // only way to abort a pending handshake read.
+            using var tokenRegistration = token.Register(s => ((Stream) s!).Close(), innerStream);
+
             try
             {
                 await protocol.ConnectAsync(client).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
+                token.ThrowIfCancellationRequested();
+
                 var networkErrorCode = MapTlsAlert(ex);
 
                 throw new ClientErrorException(0,

@@ -68,6 +68,17 @@ namespace Fluxzy
         public TimeSpan ExpectContinueTimeout { get; internal set; } = TimeSpan.FromSeconds(1);
 
         /// <summary>
+        ///     Maximum time fluxzy waits for an upstream connection to be fully established:
+        ///     TCP connect, optional upstream proxy CONNECT and TLS handshake. When exceeded,
+        ///     the attempt is aborted and a 528 with network error code `connection_timeout`
+        ///     is returned. Zero, negative or
+        ///     <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> disables the timeout.
+        ///     Default: 45 seconds.
+        /// </summary>
+        [JsonInclude]
+        public TimeSpan ConnectionTimeout { get; internal set; } = TimeSpan.FromSeconds(45);
+
+        /// <summary>
         ///     Maximum time fluxzy waits for the upstream response header after the request
         ///     has been fully sent. When exceeded, the upstream connection is aborted and a
         ///     528 with network error code `response_header_timeout` is returned. Zero,

@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 
@@ -14,6 +15,10 @@ namespace Fluxzy.Core
 
         Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress address, int port, UpstreamConnectOptions options)
             => ConnectAsync(address, port);
+
+        Task<ITcpConnectionConnectResult> ConnectAsync(
+            IPAddress address, int port, UpstreamConnectOptions options, CancellationToken token)
+            => ConnectAsync(address, port, options);
     }
 
     public interface ITcpConnectionConnectResult
