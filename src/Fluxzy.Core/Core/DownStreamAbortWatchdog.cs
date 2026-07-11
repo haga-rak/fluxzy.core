@@ -9,13 +9,14 @@ namespace Fluxzy.Core
 {
     /// <summary>
     ///     Detects a downstream client abort (FIN/RST) while a sequential exchange is parked
-    ///     on upstream I/O and cancels the connection token source so the upstream work is
-    ///     released. One instance lives per downstream connection; exchanges are armed and
-    ///     disarmed via <see cref="Watch"/>/<see cref="Unwatch"/>, so the per-request cost is
-    ///     two uncontended lock operations and no allocation. The poll only runs once the
-    ///     request body has been fully consumed, so nothing else reads the client socket
-    ///     during the check (data still readable then means a pipelined request, not an
-    ///     abort). The gate guarantees no cancel can fire after Unwatch returns.
+    ///     on upstream work (pool acquisition, connect, TLS handshake or response wait) and
+    ///     cancels the connection token source so that work is released. One instance lives
+    ///     per downstream connection; exchanges are armed and disarmed via
+    ///     <see cref="Watch"/>/<see cref="Unwatch"/>. The poll only runs while nothing else
+    ///     reads the client socket: either before anything has been sent upstream, or once
+    ///     the request body has been fully forwarded (data still readable then means a
+    ///     pipelined request, not an abort). The gate guarantees no cancel can fire after
+    ///     Unwatch returns.
     /// </summary>
     internal sealed class DownStreamAbortWatchdog : IAsyncDisposable
     {
@@ -64,7 +65,7 @@ namespace Fluxzy.Core
                     lock (_gate) {
                         var exchange = _watched;
 
-                        if (exchange == null || exchange.Metrics.RequestBodySent == default)
+                        if (exchange == null || !IsPollSafe(exchange))
                             continue;
 
                         if (!IsSocketAborted(_socket))
@@ -79,6 +80,17 @@ namespace Fluxzy.Core
             }
             catch (ObjectDisposedException) {
             }
+        }
+
+        private static bool IsPollSafe(Exchange exchange)
+        {
+            if (exchange.Metrics.RequestBodySent != default)
+                return true;
+
+            // Before the upstream send starts, only a request body substitution may
+            // read the client socket.
+            return exchange.Metrics.RequestHeaderSending == default
+                   && !exchange.Context.HasRequestBodySubstitution;
         }
 
         private static bool IsSocketAborted(Socket socket)

@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 
@@ -28,8 +29,12 @@ namespace Fluxzy.Core
         public Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress address, int port)
             => ConnectAsync(address, port, UpstreamConnectOptions.None);
 
-        public async Task<ITcpConnectionConnectResult> ConnectAsync(
+        public Task<ITcpConnectionConnectResult> ConnectAsync(
             IPAddress address, int port, UpstreamConnectOptions options)
+            => ConnectAsync(address, port, options, CancellationToken.None);
+
+        public async Task<ITcpConnectionConnectResult> ConnectAsync(
+            IPAddress address, int port, UpstreamConnectOptions options, CancellationToken token)
         {
             TcpClient? client = null;
 
@@ -37,7 +42,7 @@ namespace Fluxzy.Core
                 client = new TcpClient(address.AddressFamily);
                 client.NoDelay = true;
                 options.Apply(client.Client, new IPEndPoint(address, port));
-                await client.ConnectAsync(address, port).ConfigureAwait(false);
+                await client.ConnectAsync(address, port, token).ConfigureAwait(false);
                 var stream = new DisposeEventNotifierStream(client, null);
                 return new DefaultTcpConnectionConnectResult(stream);
             }

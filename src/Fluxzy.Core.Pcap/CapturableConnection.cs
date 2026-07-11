@@ -49,8 +49,12 @@ namespace Fluxzy.Core.Pcap
         public Task<ITcpConnectionConnectResult> ConnectAsync(IPAddress remoteAddress, int remotePort)
             => ConnectAsync(remoteAddress, remotePort, UpstreamConnectOptions.None);
 
-        public async Task<ITcpConnectionConnectResult> ConnectAsync(
+        public Task<ITcpConnectionConnectResult> ConnectAsync(
             IPAddress remoteAddress, int remotePort, UpstreamConnectOptions options)
+            => ConnectAsync(remoteAddress, remotePort, options, CancellationToken.None);
+
+        public async Task<ITcpConnectionConnectResult> ConnectAsync(
+            IPAddress remoteAddress, int remotePort, UpstreamConnectOptions options, CancellationToken token)
         {
             if (_stream != null)
                 throw new InvalidOperationException("A previous connect attempt was already made");
@@ -70,7 +74,7 @@ namespace Fluxzy.Core.Pcap
             _captureContext.Include(remoteAddress, remotePort);
 
             try {
-                await _innerTcpClient.ConnectAsync(remoteAddress, remotePort).ConfigureAwait(false);
+                await _innerTcpClient.ConnectAsync(remoteAddress, remotePort, token).ConfigureAwait(false);
             }
             catch {
                 connectError = true;

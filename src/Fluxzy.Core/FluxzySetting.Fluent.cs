@@ -241,6 +241,20 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     Configure how long the proxy waits for an upstream connection to be fully
+        ///     established (TCP connect, optional upstream proxy CONNECT and TLS handshake).
+        ///     When the delay expires, the attempt is aborted and the client receives a 528
+        ///     carrying the network error code `connection_timeout`. A value of
+        ///     <see cref="TimeSpan.Zero"/>, negative or
+        ///     <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> disables the timeout.
+        /// </summary>
+        public FluxzySetting SetConnectionTimeout(TimeSpan timeout)
+        {
+            ConnectionTimeout = timeout;
+            return this;
+        }
+
+        /// <summary>
         ///     Configure how long the proxy waits for the upstream response header once the
         ///     request has been fully sent. When the delay expires, the upstream connection
         ///     is aborted and the client receives a 528 carrying the network error code

@@ -131,7 +131,10 @@ namespace Fluxzy.Clients
             }
 
             // Slow path: acquire per-authority semaphore for pool creation
-            using var syncGuard = await _synchronizer.LockAsync(exchange.Authority);
+            using var syncGuard = await _synchronizer.LockAsync(exchange.Authority, cancellationToken)
+                                                     .ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Double-check after acquiring semaphore — another thread may have
             // created the pool while we waited.

@@ -53,6 +53,7 @@ namespace Fluxzy.Core
             UserAgentProvider = userAgentProvider;
             ConcurrentConnection = startupSetting.ConnectionPerHost;
             ExpectContinueTimeout = startupSetting.ExpectContinueTimeout;
+            ConnectionTimeout = startupSetting.ConnectionTimeout;
             ResponseHeaderTimeout = startupSetting.ResponseHeaderTimeout;
             ResponseBodyIdleTimeout = startupSetting.ResponseBodyIdleTimeout;
             ActionMapping = new SetUserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
@@ -102,6 +103,12 @@ namespace Fluxzy.Core
         ///     Matches .NET's default `Expect100ContinueTimeout` of 1 second.
         /// </summary>
         public TimeSpan ExpectContinueTimeout { get; set; } = TimeSpan.FromSeconds(1);
+
+        /// <summary>
+        ///     Maximum time to fully establish an upstream connection (TCP connect,
+        ///     upstream proxy CONNECT, TLS handshake). Non-positive or infinite disables it.
+        /// </summary>
+        public TimeSpan ConnectionTimeout { get; set; } = TimeSpan.FromSeconds(45);
 
         /// <summary>
         ///     Maximum time to wait for the upstream response header after the request has

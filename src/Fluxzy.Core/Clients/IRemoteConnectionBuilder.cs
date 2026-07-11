@@ -52,6 +52,50 @@ namespace Fluxzy.Clients
             ProxyConfiguration? proxyConfiguration,
             CancellationToken token)
         {
+            var connectionTimeout = setting.ConnectionTimeout;
+
+            using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+            if (connectionTimeout > TimeSpan.Zero && connectionTimeout != Timeout.InfiniteTimeSpan)
+                connectCts.CancelAfter(connectionTimeout);
+
+            var connectToken = connectCts.Token;
+
+            DisposeEventNotifierStream? openedStream = null;
+
+            try {
+                return await OpenConnectionToRemoteInternal(
+                        exchange, resolutionResult, httpProtocols, setting, proxyConfiguration,
+                        s => openedStream = s, connectToken)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) {
+                if (openedStream != null) {
+                    try {
+                        await openedStream.DisposeAsync().ConfigureAwait(false);
+                    }
+                    catch {
+                    }
+                }
+
+                if (token.IsCancellationRequested)
+                    throw;
+
+                throw new ClientErrorException(0,
+                    $"The connection to {exchange.Authority.HostName}:{exchange.Authority.Port} " +
+                    $"could not be established within {connectionTimeout.TotalSeconds:F0} seconds",
+                    networkErrorCode: NetworkErrorCodes.ConnectionTimeout);
+            }
+        }
+
+        private async ValueTask<RemoteConnectionResult> OpenConnectionToRemoteInternal(
+            Exchange exchange, DnsResolutionResult resolutionResult,
+            List<SslApplicationProtocol> httpProtocols,
+            ProxyRuntimeSetting setting,
+            ProxyConfiguration? proxyConfiguration,
+            Action<DisposeEventNotifierStream> onStreamOpened,
+            CancellationToken token)
+        {
             exchange.Connection = new Connection(exchange.Authority, setting.IdProvider) {
                 TcpConnectionOpening = _timeProvider.Instant(),
 
@@ -67,13 +111,15 @@ namespace Fluxzy.Clients
                                            setting.ArchiveWriter != null!
                                            ? setting.ArchiveWriter.GetDumpfilePath(exchange.Connection.Id)!
                                            : string.Empty);
-            
+
             var connectOptions = new UpstreamConnectOptions(
                 exchange.Authority.HostName, exchange.Authority.Port, setting.ConfigureUpstreamSocket);
 
             var connectResult = await tcpConnection.ConnectAsync(
                 resolutionResult.EndPoint.Address,
-                resolutionResult.EndPoint.Port, connectOptions).ConfigureAwait(false);
+                resolutionResult.EndPoint.Port, connectOptions, token).ConfigureAwait(false);
+
+            onStreamOpened(connectResult.Stream);
 
             exchange.Connection.TcpConnectionOpened = _timeProvider.Instant();
             exchange.Connection.LocalPort = connectResult.Stream.LocalEndPoint.Port;
@@ -93,7 +139,8 @@ namespace Fluxzy.Clients
                         exchange.Authority.Port, proxyConfiguration.ProxyAuthorizationHeader);
 
                     var proxyOpenResult =
-                        await UpstreamProxyManager.Connect(connectConfiguration, newlyOpenedStream, newlyOpenedStream);
+                        await UpstreamProxyManager.Connect(connectConfiguration, newlyOpenedStream, newlyOpenedStream)
+                                                  .AsTask().WaitAsync(token).ConfigureAwait(false);
 
                     if (proxyOpenResult != UpstreamProxyConnectResult.Ok)
                         throw new InvalidOperationException($"Failed to connect to upstream proxy {proxyOpenResult}");

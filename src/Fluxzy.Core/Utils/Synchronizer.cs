@@ -20,7 +20,7 @@ namespace Fluxzy.Utils
             _preserve = preserve;
         }
 
-        public async ValueTask<IDisposable> LockAsync(T key)
+        public async ValueTask<IDisposable> LockAsync(T key, CancellationToken token = default)
         {
             LockInfo lockInfo;
 
@@ -40,7 +40,16 @@ namespace Fluxzy.Utils
                 }
             }
 
-            await lockInfo.Semaphore.WaitAsync();
+            try
+            {
+                await lockInfo.Semaphore.WaitAsync(token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                Interlocked.Decrement(ref lockInfo.WaitingCount);
+                TryCleanup(key, lockInfo);
+                throw;
+            }
 
             Interlocked.Increment(ref lockInfo.OwnerCount);
             Interlocked.Decrement(ref lockInfo.WaitingCount);
@@ -55,6 +64,11 @@ namespace Fluxzy.Utils
             lockInfo.Semaphore.Release();
             Interlocked.Decrement(ref lockInfo.OwnerCount);
 
+            TryCleanup(key, lockInfo);
+        }
+
+        private void TryCleanup(T key, LockInfo lockInfo)
+        {
             if (_preserve)
                 return;
 
