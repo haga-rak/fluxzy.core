@@ -133,6 +133,78 @@ namespace Fluxzy.Tests.UnitTests.Util
         }
 
         [Fact]
+        public async Task DefaultMode_CancelledWaiterLeavesQueue()
+        {
+            var synchronizer = new Synchronizer<Authority>();
+            var authority = new Authority("host.example.com", 443, true);
+
+            var holder = await synchronizer.LockAsync(authority);
+
+            using var cts = new CancellationTokenSource();
+            var waiterTask = synchronizer.LockAsync(authority, cts.Token).AsTask();
+
+            cts.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => waiterTask);
+
+            // The holder still owns the entry
+            Assert.Equal(1, GetRegistryCount(synchronizer));
+
+            holder.Dispose();
+
+            Assert.Equal(0, GetRegistryCount(synchronizer));
+
+            // The lock stays usable after a cancelled wait
+            (await synchronizer.LockAsync(authority)).Dispose();
+
+            Assert.Equal(0, GetRegistryCount(synchronizer));
+        }
+
+        [Fact]
+        public async Task DefaultMode_PreCancelledTokenDoesNotLeakEntry()
+        {
+            var synchronizer = new Synchronizer<Authority>();
+            var authority = new Authority("host.example.com", 443, true);
+
+            var token = new CancellationToken(true);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await synchronizer.LockAsync(authority, token));
+
+            Assert.Equal(0, GetRegistryCount(synchronizer));
+        }
+
+        [Fact]
+        public async Task DefaultMode_CancelledWaitersDoNotBlockRemainingWaiters()
+        {
+            var synchronizer = new Synchronizer<Authority>();
+            var authority = new Authority("host.example.com", 443, true);
+
+            var holder = await synchronizer.LockAsync(authority);
+
+            using var cts = new CancellationTokenSource();
+
+            var cancelledWaiters = Enumerable.Range(0, 16)
+                .Select(_ => synchronizer.LockAsync(authority, cts.Token).AsTask())
+                .ToList();
+
+            var survivingWaiter = synchronizer.LockAsync(authority).AsTask();
+
+            cts.Cancel();
+
+            foreach (var waiter in cancelledWaiters)
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => waiter);
+
+            Assert.False(survivingWaiter.IsCompleted);
+
+            holder.Dispose();
+
+            (await survivingWaiter).Dispose();
+
+            Assert.Equal(0, GetRegistryCount(synchronizer));
+        }
+
+        [Fact]
         public void PoolBuilder_UsesSelfCleaningSynchronizer()
         {
             // Guards against reintroducing the unbounded per-authority lock registry
