@@ -56,10 +56,8 @@ namespace Fluxzy.Clients.H11
             var indexFound = -1;
             var firstBytes = true;
 
-            var stopWatch = new Stopwatch();
-
             while (totalRead < buffer.Buffer.Length) {
-                stopWatch.Restart();
+                var readStartTimestamp = dontThrowIfEarlyClosed ? Stopwatch.GetTimestamp() : 0;
 
                 int currentRead; 
 
@@ -69,7 +67,7 @@ namespace Fluxzy.Clients.H11
                 catch (Exception) {
 
                     if (dontThrowIfEarlyClosed && 
-                        stopWatch.ElapsedTicks < ConnectionDisposeDetectionThreshHold)
+                        Stopwatch.GetElapsedTime(readStartTimestamp).Ticks < ConnectionDisposeDetectionThreshHold)
                     {
                         //  OpenSSL and SecureTransport throw an exception instead of returning 0 with .NET 
 
@@ -80,7 +78,7 @@ namespace Fluxzy.Clients.H11
                 }
 
                 if (currentRead == 0) {
-                    if (dontThrowIfEarlyClosed && stopWatch.ElapsedTicks < ConnectionDisposeDetectionThreshHold) {
+                    if (dontThrowIfEarlyClosed && Stopwatch.GetElapsedTime(readStartTimestamp).Ticks < ConnectionDisposeDetectionThreshHold) {
                         return new(-1, 0, true); 
                     }
 
