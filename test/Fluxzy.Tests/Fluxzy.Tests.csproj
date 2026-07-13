@@ -143,7 +143,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.10.85" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.10.91" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
