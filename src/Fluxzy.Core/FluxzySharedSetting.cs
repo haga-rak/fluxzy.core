@@ -40,6 +40,12 @@ namespace Fluxzy
         public static int RequestProcessingBuffer { get; set; } = 1024 * 4;
 
         /// <summary>
+        ///     Buffer size used when copying non-chunked response bodies in HTTP/1.1 downstream writes.
+        /// </summary>
+        public static int ResponseBodyCopyBuffer { get; set; } =
+            EnvironmentUtility.GetInt32("FLUXZY_RESPONSE_BODY_COPY_BUFFER", 64 * 1024);
+
+        /// <summary>
         ///     The maximum number of concurrent connections allowed
         /// </summary>
         public static int OverallMaxConcurrentConnections { get; } = 102400;

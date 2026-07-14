@@ -146,7 +146,21 @@ namespace Fluxzy.Core
                 stream = chunkedWriter;
             }
 
-            await responseBodyStream.CopyDetailed(stream, rsBuffer.Buffer, _ => { }, token).ConfigureAwait(false);
+            if (chunked) {
+                await responseBodyStream
+                    .CopyDetailed(stream, rsBuffer.Buffer, _ => { }, flushAfterEachWrite: true, token)
+                    .ConfigureAwait(false);
+            }
+            else {
+                await responseBodyStream
+                    .CopyDetailed(
+                        stream,
+                        FluxzySharedSetting.ResponseBodyCopyBuffer,
+                        _ => { },
+                        flushAfterEachWrite: false,
+                        token)
+                    .ConfigureAwait(false);
+            }
 
             if (chunkedWriter != null) {
                 // After body is drained, trailers are available on the Response object
