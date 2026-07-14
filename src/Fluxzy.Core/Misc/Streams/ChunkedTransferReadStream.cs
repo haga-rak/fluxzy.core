@@ -403,7 +403,8 @@ namespace Fluxzy.Misc.Streams
                 throw new IOException("Error while reading chunked stream: Chunk size too large.");
             }
         
-            if (GetHexValue(value) is var hex and < 0)
+            var hex = GetHexValue(value);
+            if (hex < 0)
             {
                 throw new IOException(
                     $"Error while reading chunked stream: Invalid chunk size character: {(char)value}.");
