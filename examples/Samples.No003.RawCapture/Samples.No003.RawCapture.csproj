@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.10.85" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.10.91" />
     <PackageReference Include="Fluxzy.Core.Pcap" Version="1.38.20" />
   </ItemGroup>
 
