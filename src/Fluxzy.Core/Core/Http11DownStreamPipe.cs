@@ -85,10 +85,18 @@ namespace Fluxzy.Core
 
             var remainingLength = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
 
-            if (remainingLength > 0) 
+            if (remainingLength > 0)
             {
-                _readStream = new CombinedReadonlyStream(false,
-                    buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainingLength), _readStream);
+                // Push leftover bytes back into a single reusable buffer.
+                // Nesting a new stream wrapper per request grows without bound
+                // on keep-alive connections and ends in a stack overflow (#744)
+                if (_readStream is not PushbackReadStream pushbackStream)
+                {
+                    pushbackStream = new PushbackReadStream(_readStream);
+                    _readStream = pushbackStream;
+                }
+
+                pushbackStream.Push(buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainingLength));
             }
 
             var authority = RequestedAuthority;
