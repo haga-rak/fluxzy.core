@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -18,9 +17,7 @@ namespace Fluxzy.Misc.Streams
     {
         private readonly bool _closeOnDone;
         private readonly Stream _innerStream;
-        private readonly byte[] _lengthHolderBytes = new byte[64];
-        private readonly char[] _lengthHolderChar = new char[64];
-        private readonly byte[] _singleByte = new byte[1];
+        private readonly byte[] _scratch = new byte[2];
 
         private long _nextChunkSize;
 
@@ -65,11 +62,10 @@ namespace Fluxzy.Misc.Streams
         {
             if (_nextChunkSize == 0)
             {
-                Memory<byte> textBufferBytes = _lengthHolderBytes;
-                Memory<char> textBufferChars = _lengthHolderChar;
-                Memory<byte> singleByte = _singleByte;
+                Memory<byte> singleByte = _scratch.AsMemory(0, 1);
 
-                var textCount = 0;
+                var chunkSize = 0L;
+                var hexCount = 0;
 
                 // Read chunk size until CR
                 while (await _innerStream.ReadAsync(singleByte, cancellationToken).ConfigureAwait(false) > 0)
@@ -95,13 +91,8 @@ namespace Fluxzy.Misc.Streams
                                && singleByte.Span[0] != 0x0D) { }
                         break;
                     }
-
-                    if (textCount >= 16)
-                    { // Max hex digits for long
-                        throw new IOException("Error while reading chunked stream: Chunk size too large.");
-                    }
-
-                    textBufferBytes.Span[textCount++] = b;
+                    
+                    AppendChunkSizeHexDigit(b, ref chunkSize, ref hexCount);
                 }
 
                 // Skip LF after CR
@@ -115,19 +106,14 @@ namespace Fluxzy.Misc.Streams
                     throw new IOException("Expected LF after CR in chunk size line");
                 }
 
-                if (textCount == 0)
+                if (hexCount == 0)
                 {
                     throw new IOException("Error while reading chunked stream: Empty chunk size.");
                 }
 
-                Encoding.ASCII.GetChars(textBufferBytes.Span.Slice(0, textCount), textBufferChars.Span);
-
-                if (!long.TryParse(textBufferChars.Slice(0, textCount).Span,
-                        NumberStyles.HexNumber, CultureInfo.InvariantCulture,
-                        out var chunkSize) || chunkSize < 0)
+                if (chunkSize < 0)
                 {
-                    throw new IOException(
-                        $"Error while reading chunked stream: Invalid chunk size: {textBufferChars.Slice(0, textCount).ToString()}.");
+                    throw new IOException("Error while reading chunked stream: Chunk size too large.");
                 }
 
                 if (chunkSize == 0)
@@ -157,7 +143,7 @@ namespace Fluxzy.Misc.Streams
             if (_nextChunkSize == 0)
             {
                 // Read trailing CRLF after chunk data
-                await _innerStream.ReadExactAsync(new Memory<byte>(_lengthHolderBytes, 0, 2), cancellationToken).ConfigureAwait(false);
+                await _innerStream.ReadExactAsync(_scratch.AsMemory(0, 2), cancellationToken).ConfigureAwait(false);
             }
 
             return read;
@@ -169,11 +155,10 @@ namespace Fluxzy.Misc.Streams
 
             if (_nextChunkSize == 0)
             {
-                Span<byte> textBufferBytes = _lengthHolderBytes;
-                Span<char> textBufferChars = _lengthHolderChar;
-                Span<byte> singleByte = _singleByte;
+                Span<byte> singleByte = _scratch.AsSpan(0, 1);
 
-                var textCount = 0;
+                var chunkSize = 0L;
+                var hexCount = 0;
 
                 // Read chunk size until CR
                 while (_innerStream.Read(singleByte) > 0)
@@ -199,12 +184,7 @@ namespace Fluxzy.Misc.Streams
                         break;
                     }
 
-                    if (textCount >= 16)
-                    { // Max hex digits for long
-                        throw new IOException("Error while reading chunked stream: Chunk size too large.");
-                    }
-
-                    textBufferBytes[textCount++] = b;
+                    AppendChunkSizeHexDigit(b, ref chunkSize, ref hexCount);
                 }
 
                 // Skip LF after CR
@@ -218,19 +198,14 @@ namespace Fluxzy.Misc.Streams
                     throw new IOException("Expected LF after CR in chunk size line");
                 }
 
-                if (textCount == 0)
+                if (hexCount == 0)
                 {
                     throw new IOException("Error while reading chunked stream: Empty chunk size.");
                 }
 
-                Encoding.ASCII.GetChars(textBufferBytes.Slice(0, textCount), textBufferChars);
-
-                if (!long.TryParse(textBufferChars.Slice(0, textCount),
-                        NumberStyles.HexNumber, CultureInfo.InvariantCulture,
-                        out var chunkSize) || chunkSize < 0)
+                if (chunkSize < 0)
                 {
-                    throw new IOException(
-                        $"Error while reading chunked stream: Invalid chunk size: {new string(textBufferChars.Slice(0, textCount))}.");
+                    throw new IOException("Error while reading chunked stream: Chunk size too large.");
                 }
 
                 if (chunkSize == 0)
@@ -260,7 +235,7 @@ namespace Fluxzy.Misc.Streams
             if (_nextChunkSize == 0)
             {
                 // Read trailing CRLF after chunk data
-                _innerStream.ReadExact(new Span<byte>(_lengthHolderBytes, 0, 2));
+                _innerStream.ReadExact(_scratch.AsSpan(0, 2));
             }
 
             return read;
@@ -281,6 +256,14 @@ namespace Fluxzy.Misc.Streams
             throw new NotSupportedException();
         }
 
+        private static int GetHexValue(byte value) => value switch
+        {
+            >= (byte)'0' and <= (byte)'9' => value - '0',
+            >= (byte)'A' and <= (byte)'F' => value - 'A' + 10,
+            >= (byte)'a' and <= (byte)'f' => value - 'a' + 10,
+            _ => -1
+        };
+
         /// <summary>
         ///     Reads trailer headers (or just the terminating CRLF) after the final 0-length chunk.
         ///     Non-async fast path: when the 2-byte read completes synchronously and yields \r\n,
@@ -288,11 +271,11 @@ namespace Fluxzy.Misc.Streams
         /// </summary>
         private ValueTask ParseTrailersAsync(CancellationToken ct)
         {
-            var readTask = _innerStream.ReadExactAsync(_lengthHolderBytes.AsMemory(0, 2), ct);
+            var readTask = _innerStream.ReadExactAsync(_scratch.AsMemory(0, 2), ct);
 
             if (readTask.IsCompletedSuccessfully) {
                 // Synchronous completion — check for common case inline
-                if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+                if (_scratch[0] == 0x0D && _scratch[1] == 0x0A)
                     return default; // No trailers — zero overhead
 
                 return ParseTrailersSlowPathAsync(ct);
@@ -305,7 +288,7 @@ namespace Fluxzy.Misc.Streams
         {
             await readTask.ConfigureAwait(false);
 
-            if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+            if (_scratch[0] == 0x0D && _scratch[1] == 0x0A)
                 return;
 
             await ParseTrailersSlowPathAsync(ct).ConfigureAwait(false);
@@ -319,20 +302,22 @@ namespace Fluxzy.Misc.Streams
 
             for (var i = 0; i < 2; i++)
             {
-                if (_lengthHolderBytes[i] != 0x0A && _lengthHolderBytes[i] != 0x0D)
-                    lineBuilder.Append((char)_lengthHolderBytes[i]);
+                if (_scratch[i] != 0x0A && _scratch[i] != 0x0D)
+                    lineBuilder.Append((char)_scratch[i]);
             }
+
+            Memory<byte> singleByte = _scratch.AsMemory(0, 1);
 
             while (true)
             {
-                if (!await _innerStream.ReadExactAsync(_singleByte, ct).ConfigureAwait(false))
+                if (!await _innerStream.ReadExactAsync(singleByte, ct).ConfigureAwait(false))
                     break;
 
-                var b = _singleByte[0];
+                var b = singleByte.Span[0];
 
                 if (b == 0x0D) // CR
                 {
-                    await _innerStream.ReadExactAsync(_singleByte, ct).ConfigureAwait(false);
+                    await _innerStream.ReadExactAsync(singleByte, ct).ConfigureAwait(false);
 
                     if (lineBuilder.Length == 0)
                         break; // Empty line = end of trailers
@@ -355,19 +340,19 @@ namespace Fluxzy.Misc.Streams
         private void ParseTrailers()
         {
             // Fast path: read 2 bytes. If \r\n → no trailers.
-            _innerStream.ReadExact(new Span<byte>(_lengthHolderBytes, 0, 2));
+            _innerStream.ReadExact(_scratch.AsSpan(0, 2));
 
-            if (_lengthHolderBytes[0] == 0x0D && _lengthHolderBytes[1] == 0x0A)
+            if (_scratch[0] == 0x0D && _scratch[1] == 0x0A)
                 return;
 
             var trailerList = new List<HeaderField>();
             var lineBuilder = new StringBuilder();
-            Span<byte> single = _singleByte;
+            Span<byte> single = _scratch.AsSpan(0, 1);
 
             for (var i = 0; i < 2; i++)
             {
-                if (_lengthHolderBytes[i] != 0x0A && _lengthHolderBytes[i] != 0x0D)
-                    lineBuilder.Append((char)_lengthHolderBytes[i]);
+                if (_scratch[i] != 0x0A && _scratch[i] != 0x0D)
+                    lineBuilder.Append((char)_scratch[i]);
             }
 
             while (true)
@@ -409,6 +394,24 @@ namespace Fluxzy.Misc.Streams
                     line.Substring(0, colonIdx).Trim(),
                     line.Substring(colonIdx + 1).Trim()));
             }
+        }
+
+        private static void AppendChunkSizeHexDigit(byte value, ref long chunkSize, ref int hexCount)
+        {
+            if (hexCount >= 16)
+            {
+                throw new IOException("Error while reading chunked stream: Chunk size too large.");
+            }
+        
+            var hex = GetHexValue(value);
+            if (hex < 0)
+            {
+                throw new IOException(
+                    $"Error while reading chunked stream: Invalid chunk size character: {(char)value}.");
+            }
+        
+            chunkSize = (chunkSize << 4) + hex;
+            hexCount++;
         }
     }
 }
