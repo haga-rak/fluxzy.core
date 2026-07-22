@@ -55,68 +55,11 @@ namespace Fluxzy.Rules.Filters
                 : StringComparison.InvariantCultureIgnoreCase;
 
             var pattern = Pattern.EvaluateVariable(exchangeContext)!;
+            var patternSpan = pattern.AsSpan();
 
             foreach (var input in inputList) {
-                switch (Operation) {
-                    case StringSelectorOperation.Exact:
-                        if (pattern.Equals(input, comparisonType))
-                            return true;
-
-                        continue;
-
-                    case StringSelectorOperation.Contains:
-                        if (input.Contains(pattern, comparisonType))
-                            return true;
-
-                        continue;
-
-                    case StringSelectorOperation.StartsWith:
-                        if (input.StartsWith(pattern, comparisonType))
-                            return true;
-
-                        continue;
-
-                    case StringSelectorOperation.EndsWith:
-                        if (input.EndsWith(pattern, comparisonType))
-                            return true;
-
-                        continue;
-
-                    case StringSelectorOperation.Regex:
-
-                        if (pattern.AsSpan().DoesNotContainsCapturedRegex()) {
-                            if (Regex.Match(input, pattern, CaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase)
-                                     .Success)
-                                return true;
-                        }
-                        else {
-                            var multiMatch =
-                                Regex.Matches(input, pattern,
-                                    CaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase);
-
-                            if (multiMatch.Any(g => g.Success)) {
-                                var matchedVariable = multiMatch
-                                                      .SelectMany(s => s.Groups.OfType<Group>())
-                                                      .Where(g => g.Name != "0"
-                                                                  && g.Success && !string.IsNullOrWhiteSpace(g.Name));
-
-                                if (exchangeContext != null) {
-                                    // If variable are present we update it
-
-                                    foreach (var kp in matchedVariable) {
-                                        exchangeContext.VariableContext.Set($"user.{kp.Name}", kp.Value);
-                                    }
-                                }
-
-                                return true;
-                            }
-                        }
-
-                        continue;
-
-                    default:
-                        throw new RuleExecutionFailureException($"Unimplemented string operation {Operation}", this);
-                }
+                if (MatchValue(input, patternSpan, pattern, comparisonType, exchangeContext))
+                    return true;
             }
 
             return false;
@@ -124,6 +67,81 @@ namespace Fluxzy.Rules.Filters
 
         protected abstract IEnumerable<string> GetMatchInputs(
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange);
+
+        private protected bool MatchValue(
+            string value,
+            ReadOnlySpan<char> pattern,
+            string patternText,
+            StringComparison comparisonType,
+            ExchangeContext? exchangeContext)
+        {
+            if (Operation == StringSelectorOperation.Regex)
+                return MatchRegexValue(value, pattern, patternText, exchangeContext);
+
+            return MatchValue(value.AsSpan(), pattern, patternText, comparisonType, exchangeContext);
+        }
+
+        private protected bool MatchValue(
+            ReadOnlySpan<char> value,
+            ReadOnlySpan<char> pattern,
+            string patternText,
+            StringComparison comparisonType,
+            ExchangeContext? exchangeContext)
+        {
+            return Operation switch {
+                StringSelectorOperation.Exact => value.Equals(pattern, comparisonType),
+                StringSelectorOperation.Contains => value.Contains(pattern, comparisonType),
+                StringSelectorOperation.StartsWith => value.StartsWith(pattern, comparisonType),
+                StringSelectorOperation.EndsWith => value.EndsWith(pattern, comparisonType),
+                StringSelectorOperation.Regex => MatchRegexValue(value, pattern, patternText, exchangeContext),
+                _ => throw new RuleExecutionFailureException($"Unimplemented string operation {Operation}", this)
+            };
+        }
+
+        private bool MatchRegexValue(
+            ReadOnlySpan<char> value,
+            ReadOnlySpan<char> pattern,
+            string patternText,
+            ExchangeContext? exchangeContext)
+        {
+            var regexOptions = CaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
+
+            if (pattern.DoesNotContainsCapturedRegex())
+                return Regex.IsMatch(value, patternText, regexOptions);
+
+            return MatchRegexValue(value.ToString(), pattern, patternText, exchangeContext);
+        }
+
+        private bool MatchRegexValue(
+            string value,
+            ReadOnlySpan<char> pattern,
+            string patternText,
+            ExchangeContext? exchangeContext)
+        {
+            var regexOptions = CaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
+
+            if (pattern.DoesNotContainsCapturedRegex())
+                return Regex.IsMatch(value.AsSpan(), patternText, regexOptions);
+
+            var multiMatch = Regex.Matches(value, patternText, regexOptions);
+
+            if (!multiMatch.Any(g => g.Success))
+                return false;
+
+            var matchedVariable = multiMatch
+                                  .SelectMany(s => s.Groups.OfType<Group>())
+                                  .Where(g => g.Name != "0"
+                                              && g.Success && !string.IsNullOrWhiteSpace(g.Name));
+
+            if (exchangeContext != null) {
+                // If variable are present we update it
+                foreach (var kp in matchedVariable) {
+                    exchangeContext.VariableContext.Set($"user.{kp.Name}", kp.Value);
+                }
+            }
+
+            return true;
+        }
     }
 
     public enum SelectorCollectionOperation

@@ -45,6 +45,16 @@ namespace Fluxzy.Rules.Filters.RequestFilters
                 new RequestHeaderFilter("Chrome/112 ", StringSelectorOperation.Contains, "User-Agent"));
         }
 
+        protected override bool InternalApply(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
+        {
+            if (exchange is Exchange liveExchange)
+                return MatchLiveHeader(liveExchange.Request.Header.HeaderFields, exchangeContext);
+
+            return base.InternalApply(exchangeContext, authority, exchange, filteringContext);
+        }
+
         protected override IEnumerable<string> GetMatchInputs(
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {

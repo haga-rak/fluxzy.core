@@ -1,9 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System.Collections.Generic;
-using System.Linq;
 using Fluxzy.Core;
-using Fluxzy.Extensions;
 
 namespace Fluxzy.Rules.Filters.RequestFilters
 {
@@ -24,12 +22,7 @@ namespace Fluxzy.Rules.Filters.RequestFilters
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
             IFilteringContext? filteringContext)
         {
-            if (exchange == null)
-                return false;
-
-            var candidates = exchange.GetRequestHeaders().Find("Authorization").ToList();
-
-            return candidates.Any();
+            return AuthorizationHeaderFilterHelper.HasAuthorization(exchange, requireBearer: false);
         }
 
         public override IEnumerable<FilterExample> GetExamples()

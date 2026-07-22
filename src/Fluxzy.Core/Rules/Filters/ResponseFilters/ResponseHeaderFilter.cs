@@ -46,6 +46,16 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
                     StringSelectorOperation.Regex, "strict-transport-security"));
         }
 
+        protected override bool InternalApply(
+            ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange,
+            IFilteringContext? filteringContext)
+        {
+            if (exchange is Exchange liveExchange && liveExchange.Response.Header != null)
+                return MatchLiveHeader(liveExchange.Response.Header.HeaderFields, exchangeContext);
+
+            return base.InternalApply(exchangeContext, authority, exchange, filteringContext);
+        }
+
         protected override IEnumerable<string> GetMatchInputs(
             ExchangeContext? exchangeContext, IAuthority authority, IExchange? exchange)
         {
