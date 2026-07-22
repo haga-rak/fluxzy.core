@@ -43,7 +43,7 @@ namespace Fluxzy.Core
                 client.NoDelay = true;
                 options.Apply(client.Client, new IPEndPoint(address, port));
                 await client.ConnectAsync(address, port, token).ConfigureAwait(false);
-                var stream = new DisposeEventNotifierStream(client, null);
+                var stream = new DisposeEventNotifierStream(client, null, new IPEndPoint(address, port));
                 return new DefaultTcpConnectionConnectResult(stream);
             }
             catch (Exception ex) {

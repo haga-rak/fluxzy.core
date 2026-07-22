@@ -252,6 +252,12 @@ namespace Fluxzy.Core
                     $"The connection was reset by remote peer {remoteIpAddress}.",
                     NetworkErrorCodes.ConnectionReset),
 
+                // ENOTCONN: the socket was torn down by a peer reset before the
+                // operation (getpeername, shutdown, …) could run.
+                SocketError.NotConnected => (
+                    $"The connection was reset by remote peer {remoteIpAddress}.",
+                    NetworkErrorCodes.ConnectionReset),
+
                 SocketError.TimedOut => (
                     $"The remote peer ({remoteIpAddress}) " +
                     $"could not be contacted within the configured timeout on the port {port}.",

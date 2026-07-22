@@ -20,12 +20,21 @@ namespace Fluxzy.Misc.Streams
         private int _totalRead;
 
         public DisposeEventNotifierStream(TcpClient sourceClient, Func<ValueTask>?  cleanupProcedure)
+            : this(sourceClient, cleanupProcedure, (IPEndPoint) sourceClient.Client.RemoteEndPoint!)
         {
+        }
+
+        public DisposeEventNotifierStream(
+            TcpClient sourceClient, Func<ValueTask>? cleanupProcedure, IPEndPoint remoteEndPoint)
+        {
+            // The remote endpoint must be provided by the caller: querying
+            // Socket.RemoteEndPoint throws ENOTCONN when the peer resets the
+            // connection between connect and this constructor.
             _sourceClient = sourceClient;
             _cleanupProcedure = cleanupProcedure;
             InnerStream = sourceClient.GetStream();
             LocalEndPoint = (IPEndPoint) sourceClient.Client.LocalEndPoint;
-            RemoteEndPoint = (IPEndPoint) sourceClient.Client.RemoteEndPoint;
+            RemoteEndPoint = remoteEndPoint;
         }
 
         public IPEndPoint RemoteEndPoint { get; }

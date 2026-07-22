@@ -266,7 +266,16 @@ namespace Fluxzy.Clients.H11
             }
 
             if (headerBlockDetectResult.CloseNotify) {
-                throw new ConnectionCloseException("Relaunch");
+                if (exchange.RecycledConnection)
+                    throw new ConnectionCloseException("Relaunch");
+
+                // Fresh connection torn down before any response byte: relaunching
+                // would meet the same fate and loop unboundedly against a host that
+                // closes or resets on accept. Surface as 528, same as the
+                // recycled-and-no-response gate does for read exceptions above.
+                throw new ClientErrorException(0,
+                    "The connection was closed while trying to read the response header",
+                    networkErrorCode: NetworkErrorCodes.ConnectionClosed);
             }
 
             Memory<char> headerContent = exchangeScope.RegisterForReturn(headerBlockDetectResult.HeaderLength);
