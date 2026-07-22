@@ -39,7 +39,7 @@ namespace Fluxzy.Rules.Filters
                 if (Http11Constants.IsNonForwardableHeader(header.Name))
                     continue;
 
-                if (!header.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.InvariantCultureIgnoreCase))
+                if (!header.Name.Span.Equals(HeaderName.AsSpan(), StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 if (MatchValue(header.Value.Span, patternSpan, pattern, comparisonType, exchangeContext))

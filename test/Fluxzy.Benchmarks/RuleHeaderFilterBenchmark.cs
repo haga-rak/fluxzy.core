@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using Fluxzy.Clients;
 using Fluxzy.Core;
+using Fluxzy.Rules;
 using Fluxzy.Rules.Filters;
 using Fluxzy.Rules.Filters.RequestFilters;
 using Fluxzy.Rules.Filters.ResponseFilters;
@@ -38,7 +39,7 @@ public class RuleHeaderFilterBenchmark
     public void Setup()
     {
         _authority = new Authority("api.example.test", 443, true);
-        _context = new BenchmarkExchangeContextBuilder().Create(_authority, true).AsTask().GetAwaiter().GetResult();
+        _context = new ExchangeContext(_authority, new VariableContext(), null, SetUserAgentActionMapping.Default);
         _exchange = Exchange.CreateUntrackedExchange(
             IIdProvider.FromZero,
             _context,
