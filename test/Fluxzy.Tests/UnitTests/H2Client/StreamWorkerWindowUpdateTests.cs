@@ -6,6 +6,7 @@ using Fluxzy.Clients;
 using Fluxzy.Clients.H2;
 using Fluxzy.Clients.H2.Encoder;
 using Fluxzy.Clients.H2.Encoder.Utils;
+using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Core;
 using Xunit;
 
@@ -59,6 +60,22 @@ namespace Fluxzy.Tests.UnitTests.H2Client
 
             Assert.Equal(4, recorder.StreamWindowUpdates);
             Assert.Equal(4 * 1024, recorder.StreamWindowUpdateBytes);
+        }
+
+        [Fact]
+        public void ResponseConsumption_UsesRfcDefaultWindowWhenInitialWindowSizeNotAdvertised()
+        {
+            var setting = new H2StreamSetting();
+            setting.AdvertiseSettings.Remove(SettingIdentifier.SettingsInitialWindowSize);
+
+            var recorder = new WindowUpdateRecorder();
+
+            using var fixture = CreateWorker(setting, recorder.Record);
+
+            Consume(fixture.Worker, 128 * 1024);
+
+            Assert.Equal(4, recorder.StreamWindowUpdates);
+            Assert.Equal(128 * 1024, recorder.StreamWindowUpdateBytes);
         }
 
         private static WorkerFixture CreateWorker(H2StreamSetting setting, UpStreamChannel upStreamChannel)

@@ -51,7 +51,7 @@ namespace Fluxzy.Clients.H2
             Parent = parent;
             _exchange = exchange;
             _resetTokenSource = resetTokenSource;
-            _streamWindowUpdateThreshold = Math.Max(1, parent.Context.Setting.Local.WindowSize / 2);
+            _streamWindowUpdateThreshold = Math.Max(1, parent.Context.Setting.EffectiveLocalStreamWindow / 2);
 
             RemoteWindowSize = new WindowSizeHolder(parent.Context.Setting.Remote.WindowSize,
                 streamIdentifier);
