@@ -55,6 +55,15 @@ namespace Fluxzy.Clients.H2
             SettingIdentifier.SettingsMaxHeaderListSize,
         };
 
+        /// <summary>
+        ///     Stream window as seen by the peer: RFC 9113 default applies when
+        ///     SettingsInitialWindowSize is not advertised.
+        /// </summary>
+        internal int EffectiveLocalStreamWindow =>
+            AdvertiseSettings.Contains(SettingIdentifier.SettingsInitialWindowSize)
+                ? Local.WindowSize
+                : 65535;
+
         public IEnumerable<(SettingIdentifier SettingIdentifier, int Value)> GetAnnouncementSettings()
         {
             if (AdvertiseSettings.Contains(SettingIdentifier.SettingsHeaderTableSize))

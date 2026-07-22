@@ -41,6 +41,8 @@ namespace Fluxzy.Clients.H2
 
         private int _totalSendOnStream;
 
+        private readonly int _streamWindowUpdateThreshold;
+
         public StreamWorker(
             int streamIdentifier,
             StreamPool parent,
@@ -50,6 +52,7 @@ namespace Fluxzy.Clients.H2
             Parent = parent;
             _exchange = exchange;
             _resetTokenSource = resetTokenSource;
+            _streamWindowUpdateThreshold = Math.Max(1, parent.Context.Setting.EffectiveLocalStreamWindow / 2);
 
             RemoteWindowSize = new WindowSizeHolder(parent.Context.Setting.Remote.WindowSize,
                 streamIdentifier);
@@ -614,7 +617,7 @@ namespace Fluxzy.Clients.H2
 
             _totalSendOnStream += dataSize;
 
-            if (_totalSendOnStream > 1024 * 16) {
+            if (_totalSendOnStream >= _streamWindowUpdateThreshold) {
                 SendWindowUpdate(_totalSendOnStream, StreamIdentifier);
                 _totalSendOnStream = 0;
             }
