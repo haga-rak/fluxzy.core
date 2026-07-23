@@ -75,6 +75,47 @@ namespace Fluxzy.Tests.UnitTests.H11Client
             Assert.Equal(0, faulted);
         }
 
+        /// <summary>
+        ///     Reproducer for the socket/handle accumulation reported in
+        ///     haga-rak/fluxzy.core#744: an expired keep-alive connection popped during
+        ///     <c>Send</c> was dropped without disposal, leaking its transport.
+        /// </summary>
+        [Fact]
+        public void ExpiredPooledConnection_IsReleased_OnDequeue()
+        {
+            var pool = BuildPool(onFaulted: _ => { });
+
+            var (connection, readStream, writeStream) = MakePooledConnection();
+            Assert.True(EnqueuePooledConnection(pool, connection, DateTime.UtcNow.AddMinutes(-5)),
+                "precondition: expired pooled connection enqueued");
+
+            var dequeued = pool.DequeueReusableConnection(DateTime.UtcNow);
+
+            Assert.Null(dequeued);
+            Assert.True(readStream.Disposed, "expired connection read stream must be disposed");
+            Assert.True(writeStream.Disposed, "expired connection write stream must be disposed");
+        }
+
+        [Fact]
+        public void Dequeue_ReleasesExpired_AndReturnsFreshConnection()
+        {
+            var pool = BuildPool(onFaulted: _ => { });
+
+            var (expired, expiredRead, expiredWrite) = MakePooledConnection();
+            var (fresh, freshRead, freshWrite) = MakePooledConnection();
+
+            Assert.True(EnqueuePooledConnection(pool, expired, DateTime.UtcNow.AddMinutes(-5)));
+            Assert.True(EnqueuePooledConnection(pool, fresh, DateTime.UtcNow));
+
+            var dequeued = pool.DequeueReusableConnection(DateTime.UtcNow);
+
+            Assert.Same(fresh, dequeued);
+            Assert.True(expiredRead.Disposed, "expired connection read stream must be disposed");
+            Assert.True(expiredWrite.Disposed, "expired connection write stream must be disposed");
+            Assert.False(freshRead.Disposed, "reusable connection must not be disposed");
+            Assert.False(freshWrite.Disposed, "reusable connection must not be disposed");
+        }
+
         // ==================================================================
         // Helpers
         // ==================================================================
@@ -105,13 +146,14 @@ namespace Fluxzy.Tests.UnitTests.H11Client
             return (connection, read, write);
         }
 
-        private static bool EnqueuePooledConnection(Http11ConnectionPool pool, Connection connection)
+        private static bool EnqueuePooledConnection(
+            Http11ConnectionPool pool, Connection connection, DateTime? lastUsed = null)
         {
             var field = typeof(Http11ConnectionPool).GetField(
                 "_pendingConnections", BindingFlags.Instance | BindingFlags.NonPublic);
 
             var channel = (Channel<Http11ProcessingState>) field!.GetValue(pool)!;
-            return channel.Writer.TryWrite(new Http11ProcessingState(connection, DateTime.UtcNow));
+            return channel.Writer.TryWrite(new Http11ProcessingState(connection, lastUsed ?? DateTime.UtcNow));
         }
 
         private static void SetActiveRequestCount(Http11ConnectionPool pool, int count)

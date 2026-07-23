@@ -180,19 +180,11 @@ namespace Fluxzy.Clients.H11
                 // connection dying before any response byte relaunches unboundedly.
                 exchange.RecycledConnection = false;
 
-                while (_pendingConnections.Reader.TryRead(out var state)) {
+                var recycledConnection = DequeueReusableConnection(requestDate);
 
-                    if (HasConnectionExpired(requestDate, state))
-                    {
-                        // The connection pool exceeds timing connection ..
-                        //  TODO: Gracefully release connection
-
-                        continue;
-                    }
-
-                    exchange.Connection = state.Connection;
+                if (recycledConnection != null) {
+                    exchange.Connection = recycledConnection;
                     exchange.RecycledConnection = true;
-                    break;
                 }
 
                 if (exchange.Connection == null) {
@@ -332,6 +324,26 @@ namespace Fluxzy.Clients.H11
                 //_semaphoreSlim.Release();
                 ITimingProvider.Default.Instant();
             }
+        }
+
+        /// <summary>
+        ///     Pops the next reusable pooled connection, releasing expired ones on the way.
+        ///     Expired connections used to be dropped without disposal, leaking one socket,
+        ///     its streams and its timeout CTS per expiry (haga-rak/fluxzy.core#744).
+        /// </summary>
+        internal Connection? DequeueReusableConnection(DateTime instantNow)
+        {
+            while (_pendingConnections.Reader.TryRead(out var state)) {
+                if (HasConnectionExpired(instantNow, state)) {
+                    FreeConnectionStreams(state.Connection);
+
+                    continue;
+                }
+
+                return state.Connection;
+            }
+
+            return null;
         }
 
         private static void FreeConnectionStreams(Connection connection)
