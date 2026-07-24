@@ -149,6 +149,9 @@ namespace Fluxzy.Core
             }
             finally
             {
+                if (downStreamPipe != null)
+                    _poolBuilder.ReleasePinnedPools(downStreamPipe);
+
                 downStreamPipe?.Dispose();
             }
         }
@@ -534,7 +537,7 @@ namespace Fluxzy.Core
                         {
                             // get a connection pool for the current exchange
                             connectionPool = await _poolBuilder
-                                                   .GetPool(exchange, _proxyRuntimeSetting, token)
+                                                   .GetPool(exchange, _proxyRuntimeSetting, downStreamPipe, token)
                                                    .ConfigureAwait(false);
                         }
 

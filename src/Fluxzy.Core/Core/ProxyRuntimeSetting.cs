@@ -56,6 +56,7 @@ namespace Fluxzy.Core
             ConnectionTimeout = startupSetting.ConnectionTimeout;
             ResponseHeaderTimeout = startupSetting.ResponseHeaderTimeout;
             ResponseBodyIdleTimeout = startupSetting.ResponseBodyIdleTimeout;
+            MaxPinnedConnectionsPerDownstream = startupSetting.MaxPinnedConnectionsPerDownstream;
             ActionMapping = new SetUserAgentActionMapping(startupSetting.UserAgentActionConfigurationFile);
             LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             ProxyInstanceId = proxyInstanceId;
@@ -96,6 +97,14 @@ namespace Fluxzy.Core
         public int ConcurrentConnection { get; set; } = 16;
 
         public int TimeOutSecondsUnusedConnection { get; set; } = 4;
+
+        /// <summary>
+        ///     Maximum number of distinct authorities a single downstream connection may pin an
+        ///     upstream connection for (connection-oriented auth). Bounds the sockets a client can
+        ///     hold by sending NTLM/Negotiate credentials to many hosts. Extra authorities fall
+        ///     back to the shared pool instead of pinning.
+        /// </summary>
+        public int MaxPinnedConnectionsPerDownstream { get; set; } = 64;
 
         /// <summary>
         ///     Maximum time fluxzy waits for an upstream `100 Continue` (or a

@@ -217,6 +217,14 @@ namespace Fluxzy.Core
         public bool ForceServeHttp11 { get; set; }
 
         /// <summary>
+        ///     When true, the upstream connection serving this exchange is dedicated to the
+        ///     originating downstream connection and never shared with another client. Required
+        ///     for connection-oriented authentication (NTLM, Negotiate/Kerberos) whose handshake
+        ///     and resulting identity are bound to a single TCP connection. Implies HTTP/1.1 upstream.
+        /// </summary>
+        public bool RequireUpstreamPinning { get; set; }
+
+        /// <summary>
         ///     Register a response body substitution
         /// </summary>
         /// <param name="substitution"></param>

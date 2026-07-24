@@ -41,6 +41,19 @@ namespace Fluxzy.Clients.H11
         private PeriodicTimer? _idleTimer;
         private Task? _idleMonitorTask;
 
+        // Dedicated pools serve a single downstream connection (upstream pinning), so they
+        // keep a connection that carried connection-oriented auth. Shared pools must drop it.
+        private readonly bool _dedicated;
+
+        // A dedicated pool must use exactly one upstream connection. Recycling back into
+        // _pendingConnections happens in an async continuation on exchange.Complete
+        // (RunContinuationsAsynchronously), which races the next Send's dequeue: losing that
+        // race opens a second connection and breaks the connection-bound auth handshake.
+        // This lease serialises Send and is released only after the connection is recycled,
+        // so the next leg always finds the same connection. Also serialises concurrent
+        // (HTTP/2 downstream) exchanges, which must not fan out onto multiple sockets.
+        private readonly SemaphoreSlim? _pinnedLease;
+
         internal Http11ConnectionPool(
             Authority authority,
             RemoteConnectionBuilder remoteConnectionBuilder,
@@ -48,7 +61,8 @@ namespace Fluxzy.Clients.H11
             ProxyRuntimeSetting proxyRuntimeSetting,
             RealtimeArchiveWriter archiveWriter,
             DnsResolutionResult resolutionResult,
-            Action<IHttpConnectionPool>? onConnectionFaulted = null)
+            Action<IHttpConnectionPool>? onConnectionFaulted = null,
+            bool dedicated = false)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
@@ -56,6 +70,8 @@ namespace Fluxzy.Clients.H11
             _archiveWriter = archiveWriter;
             _resolutionResult = resolutionResult;
             _onConnectionFaulted = onConnectionFaulted;
+            _dedicated = dedicated;
+            _pinnedLease = dedicated ? new SemaphoreSlim(1, 1) : null;
             Authority = authority;
             _lastActivity = timingProvider.Instant();
 
@@ -172,7 +188,25 @@ namespace Fluxzy.Clients.H11
                 _lastActivity = _timingProvider.Instant();
             }
 
+            var leaseAcquired = false;
+            var leaseHandedToContinuation = false;
+            var activityHandedToContinuation = false;
+
             try {
+                if (_pinnedLease != null) {
+                    await _pinnedLease.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    leaseAcquired = true;
+
+                    // Disposal can race a waiter that entered Send before the pool was
+                    // completed. Do not let that waiter open a new connection on an evicted
+                    // pinned pool after the preceding exchange releases the lease.
+                    lock (_idleGate) {
+                        if (_complete)
+                            throw new ConnectionCloseException(
+                                "HTTP/1.1 connection pool was disposed while waiting for its pinned lease");
+                    }
+                }
+
                 var requestDate = _timingProvider.Instant();
 
                 // May still be true from a previous relaunched attempt: it must reflect
@@ -225,50 +259,80 @@ namespace Fluxzy.Clients.H11
                     if (exchange.Response.Header != null)
                         exchange.Connection.TimeoutIdleSeconds = exchange.Response.Header.TimeoutIdleSeconds;
 
-                    var lastUsed = _timingProvider.Instant();
-
                     void OnExchangeCompleteFunction(Task<bool> completeTask)
                     {
-                        abortRegistration.Dispose();
+                        try {
+                            abortRegistration.Dispose();
 
-                        // A faulted or cancelled completion means the body read failed:
-                        // never recycle, always free. Reading .Result unguarded would
-                        // rethrow here and skip the teardown entirely.
-                        var closeConnectionRequest =
-                            !completeTask.IsCompletedSuccessfully || completeTask.Result;
+                            // A faulted or cancelled completion means the body read failed:
+                            // never recycle, always free. Reading .Result unguarded would
+                            // rethrow here and skip the teardown entirely.
+                            var closeConnectionRequest =
+                                !completeTask.IsCompletedSuccessfully || completeTask.Result;
 
-                        if (exchange.Response.Header!.MaxConnection != -1 &&
-                            exchange.Response.Header!.MaxConnection <= exchange.Connection.RequestProcessed) {
-                            closeConnectionRequest = true;
-                        }
-
-                        if (exchange.Metrics.ResponseBodyEnd == default)
-                            exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
-
-                        if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any()) {
-                            foreach (var exception in completeTask.Exception.InnerExceptions) {
-                                exchange.Errors.Add(new Error("Error while reading response", exception));
+                            if (exchange.Response.Header!.MaxConnection != -1 &&
+                                exchange.Response.Header!.MaxConnection <= exchange.Connection.RequestProcessed) {
+                                closeConnectionRequest = true;
                             }
-                        }
-                        else if (completeTask.IsCompletedSuccessfully && !closeConnectionRequest) { //
 
-                            if (_pendingConnections.Writer.TryWrite(
-                                    new Http11ProcessingState(exchange.Connection, lastUsed)))
-                            {
-                                return;
+                            // Leakage guard: a shared connection that carried NTLM/Negotiate auth
+                            // is bound to one client's identity. Never return it to the shared pool.
+                            // Dedicated (pinned) pools keep it since they serve a single client.
+                            if (!_dedicated && ConnectionAuthHeuristic.InvolvesConnectionAuth(exchange)) {
+                                closeConnectionRequest = true;
                             }
-                        }
-                        else {
-                            // should close connection
-                        }
 
-                        FreeConnectionStreams(exchange.Connection);
+                            if (exchange.Metrics.ResponseBodyEnd == default)
+                                exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+
+                            if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any()) {
+                                foreach (var exception in completeTask.Exception.InnerExceptions) {
+                                    exchange.Errors.Add(new Error("Error while reading response", exception));
+                                }
+                            }
+                            else if (completeTask.IsCompletedSuccessfully && !closeConnectionRequest) { //
+
+                                // Idle age starts when the response body has been consumed, not
+                                // when its headers arrived. With connection-oriented auth, using
+                                // the header timestamp can make a slow response recycle an
+                                // already-expired authenticated connection.
+                                var lastUsed = _timingProvider.Instant();
+
+                                if (_pendingConnections.Writer.TryWrite(
+                                        new Http11ProcessingState(exchange.Connection, lastUsed)))
+                                {
+                                    return;
+                                }
+                            }
+                            else {
+                                // should close connection
+                            }
+
+                            FreeConnectionStreams(exchange.Connection);
+                        }
+                        finally {
+                            // Send returns after response headers, while the connection remains
+                            // occupied until the response body completes. Keep the pool active
+                            // through that whole lifetime so idle teardown cannot remove the pin
+                            // or dispose the pool underneath this continuation.
+                            lock (_idleGate) {
+                                _activeRequestCount--;
+                                _lastActivity = _timingProvider.Instant();
+                            }
+
+                            // Released only here on the success path: the connection is now
+                            // back in the channel (or freed), so the next pinned Send can
+                            // dequeue it instead of racing ahead and opening a fresh one.
+                            _pinnedLease?.Release();
+                        }
                     }
 
                     // CancellationToken.None: the cleanup must run even when the caller
                     // has already cancelled, otherwise an aborted exchange leaks its
                     // connection (the continuation would be cancelled instead of run).
                     var _ = exchange.Complete.ContinueWith(OnExchangeCompleteFunction, CancellationToken.None);
+                    activityHandedToContinuation = true;
+                    leaseHandedToContinuation = leaseAcquired;
                 }
                 catch (Exception ex) {
 
@@ -316,12 +380,19 @@ namespace Fluxzy.Clients.H11
                 }
             }
             finally {
-                lock (_idleGate) {
-                    _activeRequestCount--;
-                    _lastActivity = _timingProvider.Instant();
+                if (!activityHandedToContinuation) {
+                    lock (_idleGate) {
+                        _activeRequestCount--;
+                        _lastActivity = _timingProvider.Instant();
+                    }
                 }
 
-                //_semaphoreSlim.Release();
+                // Every exit that did not hand the lease to the completion continuation
+                // (early return, or an exception including the Relaunch retry) releases here,
+                // so a relaunch attempt does not deadlock against its own held lease.
+                if (leaseAcquired && !leaseHandedToContinuation)
+                    _pinnedLease!.Release();
+
                 ITimingProvider.Default.Instant();
             }
         }
@@ -394,6 +465,11 @@ namespace Fluxzy.Clients.H11
             }
 
             _idleTimer?.Dispose();
+
+            // Do not dispose _pinnedLease here. DisposeAsync can race the asynchronously
+            // scheduled exchange-completion continuation after a downstream connection ends.
+            // The pool is already marked complete, so no new Send can acquire it; leaving this
+            // small managed semaphore for GC lets the owner continuation release it safely.
 
             if (_idleMonitorTask != null) {
                 try {

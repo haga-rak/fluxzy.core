@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
 using Fluxzy.Core;
@@ -116,11 +117,54 @@ namespace Fluxzy.Tests.UnitTests.H11Client
             Assert.False(freshWrite.Disposed, "reusable connection must not be disposed");
         }
 
+        /// <summary>
+        ///     A dedicated (pinned) pool must be reclaimable on idle like any other, otherwise a
+        ///     client can hold one upstream socket per authority for the life of its downstream
+        ///     connection just by sending NTLM/Negotiate credentials. Passing a fault callback is
+        ///     what wires the idle monitor, and teardown must free the pinned socket.
+        /// </summary>
+        [Fact]
+        public void DedicatedPool_IdleTearsDown_FreesPinnedSocket_AndFiresEviction()
+        {
+            IHttpConnectionPool? evicted = null;
+            var pool = BuildPool(onFaulted: p => evicted = p, dedicated: true);
+
+            var (connection, readStream, writeStream) = MakePooledConnection();
+            Assert.True(EnqueuePooledConnection(pool, connection),
+                "precondition: pooled connection enqueued");
+
+            pool.LastActivity = DateTime.MinValue;
+
+            Assert.True(pool.TryIdleTeardown(), "an idle pinned pool must tear down");
+            Assert.True(pool.Complete);
+            Assert.Same(pool, evicted);
+            Assert.True(readStream.Disposed, "pinned connection read stream must be disposed");
+            Assert.True(writeStream.Disposed, "pinned connection write stream must be disposed");
+        }
+
+        [Fact]
+        public async Task DedicatedPool_WithFaultCallback_RunsIdleMonitor()
+        {
+            // Guards the wiring: dedicated pools used to be built with a null callback, which made
+            // Init() skip the monitor and left them immortal (haga-rak review P2).
+            var pool = BuildPool(onFaulted: _ => { }, dedicated: true);
+            pool.Init();
+
+            var monitor = typeof(Http11ConnectionPool)
+                          .GetField("_idleMonitorTask", BindingFlags.Instance | BindingFlags.NonPublic)!
+                          .GetValue(pool);
+
+            Assert.NotNull(monitor);
+
+            await pool.DisposeAsync();
+        }
+
         // ==================================================================
         // Helpers
         // ==================================================================
 
-        private static Http11ConnectionPool BuildPool(Action<IHttpConnectionPool> onFaulted)
+        private static Http11ConnectionPool BuildPool(
+            Action<IHttpConnectionPool> onFaulted, bool dedicated = false)
         {
             var authority = new Authority("test.local", 443, true);
 
@@ -133,7 +177,8 @@ namespace Fluxzy.Tests.UnitTests.H11Client
                 ProxyRuntimeSetting.CreateDefault,
                 archiveWriter: null!,
                 resolutionResult: default,
-                onConnectionFaulted: onFaulted);
+                onConnectionFaulted: onFaulted,
+                dedicated: dedicated);
         }
 
         private static (Connection connection, RecordingStream read, RecordingStream write) MakePooledConnection()

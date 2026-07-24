@@ -326,8 +326,31 @@ namespace Fluxzy
         [JsonInclude]
         public bool SkipInternalRules { get; internal set; }
 
+        /// <summary>
+        ///     When true, disables the built-in rule that pins the upstream connection on
+        ///     exchanges carrying NTLM or Negotiate/Kerberos credentials. Pinning is on by
+        ///     default because such connection-oriented auth otherwise breaks through the proxy.
+        /// </summary>
+        [JsonInclude]
+        public bool DisableAutomaticConnectionAuthPinning { get; internal set; }
+
+        /// <summary>
+        ///     Maximum number of distinct authorities a single downstream connection may pin an
+        ///     upstream connection for. Bounds the sockets a client can hold by sending
+        ///     NTLM/Negotiate credentials to many hosts; extra authorities use the shared pool.
+        /// </summary>
+        [JsonInclude]
+        public int MaxPinnedConnectionsPerDownstream { get; internal set; } = 64;
+
         internal IEnumerable<Rule> FixedRules()
         {
+            if (!DisableAutomaticConnectionAuthPinning) {
+                yield return new Rule(
+                    new PinUpstreamConnectionAction(),
+                    new RequestHeaderFilter("^(NTLM|Negotiate|Kerberos)",
+                        StringSelectorOperation.Regex, "Authorization"));
+            }
+
             if (GlobalSkipSslDecryption) {
                 yield return new Rule(new SkipSslTunnelingAction(), AnyFilter.Default);
             }
