@@ -38,18 +38,25 @@ namespace Fluxzy.Core
             if (!_listeners.Any())
                 return null;
 
-            try {
-                var available = await _pendingClientConnections.Reader.WaitToReadAsync(_token); 
+            while (true) {
+                try {
+                    var available = await _pendingClientConnections.Reader.WaitToReadAsync(_token);
 
-                if (!available)
+                    if (!available)
+                        return null;
+                }
+                catch (Exception) {
+                    // Listener Stop was probably called
                     return null;
+                }
 
                 while (_pendingClientConnections.Reader.TryRead(out var asyncState)) {
+                    try {
+                        var listener = (TcpListener?) asyncState.AsyncState;
 
-                    var listener = (TcpListener?)asyncState.AsyncState;
+                        if (listener == null)
+                            continue;
 
-                    if (listener != null)
-                    {
                         var tcpClient = listener.EndAcceptTcpClient(asyncState);
 
                         tcpClient.NoDelay = true;
@@ -61,13 +68,11 @@ namespace Fluxzy.Core
 
                         return tcpClient;
                     }
+                    catch (Exception) {
+                        // Faulted accept, skip and try the next one
+                    }
                 }
             }
-            catch (Exception) {
-                // Listener Stop was probably called 
-            }
-
-            return null;
         }
 
         public IReadOnlyCollection<IPEndPoint> ListenEndpoints { get; private set; } = Array.Empty<IPEndPoint>();
@@ -144,9 +149,21 @@ namespace Fluxzy.Core
             try {
                 var listener = (TcpListener?) ar.AsyncState;
 
-                if (!_pendingClientConnections.Writer.TryWrite(ar) || _disposed)
-                    return; 
-                
+                if (!_pendingClientConnections.Writer.TryWrite(ar)) {
+                    // Writer completed, release the accepted client
+                    try {
+                        listener?.EndAcceptTcpClient(ar).Dispose();
+                    }
+                    catch (Exception) {
+                        // ignored
+                    }
+
+                    return;
+                }
+
+                if (_disposed)
+                    return;
+
                 listener?.BeginAcceptTcpClient(Callback, listener);
             }
             catch (Exception) {

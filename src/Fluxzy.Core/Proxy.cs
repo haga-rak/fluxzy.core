@@ -321,14 +321,22 @@ namespace Fluxzy
             }
 
             while (true) {
-                var client =
-                    await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
+                TcpClient? client = null;
 
-                if (client == null) {
-                    break;
+                try {
+                    client = await _downStreamConnectionProvider.GetNextPendingConnection().ConfigureAwait(false);
+
+                    if (client == null) {
+                        break;
+                    }
+
+                    // Detaches at the first await, no dedicated thread needed
+                    ProcessingConnection(client);
                 }
-
-                _ = Task.Factory.StartNew(() => ProcessingConnection(client), TaskCreationOptions.LongRunning);
+                catch (Exception) {
+                    // A single connection failure must not stop the accept loop
+                    client?.Dispose();
+                }
             }
         }
 
@@ -413,7 +421,7 @@ namespace Fluxzy
             _runTimeSetting.EndPoints = endPoints.ToHashSet();
             _runTimeSetting.ProxyListenPort = endPoints.FirstOrDefault()?.Port ?? 0;
 
-            _loopTask = Task.Factory.StartNew(MainLoop, TaskCreationOptions.LongRunning);
+            _loopTask = MainLoop().AsTask();
 
             EndPoints = endPoints;
 
