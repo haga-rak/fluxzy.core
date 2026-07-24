@@ -80,7 +80,7 @@ namespace Fluxzy.Clients.DotNetBridge
                 ConfigureContext(exchange.Context);
             }
 
-            var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken).ConfigureAwait(false);
+            var connection = await _poolBuilder.GetPool(exchange, _runtimeSetting, cancellationToken: cancellationToken).ConfigureAwait(false);
             
             await connection.Send(exchange, null!, RsBuffer.Allocate(32 * 1024), _exchangeScope,
                 cancellationToken).ConfigureAwait(false);

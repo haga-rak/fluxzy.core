@@ -78,6 +78,18 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     Disables the built-in rule that pins the upstream connection on exchanges carrying
+        ///     NTLM or Negotiate/Kerberos credentials. Pinning is on by default; disabling it makes
+        ///     connection-oriented authentication break through the proxy.
+        /// </summary>
+        public FluxzySetting SetDisableAutomaticConnectionAuthPinning(bool value)
+        {
+            DisableAutomaticConnectionAuthPinning = value;
+
+            return this;
+        }
+
+        /// <summary>
         ///     Add hosts that fluxzy should not decrypt
         /// </summary>
         /// <param name="hosts"></param>

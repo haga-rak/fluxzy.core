@@ -41,6 +41,10 @@ namespace Fluxzy.Clients.H11
         private PeriodicTimer? _idleTimer;
         private Task? _idleMonitorTask;
 
+        // Dedicated pools serve a single downstream connection (upstream pinning), so they
+        // keep a connection that carried connection-oriented auth. Shared pools must drop it.
+        private readonly bool _dedicated;
+
         internal Http11ConnectionPool(
             Authority authority,
             RemoteConnectionBuilder remoteConnectionBuilder,
@@ -48,7 +52,8 @@ namespace Fluxzy.Clients.H11
             ProxyRuntimeSetting proxyRuntimeSetting,
             RealtimeArchiveWriter archiveWriter,
             DnsResolutionResult resolutionResult,
-            Action<IHttpConnectionPool>? onConnectionFaulted = null)
+            Action<IHttpConnectionPool>? onConnectionFaulted = null,
+            bool dedicated = false)
         {
             _remoteConnectionBuilder = remoteConnectionBuilder;
             _timingProvider = timingProvider;
@@ -56,6 +61,7 @@ namespace Fluxzy.Clients.H11
             _archiveWriter = archiveWriter;
             _resolutionResult = resolutionResult;
             _onConnectionFaulted = onConnectionFaulted;
+            _dedicated = dedicated;
             Authority = authority;
             _lastActivity = timingProvider.Instant();
 
@@ -239,6 +245,13 @@ namespace Fluxzy.Clients.H11
 
                         if (exchange.Response.Header!.MaxConnection != -1 &&
                             exchange.Response.Header!.MaxConnection <= exchange.Connection.RequestProcessed) {
+                            closeConnectionRequest = true;
+                        }
+
+                        // Leakage guard: a shared connection that carried NTLM/Negotiate auth
+                        // is bound to one client's identity. Never return it to the shared pool.
+                        // Dedicated (pinned) pools keep it since they serve a single client.
+                        if (!_dedicated && ConnectionAuthHeuristic.InvolvesConnectionAuth(exchange)) {
                             closeConnectionRequest = true;
                         }
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Security;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Dns;
@@ -43,6 +44,10 @@ namespace Fluxzy.Clients
 
         private readonly ConcurrentDictionary<Authority, IHttpConnectionPool> _connectionPools = new();
 
+        // Upstream connections pinned to a single downstream connection (connection-oriented
+        // auth). Keyed by the downstream pipe so the pins die with the client that owns them.
+        private readonly ConditionalWeakTable<IDownStreamPipe, PinnedPoolSet> _pinnedPools = new();
+
         private readonly RemoteConnectionBuilder _remoteConnectionBuilder;
         private readonly ITimingProvider _timingProvider;
         private readonly ILogger<PoolBuilder> _logger;
@@ -78,9 +83,10 @@ namespace Fluxzy.Clients
             GetPool(
                 Exchange exchange,
                 ProxyRuntimeSetting proxyRuntimeSetting,
+                IDownStreamPipe? downStreamPipe = null,
                 CancellationToken cancellationToken = default)
         {
-            var pool = await GetPoolCore(exchange, proxyRuntimeSetting, _logger, cancellationToken)
+            var pool = await GetPoolCore(exchange, proxyRuntimeSetting, downStreamPipe, _logger, cancellationToken)
                 .ConfigureAwait(false);
             FluxzyLogEvents.LogConnectionPoolResolved(_logger, exchange, pool);
             return pool;
@@ -90,6 +96,7 @@ namespace Fluxzy.Clients
             GetPoolCore(
                 Exchange exchange,
                 ProxyRuntimeSetting proxyRuntimeSetting,
+                IDownStreamPipe? downStreamPipe,
                 ILogger<PoolBuilder> logger,
                 CancellationToken cancellationToken)
         {
@@ -109,6 +116,20 @@ namespace Fluxzy.Clients
                     new MockedConnectionPool(exchange.Authority, exchange.Context.PreMadeResponse);
                 mockedConnectionPool.Init();
                 return mockedConnectionPool;
+            }
+
+            // Connection-oriented auth: serve the exchange from a pool dedicated to this
+            // downstream connection. The pin is sticky, so the requests that follow the
+            // handshake (which carry no Authorization header) keep the same connection.
+            if (downStreamPipe != null) {
+                var pinnedPool = GetPinnedPool(exchange, proxyRuntimeSetting, downStreamPipe, dnsResolutionResult);
+
+                if (pinnedPool != null) {
+                    if (exchange.Metrics.RetrievingPool == default)
+                        exchange.Metrics.RetrievingPool = ITimingProvider.Default.Instant();
+
+                    return pinnedPool;
+                }
             }
 
             var forceNewConnection = exchange.Context.ForceNewConnection;
@@ -275,6 +296,61 @@ namespace Fluxzy.Clients
             throw new NotSupportedException($"Unhandled protocol type {openingResult.Type}");
         }
 
+        /// <summary>
+        ///     Returns the pool pinned to <paramref name="downStreamPipe"/> for this authority when
+        ///     the exchange requires pinning or a pin already exists (stickiness), otherwise null.
+        ///     A pinned pool is a dedicated HTTP/1.1 pool: it opens H11-only ALPN and is never
+        ///     stored in the shared registry, so no other client can reuse its connection.
+        /// </summary>
+        private IHttpConnectionPool? GetPinnedPool(
+            Exchange exchange,
+            ProxyRuntimeSetting proxyRuntimeSetting,
+            IDownStreamPipe downStreamPipe,
+            DnsResolutionResult dnsResolutionResult)
+        {
+            if (!exchange.Context.RequireUpstreamPinning) {
+                // Stickiness: only the follow-up requests of an already pinned authority stay
+                // pinned. A pipe that never pinned anything allocates no set.
+                if (!_pinnedPools.TryGetValue(downStreamPipe, out var existing)
+                    || !existing.Pools.ContainsKey(exchange.Authority))
+                    return null;
+            }
+
+            var pinSet = _pinnedPools.GetValue(downStreamPipe, static _ => new PinnedPoolSet());
+
+            var pinnedPool = pinSet.Pools.GetOrAdd(exchange.Authority, authority => {
+                var pool = new Http11ConnectionPool(authority,
+                    _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter!,
+                    dnsResolutionResult, onConnectionFaulted: null, dedicated: true);
+
+                pool.Init();
+
+                return pool;
+            });
+
+            exchange.HttpVersion = "HTTP/1.1";
+
+            return pinnedPool;
+        }
+
+        /// <summary>
+        ///     Disposes every pool pinned to a downstream connection. Called when that
+        ///     connection ends so the dedicated upstream sockets close with it.
+        /// </summary>
+        public void ReleasePinnedPools(IDownStreamPipe? downStreamPipe)
+        {
+            if (downStreamPipe == null)
+                return;
+
+            if (!_pinnedPools.TryGetValue(downStreamPipe, out var pinSet))
+                return;
+
+            _pinnedPools.Remove(downStreamPipe);
+
+            foreach (var pool in pinSet.Pools.Values)
+                _ = ObserveDisposal(pool);
+        }
+
         private IDnsSolver ResolveDnsProvider(Exchange exchange, ProxyRuntimeSetting proxyRuntimeSetting)
         {
             return string.IsNullOrWhiteSpace(exchange.Context.DnsOverHttpsNameOrUrl) ? 
@@ -309,6 +385,11 @@ namespace Fluxzy.Clients
                 // Swallow: a faulted disposal is not actionable from this context.
                 // A structured logger hook can be added here once available.
             }
+        }
+
+        private sealed class PinnedPoolSet
+        {
+            public ConcurrentDictionary<Authority, IHttpConnectionPool> Pools { get; } = new();
         }
     }
 }
