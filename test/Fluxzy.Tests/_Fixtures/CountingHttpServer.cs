@@ -19,11 +19,19 @@ namespace Fluxzy.Tests._Fixtures
         private readonly TcpListener _listener;
         private readonly CancellationTokenSource _cts = new();
         private readonly Task _acceptLoop;
+        private readonly bool _gateResponseBodies;
+        private readonly TaskCompletionSource _responseBodyGate =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int _acceptedConnections;
 
-        private CountingHttpServer(TcpListener listener)
+        private CountingHttpServer(TcpListener listener, bool gateResponseBodies)
         {
             _listener = listener;
+            _gateResponseBodies = gateResponseBodies;
+
+            if (!gateResponseBodies)
+                _responseBodyGate.TrySetResult();
+
             _acceptLoop = AcceptLoop();
         }
 
@@ -31,12 +39,17 @@ namespace Fluxzy.Tests._Fixtures
 
         public int AcceptedConnections => Volatile.Read(ref _acceptedConnections);
 
-        public static CountingHttpServer Start()
+        public static CountingHttpServer Start(bool gateResponseBodies = false)
         {
             var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
 
-            return new CountingHttpServer(listener);
+            return new CountingHttpServer(listener, gateResponseBodies);
+        }
+
+        public void ReleaseResponseBodies()
+        {
+            _responseBodyGate.TrySetResult();
         }
 
         private async Task AcceptLoop()
@@ -61,8 +74,9 @@ namespace Fluxzy.Tests._Fixtures
                 var buffer = new byte[8192];
                 var accumulated = new StringBuilder();
 
-                var response = Encoding.ASCII.GetBytes(
-                    "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n");
+                var responseHeader = Encoding.ASCII.GetBytes(
+                    $"HTTP/1.1 200 OK\r\nContent-Length: {(_gateResponseBodies ? 1 : 0)}\r\n" +
+                    "Connection: keep-alive\r\n\r\n");
 
                 while (!_cts.IsCancellationRequested) {
                     var read = await stream.ReadAsync(buffer, _cts.Token).ConfigureAwait(false);
@@ -82,8 +96,14 @@ namespace Fluxzy.Tests._Fixtures
 
                         accumulated.Remove(0, end + 4);
 
-                        await stream.WriteAsync(response, _cts.Token).ConfigureAwait(false);
+                        await stream.WriteAsync(responseHeader, _cts.Token).ConfigureAwait(false);
                         await stream.FlushAsync(_cts.Token).ConfigureAwait(false);
+
+                        if (_gateResponseBodies) {
+                            await _responseBodyGate.Task.WaitAsync(_cts.Token).ConfigureAwait(false);
+                            await stream.WriteAsync(new byte[] { (byte) 'x' }, _cts.Token).ConfigureAwait(false);
+                            await stream.FlushAsync(_cts.Token).ConfigureAwait(false);
+                        }
                     }
                 }
             }

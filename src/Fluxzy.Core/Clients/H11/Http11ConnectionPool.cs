@@ -190,11 +190,21 @@ namespace Fluxzy.Clients.H11
 
             var leaseAcquired = false;
             var leaseHandedToContinuation = false;
+            var activityHandedToContinuation = false;
 
             try {
                 if (_pinnedLease != null) {
                     await _pinnedLease.WaitAsync(cancellationToken).ConfigureAwait(false);
                     leaseAcquired = true;
+
+                    // Disposal can race a waiter that entered Send before the pool was
+                    // completed. Do not let that waiter open a new connection on an evicted
+                    // pinned pool after the preceding exchange releases the lease.
+                    lock (_idleGate) {
+                        if (_complete)
+                            throw new ConnectionCloseException(
+                                "HTTP/1.1 connection pool was disposed while waiting for its pinned lease");
+                    }
                 }
 
                 var requestDate = _timingProvider.Instant();
@@ -249,8 +259,6 @@ namespace Fluxzy.Clients.H11
                     if (exchange.Response.Header != null)
                         exchange.Connection.TimeoutIdleSeconds = exchange.Response.Header.TimeoutIdleSeconds;
 
-                    var lastUsed = _timingProvider.Instant();
-
                     void OnExchangeCompleteFunction(Task<bool> completeTask)
                     {
                         try {
@@ -284,6 +292,12 @@ namespace Fluxzy.Clients.H11
                             }
                             else if (completeTask.IsCompletedSuccessfully && !closeConnectionRequest) { //
 
+                                // Idle age starts when the response body has been consumed, not
+                                // when its headers arrived. With connection-oriented auth, using
+                                // the header timestamp can make a slow response recycle an
+                                // already-expired authenticated connection.
+                                var lastUsed = _timingProvider.Instant();
+
                                 if (_pendingConnections.Writer.TryWrite(
                                         new Http11ProcessingState(exchange.Connection, lastUsed)))
                                 {
@@ -297,6 +311,15 @@ namespace Fluxzy.Clients.H11
                             FreeConnectionStreams(exchange.Connection);
                         }
                         finally {
+                            // Send returns after response headers, while the connection remains
+                            // occupied until the response body completes. Keep the pool active
+                            // through that whole lifetime so idle teardown cannot remove the pin
+                            // or dispose the pool underneath this continuation.
+                            lock (_idleGate) {
+                                _activeRequestCount--;
+                                _lastActivity = _timingProvider.Instant();
+                            }
+
                             // Released only here on the success path: the connection is now
                             // back in the channel (or freed), so the next pinned Send can
                             // dequeue it instead of racing ahead and opening a fresh one.
@@ -307,8 +330,9 @@ namespace Fluxzy.Clients.H11
                     // CancellationToken.None: the cleanup must run even when the caller
                     // has already cancelled, otherwise an aborted exchange leaks its
                     // connection (the continuation would be cancelled instead of run).
-                    leaseHandedToContinuation = true;
                     var _ = exchange.Complete.ContinueWith(OnExchangeCompleteFunction, CancellationToken.None);
+                    activityHandedToContinuation = true;
+                    leaseHandedToContinuation = leaseAcquired;
                 }
                 catch (Exception ex) {
 
@@ -356,9 +380,11 @@ namespace Fluxzy.Clients.H11
                 }
             }
             finally {
-                lock (_idleGate) {
-                    _activeRequestCount--;
-                    _lastActivity = _timingProvider.Instant();
+                if (!activityHandedToContinuation) {
+                    lock (_idleGate) {
+                        _activeRequestCount--;
+                        _lastActivity = _timingProvider.Instant();
+                    }
                 }
 
                 // Every exit that did not hand the lease to the completion continuation
@@ -439,7 +465,11 @@ namespace Fluxzy.Clients.H11
             }
 
             _idleTimer?.Dispose();
-            _pinnedLease?.Dispose();
+
+            // Do not dispose _pinnedLease here. DisposeAsync can race the asynchronously
+            // scheduled exchange-completion continuation after a downstream connection ends.
+            // The pool is already marked complete, so no new Send can acquire it; leaving this
+            // small managed semaphore for GC lets the owner continuation release it safely.
 
             if (_idleMonitorTask != null) {
                 try {

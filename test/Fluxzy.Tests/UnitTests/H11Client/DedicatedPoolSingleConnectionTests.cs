@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,10 +50,54 @@ namespace Fluxzy.Tests.UnitTests.H11Client
             Assert.Equal(2, server.AcceptedConnections);
         }
 
-        private static Http11ConnectionPool BuildPool(int port, bool dedicated)
+        [Fact]
+        public async Task Slow_response_body_keeps_pin_active_and_recycles_from_body_completion()
+        {
+            await using var server = CountingHttpServer.Start(gateResponseBodies: true);
+
+            var setting = ProxyRuntimeSetting.CreateDefault;
+            setting.TimeOutSecondsUnusedConnection = 1;
+
+            await using var pool = BuildPool(server.Port, dedicated: true, setting, onFaulted: _ => { });
+
+            var first = MakeExchange(new Authority("127.0.0.1", server.Port, false), server.Port);
+
+            await pool.Send(first, null!, Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32 * 1024),
+                new ExchangeScope(), CancellationToken.None);
+
+            Assert.False(first.Complete.IsCompleted,
+                "the response body must still own the pinned connection");
+
+            // Exceed the idle timeout while the body is in flight. This must not make the
+            // authenticated connection idle or age its eventual recycle timestamp.
+            await Task.Delay(TimeSpan.FromMilliseconds(1200));
+
+            pool.LastActivity = DateTime.MinValue;
+            Assert.False(pool.TryIdleTeardown(),
+                "a pinned pool with an in-flight response body must not idle-evict");
+
+            server.ReleaseResponseBodies();
+            await first.Response.Body!.CopyToAsync(Stream.Null);
+            await first.Complete;
+
+            var second = MakeExchange(new Authority("127.0.0.1", server.Port, false), server.Port);
+
+            await pool.Send(second, null!, Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32 * 1024),
+                new ExchangeScope(), CancellationToken.None);
+            await second.Response.Body!.CopyToAsync(Stream.Null);
+            await second.Complete;
+
+            Assert.Equal(1, server.AcceptedConnections);
+        }
+
+        private static Http11ConnectionPool BuildPool(
+            int port,
+            bool dedicated,
+            ProxyRuntimeSetting? setting = null,
+            Action<IHttpConnectionPool>? onFaulted = null)
         {
             var authority = new Authority("127.0.0.1", port, false);
-            var setting = ProxyRuntimeSetting.CreateDefault;
+            setting ??= ProxyRuntimeSetting.CreateDefault;
 
             var builder = new RemoteConnectionBuilder(ITimingProvider.Default, sslConnectionBuilder: null!);
 
@@ -61,7 +106,7 @@ namespace Fluxzy.Tests.UnitTests.H11Client
 
             var pool = new Http11ConnectionPool(
                 authority, builder, ITimingProvider.Default, setting,
-                setting.ArchiveWriter, dns, onConnectionFaulted: null, dedicated: dedicated);
+                setting.ArchiveWriter, dns, onConnectionFaulted: onFaulted, dedicated: dedicated);
 
             pool.Init();
 
