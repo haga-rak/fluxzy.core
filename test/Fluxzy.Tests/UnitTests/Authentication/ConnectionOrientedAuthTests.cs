@@ -107,16 +107,19 @@ namespace Fluxzy.Tests.UnitTests.Authentication
 
             Assert.Equal(HttpStatusCode.OK, authenticated.Status);
 
-            // subsequent requests carry no Authorization header: the connection itself is the
-            // credential, so the pin must persist and keep returning the authenticated identity
-            var followUp = await Send(client, url, null);
+            // Subsequent requests carry no Authorization header: the connection itself is the
+            // credential, so the pin must persist and keep returning the authenticated identity.
+            // Fired repeatedly on purpose: the recycle of the pinned connection happens in an
+            // async continuation, so a single follow-up only catches the race intermittently.
+            for (var i = 0; i < 25; i++) {
+                var followUp = await Send(client, url, null);
 
-            Assert.True(
-                followUp.Status == HttpStatusCode.OK,
-                $"Follow-up request was not served over the pinned authenticated connection. " +
-                $"Server log: {DumpLog(server)}");
-
-            Assert.Contains("user=alice", followUp.Body);
+                Assert.True(
+                    followUp.Status == HttpStatusCode.OK && followUp.Body.Contains("user=alice"),
+                    $"Follow-up #{i} was not served over the pinned authenticated connection " +
+                    $"(status {followUp.Status}, body '{followUp.Body}'). A fresh upstream connection " +
+                    $"was opened instead of reusing the pinned one. Server log: {DumpLog(server)}");
+            }
         }
 
         [Fact]
