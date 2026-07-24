@@ -186,6 +186,36 @@ namespace Fluxzy.Tests.UnitTests.Authentication
         }
 
         [Fact]
+        public async Task Pins_are_capped_per_downstream_connection()
+        {
+            // One client (one downstream connection) authenticates against two authorities with a
+            // cap of one pinned connection. The first pins and completes; the second is over the
+            // cap, so it cannot pin and its connection-bound handshake cannot complete. Bounds the
+            // sockets a client could hold by spraying NTLM credentials at many hosts.
+            await using var serverA = NtlmLikeTcpServer.Start();
+            await using var serverB = NtlmLikeTcpServer.Start();
+
+            var setting = FluxzySetting.CreateLocalRandomPort()
+                                       .SetMaxPinnedConnectionsPerDownstream(1);
+
+            await using var proxy = new Proxy(setting);
+
+            var endPoint = proxy.Run().First();
+            using var client = CreateProxiedClient(endPoint);
+
+            var statusA = await RunHandshake(client, $"http://127.0.0.1:{serverA.Port}/resource", "alice");
+            Assert.Equal(HttpStatusCode.OK, statusA);
+
+            // Immediately after A (well within the idle window, so A still holds the only pin).
+            var statusB = await RunHandshake(client, $"http://127.0.0.1:{serverB.Port}/resource", "bob");
+
+            Assert.True(
+                statusB == HttpStatusCode.Unauthorized,
+                $"Second authority was pinned despite the per-downstream cap. " +
+                $"A log: {DumpLog(serverA)} ; B log: {DumpLog(serverB)}");
+        }
+
+        [Fact]
         public async Task Identity_never_leaks_when_pinning_is_disabled()
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
@@ -216,6 +246,21 @@ namespace Fluxzy.Tests.UnitTests.Authentication
             var response = await Send(clientB, url, null);
 
             Assert.DoesNotContain("user=alice", response.Body);
+        }
+
+        private static async Task<HttpStatusCode> RunHandshake(HttpClient client, string url, string user)
+        {
+            await Send(client, url, null);
+            var challengeLeg = await Send(client, url, "NTLM TYPE1");
+
+            if (challengeLeg.WwwAuthenticate?.StartsWith("NTLM CH-") != true)
+                return challengeLeg.Status;
+
+            var challenge = challengeLeg.WwwAuthenticate.Substring("NTLM ".Length);
+
+            var final = await Send(client, url, $"NTLM TYPE3 {challenge} {user}");
+
+            return final.Status;
         }
 
         private static HttpClient CreateProxiedClient(IPEndPoint proxyEndPoint)

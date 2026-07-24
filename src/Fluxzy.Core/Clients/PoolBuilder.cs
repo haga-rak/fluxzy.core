@@ -300,7 +300,9 @@ namespace Fluxzy.Clients
         ///     Returns the pool pinned to <paramref name="downStreamPipe"/> for this authority when
         ///     the exchange requires pinning or a pin already exists (stickiness), otherwise null.
         ///     A pinned pool is a dedicated HTTP/1.1 pool: it opens H11-only ALPN and is never
-        ///     stored in the shared registry, so no other client can reuse its connection.
+        ///     stored in the shared registry, so no other client can reuse its connection. Pinned
+        ///     pools idle-evict themselves like shared ones; a stale one is transparently replaced,
+        ///     and the number of distinct pinned authorities per downstream connection is capped.
         /// </summary>
         private IHttpConnectionPool? GetPinnedPool(
             Exchange exchange,
@@ -308,7 +310,9 @@ namespace Fluxzy.Clients
             IDownStreamPipe downStreamPipe,
             DnsResolutionResult dnsResolutionResult)
         {
-            if (!exchange.Context.RequireUpstreamPinning) {
+            var wantsNewPin = exchange.Context.RequireUpstreamPinning;
+
+            if (!wantsNewPin) {
                 // Stickiness: only the follow-up requests of an already pinned authority stay
                 // pinned. A pipe that never pinned anything allocates no set.
                 if (!_pinnedPools.TryGetValue(downStreamPipe, out var existing)
@@ -318,19 +322,74 @@ namespace Fluxzy.Clients
 
             var pinSet = _pinnedPools.GetValue(downStreamPipe, static _ => new PinnedPoolSet());
 
-            var pinnedPool = pinSet.Pools.GetOrAdd(exchange.Authority, authority => {
-                var pool = new Http11ConnectionPool(authority,
-                    _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter!,
-                    dnsResolutionResult, onConnectionFaulted: null, dedicated: true);
+            while (true) {
+                if (pinSet.Pools.TryGetValue(exchange.Authority, out var current)) {
+                    if (!current.Complete) {
+                        exchange.HttpVersion = "HTTP/1.1";
 
-                pool.Init();
+                        return current;
+                    }
 
-                return pool;
-            });
+                    // Idle-evicted (or disposed) since last use: drop it and re-pin below.
+                    pinSet.Pools.TryRemove(
+                        new KeyValuePair<Authority, IHttpConnectionPool>(exchange.Authority, current));
 
-            exchange.HttpVersion = "HTTP/1.1";
+                    continue;
+                }
 
-            return pinnedPool;
+                // No live pin. A sticky follow-up whose pin has gone falls back to the shared
+                // pool, which re-triggers the auth handshake as a server idle-close would.
+                if (!wantsNewPin)
+                    return null;
+
+                if (pinSet.Pools.Count >= proxyRuntimeSetting.MaxPinnedConnectionsPerDownstream) {
+                    _logger.LogWarning(
+                        "Downstream connection reached its pinned-connection cap ({Cap}); " +
+                        "not pinning {Authority}, falling back to the shared pool",
+                        proxyRuntimeSetting.MaxPinnedConnectionsPerDownstream, exchange.Authority);
+
+                    return null;
+                }
+
+                var created = CreatePinnedPool(exchange.Authority, proxyRuntimeSetting, dnsResolutionResult, pinSet);
+
+                if (pinSet.Pools.TryAdd(exchange.Authority, created)) {
+                    exchange.HttpVersion = "HTTP/1.1";
+
+                    return created;
+                }
+
+                // Lost the race to another exchange on the same pipe: discard ours (stops its
+                // idle monitor) and loop to pick up the winner.
+                _ = ObserveDisposal(created);
+            }
+        }
+
+        private Http11ConnectionPool CreatePinnedPool(
+            Authority authority,
+            ProxyRuntimeSetting proxyRuntimeSetting,
+            DnsResolutionResult dnsResolutionResult,
+            PinnedPoolSet pinSet)
+        {
+            // The eviction callback removes only this exact pool (so a fresh pin created after an
+            // idle teardown survives) and disposes it to release its timer, lease and socket.
+            // Passing it (non-null) is also what makes Init() start the idle monitor. It is
+            // fire-and-forget by contract, so ObserveDisposal cannot deadlock against DisposeAsync
+            // awaiting the monitor task it runs on.
+            var pool = new Http11ConnectionPool(authority,
+                _remoteConnectionBuilder, _timingProvider, proxyRuntimeSetting, _archiveWriter!,
+                dnsResolutionResult,
+                onConnectionFaulted: evicted => {
+                    pinSet.Pools.TryRemove(
+                        new KeyValuePair<Authority, IHttpConnectionPool>(authority, evicted));
+
+                    _ = ObserveDisposal(evicted);
+                },
+                dedicated: true);
+
+            pool.Init();
+
+            return pool;
         }
 
         /// <summary>

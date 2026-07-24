@@ -334,6 +334,14 @@ namespace Fluxzy
         [JsonInclude]
         public bool DisableAutomaticConnectionAuthPinning { get; internal set; }
 
+        /// <summary>
+        ///     Maximum number of distinct authorities a single downstream connection may pin an
+        ///     upstream connection for. Bounds the sockets a client can hold by sending
+        ///     NTLM/Negotiate credentials to many hosts; extra authorities use the shared pool.
+        /// </summary>
+        [JsonInclude]
+        public int MaxPinnedConnectionsPerDownstream { get; internal set; } = 64;
+
         internal IEnumerable<Rule> FixedRules()
         {
             if (!DisableAutomaticConnectionAuthPinning) {

@@ -90,6 +90,18 @@ namespace Fluxzy
         }
 
         /// <summary>
+        ///     Sets the maximum number of distinct authorities a single downstream connection may
+        ///     pin an upstream connection for (connection-oriented auth). Bounds the sockets a
+        ///     client can hold; extra authorities fall back to the shared pool.
+        /// </summary>
+        public FluxzySetting SetMaxPinnedConnectionsPerDownstream(int value)
+        {
+            MaxPinnedConnectionsPerDownstream = value;
+
+            return this;
+        }
+
+        /// <summary>
         ///     Add hosts that fluxzy should not decrypt
         /// </summary>
         /// <param name="hosts"></param>
