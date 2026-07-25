@@ -102,7 +102,12 @@ namespace Fluxzy.Utils.ProcessTracking
 
                 if (port == localPort)
                 {
-                    return MemoryMarshal.Read<int>(rowSpan.Slice(20, 4));
+                    var owningPid = MemoryMarshal.Read<int>(rowSpan.Slice(20, 4));
+
+                    // Several rows may share the same local port. TIME_WAIT rows carry no real
+                    // owner and must not shadow the live socket we are looking for.
+                    if (owningPid > 0)
+                        return owningPid;
                 }
             }
 
