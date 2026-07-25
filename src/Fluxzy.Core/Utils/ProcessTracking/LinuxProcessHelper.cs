@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -13,14 +14,14 @@ namespace Fluxzy.Utils.ProcessTracking
     {
         public static ProcessInfo? GetProcessInfo(int localPort)
         {
-            // Find the socket inode for the given port
-            var inode = FindSocketInodeForPort(localPort);
+            // Find the socket inodes for the given port
+            var inodes = FindSocketInodesForPort(localPort);
 
-            if (inode == null)
+            if (inodes.Count == 0)
                 return null;
 
-            // Find the process that owns this socket
-            var pid = FindProcessBySocketInode(inode.Value);
+            // Find the process that owns one of those sockets
+            var pid = FindProcessBySocketInodes(inodes);
 
             if (pid == null)
                 return null;
@@ -30,49 +31,59 @@ namespace Fluxzy.Utils.ProcessTracking
             return new ProcessInfo(pid.Value, processPath, processArguments);
         }
 
-        private static long? FindSocketInodeForPort(int localPort)
+        private static HashSet<long> FindSocketInodesForPort(int localPort)
         {
             // Try IPv4 first, then IPv6
-            var inode = FindSocketInodeInFile("/proc/net/tcp", localPort);
+            var inodes = FindSocketInodesInFile("/proc/net/tcp", localPort);
 
-            if (inode == null)
-                inode = FindSocketInodeInFile("/proc/net/tcp6", localPort);
+            if (inodes.Count == 0)
+                inodes = FindSocketInodesInFile("/proc/net/tcp6", localPort);
 
-            return inode;
+            return inodes;
         }
 
-        private static long? FindSocketInodeInFile(string path, int localPort)
+        private static HashSet<long> FindSocketInodesInFile(string path, int localPort)
         {
-            if (!File.Exists(path))
-                return null;
+            var inodes = new HashSet<long>();
 
-            var portHex = localPort.ToString("X4", CultureInfo.InvariantCulture);
+            if (!File.Exists(path))
+                return inodes;
 
             try
             {
                 using var reader = new StreamReader(path);
-
-                // Skip header line
-                reader.ReadLine();
-
-                string? line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    var inode = ParseTcpLineForPort(line, portHex);
-                    if (inode != null)
-                        return inode;
-                }
+                CollectSocketInodes(reader, localPort, inodes);
             }
             catch (IOException)
             {
-                return null;
+                // partial results are still usable
             }
             catch (UnauthorizedAccessException)
             {
-                return null;
+                // partial results are still usable
             }
 
-            return null;
+            return inodes;
+        }
+
+        internal static void CollectSocketInodes(TextReader reader, int localPort, HashSet<long> inodes)
+        {
+            var portHex = localPort.ToString("X4", CultureInfo.InvariantCulture);
+
+            // Skip header line
+            reader.ReadLine();
+
+            string? line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                var inode = ParseTcpLineForPort(line, portHex);
+
+                // Several entries may share the same local port. Sockets with no owning file
+                // descriptor (TIME_WAIT, connections still in the accept queue) report inode 0
+                // and must not shadow the live socket we are looking for.
+                if (inode is > 0)
+                    inodes.Add(inode.Value);
+            }
         }
 
         private static long? ParseTcpLineForPort(ReadOnlySpan<char> line, ReadOnlySpan<char> portHex)
@@ -156,9 +167,12 @@ namespace Fluxzy.Utils.ProcessTracking
             return null;
         }
 
-        private static int? FindProcessBySocketInode(long inode)
+        private static int? FindProcessBySocketInodes(HashSet<long> inodes)
         {
-            var socketLink = $"socket:[{inode}]";
+            var socketLinks = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var inode in inodes)
+                socketLinks.Add($"socket:[{inode}]");
 
             try
             {
@@ -182,8 +196,7 @@ namespace Fluxzy.Utils.ProcessTracking
                             try
                             {
                                 var linkTarget = File.ResolveLinkTarget(fdPath, false);
-                                if (linkTarget != null &&
-                                    linkTarget.Name.Equals(socketLink, StringComparison.Ordinal))
+                                if (linkTarget != null && socketLinks.Contains(linkTarget.Name))
                                 {
                                     return pid;
                                 }
