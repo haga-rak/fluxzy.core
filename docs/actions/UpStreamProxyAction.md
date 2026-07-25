@@ -28,6 +28,7 @@ The following table describes the customizable properties available for this act
 | host | string |  |  |
 | port | int32 |  | 0 |
 | proxyAuthorizationHeader | string |  |  |
+| byPassHosts | list`1 | Hosts that bypass the upstream proxy and connect directly | system.Collections.Generic.List`1[System.String] |
 
 :::
 ### Example of usage
@@ -44,6 +45,7 @@ rules:
   - typeKind: UpStreamProxyAction
     host: 192.168.1.9
     port: 8080
+    byPassHosts: []
 ```
 
 
@@ -58,6 +60,23 @@ rules:
     host: 192.168.1.9
     port: 8080
     proxyAuthorizationHeader: Basic bGVlbG9vOm11bHRpcGFzcw==
+    byPassHosts: []
+```
+
+
+Use an upstream proxy to 192.168.1.9 on port 8080 but connect directly to localhost and any *.internal.lan host.
+
+```yaml
+rules:
+- filter:
+    typeKind: AnyFilter
+  actions:
+  - typeKind: UpStreamProxyAction
+    host: 192.168.1.9
+    port: 8080
+    byPassHosts:
+    - localhost
+    - '*.internal.lan'
 ```
 
 

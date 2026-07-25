@@ -2,7 +2,7 @@
 
 ### Description
 
-This action stream a response body and inject a text after the first specified html tag.This action can be used to inject a html code snippet after opening `<head>` tag in any traversing html page.This action supports chunked transfer stream and the following body encodings: gzip, deflate, brotli and lzw.
+This action stream a response body and inject a text after the first specified html tag.This action can be used to inject a html code snippet after opening `<head>` tag in any traversing html page.This action supports chunked transfer stream and decodes gzip, deflate and brotli out of the box; other content encodings require a decoder registered via ContentDecoderRegistry.
 
 ### Evaluation scope
 
