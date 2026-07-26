@@ -230,15 +230,14 @@ namespace Fluxzy.Misc
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                if (Environment.GetEnvironmentVariable("FluxzyDesktopVersion") != null
-                    || string.Equals(Environment.GetEnvironmentVariable("FluxzyGraphicalPrivilegePrompt"), "TRUE",
-                        StringComparison.OrdinalIgnoreCase)) {
-                    var acquired = await ProcessUtilsOsx.OsxTryAcquireElevation(askPasswordPrompt)
-                                                        .ConfigureAwait(false);
+                var graphical = Environment.GetEnvironmentVariable("FluxzyDesktopVersion") != null
+                                || string.Equals(Environment.GetEnvironmentVariable("FluxzyGraphicalPrivilegePrompt"),
+                                    "TRUE", StringComparison.OrdinalIgnoreCase);
 
-                    if (!acquired) {
-                        return null;
-                    }
+                if (graphical && !await ProcessUtilX.CanElevated().ConfigureAwait(false)) {
+                    return redirectStdOut
+                        ? ProcessUtilsOsx.StartElevatedStreamed(commandName, args, redirectStandardError)
+                        : ProcessUtilsOsx.StartElevatedOneShot(commandName, args, askPasswordPrompt);
                 }
 
                 var osXProcess = Process.Start(new ProcessStartInfo("sudo", $"-n \"{commandName}\" {fullArgs}") {
