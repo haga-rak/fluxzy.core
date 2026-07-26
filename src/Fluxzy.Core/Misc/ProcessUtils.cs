@@ -210,6 +210,11 @@ namespace Fluxzy.Misc
             return true;
         }
 
+        /// <summary>
+        /// Replaces the built-in macOS elevation flow when set. Ignored on other platforms.
+        /// </summary>
+        public static IOsxElevationLauncher? OsxElevationLauncher { get; set; }
+
         public static async Task<Process?> RunElevatedAsync(
             string commandName, string[] args, bool redirectStdOut,
             string askPasswordPrompt, bool redirectStandardError = false)
@@ -230,6 +235,13 @@ namespace Fluxzy.Misc
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                var customLauncher = OsxElevationLauncher;
+
+                if (customLauncher != null) {
+                    return await customLauncher.StartElevatedAsync(commandName, args, redirectStdOut,
+                        askPasswordPrompt, redirectStandardError).ConfigureAwait(false);
+                }
+
                 var graphical = Environment.GetEnvironmentVariable("FluxzyDesktopVersion") != null
                                 || string.Equals(Environment.GetEnvironmentVariable("FluxzyGraphicalPrivilegePrompt"),
                                     "TRUE", StringComparison.OrdinalIgnoreCase);
