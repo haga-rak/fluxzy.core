@@ -56,11 +56,9 @@ namespace Fluxzy.Core
         private readonly CancellationTokenSource _mainLoopTokenSource;
 
         private int _unNotifiedWindowSize;
-        private bool _readHalted;
         private bool _writeHalted;
         private int _lastStreamId = int.MaxValue;
         private bool _disposed;
-        private bool _goAwayReceived;
         private H2ErrorCode _goAwayErrorCode;
         private int _highestAcceptedStreamId;
         private bool _goAwaySent;
@@ -222,7 +220,6 @@ namespace Fluxzy.Core
 
         private void OnGoAwayReceived(int lastStreamId, H2ErrorCode errorCode)
         {
-            _goAwayReceived = true;
             _goAwayErrorCode = errorCode;
 
             if (errorCode != H2ErrorCode.NoError && DebugContext.EnableDumpStackTraceOn502)
@@ -386,7 +383,7 @@ namespace Fluxzy.Core
                 throw;
             }
             finally  {
-                _readHalted = true;
+                _exchangeChannel.Writer.TryComplete();
             }
         }
 
@@ -601,9 +598,6 @@ namespace Fluxzy.Core
 
         public async ValueTask<Exchange?> ReadNextExchange(RsBuffer buffer, ExchangeScope exchangeScope, CancellationToken token)
         {
-            if (_disposed || _goAwayReceived || _goAwaySent || _readHalted || _writeHalted)
-                return null;
-
             try {
                 if (_exchangeChannel.Reader.TryRead(out var exchange))
                     return exchange;
@@ -612,9 +606,6 @@ namespace Fluxzy.Core
                 return exchange;
             }
             catch (ChannelClosedException) {
-                return null;
-            }
-            catch (OperationCanceledException) when (_mainLoopToken.IsCancellationRequested) {
                 return null;
             }
         }
