@@ -16,20 +16,34 @@ namespace Fluxzy.Misc.Streams
     /// <summary>
     ///     A stream that write chunked transfer encoding
     /// </summary>
+    /// <remarks>
+    ///     Instances are not safe for concurrent use. Disposal returns staging buffers but leaves the inner stream open.
+    /// </remarks>
     public class ChunkedTransferWriteStream : Stream
     {
+        // A 64 KiB payload plus framing rents the 128 KiB Shared ArrayPool bucket.
+        private const int MaxStagedPayloadLength = 64 * 1024;
         private static readonly byte[] ChunkTerminator =
             { (byte) '0', (byte) '\r', (byte) '\n', (byte) '\r', (byte) '\n' };
 
         private static readonly byte[] LineTerminator = { (byte) '\r', (byte) '\n' };
         private readonly Stream _innerStream;
+        private readonly ArrayPool<byte> _arrayPool;
         private byte[]? _asyncHeaderBuffer;
+        private byte[]? _writeBuffer;
+        private int _writeBufferUsedLength;
 
         private bool _eof;
 
         public ChunkedTransferWriteStream(Stream innerStream)
+            : this(innerStream, ArrayPool<byte>.Shared)
+        {
+        }
+
+        internal ChunkedTransferWriteStream(Stream innerStream, ArrayPool<byte> arrayPool)
         {
             _innerStream = innerStream;
+            _arrayPool = arrayPool;
         }
 
         public override bool CanRead => false;
@@ -67,17 +81,31 @@ namespace Fluxzy.Misc.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            var poolBuffer = ArrayPool<byte>.Shared.Rent(64);
+            ValidateBufferArguments(buffer, offset, count);
+            Write(buffer.AsSpan(offset, count));
+        }
 
-            try {
-                var cs = Encoding.ASCII.GetBytes($"{count:X}\r\n", poolBuffer);
-                _innerStream.Write(poolBuffer, 0, cs);
-                _innerStream.Write(buffer, offset, count);
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.IsEmpty)
+                return;
+
+            if (buffer.Length > MaxStagedPayloadLength) {
+                Span<byte> header = stackalloc byte[10];
+                var largeHeaderLength = FormatChunkHeader(buffer.Length, header);
+                _innerStream.Write(header.Slice(0, largeHeaderLength));
+                _innerStream.Write(buffer);
                 _innerStream.Write(LineTerminator);
+                return;
             }
-            finally {
-                ArrayPool<byte>.Shared.Return(poolBuffer);
-            }
+
+            var frame = GetWriteBuffer(buffer.Length);
+            var headerLength = FormatChunkHeader(buffer.Length, frame);
+            buffer.CopyTo(frame.AsSpan(headerLength));
+            BinaryPrimitives.WriteUInt16BigEndian(frame.AsSpan(headerLength + buffer.Length), 0x0D0A);
+            var frameLength = headerLength + buffer.Length + LineTerminator.Length;
+            _writeBufferUsedLength = Math.Max(_writeBufferUsedLength, frameLength);
+            _innerStream.Write(frame, 0, frameLength);
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -89,11 +117,56 @@ namespace Fluxzy.Misc.Streams
             ReadOnlyMemory<byte> buffer,
             CancellationToken cancellationToken = new())
         {
-            var headerBuffer = _asyncHeaderBuffer ??= new byte[10];
-            var headerLength = FormatChunkHeader(buffer.Length, headerBuffer);
-            await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(headerBuffer, 0, headerLength), cancellationToken).ConfigureAwait(false);
-            await _innerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
-            await _innerStream.WriteAsync(new ReadOnlyMemory<byte>(LineTerminator), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (buffer.IsEmpty) {
+                return;
+            }
+
+            if (buffer.Length > MaxStagedPayloadLength) {
+                var header = _asyncHeaderBuffer ??= new byte[10];
+                var largeHeaderLength = FormatChunkHeader(buffer.Length, header);
+                await _innerStream.WriteAsync(
+                        header.AsMemory(0, largeHeaderLength), cancellationToken)
+                    .ConfigureAwait(false);
+                await _innerStream.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+                await _innerStream.WriteAsync(LineTerminator, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            var frame = GetWriteBuffer(buffer.Length);
+            var headerLength = FormatChunkHeader(buffer.Length, frame);
+            buffer.CopyTo(frame.AsMemory(headerLength));
+            BinaryPrimitives.WriteUInt16BigEndian(frame.AsSpan(headerLength + buffer.Length), 0x0D0A);
+            var frameLength = headerLength + buffer.Length + LineTerminator.Length;
+            _writeBufferUsedLength = Math.Max(_writeBufferUsedLength, frameLength);
+
+            await _innerStream.WriteAsync(
+                    frame.AsMemory(0, frameLength), cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        private byte[] GetWriteBuffer(int payloadLength)
+        {
+            var requiredLength = checked(payloadLength + 12);
+
+            if (_writeBuffer == null || _writeBuffer.Length < requiredLength) {
+                ReturnWriteBuffer();
+                _writeBuffer = _arrayPool.Rent(requiredLength);
+            }
+
+            return _writeBuffer;
+        }
+
+        private void ReturnWriteBuffer()
+        {
+            if (_writeBuffer != null) {
+                var writeBuffer = _writeBuffer;
+                _writeBuffer = null;
+                writeBuffer.AsSpan(0, _writeBufferUsedLength).Clear();
+                _writeBufferUsedLength = 0;
+                _arrayPool.Return(writeBuffer);
+            }
         }
 
         private static int FormatChunkHeader(int count, Span<byte> destination)
@@ -110,6 +183,7 @@ namespace Fluxzy.Misc.Streams
         {
             if (!_eof) {
                 _eof = true;
+                ReturnWriteBuffer();
 
                 return _innerStream.WriteAsync(ChunkTerminator);
             }
@@ -121,6 +195,7 @@ namespace Fluxzy.Misc.Streams
         {
             if (!_eof) {
                 _eof = true;
+                ReturnWriteBuffer();
 
                 if (trailers != null && trailers.Count > 0) {
                     return WriteEofWithTrailersAsync(trailers);
@@ -130,6 +205,12 @@ namespace Fluxzy.Misc.Streams
             }
 
             return default;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            ReturnWriteBuffer();
+            base.Dispose(disposing);
         }
 
         private async ValueTask WriteEofWithTrailersAsync(List<HeaderField> trailers)

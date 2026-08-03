@@ -191,22 +191,48 @@ namespace Fluxzy.Misc.Streams
             return totalRead;
         }
 
-        public static async ValueTask<long> CopyDetailed(
+        public static ValueTask<long> CopyDetailed(
             this Stream source,
             Stream destination,
             byte[] buffer, Action<int> onContentCopied, CancellationToken cancellationToken)
-            => await source.CopyDetailed(
-                         destination,
-                         buffer,
-                         onContentCopied,
-                         flushAfterEachWrite: true,
-                         cancellationToken)
-                    .ConfigureAwait(false);
+            => source.CopyDetailed(
+                destination,
+                buffer.AsMemory(),
+                onContentCopied,
+                flushAfterEachWrite: true,
+                cancellationToken);
+
+        public static ValueTask<long> CopyDetailed(
+            this Stream source,
+            Stream destination,
+            byte[] buffer,
+            Action<int> onContentCopied,
+            bool flushAfterEachWrite,
+            CancellationToken cancellationToken)
+            => source.CopyDetailed(
+                destination,
+                buffer.AsMemory(),
+                onContentCopied,
+                flushAfterEachWrite,
+                cancellationToken);
+
+        public static ValueTask<long> CopyDetailed(
+            this Stream source,
+            Stream destination,
+            Memory<byte> buffer,
+            Action<int> onContentCopied,
+            CancellationToken cancellationToken)
+            => source.CopyDetailed(
+                destination,
+                buffer,
+                onContentCopied,
+                flushAfterEachWrite: true,
+                cancellationToken);
 
         public static async ValueTask<long> CopyDetailed(
             this Stream source,
             Stream destination,
-            byte[] buffer,
+            Memory<byte> buffer,
             Action<int> onContentCopied,
             bool flushAfterEachWrite,
             CancellationToken cancellationToken)
@@ -219,9 +245,8 @@ namespace Fluxzy.Misc.Streams
             long totalCopied = 0;
             int read;
 
-            while ((read = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) >
-                   0) {
-                await destination.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
+            while ((read = await source.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0) {
+                await destination.WriteAsync(buffer.Slice(0, read), cancellationToken).ConfigureAwait(false);
                 onContentCopied(read);
 
                 if (flushAfterEachWrite) {

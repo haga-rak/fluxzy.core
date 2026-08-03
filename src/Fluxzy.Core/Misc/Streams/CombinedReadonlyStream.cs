@@ -177,11 +177,17 @@ namespace Fluxzy.Misc.Streams
             return result;
         }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token)
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token)
+        {
+            return ReadAsync(buffer.AsMemory(offset, count), token).AsTask();
+        }
+
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             var result = 0;
 
-            while (count > 0) {
+            while (buffer.Length > 0) {
                 var stream = Current;
 
                 if (stream == null) {
@@ -190,12 +196,11 @@ namespace Fluxzy.Misc.Streams
 
                 var currentReadCount =
                     stream is MemoryStream
-                        ? stream.Read(buffer, offset, count)
-                        : await stream.ReadAsync(buffer, offset, count, token).ConfigureAwait(false);
+                        ? stream.Read(buffer.Span)
+                        : await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
 
                 result += currentReadCount;
-                count -= currentReadCount;
-                offset += currentReadCount;
+                buffer = buffer.Slice(currentReadCount);
 
                 if (currentReadCount == 0) {
                     EndOfStream();
