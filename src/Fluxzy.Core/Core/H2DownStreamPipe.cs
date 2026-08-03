@@ -564,7 +564,12 @@ namespace Fluxzy.Core
         internal void EnqueueFlowControlledDataForTest(int flowControlledBytes)
         {
             var buffer = ArrayPool<byte>.Shared.Rent(9);
-            _dataChannel.Writer.TryWrite(new DataFrameEntry(buffer, 9, flowControlledBytes, 0));
+            if (!_dataChannel.Writer.TryWrite(
+                    new DataFrameEntry(buffer, 9, flowControlledBytes, 0))) {
+                ArrayPool<byte>.Shared.Return(buffer);
+                return;
+            }
+
             SignalWriteLoop();
         }
 

@@ -413,6 +413,29 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
             }
         }
 
+        [Fact]
+        public void BuildFragmentedTrailerFrames_LargeValueEncodesWithoutFixedBufferLimit()
+        {
+            var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
+            var encoder = new HPackEncoder(new EncodingContext(memoryProvider));
+            var decoder = new HPackDecoder(
+                new DecodingContext(new Authority("localhost", 443, true), memoryProvider));
+            var value = new string('x', 6000);
+            var trailers = new List<HeaderField> { new("x-large-trailer", value) };
+
+            var frames = H2FrameHelper.BuildFragmentedTrailerFrames(
+                encoder, streamId: 1, trailers);
+            var firstLength = frames.Headers.Length - 9;
+            var encoded = new byte[firstLength + frames.Continuation.Length - 9];
+            frames.Headers.AsSpan(9).CopyTo(encoded);
+            frames.Continuation.AsSpan(9).CopyTo(encoded.AsSpan(firstLength));
+
+            var decoded = decoder.DecodeTrailerFields(encoded);
+            var trailer = Assert.Single(decoded);
+            Assert.Equal("x-large-trailer", trailer.Name.ToString());
+            Assert.Equal(value, trailer.Value.ToString());
+        }
+
         /// <summary>
         /// Verify DecodeTrailerFields returns empty list for empty input.
         /// </summary>

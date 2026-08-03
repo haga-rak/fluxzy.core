@@ -189,7 +189,7 @@ namespace Fluxzy.Tests._Fixtures
             ReadOnlyMemory<char> plainHeaders,
             bool endStream, bool endHeaders)
         {
-            var encodedBuffer = new byte[plainHeaders.Length * 4 + 256];
+            var encodedBuffer = new byte[GetHeaderEncodingBufferSize(plainHeaders)];
             var encoded = encoder.Encode(plainHeaders, encodedBuffer);
 
             HeaderFlags flags = HeaderFlags.None;
@@ -253,7 +253,7 @@ namespace Fluxzy.Tests._Fixtures
         public static byte[] BuildTrailerHeadersFrame(
             HPackEncoder encoder, int streamId, IList<HeaderField> trailerFields)
         {
-            var encodedBuffer = new byte[4096];
+            var encodedBuffer = new byte[GetHeaderEncodingBufferSize(trailerFields)];
             var encoded = encoder.EncodeFields(trailerFields, encodedBuffer);
 
             var flags = HeaderFlags.EndStream | HeaderFlags.EndHeaders;
@@ -269,7 +269,7 @@ namespace Fluxzy.Tests._Fixtures
             HPackEncoder encoder, int streamId, ReadOnlyMemory<char> plainHeaders,
             bool endStream)
         {
-            var encodedBuffer = new byte[plainHeaders.Length * 4 + 256];
+            var encodedBuffer = new byte[GetHeaderEncodingBufferSize(plainHeaders)];
             var encoded = encoder.Encode(plainHeaders, encodedBuffer);
             return BuildFragmentedHeaderBlock(encoded, streamId, endStream);
         }
@@ -277,9 +277,24 @@ namespace Fluxzy.Tests._Fixtures
         public static (byte[] Headers, byte[] Continuation) BuildFragmentedTrailerFrames(
             HPackEncoder encoder, int streamId, IList<HeaderField> trailerFields)
         {
-            var encodedBuffer = new byte[4096];
+            var encodedBuffer = new byte[GetHeaderEncodingBufferSize(trailerFields)];
             var encoded = encoder.EncodeFields(trailerFields, encodedBuffer);
             return BuildFragmentedHeaderBlock(encoded, streamId, endStream: true);
+        }
+
+        private static int GetHeaderEncodingBufferSize(ReadOnlyMemory<char> plainHeaders)
+            => GetHeaderEncodingBufferSize(Http11Parser.Read(plainHeaders));
+
+        private static int GetHeaderEncodingBufferSize(IList<HeaderField> fields)
+        {
+            var encodedMaxLength = 0;
+
+            foreach (var field in fields) {
+                encodedMaxLength = checked(encodedMaxLength +
+                    checked((field.Name.Length + field.Value.Length + 64) * 2));
+            }
+
+            return Math.Max(encodedMaxLength, 64);
         }
 
         private static (byte[] Headers, byte[] Continuation) BuildFragmentedHeaderBlock(

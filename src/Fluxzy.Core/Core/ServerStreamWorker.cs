@@ -229,7 +229,7 @@ namespace Fluxzy.Core
             Stream bodyStream;
 
             if (IsRequestComplete) {
-                bodyStream = Stream.Null; // no response body
+                bodyStream = Stream.Null; // no request body
             }
             else {
                 _requestBodyPipe = new Pipe(new PipeOptions(
