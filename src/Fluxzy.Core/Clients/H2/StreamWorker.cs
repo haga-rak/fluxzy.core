@@ -214,6 +214,8 @@ namespace Fluxzy.Clients.H2
         public (Task Sent, bool EndStream) EnqueueRequestHeader(
             Exchange exchange, RsBuffer buffer, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
+
             var endStream = exchange.Request.Header.ContentLength == 0 ||
                             exchange.Request.Body == null ||
                             (exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0);
@@ -224,22 +226,32 @@ namespace Fluxzy.Clients.H2
                 new HeaderEncodingJob(exchange.Request.Header.GetHttp11Header(), StreamIdentifier, StreamDependency),
                 buffer, endStream);
 
+            // The encoder writes into the caller-owned pooled RsBuffer. Materialize the
+            // packetized header before enqueue so caller cancellation may return that
+            // buffer without racing an in-flight transport write.
+            var ownedHeader = readyToBeSent.ToArray();
+
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
-            exchange.Metrics.RequestHeaderLength = readyToBeSent.Length;
+            exchange.Metrics.RequestHeaderLength = ownedHeader.Length;
 
             FluxzyLogEvents.LogRequestSending(Parent.Context.Logger, exchange);
 
             var writeHeaderTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority,
-                StreamDependency, readyToBeSent);
+                StreamDependency, ownedHeader);
 
             Parent.Context.UpStreamChannel(ref writeHeaderTask);
 
             return (
-                writeHeaderTask.DoneTask
-                               .ContinueWith(t => {
-                                   return _exchange.Metrics.TotalSent += readyToBeSent.Length;
-                               }, token),
+                CompleteRequestHeaderWrite(
+                    writeHeaderTask.DoneTask, ownedHeader.Length, token),
                 endStream);
+        }
+
+        private async Task CompleteRequestHeaderWrite(
+            Task writeTask, int headerLength, CancellationToken token)
+        {
+            await writeTask.WaitAsync(token).ConfigureAwait(false);
+            _exchange.Metrics.TotalSent += headerLength;
         }
 
         public async ValueTask ProcessRequestBody(Exchange exchange, RsBuffer buffer, CancellationToken token)

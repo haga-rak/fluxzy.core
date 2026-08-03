@@ -92,7 +92,9 @@ namespace Fluxzy.Clients.H2
 
             _writerChannel =
                 Channel.CreateUnbounded<WriteTask>(new UnboundedChannelOptions {
-                    SingleReader = true,
+                    // The writer loop is the normal consumer, while teardown may
+                    // concurrently drain rejected work to settle borrowed buffers.
+                    SingleReader = false,
                     SingleWriter = false
                 });
 

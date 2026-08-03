@@ -130,6 +130,32 @@ namespace Fluxzy.Tests.UnitTests.H2Client
         }
 
         [Fact]
+        public async Task RequestHeaderOwnsBytesAfterCallerCancellation()
+        {
+            var payload = CreatePayload(128);
+            var writer = new GatedWriter();
+            using var fixture = CreateWorker(payload, writer.Enqueue);
+            using var headerBuffer = ResizableBuffer.Allocate(32 * 1024);
+            using var cancellation = new CancellationTokenSource();
+
+            var (sent, _) = fixture.Worker.EnqueueRequestHeader(
+                fixture.Exchange, headerBuffer, cancellation.Token);
+            await writer.Enqueued.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            var expectedFrame = writer.SnapshotFrameBytes();
+
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => sent.WaitAsync(TimeSpan.FromSeconds(2)));
+
+            // Model the caller returning its pooled RsBuffer and a subsequent renter
+            // overwriting it while the transport write is still pending.
+            headerBuffer.Buffer.AsSpan().Fill(0xA5);
+            writer.Complete();
+
+            Assert.Equal(expectedFrame, writer.FrameBytes);
+        }
+
+        [Fact]
         public async Task PooledBodyBufferCannotBeOverwrittenBeforeFinalWrite()
         {
             var payload = CreatePayload(8192);
@@ -181,6 +207,32 @@ namespace Fluxzy.Tests.UnitTests.H2Client
             }
 
             Assert.True(processing.IsCompleted);
+        }
+
+        [Fact]
+        public async Task WriterChannelSupportsConcurrentTeardownDrain()
+        {
+            var authority = new Authority("test.local", 443, true);
+            var pool = new H2ConnectionPool(
+                Stream.Null,
+                new H2StreamSetting(),
+                authority,
+                new Connection(authority, new TestIdProvider()),
+                _ => { });
+
+            try {
+                var field = typeof(H2ConnectionPool).GetField(
+                    "_writerChannel", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(field);
+                var channel = field.GetValue(pool);
+                Assert.NotNull(channel);
+
+                Assert.DoesNotContain(
+                    "SingleConsumer", channel.GetType().Name, StringComparison.Ordinal);
+            }
+            finally {
+                await pool.DisposeAsync();
+            }
         }
 
         [Fact]
@@ -543,6 +595,8 @@ namespace Fluxzy.Tests.UnitTests.H2Client
                 _pending = writeTask;
                 Enqueued.TrySetResult();
             }
+
+            public byte[] SnapshotFrameBytes() => _pending.BufferBytes.ToArray();
 
             public void Complete()
             {
