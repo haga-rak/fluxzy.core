@@ -23,6 +23,7 @@ namespace Fluxzy.Clients.H2
 {
     public class H2ConnectionPool : IHttpConnectionPool
     {
+        internal const int MaxUploadPayloadSize = 64 * 1024;
 
         private static int _connectionIdCounter;
 
@@ -263,6 +264,9 @@ namespace Fluxzy.Clients.H2
 
         /// <summary>Test seam: direct access to the stream pool for unit-level assertions.</summary>
         internal StreamPool StreamPoolForTests => _streamPool;
+
+        // Invoked immediately before the dedicated request-body buffer and task are created.
+        internal Action? RequestBodyWorkStartedForTests { get; set; }
 
         public async ValueTask Send(
             Exchange exchange, IDownStreamPipe _, RsBuffer buffer, ExchangeScope __,
@@ -811,6 +815,7 @@ namespace Fluxzy.Clients.H2
 
             try {
                 Task waitForHeaderSentTask;
+                bool requestHeaderEndedStream;
 
                 try {
                     if (Complete || _connectionToken.IsCancellationRequested)
@@ -824,7 +829,7 @@ namespace Fluxzy.Clients.H2
 
                     // activeStream.OR
 
-                    waitForHeaderSentTask =
+                    (waitForHeaderSentTask, requestHeaderEndedStream) =
                         activeStream.EnqueueRequestHeader(exchange, buffer, streamCancellationToken);
                 }
                 finally {
@@ -836,13 +841,14 @@ namespace Fluxzy.Clients.H2
 
                 exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
-                var hasRequestBody = exchange.Request.Body != null
-                    && (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0);
-
-                if (!hasRequestBody) {
+                if (requestHeaderEndedStream) {
                     exchange.Metrics.RequestBodySent = exchange.Metrics.RequestHeaderSent;
                     FluxzyLogEvents.LogRequestSent(
                         _streamPool.Context.Logger, exchange, earlyResponse: false);
+
+                    await activeStream.ProcessResponse(streamCancellationToken, this)
+                                      .ConfigureAwait(false);
+                    return;
                 }
 
                 // Run request body upload and response processing concurrently.
@@ -851,8 +857,9 @@ namespace Fluxzy.Clients.H2
 
                 // Allocate a dedicated buffer for request body forwarding so we can
                 // return the shared buffer to the caller once the response is available.
-                var bodyBuffer = RsBuffer.Allocate(
-                    Math.Min(Setting.Local.MaxFrameSize, buffer.Buffer.Length));
+                RequestBodyWorkStartedForTests?.Invoke();
+                var uploadPayloadSize = Math.Min(Setting.Remote.MaxFrameSize, MaxUploadPayloadSize);
+                var bodyBuffer = RsBuffer.Allocate(uploadPayloadSize + 9);
 
                 var requestBodyTask = activeStream.ProcessRequestBody(
                     exchange, bodyBuffer, streamCancellationToken);
