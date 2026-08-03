@@ -52,6 +52,66 @@ namespace Fluxzy.Tests._Fixtures
         }
     }
 
+    internal sealed class GatedWriteStream : Stream
+    {
+        private readonly Stream _inner;
+        private TaskCompletionSource<object?>? _release;
+        private TaskCompletionSource<object?>? _writeStarted;
+
+        public GatedWriteStream(Stream inner)
+        {
+            _inner = inner;
+        }
+
+        public Task WriteStarted
+            => Volatile.Read(ref _writeStarted)?.Task ?? Task.CompletedTask;
+
+        public void GateNextWrite()
+        {
+            _writeStarted = new TaskCompletionSource<object?>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            _release = new TaskCompletionSource<object?>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+
+        public void ReleaseWrite()
+            => Interlocked.Exchange(ref _release, null)?.TrySetResult(null);
+
+        public override async ValueTask WriteAsync(
+            ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            var release = Volatile.Read(ref _release);
+
+            if (release != null) {
+                Volatile.Read(ref _writeStarted)?.TrySetResult(null);
+                await release.Task.WaitAsync(cancellationToken);
+            }
+
+            await _inner.WriteAsync(buffer, cancellationToken);
+        }
+
+        public override void Flush() => _inner.Flush();
+        public override Task FlushAsync(CancellationToken cancellationToken)
+            => _inner.FlushAsync(cancellationToken);
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+        public override int Read(byte[] buffer, int offset, int count)
+            => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin)
+            => throw new NotSupportedException();
+        public override void SetLength(long value)
+            => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count)
+            => _inner.Write(buffer, offset, count);
+    }
+
     /// <summary>
     /// A simple IIdProvider for testing that returns incrementing IDs.
     /// </summary>
@@ -205,6 +265,40 @@ namespace Fluxzy.Tests._Fixtures
             return frameBuffer;
         }
 
+        public static (byte[] Headers, byte[] Continuation) BuildFragmentedHeadersFrames(
+            HPackEncoder encoder, int streamId, ReadOnlyMemory<char> plainHeaders,
+            bool endStream)
+        {
+            var encodedBuffer = new byte[plainHeaders.Length * 4 + 256];
+            var encoded = encoder.Encode(plainHeaders, encodedBuffer);
+            return BuildFragmentedHeaderBlock(encoded, streamId, endStream);
+        }
+
+        public static (byte[] Headers, byte[] Continuation) BuildFragmentedTrailerFrames(
+            HPackEncoder encoder, int streamId, IList<HeaderField> trailerFields)
+        {
+            var encodedBuffer = new byte[4096];
+            var encoded = encoder.EncodeFields(trailerFields, encodedBuffer);
+            return BuildFragmentedHeaderBlock(encoded, streamId, endStream: true);
+        }
+
+        private static (byte[] Headers, byte[] Continuation) BuildFragmentedHeaderBlock(
+            ReadOnlySpan<byte> encoded, int streamId, bool endStream)
+        {
+            var firstLength = Math.Max(1, encoded.Length / 2);
+            var secondLength = encoded.Length - firstLength;
+            var headers = new byte[9 + firstLength];
+            var continuation = new byte[9 + secondLength];
+            var flags = endStream ? HeaderFlags.EndStream : HeaderFlags.None;
+
+            H2Frame.Write(headers, firstLength, H2FrameType.Headers, flags, streamId);
+            encoded.Slice(0, firstLength).CopyTo(headers.AsSpan(9));
+            H2Frame.Write(continuation, secondLength, H2FrameType.Continuation,
+                HeaderFlags.EndHeaders, streamId);
+            encoded.Slice(firstLength).CopyTo(continuation.AsSpan(9));
+            return (headers, continuation);
+        }
+
         public static H2FrameReadResult ParseFrame(byte[] headerBuffer, byte[] bodyBuffer)
         {
             var frame = new H2Frame(headerBuffer.AsSpan());
@@ -248,7 +342,8 @@ namespace Fluxzy.Tests._Fixtures
         /// creates the pipe, creates H2DownStreamPipe, sends the client preface,
         /// and calls Init on the pipe.
         /// </summary>
-        public static async Task<H2TestContext> Create()
+        public static async Task<H2TestContext> Create(
+            Func<Stream, Stream>? serverWriteStreamFactory = null)
         {
             var pipe = new DuplexPipe();
             var authority = new Authority("localhost", 443, true);
@@ -257,7 +352,7 @@ namespace Fluxzy.Tests._Fixtures
                 new TestIdProvider(),
                 authority,
                 pipe.ServerReadStream,
-                pipe.ServerWriteStream,
+                serverWriteStreamFactory?.Invoke(pipe.ServerWriteStream) ?? pipe.ServerWriteStream,
                 new TestExchangeContextBuilder());
 
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
@@ -303,6 +398,22 @@ namespace Fluxzy.Tests._Fixtures
             var frameBuffer = H2FrameHelper.BuildHeadersFrame(
                 _clientEncoder, streamId, plainHeaders, endStream, endHeaders);
             await Pipe.ClientWriteStream.WriteAsync(frameBuffer, Token);
+            await Pipe.ClientWriteStream.FlushAsync(Token);
+        }
+
+        public (byte[] Headers, byte[] Continuation) CreateFragmentedHeadersFrames(
+            int streamId, ReadOnlyMemory<char> plainHeaders, bool endStream)
+            => H2FrameHelper.BuildFragmentedHeadersFrames(
+                _clientEncoder, streamId, plainHeaders, endStream);
+
+        public (byte[] Headers, byte[] Continuation) CreateFragmentedTrailerFrames(
+            int streamId, IList<HeaderField> trailerFields)
+            => H2FrameHelper.BuildFragmentedTrailerFrames(
+                _clientEncoder, streamId, trailerFields);
+
+        public async Task SendRawFrame(byte[] frame)
+        {
+            await Pipe.ClientWriteStream.WriteAsync(frame, Token);
             await Pipe.ClientWriteStream.FlushAsync(Token);
         }
 

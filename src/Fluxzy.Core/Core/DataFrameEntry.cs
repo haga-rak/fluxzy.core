@@ -11,15 +11,19 @@ namespace Fluxzy.Core
         public readonly int Length;
         public readonly int FlowControlledBytes;
         public readonly IList<HeaderField>? TrailerHeaders;
-        public readonly int TrailerStreamIdentifier;
+        public readonly int StreamIdentifier;
+        public readonly bool CompletesResponse;
 
-        public DataFrameEntry(byte[] rentedBuffer, int length, int flowControlledBytes)
+        public DataFrameEntry(
+            byte[] rentedBuffer, int length, int flowControlledBytes,
+            int streamIdentifier, bool completesResponse = false)
         {
             RentedBuffer = rentedBuffer;
             Length = length;
             FlowControlledBytes = flowControlledBytes;
             TrailerHeaders = null;
-            TrailerStreamIdentifier = 0;
+            StreamIdentifier = streamIdentifier;
+            CompletesResponse = completesResponse;
         }
 
         public DataFrameEntry(IList<HeaderField> trailerHeaders, int trailerStreamIdentifier)
@@ -28,7 +32,8 @@ namespace Fluxzy.Core
             Length = 0;
             FlowControlledBytes = 0;
             TrailerHeaders = trailerHeaders;
-            TrailerStreamIdentifier = trailerStreamIdentifier;
+            StreamIdentifier = trailerStreamIdentifier;
+            CompletesResponse = true;
         }
     }
 }
