@@ -512,7 +512,8 @@ namespace Fluxzy.Core
                             exchange.Request.Header.ForceTransferChunked();
                         }
 
-                        if (exchange.Request.Body != null &&
+                        if (_archiveWriter.CapturesBodyContent &&
+                            exchange.Request.Body != null &&
                             (!exchange.Request.Body.CanSeek ||
                              exchange.Request.Body.Length > 0))
                         {
@@ -678,45 +679,29 @@ namespace Fluxzy.Core
                         _archiveWriter.Update(exchange, ArchiveUpdateType.AfterResponseHeader,
                             CancellationToken.None
                         );
+                    }
 
-                        if (responseBodyStream != null && (!responseBodyStream.CanSeek || responseBodyStream.Length > 0))
+                    if (responseBodyStream != null && (!responseBodyStream.CanSeek || responseBodyStream.Length > 0))
+                    {
+                        if (exchange.Context.HasResponseBodySubstitution)
                         {
-                            if (exchange.Context.HasResponseBodySubstitution)
-                            {
-                                originalResponseBodyStream = responseBodyStream;
+                            originalResponseBodyStream = responseBodyStream;
 
-                                responseBodyStream = await
-                                    exchange.Context.GetSubstitutedResponseBody(
-                                                responseBodyStream, responseBodyChunked, responseEncodingToken)
-                                            .ConfigureAwait(false);
-                            }
+                            responseBodyStream = await
+                                exchange.Context.GetSubstitutedResponseBody(
+                                            responseBodyStream, responseBodyChunked, responseEncodingToken)
+                                        .ConfigureAwait(false);
+                            exchange.Response.Body = responseBodyStream;
+                        }
 
+                        if (_archiveWriter?.CapturesBodyContent == true)
+                        {
                             var dispatchStream = new DispatchStream(responseBodyStream,
                                 true,
                                 _archiveWriter.CreateResponseBodyStream(exchange.Id));
 
-                            var ext = exchange;
-
-                            dispatchStream.OnDisposeDoneTask = () => {
-                                _archiveWriter.Update(ext,
-                                    ArchiveUpdateType.AfterResponse,
-                                    CancellationToken.None
-                                );
-
-                                return default;
-                            };
-
                             exchange.Response.Body = dispatchStream;
                             responseBodyStream = dispatchStream;
-                        }
-                        else
-                        {
-                            // No response body, we ensure the stream is done
-
-                            _archiveWriter.Update(exchange,
-                                ArchiveUpdateType.AfterResponse,
-                                CancellationToken.None
-                            );
                         }
                     }
 
@@ -805,6 +790,11 @@ namespace Fluxzy.Core
                                 .ConfigureAwait(false);
                         }
                     }
+
+                    _archiveWriter?.Update(exchange,
+                        ArchiveUpdateType.AfterResponse,
+                        CancellationToken.None
+                    );
 
                     // In case the down stream connection is persisted, 
                     // we wait for the current exchange to complete before reading further request

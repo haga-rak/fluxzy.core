@@ -23,6 +23,11 @@ namespace Fluxzy.Writers
         /// </summary>
         public long TotalProcessedExchanges => InternalTotalProcessedExchanges;
 
+        /// <summary>
+        /// Gets whether request and response body content must be dispatched to this writer.
+        /// </summary>
+        public virtual bool CapturesBodyContent => true;
+
         public virtual void Init()
         {
         }
