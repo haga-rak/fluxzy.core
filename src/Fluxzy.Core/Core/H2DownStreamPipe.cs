@@ -685,8 +685,11 @@ namespace Fluxzy.Core
 
                 if (booked == 0)
                 {
-                    // stream closed
-                    return;
+                    // WindowSizeHolder reports cancellation as a zero-sized booking.
+                    // Returning normally here would let the orchestrator publish
+                    // AfterResponse for a body that never reached EOF/END_STREAM.
+                    token.ThrowIfCancellationRequested();
+                    throw new IOException("HTTP/2 stream closed before the response body completed.");
                 }
 
                 var bodySize = Math.Min(booked, remoteMaxFrameSize);
