@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -180,6 +181,141 @@ namespace Fluxzy.Tests.UnitTests.H2Client
             }
 
             Assert.True(processing.IsCompleted);
+        }
+
+        [Fact]
+        public async Task RejectedWriterChannelEntrySettlesImmediately()
+        {
+            var authority = new Authority("test.local", 443, true);
+            var pool = new H2ConnectionPool(
+                Stream.Null,
+                new H2StreamSetting(),
+                authority,
+                new Connection(authority, new TestIdProvider()),
+                _ => { });
+            await pool.DisposeAsync();
+
+            var writeTask = new WriteTask(
+                H2FrameType.Data, streamIdentifier: 1, priority: 0,
+                streamDependency: 0, new byte[9]);
+
+            EnqueueForPool(pool, writeTask);
+
+            Assert.True(writeTask.DoneTask.IsCompleted);
+            await Assert.ThrowsAsync<ConnectionCloseException>(() => writeTask.DoneTask);
+        }
+
+        [Fact]
+        public async Task CancelledSingleTransportWriteSettlesDequeuedTask()
+        {
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+            var writeTask = new WriteTask(
+                H2FrameType.Data, streamIdentifier: 1, priority: 0,
+                streamDependency: 0, new byte[9]);
+            using var stream = new ThrowingWriteStream(
+                new OperationCanceledException(cancellation.Token));
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                H2ConnectionPool.WriteSingleNonWindowUpdateAsync(
+                    writeTask, stream, cancellation.Token).AsTask());
+
+            Assert.True(writeTask.DoneTask.IsCompleted);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => writeTask.DoneTask);
+        }
+
+        [Fact]
+        public async Task CancelledBatchTransportWriteSettlesEveryDequeuedTask()
+        {
+            using var cancellation = new CancellationTokenSource();
+            var authority = new Authority("test.local", 443, true);
+            await using var pool = new H2ConnectionPool(
+                new ThrowingWriteStream(new OperationCanceledException(cancellation.Token)),
+                new H2StreamSetting(),
+                authority,
+                new Connection(authority, new TestIdProvider()),
+                _ => { });
+            var first = new WriteTask(
+                H2FrameType.Data, streamIdentifier: 1, priority: 0,
+                streamDependency: 0, new byte[9]);
+            var second = new WriteTask(
+                H2FrameType.Data, streamIdentifier: 3, priority: 0,
+                streamDependency: 0, new byte[9]);
+
+            EnqueueForPool(pool, first);
+            EnqueueForPool(pool, second);
+
+            await RunWriterLoopForTest(pool, cancellation.Token)
+                .WaitAsync(TimeSpan.FromSeconds(2));
+
+            Assert.True(first.DoneTask.IsCompleted);
+            Assert.True(second.DoneTask.IsCompleted);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first.DoneTask);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => second.DoneTask);
+        }
+
+        [Fact]
+        public async Task SuccessfulWindowUpdateSettlesDequeuedTask()
+        {
+            using var cancellation = new CancellationTokenSource();
+            var authority = new Authority("test.local", 443, true);
+            var stream = new SignalingWriteStream();
+            await using var pool = new H2ConnectionPool(
+                stream,
+                new H2StreamSetting(),
+                authority,
+                new Connection(authority, new TestIdProvider()),
+                _ => { });
+            var writeTask = new WriteTask(
+                H2FrameType.WindowUpdate, streamIdentifier: 1, priority: 0,
+                streamDependency: 0, ReadOnlyMemory<byte>.Empty, value: 1);
+
+            EnqueueForPool(pool, writeTask);
+            var loop = RunWriterLoopForTest(pool, cancellation.Token);
+
+            try {
+                await stream.Written.Task.WaitAsync(TimeSpan.FromSeconds(2));
+                Assert.True(writeTask.DoneTask.IsCompletedSuccessfully);
+            }
+            finally {
+                cancellation.Cancel();
+                await loop.WaitAsync(TimeSpan.FromSeconds(2));
+            }
+        }
+
+        [Fact]
+        public async Task DisposedSingleTransportWriteSettlesDequeuedTask()
+        {
+            var writeTask = new WriteTask(
+                H2FrameType.Data, streamIdentifier: 1, priority: 0,
+                streamDependency: 0, new byte[9]);
+            using var stream = new ThrowingWriteStream(
+                new ObjectDisposedException("transport"));
+
+            await Assert.ThrowsAsync<ObjectDisposedException>(() =>
+                H2ConnectionPool.WriteSingleNonWindowUpdateAsync(
+                    writeTask, stream, CancellationToken.None).AsTask());
+
+            Assert.True(writeTask.DoneTask.IsCompleted);
+            await Assert.ThrowsAsync<ObjectDisposedException>(() => writeTask.DoneTask);
+        }
+
+        private static void EnqueueForPool(H2ConnectionPool pool, WriteTask writeTask)
+        {
+            var method = typeof(H2ConnectionPool).GetMethod(
+                "UpStreamChannel", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(method);
+            method.Invoke(pool, new object[] { writeTask });
+        }
+
+        private static Task RunWriterLoopForTest(
+            H2ConnectionPool pool, CancellationToken cancellationToken)
+        {
+            var method = typeof(H2ConnectionPool).GetMethod(
+                "InternalWriteLoop", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(method);
+            return Assert.IsAssignableFrom<Task>(
+                method.Invoke(pool, new object[] { cancellationToken }));
         }
 
         private static async Task NegotiateMaxFrameSize(DuplexPipe pipe, int remoteMaxFrameSize)
@@ -418,6 +554,45 @@ namespace Fluxzy.Tests.UnitTests.H2Client
 
             public void Cancel(CancellationToken token) =>
                 _pending.CompletionSource.SetCanceled(token);
+        }
+
+        private sealed class SignalingWriteStream : MemoryStream
+        {
+            public TaskCompletionSource Written { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public override Task WriteAsync(
+                byte[] buffer, int offset, int count,
+                CancellationToken cancellationToken)
+            {
+                var write = base.WriteAsync(buffer, offset, count, cancellationToken);
+                Written.TrySetResult();
+                return write;
+            }
+        }
+
+        private sealed class ThrowingWriteStream : MemoryStream
+        {
+            private readonly Exception _exception;
+
+            public ThrowingWriteStream(Exception exception)
+            {
+                _exception = exception;
+            }
+
+            public override ValueTask WriteAsync(
+                ReadOnlyMemory<byte> buffer,
+                CancellationToken cancellationToken = default)
+            {
+                return ValueTask.FromException(_exception);
+            }
+
+            public override Task WriteAsync(
+                byte[] buffer, int offset, int count,
+                CancellationToken cancellationToken)
+            {
+                return Task.FromException(_exception);
+            }
         }
 
         private sealed class WorkerFixture : IDisposable

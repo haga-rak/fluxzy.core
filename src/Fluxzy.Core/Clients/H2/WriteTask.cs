@@ -28,13 +28,21 @@ namespace Fluxzy.Clients.H2
 
         public void OnComplete(Exception? ex)
         {
-            if (ex != null) {
-                CompletionSource.SetException(ex);
+            if (ex is OperationCanceledException cancellation) {
+                if (cancellation.CancellationToken.CanBeCanceled)
+                    CompletionSource.TrySetCanceled(cancellation.CancellationToken);
+                else
+                    CompletionSource.TrySetCanceled();
 
                 return;
             }
 
-            CompletionSource.SetResult(null);
+            if (ex != null) {
+                CompletionSource.TrySetException(ex);
+                return;
+            }
+
+            CompletionSource.TrySetResult(null);
         }
 
         public Task DoneTask => CompletionSource.Task;

@@ -360,7 +360,9 @@ namespace Fluxzy.Clients.H2
 
         private void UpStreamChannel(ref WriteTask data)
         {
-            _writerChannel?.Writer.TryWrite(data);
+            if (_writerChannel == null || !_writerChannel.Writer.TryWrite(data))
+                data.OnComplete(new ConnectionCloseException(
+                    "HTTP/2 writer channel is already closed"));
         }
 
         private void EmitPing(long opaqueData)
@@ -457,18 +459,8 @@ namespace Fluxzy.Clients.H2
             if (!_connectionCancellationTokenSource.IsCancellationRequested)
                 _connectionCancellationTokenSource.Cancel();
 
-            if (releaseChannelItems && _writerChannel != null) {
-                _writerChannel.Writer.TryComplete();
-
-                var list = new List<WriteTask>();
-
-                if (_writerChannel.Reader.TryReadAll(list)) {
-                    foreach (var item in list) {
-                        if (!item.DoneTask.IsCompleted)
-                            item.CompletionSource.SetCanceled();
-                    }
-                }
-            }
+            if (releaseChannelItems)
+                CompleteWriterChannel(ex ?? new OperationCanceledException(_connectionToken));
 
             // Notify last so the callback observes a fully-quiesced pool. Use a
             // CAS-guarded fire so concurrent teardown paths (read-loop exit racing
@@ -479,13 +471,34 @@ namespace Fluxzy.Clients.H2
                 _onConnectionFaulted?.Invoke(this);
         }
 
+        private void CompleteWriterChannel(Exception exception)
+        {
+            if (_writerChannel == null)
+                return;
+
+            _writerChannel.Writer.TryComplete();
+            var pending = new List<WriteTask>();
+
+            if (!_writerChannel.Reader.TryReadAll(pending))
+                return;
+
+            CompleteWriteTasks(pending, exception);
+        }
+
+        private static void CompleteWriteTasks(
+            IEnumerable<WriteTask> writeTasks, Exception exception)
+        {
+            foreach (var writeTask in writeTasks)
+                writeTask.OnComplete(exception);
+        }
+
         private async Task InternalWriteLoop(CancellationToken token)
         {
             Exception? outException = null;
+            var tasks = new List<WriteTask>();
+            var otherTasks = new List<WriteTask>();
 
             try {
-                var tasks = new List<WriteTask>();
-                var otherTasks = new List<WriteTask>();
 
                 while (!token.IsCancellationRequested) {
                     tasks.Clear();
@@ -514,22 +527,32 @@ namespace Fluxzy.Clients.H2
                         if (windowUpdateCount > 0) {
                             var bufferLength = windowUpdateCount * 13;
                             var heapBuffer = ArrayPool<byte>.Shared.Rent(bufferLength);
-                            var memoryBuffer = new Memory<byte>(heapBuffer).Slice(0, bufferLength);
 
-                            for (var i = 0; i < tasks.Count; i++) {
-                                var writeTask = tasks[i];
-                                if (writeTask.FrameType != H2FrameType.WindowUpdate)
-                                    continue;
+                            try {
+                                var memoryBuffer = new Memory<byte>(heapBuffer).Slice(0, bufferLength);
 
-                                new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
-                                    .Write(memoryBuffer.Span);
+                                for (var i = 0; i < tasks.Count; i++) {
+                                    var writeTask = tasks[i];
+                                    if (writeTask.FrameType != H2FrameType.WindowUpdate)
+                                        continue;
 
-                                memoryBuffer = memoryBuffer.Slice(13);
+                                    new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
+                                        .Write(memoryBuffer.Span);
+
+                                    memoryBuffer = memoryBuffer.Slice(13);
+                                }
+
+                                await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token)
+                                                 .ConfigureAwait(false);
+
+                                for (var i = 0; i < tasks.Count; i++) {
+                                    if (tasks[i].FrameType == H2FrameType.WindowUpdate)
+                                        tasks[i].OnComplete(null);
+                                }
                             }
-
-                            await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
-
-                            ArrayPool<byte>.Shared.Return(heapBuffer);
+                            finally {
+                                ArrayPool<byte>.Shared.Return(heapBuffer);
+                            }
                         }
 
                         // Sort non-window-update tasks in-place by priority
@@ -576,7 +599,7 @@ namespace Fluxzy.Clients.H2
                                     otherTasks[i].OnComplete(null);
                                 }
                             }
-                            catch (Exception ex) when (ex is SocketException || ex is IOException) {
+                            catch (Exception ex) {
                                 for (var i = 0; i < otherTasks.Count; i++) {
                                     otherTasks[i].OnComplete(ex);
                                 }
@@ -602,16 +625,21 @@ namespace Fluxzy.Clients.H2
 
                 await _baseStream.FlushAsync(token).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) {
+            catch (OperationCanceledException ex) {
+                CompleteWriteTasks(tasks, ex);
             }
             catch (Exception ex) {
                 // We catch this exception here to throw it to the
                 // caller in SendAsync() instead of Dispose() ;
-
+                CompleteWriteTasks(tasks, ex);
                 outException = ex;
             }
             finally {
-                OnLoopEnd(outException, true);
+                // Always close and drain here. The read loop may have won OnLoopEnd's
+                // idempotence guard, but only the writer loop can guarantee that its
+                // dequeued and still-queued tasks have reached a terminal state.
+                CompleteWriterChannel(outException ?? new OperationCanceledException(token));
+                OnLoopEnd(outException, false);
             }
         }
 
@@ -622,7 +650,7 @@ namespace Fluxzy.Clients.H2
                 await baseStream.WriteAsync(writeTask.BufferBytes, token).ConfigureAwait(false);
                 writeTask.OnComplete(null);
             }
-            catch (Exception ex) when (ex is SocketException || ex is IOException) {
+            catch (Exception ex) {
                 writeTask.OnComplete(ex);
                 throw;
             }
