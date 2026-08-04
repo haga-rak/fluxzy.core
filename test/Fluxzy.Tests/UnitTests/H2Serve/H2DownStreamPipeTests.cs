@@ -236,34 +236,112 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
             return pingFrame.OpaqueData;
         }
 
-        /// <summary>
-        /// Send a GOAWAY frame and verify that ReadNextExchange returns null.
-        /// </summary>
         [Fact]
-        public async Task GoAway_ReadNextExchangeReturnsNull()
+        public async Task InputCompletion_WakesPendingReadWithNull()
         {
             await using var ctx = await H2TestContext.Create();
-
-            // Drain initial server SETTINGS
             await ctx.ReadNextFrame(); // SETTINGS
-
-            // Send SETTINGS ACK
             await ctx.SendSettingsAck();
 
-            // Send GOAWAY
-            await ctx.SendGoAway(0, H2ErrorCode.NoError);
-
-            // Give the read loop a moment to process the GOAWAY
-            await Task.Delay(100);
-
-            // ReadNextExchange should return null because GOAWAY was received
             using var buffer = Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32768);
             using var scope = new ExchangeScope();
-            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 
-            var exchange = await ctx.DownStreamPipe.ReadNextExchange(buffer, scope, timeoutCts.Token);
+            var pendingRead = ctx.DownStreamPipe
+                .ReadNextExchange(buffer, scope, ctx.Token).AsTask();
+            Assert.False(pendingRead.IsCompleted);
+
+            await ctx.CompleteClientInput();
+
+            var exchange = await pendingRead.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.Null(exchange);
+        }
+
+        [Fact]
+        public async Task InputCompletion_DrainsQueuedExchangesInOrderBeforeNull()
+        {
+            await using var ctx = await H2TestContext.Create();
+            await ctx.ReadNextFrame(); // SETTINGS
+            await ctx.SendSettingsAck();
+
+            await ctx.SendHeadersFrame(1,
+                "GET /first HTTP/2\r\nHost: localhost\r\n\r\n".AsMemory(),
+                endStream: true, endHeaders: true);
+            await ctx.SendHeadersFrame(3,
+                "GET /second HTTP/2\r\nHost: localhost\r\n\r\n".AsMemory(),
+                endStream: true, endHeaders: true);
+            await ctx.CompleteClientInput();
+
+            using var buffer = Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32768);
+            using var firstScope = new ExchangeScope();
+            using var secondScope = new ExchangeScope();
+            using var terminalScope = new ExchangeScope();
+
+            var first = await ctx.DownStreamPipe
+                .ReadNextExchange(buffer, firstScope, ctx.Token).AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(3));
+            var second = await ctx.DownStreamPipe
+                .ReadNextExchange(buffer, secondScope, ctx.Token).AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(3));
+            var terminal = await ctx.DownStreamPipe
+                .ReadNextExchange(buffer, terminalScope, ctx.Token).AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(3));
+
+            Assert.Equal(1, first!.StreamIdentifier);
+            Assert.Equal(3, second!.StreamIdentifier);
+            Assert.Null(terminal);
+        }
+
+        [Fact]
+        public async Task GoAway_WakesPendingReadWithNull()
+        {
+            await using var ctx = await H2TestContext.Create();
+            await ctx.ReadNextFrame(); // SETTINGS
+            await ctx.SendSettingsAck();
+
+            using var buffer = Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32768);
+            using var scope = new ExchangeScope();
+
+            var pendingRead = ctx.DownStreamPipe
+                .ReadNextExchange(buffer, scope, ctx.Token).AsTask();
+            Assert.False(pendingRead.IsCompleted);
+
+            await ctx.SendGoAway(0, H2ErrorCode.NoError);
+
+            var exchange = await pendingRead.WaitAsync(TimeSpan.FromSeconds(3));
 
             Assert.Null(exchange);
+        }
+
+        [Fact]
+        public async Task CallerCancellation_DoesNotCompleteExchangeChannel()
+        {
+            await using var ctx = await H2TestContext.Create();
+            await ctx.ReadNextFrame(); // SETTINGS
+            await ctx.SendSettingsAck();
+
+            using var buffer = Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32768);
+            using var canceledScope = new ExchangeScope();
+            using var cancellation = new CancellationTokenSource();
+
+            var canceledRead = ctx.DownStreamPipe
+                .ReadNextExchange(buffer, canceledScope, cancellation.Token).AsTask();
+            Assert.False(canceledRead.IsCompleted);
+
+            cancellation.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await canceledRead.WaitAsync(TimeSpan.FromSeconds(3)));
+
+            await ctx.SendHeadersFrame(1,
+                "GET /after-cancellation HTTP/2\r\nHost: localhost\r\n\r\n".AsMemory(),
+                endStream: true, endHeaders: true);
+
+            using var nextScope = new ExchangeScope();
+            var exchange = await ctx.DownStreamPipe
+                .ReadNextExchange(buffer, nextScope, ctx.Token).AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(3));
+
+            Assert.Equal(1, exchange!.StreamIdentifier);
         }
 
         /// <summary>

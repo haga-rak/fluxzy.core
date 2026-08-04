@@ -43,6 +43,11 @@ namespace Fluxzy.Tests._Fixtures
         public Stream ServerReadStream { get; }
         public Stream ServerWriteStream { get; }
 
+        public ValueTask CompleteClientInput()
+        {
+            return _clientToServer.Writer.CompleteAsync();
+        }
+
         public void Dispose()
         {
             _clientToServer.Writer.Complete();
@@ -280,6 +285,11 @@ namespace Fluxzy.Tests._Fixtures
         {
             await Pipe.ClientWriteStream.WriteAsync(H2Constants.Preface, Token);
             await Pipe.ClientWriteStream.FlushAsync(Token);
+        }
+
+        public ValueTask CompleteClientInput()
+        {
+            return Pipe.CompleteClientInput();
         }
 
         public async Task SendSettingsFrame(params (SettingIdentifier id, int value)[] settings)
