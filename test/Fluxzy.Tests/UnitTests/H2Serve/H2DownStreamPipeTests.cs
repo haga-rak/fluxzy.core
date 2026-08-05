@@ -98,6 +98,45 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
             Assert.Equal(1, exchange.StreamIdentifier);
         }
 
+        [Fact]
+        public async Task WriteResponseBody_CancellationWhileWaitingForWindowThrows()
+        {
+            await using var ctx = await H2TestContext.Create();
+
+            await ctx.ReadNextFrame(); // SETTINGS
+            await ctx.SendSettingsAck();
+
+            var headers = "GET /large HTTP/2\r\nHost: localhost\r\n\r\n".AsMemory();
+            await ctx.SendHeadersFrame(1, headers, endStream: true, endHeaders: true);
+
+            using var buffer = Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32768);
+            using var scope = new ExchangeScope();
+            var exchange = await ctx.DownStreamPipe.ReadNextExchange(buffer, scope, ctx.Token);
+            Assert.NotNull(exchange);
+
+            using var responseBody = new MemoryStream(new byte[128 * 1024]);
+            using var cancellation = new CancellationTokenSource();
+            var writing = ctx.DownStreamPipe.WriteResponseBody(
+                    responseBody, buffer, chunked: false, streamIdentifier: 1,
+                    responseForTrailers: null, cancellation.Token)
+                .AsTask();
+
+            // The initial stream window permits three full frames. The fourth booking
+            // blocks because no WINDOW_UPDATE is sent.
+            for (var dataFrames = 0; dataFrames < 3;)
+            {
+                var frame = await ctx.ReadNextFrame();
+                if (frame.BodyType == H2FrameType.Data)
+                    dataFrames++;
+            }
+
+            Assert.False(writing.IsCompleted);
+            cancellation.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => writing.WaitAsync(TimeSpan.FromSeconds(2)));
+        }
+
         /// <summary>
         /// Firefox-style zero-length POST: HEADERS (no END_STREAM) + empty DATA[END_STREAM].
         /// Verifies the exchange exposes an empty, non-seekable request body with

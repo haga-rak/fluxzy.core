@@ -477,6 +477,7 @@ namespace Fluxzy.Core
 
                 Stream? originalRequestBodyStream = null;
                 Stream? originalResponseBodyStream = null;
+                var requestBodyWrapped = false;
 
                 try
                 {
@@ -512,13 +513,16 @@ namespace Fluxzy.Core
                             exchange.Request.Header.ForceTransferChunked();
                         }
 
-                        if (exchange.Request.Body != null &&
+                        if (_archiveWriter.CapturesBodyContent &&
+                            exchange.Request.Body != null &&
                             (!exchange.Request.Body.CanSeek ||
                              exchange.Request.Body.Length > 0))
                         {
                             exchange.Request.Body = new DispatchStream(exchange.Request.Body!,
                                 true,
                                 _archiveWriter.CreateRequestBodyStream(exchange.Id));
+
+                            requestBodyWrapped = true;
                         }
                     }
 
@@ -572,9 +576,16 @@ namespace Fluxzy.Core
                         }
                         finally
                         {
-                            // We close the request body dispatchstream
-                            await SafeCloseRequestBody(exchange, originalRequestBodyStream)
-                                .ConfigureAwait(false);
+                            // We close the request body dispatchstream.
+                            // DispatchStream leaves its base stream open. Without a
+                            // wrapper the body is the raw downstream stream and a full
+                            // duplex exchange may still be streaming it upstream, so
+                            // it is closed later with the response.
+                            if (requestBodyWrapped)
+                            {
+                                await SafeCloseRequestBody(exchange, originalRequestBodyStream)
+                                    .ConfigureAwait(false);
+                            }
                         }
 
                         break;
@@ -678,45 +689,29 @@ namespace Fluxzy.Core
                         _archiveWriter.Update(exchange, ArchiveUpdateType.AfterResponseHeader,
                             CancellationToken.None
                         );
+                    }
 
-                        if (responseBodyStream != null && (!responseBodyStream.CanSeek || responseBodyStream.Length > 0))
+                    if (responseBodyStream != null && (!responseBodyStream.CanSeek || responseBodyStream.Length > 0))
+                    {
+                        if (exchange.Context.HasResponseBodySubstitution)
                         {
-                            if (exchange.Context.HasResponseBodySubstitution)
-                            {
-                                originalResponseBodyStream = responseBodyStream;
+                            originalResponseBodyStream = responseBodyStream;
 
-                                responseBodyStream = await
-                                    exchange.Context.GetSubstitutedResponseBody(
-                                                responseBodyStream, responseBodyChunked, responseEncodingToken)
-                                            .ConfigureAwait(false);
-                            }
+                            responseBodyStream = await
+                                exchange.Context.GetSubstitutedResponseBody(
+                                            responseBodyStream, responseBodyChunked, responseEncodingToken)
+                                        .ConfigureAwait(false);
+                            exchange.Response.Body = responseBodyStream;
+                        }
 
+                        if (_archiveWriter?.CapturesBodyContent == true)
+                        {
                             var dispatchStream = new DispatchStream(responseBodyStream,
                                 true,
                                 _archiveWriter.CreateResponseBodyStream(exchange.Id));
 
-                            var ext = exchange;
-
-                            dispatchStream.OnDisposeDoneTask = () => {
-                                _archiveWriter.Update(ext,
-                                    ArchiveUpdateType.AfterResponse,
-                                    CancellationToken.None
-                                );
-
-                                return default;
-                            };
-
                             exchange.Response.Body = dispatchStream;
                             responseBodyStream = dispatchStream;
-                        }
-                        else
-                        {
-                            // No response body, we ensure the stream is done
-
-                            _archiveWriter.Update(exchange,
-                                ArchiveUpdateType.AfterResponse,
-                                CancellationToken.None
-                            );
                         }
                     }
 
@@ -735,8 +730,10 @@ namespace Fluxzy.Core
 
                         if (ex is OperationCanceledException || ex is IOException)
 
-                        // local browser interrupt connection 
+                        // local browser interrupt connection
                         {
+                            CompleteWithClientError(exchange, ex);
+
                             return shouldCloseConnectionToDownStream;
                         }
 
@@ -746,6 +743,8 @@ namespace Fluxzy.Core
                     if (exchange.Response.Header!.ContentLength != 0 &&
                         responseBodyStream != null)
                     {
+                        Exception? forwardingError = null;
+
                         try
                         {
                             var chunked = exchange.Response.Header.ChunkedBody &&
@@ -780,10 +779,14 @@ namespace Fluxzy.Core
                                     }
                                 }
 
-                                return true;
+                                // Defer the terminal update until the finally block
+                                // has flushed and closed the body streams.
+                                forwardingError = ex;
                             }
-
-                            throw;
+                            else
+                            {
+                                throw;
+                            }
                         }
                         finally
                         {
@@ -793,18 +796,30 @@ namespace Fluxzy.Core
                             await SafeCloseResponseBody(exchange, originalResponseBodyStream)
                                 .ConfigureAwait(false);
                         }
+
+                        if (forwardingError != null)
+                        {
+                            CompleteWithClientError(exchange, forwardingError);
+
+                            return true;
+                        }
                     }
                     else
                     {
+                        await SafeCloseRequestBody(exchange, originalRequestBodyStream)
+                            .ConfigureAwait(false);
+
                         if (responseBodyStream != null)
                         {
-                            await SafeCloseRequestBody(exchange, originalRequestBodyStream)
-                                .ConfigureAwait(false);
-
                             await SafeCloseResponseBody(exchange, originalResponseBodyStream)
                                 .ConfigureAwait(false);
                         }
                     }
+
+                    _archiveWriter?.Update(exchange,
+                        ArchiveUpdateType.AfterResponse,
+                        CancellationToken.None
+                    );
 
                     // In case the down stream connection is persisted, 
                     // we wait for the current exchange to complete before reading further request
@@ -827,6 +842,35 @@ namespace Fluxzy.Core
             }
 
             return shouldCloseConnectionToDownStream;
+        }
+
+        /// <summary>
+        /// Publishes the terminal update for an exchange whose response could not be
+        /// fully forwarded downstream. ClientErrors marks the exchange as failed so
+        /// consumers do not mistake this AfterResponse for a successful completion.
+        /// </summary>
+        private void CompleteWithClientError(Exchange exchange, Exception ex)
+        {
+            if (exchange.ClientErrors.Count == 0)
+            {
+                var networkErrorCode = ConnectionErrorHandler.ResolveNetworkErrorCode(ex);
+
+                if (networkErrorCode == NetworkErrorCodes.Unknown)
+                {
+                    networkErrorCode = NetworkErrorCodes.ConnectionAborted;
+                }
+
+                exchange.ClientErrors.Add(new ClientError(0,
+                    "The exchange was interrupted before the response was fully forwarded to the client.",
+                    networkErrorCode) {
+                    ExceptionMessage = ex.Message
+                });
+            }
+
+            _archiveWriter?.Update(exchange,
+                ArchiveUpdateType.AfterResponse,
+                CancellationToken.None
+            );
         }
 
         private static ValueTask SafeCloseRequestBody(Exchange exchange, Stream? substitutionStream)

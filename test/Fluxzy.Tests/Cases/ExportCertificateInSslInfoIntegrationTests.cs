@@ -282,7 +282,10 @@ namespace Fluxzy.Tests.Cases
             await Task.Delay(200);
 
             // Assert
-            Assert.Equal(3, exchanges.Count);
+            // Each request may traverse redirects, producing intermediate
+            // exchanges. Every terminal 200 must be present and every
+            // completed exchange must carry the certificate.
+            Assert.Equal(3, exchanges.Count(x => x.Response.Header?.StatusCode == 200));
 
             foreach (var exchange in exchanges)
             {
