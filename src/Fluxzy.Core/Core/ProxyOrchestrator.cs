@@ -477,6 +477,7 @@ namespace Fluxzy.Core
 
                 Stream? originalRequestBodyStream = null;
                 Stream? originalResponseBodyStream = null;
+                var requestBodyWrapped = false;
 
                 try
                 {
@@ -520,6 +521,8 @@ namespace Fluxzy.Core
                             exchange.Request.Body = new DispatchStream(exchange.Request.Body!,
                                 true,
                                 _archiveWriter.CreateRequestBodyStream(exchange.Id));
+
+                            requestBodyWrapped = true;
                         }
                     }
 
@@ -573,9 +576,16 @@ namespace Fluxzy.Core
                         }
                         finally
                         {
-                            // We close the request body dispatchstream
-                            await SafeCloseRequestBody(exchange, originalRequestBodyStream)
-                                .ConfigureAwait(false);
+                            // We close the request body dispatchstream.
+                            // DispatchStream leaves its base stream open. Without a
+                            // wrapper the body is the raw downstream stream and a full
+                            // duplex exchange may still be streaming it upstream, so
+                            // it is closed later with the response.
+                            if (requestBodyWrapped)
+                            {
+                                await SafeCloseRequestBody(exchange, originalRequestBodyStream)
+                                    .ConfigureAwait(false);
+                            }
                         }
 
                         break;
@@ -796,11 +806,11 @@ namespace Fluxzy.Core
                     }
                     else
                     {
+                        await SafeCloseRequestBody(exchange, originalRequestBodyStream)
+                            .ConfigureAwait(false);
+
                         if (responseBodyStream != null)
                         {
-                            await SafeCloseRequestBody(exchange, originalRequestBodyStream)
-                                .ConfigureAwait(false);
-
                             await SafeCloseResponseBody(exchange, originalResponseBodyStream)
                                 .ConfigureAwait(false);
                         }
