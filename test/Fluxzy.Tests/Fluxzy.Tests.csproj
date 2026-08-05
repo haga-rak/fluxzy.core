@@ -88,13 +88,13 @@
     <PackageReference Include="Google.Protobuf" Version="3.34.1" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.80.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.82.0">
+    <PackageReference Include="Grpc.Tools" Version="2.83.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
-    <PackageReference Include="System.Threading.AccessControl" Version="10.0.9" />
+    <PackageReference Include="System.Threading.AccessControl" Version="10.0.10" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="Xunit.Combinatorial" Version="1.6.24" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">

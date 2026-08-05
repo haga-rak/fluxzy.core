@@ -333,6 +333,46 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
             Assert.Equal("x-checksum", ex2.Request.Trailers[0].Name.ToString());
             Assert.Equal("deadbeef", ex2.Request.Trailers[0].Value.ToString());
         }
+
+        [Fact]
+        public async Task FragmentedRequestTrailersCompleteAfterFinalContinuation()
+        {
+            await using var ctx = await H2TestContext.Create();
+            await ctx.CompleteHandshake();
+            await ctx.SendHeadersFrame(1,
+                "POST /fragmented-trailers HTTP/2\r\nHost: localhost\r\n\r\n".AsMemory(),
+                endStream: false, endHeaders: true);
+
+            using var buffer = Fluxzy.Misc.ResizableBuffers.RsBuffer.Allocate(32768);
+            using var scope = new ExchangeScope();
+            var exchange = await ctx.DownStreamPipe.ReadNextExchange(buffer, scope, ctx.Token);
+            Assert.NotNull(exchange);
+            await ctx.SendDataFrame(1, Encoding.ASCII.GetBytes("body"), endStream: false);
+            var body = ReadBody(exchange!.Request.Body!, ctx.Token);
+            var fragments = ctx.CreateFragmentedTrailerFrames(1, new List<HeaderField>
+            {
+                new("x-fragmented", "complete")
+            });
+
+            await ctx.SendRawFrame(fragments.Headers);
+            Assert.False(body.IsCompleted);
+            Assert.Null(exchange.Request.Trailers);
+
+            await ctx.SendRawFrame(fragments.Continuation);
+            Assert.Equal("body", await body.WaitAsync(TimeSpan.FromSeconds(2)));
+            Assert.NotNull(exchange.Request.Trailers);
+            Assert.Single(exchange.Request.Trailers!);
+            Assert.Equal("x-fragmented", exchange.Request.Trailers[0].Name.ToString());
+            Assert.Equal("complete", exchange.Request.Trailers[0].Value.ToString());
+            Assert.Equal(1, ctx.DownStreamPipe.ActiveStreamCountForTests);
+        }
+
+        private static async Task<string> ReadBody(Stream body, CancellationToken token)
+        {
+            using var destination = new MemoryStream();
+            await body.CopyToAsync(destination, token);
+            return Encoding.ASCII.GetString(destination.ToArray());
+        }
     }
 
     public class H2TrailerEncodingTests
@@ -371,6 +411,29 @@ namespace Fluxzy.Tests.UnitTests.H2Serve
                     decoded[i].Name.ToString().ToLowerInvariant());
                 Assert.Equal(original[i].Value.ToString(), decoded[i].Value.ToString());
             }
+        }
+
+        [Fact]
+        public void BuildFragmentedTrailerFrames_LargeValueEncodesWithoutFixedBufferLimit()
+        {
+            var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
+            var encoder = new HPackEncoder(new EncodingContext(memoryProvider));
+            var decoder = new HPackDecoder(
+                new DecodingContext(new Authority("localhost", 443, true), memoryProvider));
+            var value = new string('x', 6000);
+            var trailers = new List<HeaderField> { new("x-large-trailer", value) };
+
+            var frames = H2FrameHelper.BuildFragmentedTrailerFrames(
+                encoder, streamId: 1, trailers);
+            var firstLength = frames.Headers.Length - 9;
+            var encoded = new byte[firstLength + frames.Continuation.Length - 9];
+            frames.Headers.AsSpan(9).CopyTo(encoded);
+            frames.Continuation.AsSpan(9).CopyTo(encoded.AsSpan(firstLength));
+
+            var decoded = decoder.DecodeTrailerFields(encoded);
+            var trailer = Assert.Single(decoded);
+            Assert.Equal("x-large-trailer", trailer.Name.ToString());
+            Assert.Equal(value, trailer.Value.ToString());
         }
 
         /// <summary>
