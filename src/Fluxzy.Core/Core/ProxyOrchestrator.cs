@@ -720,8 +720,10 @@ namespace Fluxzy.Core
 
                         if (ex is OperationCanceledException || ex is IOException)
 
-                        // local browser interrupt connection 
+                        // local browser interrupt connection
                         {
+                            CompleteWithClientError(exchange, ex);
+
                             return shouldCloseConnectionToDownStream;
                         }
 
@@ -731,6 +733,8 @@ namespace Fluxzy.Core
                     if (exchange.Response.Header!.ContentLength != 0 &&
                         responseBodyStream != null)
                     {
+                        Exception? forwardingError = null;
+
                         try
                         {
                             var chunked = exchange.Response.Header.ChunkedBody &&
@@ -765,10 +769,14 @@ namespace Fluxzy.Core
                                     }
                                 }
 
-                                return true;
+                                // Defer the terminal update until the finally block
+                                // has flushed and closed the body streams.
+                                forwardingError = ex;
                             }
-
-                            throw;
+                            else
+                            {
+                                throw;
+                            }
                         }
                         finally
                         {
@@ -777,6 +785,13 @@ namespace Fluxzy.Core
 
                             await SafeCloseResponseBody(exchange, originalResponseBodyStream)
                                 .ConfigureAwait(false);
+                        }
+
+                        if (forwardingError != null)
+                        {
+                            CompleteWithClientError(exchange, forwardingError);
+
+                            return true;
                         }
                     }
                     else
@@ -817,6 +832,35 @@ namespace Fluxzy.Core
             }
 
             return shouldCloseConnectionToDownStream;
+        }
+
+        /// <summary>
+        /// Publishes the terminal update for an exchange whose response could not be
+        /// fully forwarded downstream. ClientErrors marks the exchange as failed so
+        /// consumers do not mistake this AfterResponse for a successful completion.
+        /// </summary>
+        private void CompleteWithClientError(Exchange exchange, Exception ex)
+        {
+            if (exchange.ClientErrors.Count == 0)
+            {
+                var networkErrorCode = ConnectionErrorHandler.ResolveNetworkErrorCode(ex);
+
+                if (networkErrorCode == NetworkErrorCodes.Unknown)
+                {
+                    networkErrorCode = NetworkErrorCodes.ConnectionAborted;
+                }
+
+                exchange.ClientErrors.Add(new ClientError(0,
+                    "The exchange was interrupted before the response was fully forwarded to the client.",
+                    networkErrorCode) {
+                    ExceptionMessage = ex.Message
+                });
+            }
+
+            _archiveWriter?.Update(exchange,
+                ArchiveUpdateType.AfterResponse,
+                CancellationToken.None
+            );
         }
 
         private static ValueTask SafeCloseRequestBody(Exchange exchange, Stream? substitutionStream)

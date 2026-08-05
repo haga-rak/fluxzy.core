@@ -105,7 +105,7 @@ public class EventWriterBodyDispatchTests
     }
 
     [Fact]
-    public async Task DefaultWriter_DoesNotCompleteFaultedResponse()
+    public async Task DefaultWriter_CompletesFaultedResponseWithClientError()
     {
         await using var setup = await ProxiedHostSetup.Create(
             setting => setting.AddAlterationRulesForAny(
@@ -113,7 +113,8 @@ public class EventWriterBodyDispatchTests
             app => app.MapGet("/fault", () => "original-response"));
 
         var faultedExchangeId = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var completedIds = new ConcurrentBag<int>();
+        var completed = new ConcurrentDictionary<int, int>();
+        var faultedCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         setup.Proxy.Writer.ExchangeUpdated += (_, args) =>
         {
@@ -122,14 +123,21 @@ public class EventWriterBodyDispatchTests
                 faultedExchangeId.TrySetResult(args.Original.Id);
 
             if (args.UpdateType == ArchiveUpdateType.AfterResponse)
-                completedIds.Add(args.Original.Id);
+            {
+                completed[args.Original.Id] = args.Original.ClientErrors.Count;
+                if (faultedExchangeId.Task.IsCompleted && args.Original.Id == faultedExchangeId.Task.Result)
+                    faultedCompleted.TrySetResult();
+            }
         };
 
         await Assert.ThrowsAnyAsync<HttpRequestException>(() => setup.Client.GetAsync("/fault"));
         var faultedId = await faultedExchangeId.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await faultedCompleted.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
-        Assert.DoesNotContain(faultedId, completedIds);
-        Assert.Equal(0, setup.Proxy.Writer.TotalProcessedExchanges);
+        // The faulted exchange gets exactly one terminal event, flagged as a client error
+        Assert.True(completed.TryGetValue(faultedId, out var clientErrorCount));
+        Assert.True(clientErrorCount > 0);
+        Assert.Equal(1, setup.Proxy.Writer.TotalProcessedExchanges);
     }
 
     [Fact]
@@ -174,7 +182,8 @@ public class EventWriterBodyDispatchTests
         });
 
         var cancelledExchangeId = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var completedIds = new ConcurrentBag<int>();
+        var completed = new ConcurrentDictionary<int, int>();
+        var cancelledCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         setup.Proxy.Writer.ExchangeUpdated += (_, args) =>
         {
@@ -183,7 +192,11 @@ public class EventWriterBodyDispatchTests
                 cancelledExchangeId.TrySetResult(args.Original.Id);
 
             if (args.UpdateType == ArchiveUpdateType.AfterResponse)
-                completedIds.Add(args.Original.Id);
+            {
+                completed[args.Original.Id] = args.Original.ClientErrors.Count;
+                if (cancelledExchangeId.Task.IsCompleted && args.Original.Id == cancelledExchangeId.Task.Result)
+                    cancelledCompleted.TrySetResult();
+            }
         };
 
         using (var response = await setup.Client.GetAsync("/cancel", HttpCompletionOption.ResponseHeadersRead))
@@ -197,8 +210,11 @@ public class EventWriterBodyDispatchTests
 
         Assert.Equal("ok", await setup.Client.GetStringAsync("/barrier"));
 
-        Assert.DoesNotContain(cancelledId, completedIds);
-        Assert.Equal(1, setup.Proxy.Writer.TotalProcessedExchanges);
+        // The aborted exchange still gets a terminal event, flagged as a client error
+        await cancelledCompleted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.True(completed.TryGetValue(cancelledId, out var clientErrorCount));
+        Assert.True(clientErrorCount > 0);
+        Assert.Equal(2, setup.Proxy.Writer.TotalProcessedExchanges);
     }
 
     [Fact]
