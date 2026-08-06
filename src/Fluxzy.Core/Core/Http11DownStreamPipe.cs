@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -19,6 +20,7 @@ namespace Fluxzy.Core
         private readonly IExchangeContextBuilder _contextBuilder;
         private readonly bool _plainAuthorityPerRequest;
         private readonly int? _plainAuthorityForcedPort;
+        private readonly ArrayPool<byte> _chunkBufferPool;
         private static int _count;
 
         private Stream? _readStream;
@@ -29,12 +31,14 @@ namespace Fluxzy.Core
             Authority requestedAuthority, Stream readStream, Stream writeStream,
             IExchangeContextBuilder contextBuilder,
             bool plainAuthorityPerRequest = false,
-            int? plainAuthorityForcedPort = null)
+            int? plainAuthorityForcedPort = null,
+            ArrayPool<byte>? chunkBufferPool = null)
         {
             _idProvider = idProvider;
             _contextBuilder = contextBuilder;
             _plainAuthorityPerRequest = plainAuthorityPerRequest;
             _plainAuthorityForcedPort = plainAuthorityForcedPort;
+            _chunkBufferPool = chunkBufferPool ?? ArrayPool<byte>.Shared;
             RequestedAuthority = requestedAuthority;
             _readStream = readStream;
             _writeStream = writeStream;
@@ -146,13 +150,10 @@ namespace Fluxzy.Core
             if (_writeStream == null)
                 throw new FluxzyException("Down stream has already been closed");
 
-            var stream = _writeStream;
-            ChunkedTransferWriteStream? chunkedWriter = null;
-
-            if (chunked) {
-                chunkedWriter = new ChunkedTransferWriteStream(stream);
-                stream = chunkedWriter;
-            }
+            using var chunkedWriter = chunked
+                ? new ChunkedTransferWriteStream(_writeStream, _chunkBufferPool)
+                : null;
+            var stream = (Stream?) chunkedWriter ?? _writeStream;
 
             if (chunked) {
                 await responseBodyStream

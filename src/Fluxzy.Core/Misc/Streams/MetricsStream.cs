@@ -190,7 +190,11 @@ namespace Fluxzy.Misc.Streams
         {
             base.Dispose(disposing);
 
-            if (_expectedLength != null && _expectedLength >= TotalRead)
+            // Notify only when the body was fully read. A partially read body
+            // must not report a successful final read: the completion callback
+            // marks the exchange reusable and the connection pool would recycle
+            // a connection still carrying unread body bytes.
+            if (_expectedLength != null && TotalRead >= _expectedLength)
             {
                 NotifyFinalRead();
             }

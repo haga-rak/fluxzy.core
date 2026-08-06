@@ -23,10 +23,11 @@ namespace Fluxzy.Core
         private readonly byte[] _headerBuffer;
         private int _receivedHeaderLength;
         private bool _endHeader;
-        private bool _endStream;
         private bool _exchangeCreated;
         private bool _initialHeadersComplete;
         private int _receivedTrailerLength;
+        private bool _trailersComplete;
+        private bool _pendingHeaderEndStream;
         private Exchange? _createdExchange;
 
         private Pipe? _requestBodyPipe;
@@ -34,7 +35,10 @@ namespace Fluxzy.Core
         private readonly WindowSizeHolder _streamWindowSizeHolder;
         private readonly H2StreamSetting _h2StreamSetting;
 
-        private bool _disposed;
+        private readonly CancellationTokenSource _responseAbortTokenSource = new();
+        private readonly CancellationToken _responseAbortToken;
+        private int _disposed;
+        private int _lifecycleState;
         private int _unNotifiedWindowSize;
 
         /// <summary>
@@ -48,6 +52,9 @@ namespace Fluxzy.Core
         ///     Reduces async calls when the stream window is large.
         /// </summary>
         private const int BatchFrames = 4;
+        private const int RequestCompleteState = 1;
+        private const int ResponseCompleteState = 2;
+        private const int AbortedState = 4;
 
         public ServerStreamWorker(
             int streamIdentifier,
@@ -59,6 +66,7 @@ namespace Fluxzy.Core
             _h2StreamSetting = h2StreamSetting;
             _headerBuffer = ArrayPool<byte>.Shared.Rent(h2StreamSetting.MaxHeaderSize);
             _streamWindowSizeHolder = new WindowSizeHolder(h2StreamSetting.Remote.WindowSize, streamIdentifier);
+            _responseAbortToken = _responseAbortTokenSource.Token;
         }
 
         private H2ErrorCode ReceiveHeaderFragment(ReadOnlySpan<byte> data, bool endHeaders)
@@ -111,22 +119,26 @@ namespace Fluxzy.Core
         {
             var headerFrame = frame.GetHeadersFrame();
 
-            if (headerFrame.EndStream) {
-                _endStream = true;
-            }
+            _pendingHeaderEndStream = headerFrame.EndStream;
 
             if (_initialHeadersComplete) {
+                if (_trailersComplete || IsRequestComplete || !headerFrame.EndStream)
+                    return H2ErrorCode.ProtocolError;
+
                 // This is a trailing HEADERS frame (after body)
                 var result = ReceiveTrailerFragment(headerFrame.Data.Span, headerFrame.EndHeaders);
 
-                if (_endStream && _requestBodyPipe != null) {
-                    _requestBodyPipe.Writer.Complete();
+                if (result == H2ErrorCode.NoError && headerFrame.EndHeaders) {
+                    _trailersComplete = true;
+                    _requestBodyPipe?.Writer.Complete();
+                    CompleteRequest();
                 }
 
                 return result;
             }
 
-            return ReceiveHeaderFragment(headerFrame.Data.Span, headerFrame.EndHeaders);
+            var initialResult = ReceiveHeaderFragment(headerFrame.Data.Span, headerFrame.EndHeaders);
+            return initialResult;
         }
 
         public H2ErrorCode ProcessContinuation(ref H2FrameReadResult frame)
@@ -134,10 +146,24 @@ namespace Fluxzy.Core
             var continuationFrame = frame.GetContinuationFrame();
 
             if (_initialHeadersComplete) {
-                return ReceiveTrailerFragment(continuationFrame.Data.Span, continuationFrame.EndHeaders);
+                if (_trailersComplete || IsRequestComplete || !_pendingHeaderEndStream)
+                    return H2ErrorCode.ProtocolError;
+
+                var trailerResult = ReceiveTrailerFragment(
+                    continuationFrame.Data.Span, continuationFrame.EndHeaders);
+
+                if (trailerResult == H2ErrorCode.NoError && continuationFrame.EndHeaders) {
+                    _trailersComplete = true;
+                    _requestBodyPipe?.Writer.Complete();
+                    CompleteRequest();
+                }
+
+                return trailerResult;
             }
 
-            return ReceiveHeaderFragment(continuationFrame.Data.Span, continuationFrame.EndHeaders);
+            var initialResult = ReceiveHeaderFragment(
+                continuationFrame.Data.Span, continuationFrame.EndHeaders);
+            return initialResult;
         }
 
         public async Task<ReceiveBodyResult> ReceiveBodyFragment(H2FrameReadResult frame, RsBuffer buffer, CancellationToken token)
@@ -146,6 +172,9 @@ namespace Fluxzy.Core
             buffer.Ensure(length);
             frame.GetDataFrame().Buffer.CopyTo(buffer.Memory);
             var endStream = frame.GetDataFrame().EndStream;
+
+            if (IsRequestComplete)
+                return new (H2ErrorCode.StreamClosed, 0, null);
 
             if (_requestBodyPipe == null)
             {
@@ -158,8 +187,8 @@ namespace Fluxzy.Core
 
             if (endStream)
             {
-                _endStream = true;
                 await _requestBodyPipe.Writer.CompleteAsync().ConfigureAwait(false);
+                CompleteRequest();
             }
 
             _unNotifiedWindowSize += length;
@@ -190,14 +219,17 @@ namespace Fluxzy.Core
 
             _receivedHeaderLength = 0; // Reset for possible trailer accumulation
 
+            if (_pendingHeaderEndStream)
+                CompleteRequest();
+
             var receivedFromProxy = ITimingProvider.Default.Instant();
 
             var requestHeader = new RequestHeader(plainRequest, true);
 
             Stream bodyStream;
 
-            if (_endStream) {
-                bodyStream = Stream.Null; // no response body
+            if (IsRequestComplete) {
+                bodyStream = Stream.Null; // no request body
             }
             else {
                 _requestBodyPipe = new Pipe(new PipeOptions(
@@ -226,9 +258,51 @@ namespace Fluxzy.Core
             _streamWindowSizeHolder.UpdateWindowSize(windowSizeIncrement);
         }
 
+        public bool CompleteRequest()
+        {
+            var state = Interlocked.Or(ref _lifecycleState, RequestCompleteState) |
+                        RequestCompleteState;
+            return IsClosedState(state);
+        }
+
+        public bool CompleteResponse()
+        {
+            var state = Interlocked.Or(ref _lifecycleState, ResponseCompleteState) |
+                        ResponseCompleteState;
+            return IsClosedState(state);
+        }
+
+        public void Abort(H2ErrorCode errorCode)
+        {
+            var previous = Interlocked.Or(ref _lifecycleState, AbortedState);
+
+            if ((previous & AbortedState) != 0)
+                return;
+
+            try { _responseAbortTokenSource.Cancel(); }
+            catch (ObjectDisposedException) { }
+            var error = new ExchangeException(
+                $"Downstream reset HTTP/2 stream {StreamIdentifier}: {errorCode}");
+
+            try { _requestBodyPipe?.Writer.Complete(error); }
+            catch (InvalidOperationException) { }
+        }
+
+        public bool IsClosed => IsClosedState(Volatile.Read(ref _lifecycleState));
+        public bool IsAborted => (Volatile.Read(ref _lifecycleState) & AbortedState) != 0;
+        public CancellationToken ResponseAbortToken => _responseAbortToken;
+
+        private bool IsRequestComplete
+            => (Volatile.Read(ref _lifecycleState) & RequestCompleteState) != 0;
+
+        private static bool IsClosedState(int state)
+            => (state & AbortedState) != 0 ||
+               (state & (RequestCompleteState | ResponseCompleteState)) ==
+               (RequestCompleteState | ResponseCompleteState);
+
         public async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
         {
-            if (requestedBodyLength == 0)
+            if (requestedBodyLength == 0 || IsAborted)
                 return 0;
 
             // Fast path: serve from pre-booked local budget (zero holder calls).
@@ -268,13 +342,15 @@ namespace Fluxzy.Core
 
         public void Dispose()
         {
-            if (_disposed)
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
                 return;
 
-            _disposed = true;
-
-            _requestBodyPipe?.Writer.Complete();
+            try { _requestBodyPipe?.Writer.Complete(); }
+            catch (InvalidOperationException) { }
+            try { _responseAbortTokenSource.Cancel(); }
+            catch (ObjectDisposedException) { }
             _streamWindowSizeHolder.Dispose();
+            _responseAbortTokenSource.Dispose();
 
             ArrayPool<byte>.Shared.Return(_headerBuffer);
         }

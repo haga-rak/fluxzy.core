@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Fluxzy.Misc.Streams;
 
@@ -9,6 +10,73 @@ namespace Fluxzy.Misc
 {
     internal static class ProcessUtilsOsx
     {
+        /// <summary>
+        /// Launches commandName as root through the system authorization dialog, keeping live
+        /// stdin/stdout on the returned process. The password is collected by macOS, never by
+        /// this process.
+        /// </summary>
+        internal static Process? StartElevatedStreamed(
+            string commandName, string[] args, bool redirectStandardError)
+        {
+            // security(1) forwards this process's stdin to the elevated child, but never reads
+            // back the AuthorizationExecuteWithPrivileges pipe that carries the child's stdout;
+            // only the child's stderr flows back. Swap stdout/stderr inside the elevated shell
+            // and swap them back outside, so the child's stdout lands on StandardOutput.
+            var elevated = new[] {
+                "/usr/bin/security", "-q", "execute-with-privileges",
+                "/bin/sh", "-c", "exec \"$0\" \"$@\" 1>&2", commandName
+            }.Concat(args);
+
+            var startInfo = new ProcessStartInfo("/bin/sh") {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardInput = true,
+                RedirectStandardError = redirectStandardError
+            };
+
+            startInfo.ArgumentList.Add("-c");
+            startInfo.ArgumentList.Add($"exec {string.Join(" ", elevated.Select(QuoteForShell))} 2>&1");
+
+            return Process.Start(startInfo);
+        }
+
+        /// <summary>
+        /// Runs a one-shot command as root through the system authorization dialog. The returned
+        /// process exits when the command completes and reflects its failure in the exit code.
+        /// </summary>
+        internal static Process? StartElevatedOneShot(string commandName, string[] args, string prompt)
+        {
+            var command = string.Join(" ",
+                new[] { commandName }.Concat(args).Select(QuoteForShell));
+
+            var script = $"do shell script {QuoteForAppleScript(command)}";
+
+            if (!string.IsNullOrWhiteSpace(prompt)) {
+                script += $" with prompt {QuoteForAppleScript(prompt)}";
+            }
+
+            script += " with administrator privileges";
+
+            var startInfo = new ProcessStartInfo("/usr/bin/osascript") {
+                UseShellExecute = false
+            };
+
+            startInfo.ArgumentList.Add("-e");
+            startInfo.ArgumentList.Add(script);
+
+            return Process.Start(startInfo);
+        }
+
+        private static string QuoteForShell(string value)
+        {
+            return "'" + value.Replace("'", "'\\''") + "'";
+        }
+
+        private static string QuoteForAppleScript(string value)
+        {
+            return "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+        }
+
         /// <summary>
         /// Try to register current process in a sudo session
         /// </summary>

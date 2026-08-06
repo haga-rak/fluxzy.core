@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -24,15 +25,18 @@ namespace Fluxzy.Clients.H11
         private readonly TimeSpan _responseHeaderTimeout;
         private readonly TimeSpan _responseBodyIdleTimeout;
         private readonly ILogger _logger;
+        private readonly ArrayPool<byte> _chunkBufferPool;
 
         public Http11PoolProcessing(
             TimeSpan expectContinueTimeout, TimeSpan responseHeaderTimeout,
-            TimeSpan responseBodyIdleTimeout, ILogger? logger = null)
+            TimeSpan responseBodyIdleTimeout, ILogger? logger = null,
+            ArrayPool<byte>? chunkBufferPool = null)
         {
             _expectContinueTimeout = expectContinueTimeout;
             _responseHeaderTimeout = responseHeaderTimeout;
             _responseBodyIdleTimeout = responseBodyIdleTimeout;
             _logger = logger ?? NullLogger.Instance;
+            _chunkBufferPool = chunkBufferPool ?? ArrayPool<byte>.Shared;
         }
 
         /// <summary>
@@ -119,11 +123,11 @@ namespace Fluxzy.Clients.H11
 
             if (!hasEarlyResponseHeader && exchange.Request.Body != null) {
                 var writeStream = exchange.Connection.WriteStream;
-                ChunkedTransferWriteStream? chunkedStream = null;
+                using var chunkedStream = exchange.Request.Header.ChunkedBody
+                    ? new ChunkedTransferWriteStream(writeStream, _chunkBufferPool)
+                    : null;
 
-                if (exchange.Request.Header.ChunkedBody) {
-                    writeStream = chunkedStream = new ChunkedTransferWriteStream(writeStream);
-                }
+                writeStream = chunkedStream ?? writeStream;
 
                 var totalBodySize = await
                     exchange.Request.Body.CopyDetailed(writeStream, 1024 * 16,

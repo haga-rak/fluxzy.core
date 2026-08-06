@@ -36,17 +36,11 @@ jobs:
         # Extract version from tag (v1.31.24.27401 -> 1.31.24.27401)
         $version = $tag -replace '^v', ''
 
-        # For Winget, we need a 3-part version (1.31.24)
-        $versionParts = $version -split '\.'
-        $wingetVersion = "$($versionParts[0]).$($versionParts[1]).$($versionParts[2])"
-
         Write-Output "tag=$tag" >> $env:GITHUB_OUTPUT
         Write-Output "version=$version" >> $env:GITHUB_OUTPUT
-        Write-Output "winget_version=$wingetVersion" >> $env:GITHUB_OUTPUT
 
         Write-Host "Release tag: $tag"
-        Write-Host "Full version: $version"
-        Write-Host "Winget version: $wingetVersion"
+        Write-Host "Version: $version"
 
     - name: Download release asset
       shell: pwsh
@@ -79,7 +73,8 @@ jobs:
     - name: Install wingetcreate
       shell: pwsh
       run: |
-        Invoke-WebRequest -Uri https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+        # Self-contained build: does not depend on a specific .NET runtime being installed on the runner
+        Invoke-WebRequest -Uri https://aka.ms/wingetcreate/latest/self-contained -OutFile wingetcreate.exe
 
     - name: Create and submit Winget manifest
       shell: pwsh
@@ -87,7 +82,6 @@ jobs:
         WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
       run: |
         $version = "${{ steps.release.outputs.version }}"
-        $wingetVersion = "${{ steps.release.outputs.winget_version }}"
         $tag = "${{ steps.release.outputs.tag }}"
         $dryRun = "${{ inputs.dry_run }}"
 
@@ -96,7 +90,9 @@ jobs:
         $urlX64   = "$urlBase/fluxzy-cli-$version-win-x64.zip"
         $urlArm64 = "$urlBase/fluxzy-cli-$version-win-arm64.zip"
 
-        Write-Host "Creating Winget manifest for version $wingetVersion"
+        # Use the full 4-part version: existing Fluxzy.Fluxzy versions on winget-pkgs are 4-part,
+        # and a 3-part version would sort older than them
+        Write-Host "Creating Winget manifest for version $version"
         Write-Host "URL x86:   $urlX86"
         Write-Host "URL x64:   $urlX64"
         Write-Host "URL arm64: $urlArm64"
@@ -104,7 +100,7 @@ jobs:
         if ($dryRun -eq "true") {
           Write-Host "Dry run mode - validating manifest only"
           ./wingetcreate.exe update Fluxzy.Fluxzy `
-            --version $wingetVersion `
+            --version $version `
             --urls $urlX86 $urlX64 $urlArm64 `
             --out ./manifest-output
 
@@ -112,7 +108,7 @@ jobs:
           Get-ChildItem "./manifest-output" -Recurse
         } else {
           ./wingetcreate.exe update Fluxzy.Fluxzy `
-            --version $wingetVersion `
+            --version $version `
             --urls $urlX86 $urlX64 $urlArm64 `
             --token $env:WINGET_GITHUB_TOKEN `
             --submit

@@ -28,13 +28,27 @@ namespace Fluxzy.Clients.H2
 
         public void OnComplete(Exception? ex)
         {
-            if (ex != null) {
-                CompletionSource.SetException(ex);
+            if (ex is OperationCanceledException cancellation) {
+                if (cancellation.CancellationToken.CanBeCanceled)
+                    CompletionSource.TrySetCanceled(cancellation.CancellationToken);
+                else
+                    CompletionSource.TrySetCanceled();
 
                 return;
             }
 
-            CompletionSource.SetResult(null);
+            if (ex != null) {
+                if (CompletionSource.TrySetException(ex)) {
+                    // Fire and forget frames (RST, ping, window updates,
+                    // settings ack) never await DoneTask. Read Exception so a
+                    // faulted task cannot raise UnobservedTaskException.
+                    _ = CompletionSource.Task.Exception;
+                }
+
+                return;
+            }
+
+            CompletionSource.TrySetResult(null);
         }
 
         public Task DoneTask => CompletionSource.Task;

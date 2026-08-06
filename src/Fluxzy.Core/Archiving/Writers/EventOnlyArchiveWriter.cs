@@ -10,6 +10,8 @@ namespace Fluxzy.Writers
 {
     public class EventOnlyArchiveWriter : RealtimeArchiveWriter
     {
+        public override bool CapturesBodyContent => false;
+
         public override void UpdateTags(IEnumerable<Tag> tags)
         {
         }
