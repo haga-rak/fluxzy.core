@@ -5,7 +5,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
@@ -212,6 +211,8 @@ namespace Fluxzy.Tests.UnitTests.H2Client
         [Fact]
         public async Task WriterChannelSupportsConcurrentTeardownDrain()
         {
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
             var authority = new Authority("test.local", 443, true);
             var pool = new H2ConnectionPool(
                 Stream.Null,
@@ -219,20 +220,25 @@ namespace Fluxzy.Tests.UnitTests.H2Client
                 authority,
                 new Connection(authority, new TestIdProvider()),
                 _ => { });
+            var first = new WriteTask(
+                H2FrameType.Data, streamIdentifier: 1, priority: 0,
+                streamDependency: 0, new byte[9]);
+            var second = new WriteTask(
+                H2FrameType.Data, streamIdentifier: 3, priority: 0,
+                streamDependency: 0, new byte[9]);
 
-            try {
-                var field = typeof(H2ConnectionPool).GetField(
-                    "_writerChannel", BindingFlags.Instance | BindingFlags.NonPublic);
-                Assert.NotNull(field);
-                var channel = field.GetValue(pool);
-                Assert.NotNull(channel);
+            pool.EnqueueWriteTaskForTests(ref first);
+            pool.EnqueueWriteTaskForTests(ref second);
 
-                Assert.DoesNotContain(
-                    "SingleConsumer", channel.GetType().Name, StringComparison.Ordinal);
-            }
-            finally {
-                await pool.DisposeAsync();
-            }
+            // Disposal and the exiting writer loop both drain the channel,
+            // which requires the channel to allow more than one reader.
+            await Task.WhenAll(
+                pool.DisposeAsync().AsTask(),
+                pool.RunWriterLoopForTests(cancellation.Token))
+                      .WaitAsync(TimeSpan.FromSeconds(2));
+
+            Assert.True(first.DoneTask.IsCompleted);
+            Assert.True(second.DoneTask.IsCompleted);
         }
 
         [Fact]
@@ -251,7 +257,7 @@ namespace Fluxzy.Tests.UnitTests.H2Client
                 H2FrameType.Data, streamIdentifier: 1, priority: 0,
                 streamDependency: 0, new byte[9]);
 
-            EnqueueForPool(pool, writeTask);
+            pool.EnqueueWriteTaskForTests(ref writeTask);
 
             Assert.True(writeTask.DoneTask.IsCompleted);
             await Assert.ThrowsAsync<ConnectionCloseException>(() => writeTask.DoneTask);
@@ -294,10 +300,10 @@ namespace Fluxzy.Tests.UnitTests.H2Client
                 H2FrameType.Data, streamIdentifier: 3, priority: 0,
                 streamDependency: 0, new byte[9]);
 
-            EnqueueForPool(pool, first);
-            EnqueueForPool(pool, second);
+            pool.EnqueueWriteTaskForTests(ref first);
+            pool.EnqueueWriteTaskForTests(ref second);
 
-            await RunWriterLoopForTest(pool, cancellation.Token)
+            await pool.RunWriterLoopForTests(cancellation.Token)
                 .WaitAsync(TimeSpan.FromSeconds(2));
 
             Assert.True(first.DoneTask.IsCompleted);
@@ -322,8 +328,8 @@ namespace Fluxzy.Tests.UnitTests.H2Client
                 H2FrameType.WindowUpdate, streamIdentifier: 1, priority: 0,
                 streamDependency: 0, ReadOnlyMemory<byte>.Empty, value: 1);
 
-            EnqueueForPool(pool, writeTask);
-            var loop = RunWriterLoopForTest(pool, cancellation.Token);
+            pool.EnqueueWriteTaskForTests(ref writeTask);
+            var loop = pool.RunWriterLoopForTests(cancellation.Token);
 
             try {
                 await stream.Written.Task.WaitAsync(TimeSpan.FromSeconds(2));
@@ -350,24 +356,6 @@ namespace Fluxzy.Tests.UnitTests.H2Client
 
             Assert.True(writeTask.DoneTask.IsCompleted);
             await Assert.ThrowsAsync<ObjectDisposedException>(() => writeTask.DoneTask);
-        }
-
-        private static void EnqueueForPool(H2ConnectionPool pool, WriteTask writeTask)
-        {
-            var method = typeof(H2ConnectionPool).GetMethod(
-                "UpStreamChannel", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(method);
-            method.Invoke(pool, new object[] { writeTask });
-        }
-
-        private static Task RunWriterLoopForTest(
-            H2ConnectionPool pool, CancellationToken cancellationToken)
-        {
-            var method = typeof(H2ConnectionPool).GetMethod(
-                "InternalWriteLoop", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(method);
-            return Assert.IsAssignableFrom<Task>(
-                method.Invoke(pool, new object[] { cancellationToken }));
         }
 
         private static async Task NegotiateMaxFrameSize(DuplexPipe pipe, int remoteMaxFrameSize)

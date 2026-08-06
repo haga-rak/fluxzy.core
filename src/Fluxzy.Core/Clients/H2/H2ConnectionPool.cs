@@ -270,6 +270,12 @@ namespace Fluxzy.Clients.H2
         // Invoked immediately before the dedicated request-body buffer and task are created.
         internal Action? RequestBodyWorkStartedForTests { get; set; }
 
+        /// <summary>Test seam: enqueue a write task through the writer channel.</summary>
+        internal void EnqueueWriteTaskForTests(ref WriteTask writeTask) => UpStreamChannel(ref writeTask);
+
+        /// <summary>Test seam: run the writer loop directly without Init.</summary>
+        internal Task RunWriterLoopForTests(CancellationToken token) => InternalWriteLoop(token);
+
         public async ValueTask Send(
             Exchange exchange, IDownStreamPipe _, RsBuffer buffer, ExchangeScope __,
             CancellationToken cancellationToken = default)
