@@ -38,7 +38,13 @@ namespace Fluxzy.Clients.H2
             }
 
             if (ex != null) {
-                CompletionSource.TrySetException(ex);
+                if (CompletionSource.TrySetException(ex)) {
+                    // Fire and forget frames (RST, ping, window updates,
+                    // settings ack) never await DoneTask. Read Exception so a
+                    // faulted task cannot raise UnobservedTaskException.
+                    _ = CompletionSource.Task.Exception;
+                }
+
                 return;
             }
 
