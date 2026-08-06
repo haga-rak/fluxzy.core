@@ -92,7 +92,7 @@ namespace Fluxzy.Tests.UnitTests.H2Client
         }
 
         [Fact]
-        public async Task ConcurrentResetAndDispose_FaultBodyOnceWithoutThrowing()
+        public async Task ConcurrentResetAndDispose_CompleteBodyOnceWithoutThrowing()
         {
             using var fixture = new WorkerFixture();
 
@@ -104,10 +104,28 @@ namespace Fluxzy.Tests.UnitTests.H2Client
                 Task.Run(fixture.Worker.Dispose),
                 Task.Run(fixture.Worker.Dispose));
 
-            await Assert.ThrowsAsync<ExchangeException>(() =>
-                fixture.Exchange.Response.Body!.ReadAsync(new byte[1]).AsTask());
+            Assert.Equal(0, await fixture.Exchange.Response.Body!.ReadAsync(new byte[1]));
 
             fixture.Worker.ResetRequest(H2ErrorCode.Cancel);
+            await Assert.ThrowsAsync<ExchangeException>(() => fixture.Exchange.Complete);
+        }
+
+        [Fact]
+        public async Task ResetAfterDataRelaysReceivedBodyWithCleanEndOfStream()
+        {
+            using var fixture = new WorkerFixture();
+            var body = new byte[] { 1, 2, 3 };
+
+            fixture.ReceiveResponseHeaders(endStream: false);
+            await fixture.Worker.ProcessResponse(CancellationToken.None, null!);
+            fixture.Worker.ReceiveBodyFragmentFromConnection(body, endStream: false);
+
+            // Some servers reset instead of sending END_STREAM after a full
+            // response. The received body must be relayed as a clean EOF while
+            // the exchange itself records the reset.
+            fixture.Worker.ResetRequest(H2ErrorCode.InternalError);
+
+            Assert.Equal(body, await ReadAllBytes(fixture.Exchange.Response.Body!));
             await Assert.ThrowsAsync<ExchangeException>(() => fixture.Exchange.Complete);
         }
 

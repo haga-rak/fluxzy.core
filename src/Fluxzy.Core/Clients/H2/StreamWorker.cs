@@ -25,7 +25,6 @@ namespace Fluxzy.Clients.H2
         private readonly CancellationTokenSource _resetTokenSource;
 
         private bool _responseBodyCompleted;
-        private Exception? _responseBodyCompletionError;
 
         private int _disposed;
         private bool _firstBodyFragment = true;
@@ -189,7 +188,10 @@ namespace Fluxzy.Clients.H2
 
             var error = new ExchangeException($"Receive RST : {errorCode} from server");
 
-            CompleteResponseBody(error);
+            // Complete the body cleanly: some servers reset instead of sending
+            // END_STREAM after a full response, and the proxy must relay what was
+            // received. The reset still faults ExchangeCompletionSource below.
+            CompleteResponseBody();
 
             if (errorCode != H2ErrorCode.NoError) {
                 var value = _exchange.Request.Header.GetHttp11Header().ToString();
@@ -628,10 +630,7 @@ namespace Fluxzy.Clients.H2
         private Stream GetResponseBodyStream()
         {
             lock (this) {
-                if (_noBodyStream ||
-                    _responseBodyCompleted &&
-                    _responseBodyCompletionError == null &&
-                    _pipeResponseBody == null)
+                if (_noBodyStream || (_responseBodyCompleted && _pipeResponseBody == null))
                     return Stream.Null;
 
                 return GetResponseBodyPipe().Reader.AsStream();
@@ -661,14 +660,14 @@ namespace Fluxzy.Clients.H2
                     useSynchronizationContext: false));
 
                 if (_responseBodyCompleted)
-                    pipe.Writer.Complete(_responseBodyCompletionError);
+                    pipe.Writer.Complete();
 
                 Volatile.Write(ref _pipeResponseBody, pipe);
                 return pipe;
             }
         }
 
-        private void CompleteResponseBody(Exception? error = null)
+        private void CompleteResponseBody()
         {
             Pipe? pipe;
 
@@ -677,11 +676,10 @@ namespace Fluxzy.Clients.H2
                     return;
 
                 _responseBodyCompleted = true;
-                _responseBodyCompletionError = error;
                 pipe = _pipeResponseBody;
             }
 
-            pipe?.Writer.Complete(error);
+            pipe?.Writer.Complete();
         }
 
         internal void OnDataConsumedByCaller(int dataSize)
