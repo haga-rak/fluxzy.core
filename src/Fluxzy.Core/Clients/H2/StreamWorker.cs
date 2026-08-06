@@ -280,7 +280,7 @@ namespace Fluxzy.Clients.H2
                 while (true) {
                     var bookedSize = Math.Min(
                         Parent.Context.Setting.Remote.MaxFrameSize,
-                        Math.Min(H2ConnectionPool.MaxUploadPayloadSize, buffer.Buffer.Length - 9));
+                        Math.Min(FluxzySharedSetting.H2MaxUploadPayloadSize, buffer.Buffer.Length - 9));
 
                     if (Volatile.Read(ref _disposed) != 0)
                         throw new TaskCanceledException("Stream cancellation request");

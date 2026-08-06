@@ -23,8 +23,6 @@ namespace Fluxzy.Clients.H2
 {
     public class H2ConnectionPool : IHttpConnectionPool
     {
-        internal const int MaxUploadPayloadSize = 64 * 1024;
-
         private static int _connectionIdCounter;
 
         private readonly Connection _connection;
@@ -894,7 +892,8 @@ namespace Fluxzy.Clients.H2
                 // Allocate a dedicated buffer for request body forwarding so we can
                 // return the shared buffer to the caller once the response is available.
                 RequestBodyWorkStartedForTests?.Invoke();
-                var uploadPayloadSize = Math.Min(Setting.Remote.MaxFrameSize, MaxUploadPayloadSize);
+                var uploadPayloadSize = Math.Min(
+                    Setting.Remote.MaxFrameSize, FluxzySharedSetting.H2MaxUploadPayloadSize);
                 var bodyBuffer = RsBuffer.Allocate(uploadPayloadSize + 9);
 
                 var requestBodyTask = activeStream.ProcessRequestBody(
