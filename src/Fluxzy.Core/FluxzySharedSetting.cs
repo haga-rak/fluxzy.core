@@ -46,6 +46,15 @@ namespace Fluxzy
             EnvironmentUtility.GetInt32("FLUXZY_RESPONSE_BODY_COPY_BUFFER", 64 * 1024);
 
         /// <summary>
+        ///     Cap applied to HTTP/2 upload DATA frame payloads, even when the remote peer
+        ///     advertises a larger SETTINGS_MAX_FRAME_SIZE. Also sizes the pooled buffer rented
+        ///     for each request body upload. Values below 16 KiB reduce upload throughput.
+        ///     Can be set by environment variable FLUXZY_H2_MAX_UPLOAD_PAYLOAD_SIZE.
+        /// </summary>
+        public static int H2MaxUploadPayloadSize { get; set; } =
+            EnvironmentUtility.GetInt32("FLUXZY_H2_MAX_UPLOAD_PAYLOAD_SIZE", 64 * 1024);
+
+        /// <summary>
         ///     The maximum number of concurrent connections allowed
         /// </summary>
         public static int OverallMaxConcurrentConnections { get; } = 102400;

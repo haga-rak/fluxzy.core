@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,10 +21,12 @@ namespace Fluxzy.Clients.H2
 
         private readonly SemaphoreSlim _headerReceivedSemaphore = new(0, 1);
         
-        private readonly Pipe _pipeResponseBody;
+        private Pipe? _pipeResponseBody;
         private readonly CancellationTokenSource _resetTokenSource;
 
-        private bool _disposed;
+        private bool _responseBodyCompleted;
+
+        private int _disposed;
         private bool _firstBodyFragment = true;
 
         private byte[]? _headerBuffer;
@@ -57,16 +60,9 @@ namespace Fluxzy.Clients.H2
             RemoteWindowSize = new WindowSizeHolder(parent.Context.Setting.Remote.WindowSize,
                 streamIdentifier);
             
-            _pipeResponseBody = new Pipe(new PipeOptions(
-                pool: MemoryPool<byte>.Shared,
-                readerScheduler: PipeScheduler.ThreadPool,
-                writerScheduler: PipeScheduler.Inline,
-                pauseWriterThreshold: 0,
-                resumeWriterThreshold: 0,
-                minimumSegmentSize: 16384,
-                useSynchronizationContext: false
-            ));
         }
+
+        internal Pipe? ResponseBodyPipeForTests => Volatile.Read(ref _pipeResponseBody);
 
         public int StreamIdentifier { get; }
 
@@ -82,7 +78,8 @@ namespace Fluxzy.Clients.H2
 
         public void Dispose()
         {
-            _disposed = true;
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
             
             RemoteWindowSize?.Dispose();
 
@@ -189,7 +186,12 @@ namespace Fluxzy.Clients.H2
             if (!_resetTokenSource.IsCancellationRequested)
                 _resetTokenSource.Cancel();
 
-            _pipeResponseBody.Writer.Complete();
+            var error = new ExchangeException($"Receive RST : {errorCode} from server");
+
+            // Complete the body cleanly: some servers reset instead of sending
+            // END_STREAM after a full response, and the proxy must relay what was
+            // received. The reset still faults ExchangeCompletionSource below.
+            CompleteResponseBody();
 
             if (errorCode != H2ErrorCode.NoError) {
                 var value = _exchange.Request.Header.GetHttp11Header().ToString();
@@ -199,7 +201,7 @@ namespace Fluxzy.Clients.H2
             }
 
             _exchange.ExchangeCompletionSource
-                     .TrySetException(new ExchangeException($"Receive RST : {errorCode} from server"));
+                     .TrySetException(error);
 
             Parent.NotifyDispose(this);
         }
@@ -211,8 +213,11 @@ namespace Fluxzy.Clients.H2
             Exclusive = priorityFrame.Exclusive;
         }
 
-        public Task EnqueueRequestHeader(Exchange exchange, RsBuffer buffer, CancellationToken token)
+        public (Task Sent, bool EndStream) EnqueueRequestHeader(
+            Exchange exchange, RsBuffer buffer, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
+
             var endStream = exchange.Request.Header.ContentLength == 0 ||
                             exchange.Request.Body == null ||
                             (exchange.Request.Body.CanSeek && exchange.Request.Body.Length == 0);
@@ -223,20 +228,32 @@ namespace Fluxzy.Clients.H2
                 new HeaderEncodingJob(exchange.Request.Header.GetHttp11Header(), StreamIdentifier, StreamDependency),
                 buffer, endStream);
 
+            // The encoder writes into the caller-owned pooled RsBuffer. Materialize the
+            // packetized header before enqueue so caller cancellation may return that
+            // buffer without racing an in-flight transport write.
+            var ownedHeader = readyToBeSent.ToArray();
+
             exchange.Metrics.RequestHeaderSending = ITimingProvider.Default.Instant();
-            exchange.Metrics.RequestHeaderLength = readyToBeSent.Length;
+            exchange.Metrics.RequestHeaderLength = ownedHeader.Length;
 
             FluxzyLogEvents.LogRequestSending(Parent.Context.Logger, exchange);
 
             var writeHeaderTask = new WriteTask(H2FrameType.Headers, StreamIdentifier, StreamPriority,
-                StreamDependency, readyToBeSent);
+                StreamDependency, ownedHeader);
 
             Parent.Context.UpStreamChannel(ref writeHeaderTask);
 
-            return writeHeaderTask.DoneTask
-                                  .ContinueWith(t => {
-                                      return _exchange.Metrics.TotalSent += readyToBeSent.Length;
-                                  }, token);
+            return (
+                CompleteRequestHeaderWrite(
+                    writeHeaderTask.DoneTask, ownedHeader.Length, token),
+                endStream);
+        }
+
+        private async Task CompleteRequestHeaderWrite(
+            Task writeTask, int headerLength, CancellationToken token)
+        {
+            await writeTask.WaitAsync(token).ConfigureAwait(false);
+            _exchange.Metrics.TotalSent += headerLength;
         }
 
         public async ValueTask ProcessRequestBody(Exchange exchange, RsBuffer buffer, CancellationToken token)
@@ -261,9 +278,11 @@ namespace Fluxzy.Clients.H2
             if (requestBodyStream != null
                 && (!requestBodyStream.CanSeek || requestBodyStream.Length > 0)) {
                 while (true) {
-                    var bookedSize = Math.Min(Parent.Context.Setting.Local.MaxFrameSize, buffer.Buffer.Length) - 9;
+                    var bookedSize = Math.Min(
+                        Parent.Context.Setting.Remote.MaxFrameSize,
+                        Math.Min(FluxzySharedSetting.H2MaxUploadPayloadSize, buffer.Buffer.Length - 9));
 
-                    if (_disposed)
+                    if (Volatile.Read(ref _disposed) != 0)
                         throw new TaskCanceledException("Stream cancellation request");
 
                     // We check wait for available Window Size from remote
@@ -305,6 +324,7 @@ namespace Fluxzy.Clients.H2
                     _exchange.Metrics.TotalSent += dataFramePayloadLength;
 
                     if (dataFramePayloadLength == 0 || endStream) {
+                        await writeTaskBody.DoneTask.ConfigureAwait(false);
                         exchange.Metrics.RequestBodySent = ITimingProvider.Default.Instant();
                         FluxzyLogEvents.LogRequestSent(Parent.Context.Logger, exchange, earlyResponse: false);
                         return;
@@ -443,7 +463,7 @@ namespace Fluxzy.Clients.H2
                     _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
                 try {
-                    _pipeResponseBody.Writer.Complete();
+                    CompleteResponseBody();
                 }
                 catch {
                     // Pipe may already be completed
@@ -514,10 +534,10 @@ namespace Fluxzy.Clients.H2
                 throw;
             }
 
-            var responseBodyStream = _pipeResponseBody.Reader.AsStream();
+            var responseBodyStream = GetResponseBodyStream();
             var bodyIdleTimeout = Parent.Context.Setting.ResponseBodyIdleTimeout;
 
-            if (!_noBodyStream
+            if (!ReferenceEquals(responseBodyStream, Stream.Null)
                 && bodyIdleTimeout > TimeSpan.Zero
                 && bodyIdleTimeout != Timeout.InfiniteTimeSpan) {
                 _exchange.Response.Body = new ReadIdleTimeoutStream(responseBodyStream, bodyIdleTimeout,
@@ -531,7 +551,7 @@ namespace Fluxzy.Clients.H2
 
             if (_noBodyStream) {
                 // This stream as no more body
-                await _pipeResponseBody.Writer.CompleteAsync().ConfigureAwait(false);
+                CompleteResponseBody();
 
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
                 Parent.NotifyDispose(this);
@@ -551,7 +571,7 @@ namespace Fluxzy.Clients.H2
             _exchange.ExchangeCompletionSource.TrySetException(
                 new ExchangeException("Response body idle timeout reached"));
 
-            _pipeResponseBody.Reader.CancelPendingRead();
+            Volatile.Read(ref _pipeResponseBody)?.Reader.CancelPendingRead();
 
             Parent.NotifyDispose(this);
         }
@@ -579,10 +599,11 @@ namespace Fluxzy.Clients.H2
             _exchange.Metrics.TotalReceived += buffer.Length;
 
             var cancelled = false;
+            var responseBodyPipe = GetResponseBodyPipe();
 
             try {
-                _pipeResponseBody.Writer.Write(buffer.Span);
-                _pipeResponseBody.Writer.FlushAsync().GetAwaiter().GetResult();
+                responseBodyPipe.Writer.Write(buffer.Span);
+                responseBodyPipe.Writer.FlushAsync().GetAwaiter().GetResult();
             }
             catch {
                 cancelled = true;
@@ -595,7 +616,7 @@ namespace Fluxzy.Clients.H2
                     _exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
 
                 if (!cancelled)
-                    _pipeResponseBody.Writer.Complete();
+                    CompleteResponseBody();
                 
                 _exchange.ExchangeCompletionSource.TrySetResult(false);
 
@@ -604,6 +625,61 @@ namespace Fluxzy.Clients.H2
                 // await Task.Yield();
                 Parent.NotifyDispose(this);
             }
+        }
+
+        private Stream GetResponseBodyStream()
+        {
+            lock (this) {
+                if (_noBodyStream || (_responseBodyCompleted && _pipeResponseBody == null))
+                    return Stream.Null;
+
+                return GetResponseBodyPipe().Reader.AsStream();
+            }
+        }
+
+        private Pipe GetResponseBodyPipe()
+        {
+            var pipe = Volatile.Read(ref _pipeResponseBody);
+
+            if (pipe != null)
+                return pipe;
+
+            lock (this) {
+                pipe = _pipeResponseBody;
+
+                if (pipe != null)
+                    return pipe;
+
+                pipe = new Pipe(new PipeOptions(
+                    pool: MemoryPool<byte>.Shared,
+                    readerScheduler: PipeScheduler.ThreadPool,
+                    writerScheduler: PipeScheduler.Inline,
+                    pauseWriterThreshold: 0,
+                    resumeWriterThreshold: 0,
+                    minimumSegmentSize: 16384,
+                    useSynchronizationContext: false));
+
+                if (_responseBodyCompleted)
+                    pipe.Writer.Complete();
+
+                Volatile.Write(ref _pipeResponseBody, pipe);
+                return pipe;
+            }
+        }
+
+        private void CompleteResponseBody()
+        {
+            Pipe? pipe;
+
+            lock (this) {
+                if (_responseBodyCompleted)
+                    return;
+
+                _responseBodyCompleted = true;
+                pipe = _pipeResponseBody;
+            }
+
+            pipe?.Writer.Complete();
         }
 
         internal void OnDataConsumedByCaller(int dataSize)

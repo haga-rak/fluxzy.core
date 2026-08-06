@@ -23,7 +23,6 @@ namespace Fluxzy.Clients.H2
 {
     public class H2ConnectionPool : IHttpConnectionPool
     {
-
         private static int _connectionIdCounter;
 
         private readonly Connection _connection;
@@ -91,7 +90,9 @@ namespace Fluxzy.Clients.H2
 
             _writerChannel =
                 Channel.CreateUnbounded<WriteTask>(new UnboundedChannelOptions {
-                    SingleReader = true,
+                    // The writer loop is the normal consumer, while teardown may
+                    // concurrently drain rejected work to settle borrowed buffers.
+                    SingleReader = false,
                     SingleWriter = false
                 });
 
@@ -264,6 +265,15 @@ namespace Fluxzy.Clients.H2
         /// <summary>Test seam: direct access to the stream pool for unit-level assertions.</summary>
         internal StreamPool StreamPoolForTests => _streamPool;
 
+        // Invoked immediately before the dedicated request-body buffer and task are created.
+        internal Action? RequestBodyWorkStartedForTests { get; set; }
+
+        /// <summary>Test seam: enqueue a write task through the writer channel.</summary>
+        internal void EnqueueWriteTaskForTests(ref WriteTask writeTask) => UpStreamChannel(ref writeTask);
+
+        /// <summary>Test seam: run the writer loop directly without Init.</summary>
+        internal Task RunWriterLoopForTests(CancellationToken token) => InternalWriteLoop(token);
+
         public async ValueTask Send(
             Exchange exchange, IDownStreamPipe _, RsBuffer buffer, ExchangeScope __,
             CancellationToken cancellationToken = default)
@@ -356,7 +366,9 @@ namespace Fluxzy.Clients.H2
 
         private void UpStreamChannel(ref WriteTask data)
         {
-            _writerChannel?.Writer.TryWrite(data);
+            if (_writerChannel == null || !_writerChannel.Writer.TryWrite(data))
+                data.OnComplete(new ConnectionCloseException(
+                    "HTTP/2 writer channel is already closed"));
         }
 
         private void EmitPing(long opaqueData)
@@ -453,18 +465,8 @@ namespace Fluxzy.Clients.H2
             if (!_connectionCancellationTokenSource.IsCancellationRequested)
                 _connectionCancellationTokenSource.Cancel();
 
-            if (releaseChannelItems && _writerChannel != null) {
-                _writerChannel.Writer.TryComplete();
-
-                var list = new List<WriteTask>();
-
-                if (_writerChannel.Reader.TryReadAll(list)) {
-                    foreach (var item in list) {
-                        if (!item.DoneTask.IsCompleted)
-                            item.CompletionSource.SetCanceled();
-                    }
-                }
-            }
+            if (releaseChannelItems)
+                CompleteWriterChannel(ex ?? new OperationCanceledException(_connectionToken));
 
             // Notify last so the callback observes a fully-quiesced pool. Use a
             // CAS-guarded fire so concurrent teardown paths (read-loop exit racing
@@ -475,13 +477,34 @@ namespace Fluxzy.Clients.H2
                 _onConnectionFaulted?.Invoke(this);
         }
 
+        private void CompleteWriterChannel(Exception exception)
+        {
+            if (_writerChannel == null)
+                return;
+
+            _writerChannel.Writer.TryComplete();
+            var pending = new List<WriteTask>();
+
+            if (!_writerChannel.Reader.TryReadAll(pending))
+                return;
+
+            CompleteWriteTasks(pending, exception);
+        }
+
+        private static void CompleteWriteTasks(
+            IEnumerable<WriteTask> writeTasks, Exception exception)
+        {
+            foreach (var writeTask in writeTasks)
+                writeTask.OnComplete(exception);
+        }
+
         private async Task InternalWriteLoop(CancellationToken token)
         {
             Exception? outException = null;
+            var tasks = new List<WriteTask>();
+            var otherTasks = new List<WriteTask>();
 
             try {
-                var tasks = new List<WriteTask>();
-                var otherTasks = new List<WriteTask>();
 
                 while (!token.IsCancellationRequested) {
                     tasks.Clear();
@@ -510,22 +533,32 @@ namespace Fluxzy.Clients.H2
                         if (windowUpdateCount > 0) {
                             var bufferLength = windowUpdateCount * 13;
                             var heapBuffer = ArrayPool<byte>.Shared.Rent(bufferLength);
-                            var memoryBuffer = new Memory<byte>(heapBuffer).Slice(0, bufferLength);
 
-                            for (var i = 0; i < tasks.Count; i++) {
-                                var writeTask = tasks[i];
-                                if (writeTask.FrameType != H2FrameType.WindowUpdate)
-                                    continue;
+                            try {
+                                var memoryBuffer = new Memory<byte>(heapBuffer).Slice(0, bufferLength);
 
-                                new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
-                                    .Write(memoryBuffer.Span);
+                                for (var i = 0; i < tasks.Count; i++) {
+                                    var writeTask = tasks[i];
+                                    if (writeTask.FrameType != H2FrameType.WindowUpdate)
+                                        continue;
 
-                                memoryBuffer = memoryBuffer.Slice(13);
+                                    new WindowUpdateFrame(writeTask.WindowUpdateSize, writeTask.StreamIdentifier)
+                                        .Write(memoryBuffer.Span);
+
+                                    memoryBuffer = memoryBuffer.Slice(13);
+                                }
+
+                                await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token)
+                                                 .ConfigureAwait(false);
+
+                                for (var i = 0; i < tasks.Count; i++) {
+                                    if (tasks[i].FrameType == H2FrameType.WindowUpdate)
+                                        tasks[i].OnComplete(null);
+                                }
                             }
-
-                            await _baseStream.WriteAsync(heapBuffer, 0, bufferLength, token).ConfigureAwait(false);
-
-                            ArrayPool<byte>.Shared.Return(heapBuffer);
+                            finally {
+                                ArrayPool<byte>.Shared.Return(heapBuffer);
+                            }
                         }
 
                         // Sort non-window-update tasks in-place by priority
@@ -572,7 +605,7 @@ namespace Fluxzy.Clients.H2
                                     otherTasks[i].OnComplete(null);
                                 }
                             }
-                            catch (Exception ex) when (ex is SocketException || ex is IOException) {
+                            catch (Exception ex) {
                                 for (var i = 0; i < otherTasks.Count; i++) {
                                     otherTasks[i].OnComplete(ex);
                                 }
@@ -598,16 +631,21 @@ namespace Fluxzy.Clients.H2
 
                 await _baseStream.FlushAsync(token).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) {
+            catch (OperationCanceledException ex) {
+                CompleteWriteTasks(tasks, ex);
             }
             catch (Exception ex) {
                 // We catch this exception here to throw it to the
                 // caller in SendAsync() instead of Dispose() ;
-
+                CompleteWriteTasks(tasks, ex);
                 outException = ex;
             }
             finally {
-                OnLoopEnd(outException, true);
+                // Always close and drain here. The read loop may have won OnLoopEnd's
+                // idempotence guard, but only the writer loop can guarantee that its
+                // dequeued and still-queued tasks have reached a terminal state.
+                CompleteWriterChannel(outException ?? new OperationCanceledException(token));
+                OnLoopEnd(outException, false);
             }
         }
 
@@ -618,7 +656,7 @@ namespace Fluxzy.Clients.H2
                 await baseStream.WriteAsync(writeTask.BufferBytes, token).ConfigureAwait(false);
                 writeTask.OnComplete(null);
             }
-            catch (Exception ex) when (ex is SocketException || ex is IOException) {
+            catch (Exception ex) {
                 writeTask.OnComplete(ex);
                 throw;
             }
@@ -811,6 +849,7 @@ namespace Fluxzy.Clients.H2
 
             try {
                 Task waitForHeaderSentTask;
+                bool requestHeaderEndedStream;
 
                 try {
                     if (Complete || _connectionToken.IsCancellationRequested)
@@ -824,7 +863,7 @@ namespace Fluxzy.Clients.H2
 
                     // activeStream.OR
 
-                    waitForHeaderSentTask =
+                    (waitForHeaderSentTask, requestHeaderEndedStream) =
                         activeStream.EnqueueRequestHeader(exchange, buffer, streamCancellationToken);
                 }
                 finally {
@@ -836,13 +875,14 @@ namespace Fluxzy.Clients.H2
 
                 exchange.Metrics.RequestHeaderSent = ITimingProvider.Default.Instant();
 
-                var hasRequestBody = exchange.Request.Body != null
-                    && (!exchange.Request.Body.CanSeek || exchange.Request.Body.Length > 0);
-
-                if (!hasRequestBody) {
+                if (requestHeaderEndedStream) {
                     exchange.Metrics.RequestBodySent = exchange.Metrics.RequestHeaderSent;
                     FluxzyLogEvents.LogRequestSent(
                         _streamPool.Context.Logger, exchange, earlyResponse: false);
+
+                    await activeStream.ProcessResponse(streamCancellationToken, this)
+                                      .ConfigureAwait(false);
+                    return;
                 }
 
                 // Run request body upload and response processing concurrently.
@@ -851,8 +891,10 @@ namespace Fluxzy.Clients.H2
 
                 // Allocate a dedicated buffer for request body forwarding so we can
                 // return the shared buffer to the caller once the response is available.
-                var bodyBuffer = RsBuffer.Allocate(
-                    Math.Min(Setting.Local.MaxFrameSize, buffer.Buffer.Length));
+                RequestBodyWorkStartedForTests?.Invoke();
+                var uploadPayloadSize = Math.Min(
+                    Setting.Remote.MaxFrameSize, FluxzySharedSetting.H2MaxUploadPayloadSize);
+                var bodyBuffer = RsBuffer.Allocate(uploadPayloadSize + 9);
 
                 var requestBodyTask = activeStream.ProcessRequestBody(
                     exchange, bodyBuffer, streamCancellationToken);
