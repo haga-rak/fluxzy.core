@@ -62,6 +62,11 @@ namespace Fluxzy.Core
         private TaskCompletionSource<object?>? _writeLoopGateForTests;
         private TaskCompletionSource<object?>? _writeLoopIdleForTests;
 
+        // Bodyless responses whose HEADERS are encoded into the ring buffer but not yet
+        // flushed. Completed in FlushRingBufferAsync after the bytes reach the wire, so
+        // a single flush settles a whole batch instead of one write per response.
+        private readonly List<ServerStreamWorker> _pendingBodylessCompletions = new();
+
         private readonly CancellationToken _mainLoopToken;
         private readonly CancellationTokenSource _mainLoopTokenSource;
 
@@ -468,6 +473,15 @@ namespace Fluxzy.Core
 
                 _ringBuffer.Advance(total);
             }
+
+            if (_pendingBodylessCompletions.Count > 0) {
+                foreach (var worker in _pendingBodylessCompletions) {
+                    if (worker.CompleteResponse())
+                        CheckoutServerStreamWorker(worker);
+                }
+
+                _pendingBodylessCompletions.Clear();
+            }
         }
 
         /// <summary>
@@ -591,7 +605,7 @@ namespace Fluxzy.Core
                         var bodylessWorker = EncodePendingHeader(pending);
 
                         if (bodylessWorker != null)
-                            await CompleteBodylessHeaderAsync(bodylessWorker, token).ConfigureAwait(false);
+                            _pendingBodylessCompletions.Add(bodylessWorker);
 
                         didWork = true;
                     }
@@ -620,7 +634,7 @@ namespace Fluxzy.Core
                             var bodylessWorker = EncodePendingHeader(pending);
 
                             if (bodylessWorker != null)
-                                await CompleteBodylessHeaderAsync(bodylessWorker, token).ConfigureAwait(false);
+                                _pendingBodylessCompletions.Add(bodylessWorker);
 
                             didWork = true;
                         }
@@ -833,15 +847,6 @@ namespace Fluxzy.Core
             _ringBuffer.Write(encoded.Span);
 
             return pending.HasBody ? null : worker;
-        }
-
-        private async ValueTask CompleteBodylessHeaderAsync(
-            ServerStreamWorker worker, CancellationToken token)
-        {
-            await FlushRingBufferAsync(token).ConfigureAwait(false);
-
-            if (worker.CompleteResponse())
-                CheckoutServerStreamWorker(worker);
         }
 
         private void CompleteWrittenResponse(int streamIdentifier)
