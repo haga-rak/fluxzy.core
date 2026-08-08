@@ -38,7 +38,10 @@ namespace Fluxzy.Clients.H2
 
         private bool _headerEndedStream;
         private bool _noBodyStream;
-        private bool _responseHeadersComplete;
+
+        // Written by the read loop before the signal, read cross-thread by the
+        // skip gate and the post-wait re-checks in ProcessResponse.
+        private volatile bool _responseHeadersComplete;
 
         private volatile bool _abandonedByGoAway;
         private Exception? _abandonInnerCause;
@@ -503,7 +506,9 @@ namespace Fluxzy.Clients.H2
                                 acquired = true;
                             }
                             catch (TimeoutException) {
-                                acquired = false;
+                                // A timeout that raced the signal must not discard an
+                                // arrived response; the flag is written before the signal.
+                                acquired = _responseHeadersComplete;
                             }
 
                             if (acquired)
@@ -533,9 +538,17 @@ namespace Fluxzy.Clients.H2
                         _abandonInnerCause);
                 }
 
-                throw new ClientErrorException(1,
-                    "The connection was interrupted before receiving response header",
-                    networkErrorCode: NetworkErrorCodes.ProtocolError);
+                // A reset right behind the response (RST after headers, as some
+                // servers do) cancels the stream token while the signal is in
+                // flight. Task.WaitAsync runs the cancellation callback inline but
+                // the completion continuation queued, so cancellation can win
+                // against an already-fired signal. SemaphoreSlim served the signal
+                // first; keep that behavior by delivering the arrived response.
+                if (!_responseHeadersComplete) {
+                    throw new ClientErrorException(1,
+                        "The connection was interrupted before receiving response header",
+                        networkErrorCode: NetworkErrorCodes.ProtocolError);
+                }
             }
             catch (Exception) {
                 Parent.NotifyDispose(this);

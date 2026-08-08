@@ -79,6 +79,30 @@ namespace Fluxzy.Tests.UnitTests.H2Client
         }
 
         [Fact]
+        public async Task HeadersDeliveredThenReset_StillDeliversResponse()
+        {
+            // sandbox-style upstream: response followed by an immediate RST. The
+            // reset cancels the stream token right behind the header signal; the
+            // arrived response must be delivered whichever side wins the race
+            // inside Task.WaitAsync.
+            for (var i = 0; i < 300; i++) {
+                using var fixture = new WorkerFixture();
+
+                var processResponse = Task.Run(
+                    () => fixture.Worker.ProcessResponse(fixture.ResetToken, null!).AsTask());
+
+                await Task.Delay(1); // let the waiter park on the signal
+
+                fixture.ReceiveResponseHeaders(endStream: false);
+                fixture.Worker.ResetRequest(H2ErrorCode.NoError);
+
+                await processResponse;
+
+                Assert.NotNull(fixture.Exchange.Response.Header);
+            }
+        }
+
+        [Fact]
         public async Task ProcessResponseCancelledBeforeHeaders_SurfacesClientError()
         {
             using var fixture = new WorkerFixture();
@@ -132,6 +156,8 @@ namespace Fluxzy.Tests.UnitTests.H2Client
             public Exchange Exchange { get; }
 
             public StreamWorker Worker { get; }
+
+            public CancellationToken ResetToken => _resetTokenSource.Token;
 
             public void ReceiveResponseHeaders(bool endStream)
             {
