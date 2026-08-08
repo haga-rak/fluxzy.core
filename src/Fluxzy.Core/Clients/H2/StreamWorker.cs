@@ -19,7 +19,12 @@ namespace Fluxzy.Clients.H2
     {
         private readonly Exchange _exchange;
 
-        private readonly SemaphoreSlim _headerReceivedSemaphore = new(0, 1);
+        // One-shot "response headers arrived" signal. Must stay idempotent: on a
+        // body-less response, ProcessResponse can skip the wait and dispose this
+        // stream before the read loop signals, so a second signal must be a no-op
+        // (a SemaphoreSlim(0, 1) here threw and killed the connection read loop).
+        private readonly TaskCompletionSource _headerReceived =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
         
         private Pipe? _pipeResponseBody;
         private readonly CancellationTokenSource _resetTokenSource;
@@ -88,13 +93,8 @@ namespace Fluxzy.Clients.H2
                 _headerBuffer = null;
             }
 
-            try {
-                _headerReceivedSemaphore.Release();
-                _headerReceivedSemaphore.Dispose();
-            }
-            catch (SemaphoreFullException) {
-                // We do nothing here
-            }
+            // Unblocks a parked ProcessResponse waiter. Idempotent.
+            _headerReceived.TrySetResult();
         }
 
         private async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
@@ -141,7 +141,7 @@ namespace Fluxzy.Clients.H2
         ///     exchange on a new connection.
         ///     <para>
         ///         Sets the abandon marker and cancels the stream's CTS so any in-flight
-        ///         awaits (header-received semaphore, window booking, body read) unblock
+        ///         awaits (header-received signal, window booking, body read) unblock
         ///         with <see cref="OperationCanceledException"/>. The OCE catch paths
         ///         upstream check <see cref="AbandonedByGoAway"/> and rewrap as
         ///         <see cref="ConnectionCloseException"/> before returning to
@@ -437,8 +437,8 @@ namespace Fluxzy.Clients.H2
 
                 _responseHeadersComplete = true;
                 _totalHeaderReceived = 0; // Reset for possible trailer accumulation
-                
-                _headerReceivedSemaphore.Release();
+
+                _headerReceived.TrySetResult();
             }
         }
 
@@ -489,13 +489,22 @@ namespace Fluxzy.Clients.H2
                                                headerTimeout != Timeout.InfiniteTimeSpan;
 
                     if (!headerTimeoutEnabled) {
-                        await _headerReceivedSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        await _headerReceived.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
                     }
                     else {
                         while (true) {
-                            var acquired = await _headerReceivedSemaphore
-                                                 .WaitAsync(headerTimeout, cancellationToken)
-                                                 .ConfigureAwait(false);
+                            bool acquired;
+
+                            try {
+                                await _headerReceived.Task
+                                                     .WaitAsync(headerTimeout, cancellationToken)
+                                                     .ConfigureAwait(false);
+
+                                acquired = true;
+                            }
+                            catch (TimeoutException) {
+                                acquired = false;
+                            }
 
                             if (acquired)
                                 break;
