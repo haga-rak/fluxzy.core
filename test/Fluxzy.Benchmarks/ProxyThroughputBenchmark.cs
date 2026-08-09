@@ -270,11 +270,12 @@ public class ProxyThroughputBenchmark
 
     private async Task SendRequest()
     {
-        using var response = await _client.GetAsync(_targetUrl, HttpCompletionOption.ResponseContentRead)
+        // ResponseHeadersRead avoids pre-buffering the body into a per-request MemoryStream;
+        // the drain below streams it to null through pooled buffers instead.
+        using var response = await _client.GetAsync(_targetUrl, HttpCompletionOption.ResponseHeadersRead)
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        // Drain the response body using pooled buffers (no per-request allocations)
         await response.Content.CopyToAsync(Stream.Null).ConfigureAwait(false);
     }
 
