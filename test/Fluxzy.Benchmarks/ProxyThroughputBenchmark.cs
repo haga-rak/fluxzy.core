@@ -26,6 +26,7 @@ namespace Fluxzy.Benchmarks;
 /// </summary>
 [MemoryDiagnoser]
 //[ThreadingDiagnoser]
+[GcServer(true)] // proxy + client run in this process; workstation GC caps throughput at this concurrency
 [Config(typeof(Config))]
 public class ProxyThroughputBenchmark
 {
