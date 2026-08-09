@@ -76,9 +76,11 @@ public class ProxyThroughputBenchmark
     [GlobalSetup]
     public async Task Setup()
     {
-        // 1. Start external HTTPS test server (separate process to avoid polluting memory measurements)
+        // 1. Start external HTTPS test server (separate process to avoid polluting memory measurements).
+        //    In H1 cases the server doesn't advertise h2 at all, so the fluxzy → server leg
+        //    can't negotiate HTTP/2 behind the benchmark's back.
         _server = new BenchmarkServerProcess();
-        await _server.StartAsync();
+        await _server.StartAsync(http1Only: !ServeH2);
 
         var httpVersion = ServeH2 ? new Version(2, 0) : new Version(1, 1);
         _byteCounter = new ByteCounter();
