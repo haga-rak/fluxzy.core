@@ -18,9 +18,12 @@ namespace Fluxzy.Clients.Dns
 
         public async Task<IReadOnlyCollection<IPAddress>> SolveDnsAll(string hostName)
         {
+            if (_cache.TryGetValue(hostName, out var cached))
+                return cached;
+
             using var _ = await Synchronizer<string>.Shared.LockAsync(hostName).ConfigureAwait(false);
 
-            if (_cache.TryGetValue(hostName, out var cached))
+            if (_cache.TryGetValue(hostName, out cached))
                 return cached;
 
             try
