@@ -62,22 +62,18 @@ namespace Fluxzy.Clients
             var connectToken = connectCts.Token;
 
             DisposeEventNotifierStream? openedStream = null;
+            var connectionOpened = false;
 
             try {
-                return await OpenConnectionToRemoteInternal(
+                var result = await OpenConnectionToRemoteInternal(
                         exchange, resolutionResult, httpProtocols, setting, proxyConfiguration,
                         s => openedStream = s, connectToken)
                     .ConfigureAwait(false);
+
+                connectionOpened = true;
+                return result;
             }
             catch (OperationCanceledException) {
-                if (openedStream != null) {
-                    try {
-                        await openedStream.DisposeAsync().ConfigureAwait(false);
-                    }
-                    catch {
-                    }
-                }
-
                 if (token.IsCancellationRequested)
                     throw;
 
@@ -85,6 +81,17 @@ namespace Fluxzy.Clients
                     $"The connection to {exchange.Authority.HostName}:{exchange.Authority.Port} " +
                     $"could not be established within {connectionTimeout.TotalSeconds:F0} seconds",
                     networkErrorCode: NetworkErrorCodes.ConnectionTimeout);
+            }
+            finally {
+                if (!connectionOpened) {
+                    if (openedStream != null) {
+                        try {
+                            await openedStream.DisposeAsync().ConfigureAwait(false);
+                        }
+                        catch {
+                        }
+                    }
+                }
             }
         }
 
