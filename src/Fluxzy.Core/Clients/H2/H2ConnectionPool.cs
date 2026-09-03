@@ -950,13 +950,8 @@ namespace Fluxzy.Clients.H2
                         activeStream.AbandonInnerCause);
                 }
 
-                if (activeStream != null &&
-                    opex.CancellationToken == callerCancellationToken)
-
-                    // The caller cancels this exchange.
-                    // Send a reset on stream to prevent the remote
-                    // from sending further data
-                    activeStream.ResetByCaller();
+                if (activeStream != null && callerCancellationToken.IsCancellationRequested)
+                    activeStream.CancelByCaller();
 
                 // Cancellation landed after the stream was registered but before
                 // ProcessResponse could dispose it (e.g. awaiting waitForHeaderSentTask).
