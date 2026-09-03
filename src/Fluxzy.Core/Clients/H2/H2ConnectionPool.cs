@@ -287,25 +287,21 @@ namespace Fluxzy.Clients.H2
             }
             catch (Exception ex) {
 
-                if (ex is OperationCanceledException opex
-                    && cancellationToken != default
-                    && opex.CancellationToken == cancellationToken) {
-                    // The caller cancels this exchange.
-                    // Send a reset on stream to prevent the remote
-                }
-
                 // ConnectionCloseException here means either (a) the pool was already
                 // draining/complete when the exchange arrived, or (b) this stream was
                 // proactively abandoned because the server's GOAWAY LastStreamId ruled
-                // it out. A response header timeout is a per-stream failure already
-                // settled with RST_STREAM. None of these are pool-level transport
-                // failures — other in-flight streams on this pool may still complete.
-                // Skip OnLoopEnd.
+                // it out. A response header timeout or a caller cancellation is a
+                // per-stream failure already settled with RST_STREAM. None of these are
+                // pool-level transport failures — other in-flight streams on this pool
+                // may still complete. Skip OnLoopEnd.
                 var perStreamFailure = ex is ClientErrorException clientError &&
                                        clientError.ClientError.NetworkErrorCode ==
                                        NetworkErrorCodes.ResponseHeaderTimeout;
 
-                if (ex is not ConnectionCloseException && !perStreamFailure)
+                var callerCancelled = ex is OperationCanceledException &&
+                                      cancellationToken.IsCancellationRequested;
+
+                if (ex is not ConnectionCloseException && !perStreamFailure && !callerCancelled)
                     OnLoopEnd(ex, true);
 
                 throw;
@@ -880,7 +876,7 @@ namespace Fluxzy.Clients.H2
                     FluxzyLogEvents.LogRequestSent(
                         _streamPool.Context.Logger, exchange, earlyResponse: false);
 
-                    await activeStream.ProcessResponse(streamCancellationToken, this)
+                    await activeStream.ProcessResponse(streamCancellationToken, this, callerCancellationToken)
                                       .ConfigureAwait(false);
                     return;
                 }
@@ -900,7 +896,7 @@ namespace Fluxzy.Clients.H2
                     exchange, bodyBuffer, streamCancellationToken);
 
                 try {
-                    await activeStream.ProcessResponse(streamCancellationToken, this)
+                    await activeStream.ProcessResponse(streamCancellationToken, this, callerCancellationToken)
                                       .ConfigureAwait(false);
                 }
                 catch {

@@ -477,7 +477,8 @@ namespace Fluxzy.Clients.H2
             }
         }
         
-        public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
+        public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp,
+            CancellationToken callerCancellationToken = default)
         {
             try {
                 // Skip the wait only when the header is already in hand (deliver a response
@@ -545,6 +546,13 @@ namespace Fluxzy.Clients.H2
                 // against an already-fired signal. SemaphoreSlim served the signal
                 // first; keep that behavior by delivering the arrived response.
                 if (!_responseHeadersComplete) {
+                    if (callerCancellationToken.IsCancellationRequested) {
+                        ResetByCaller(H2ErrorCode.Cancel);
+                        Parent.NotifyDispose(this);
+
+                        throw;
+                    }
+
                     throw new ClientErrorException(1,
                         "The connection was interrupted before receiving response header",
                         networkErrorCode: NetworkErrorCodes.ProtocolError);
