@@ -46,6 +46,9 @@ namespace Fluxzy.Clients.H2
         private volatile bool _abandonedByGoAway;
         private Exception? _abandonInnerCause;
 
+        private Task? _headerWriteTask;
+        private int _cancelledByCaller;
+
         private int _totalBodyReceived;
 
         private int _totalHeaderReceived;
@@ -166,6 +169,29 @@ namespace Fluxzy.Clients.H2
             }
         }
 
+        // RST_STREAM must follow HEADERS on the wire, so it waits for that write.
+        internal void CancelByCaller()
+        {
+            if (Interlocked.Exchange(ref _cancelledByCaller, 1) != 0)
+                return;
+
+            var headerWriteTask = _headerWriteTask;
+
+            if (headerWriteTask == null)
+                return;
+
+            if (headerWriteTask.IsCompletedSuccessfully) {
+                ResetByCaller(H2ErrorCode.Cancel);
+                return;
+            }
+
+            headerWriteTask.ContinueWith(
+                _ => ResetByCaller(H2ErrorCode.Cancel),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnRanToCompletion,
+                TaskScheduler.Default);
+        }
+
         public void ResetByCaller(H2ErrorCode reason = H2ErrorCode.StreamClosed)
         {
             var buffer = new byte[13];
@@ -245,6 +271,7 @@ namespace Fluxzy.Clients.H2
                 StreamDependency, ownedHeader);
 
             Parent.Context.UpStreamChannel(ref writeHeaderTask);
+            _headerWriteTask = writeHeaderTask.DoneTask;
 
             return (
                 CompleteRequestHeaderWrite(
@@ -477,7 +504,8 @@ namespace Fluxzy.Clients.H2
             }
         }
         
-        public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
+        public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp,
+            CancellationToken callerCancellationToken = default)
         {
             try {
                 // Skip the wait only when the header is already in hand (deliver a response
@@ -545,6 +573,13 @@ namespace Fluxzy.Clients.H2
                 // against an already-fired signal. SemaphoreSlim served the signal
                 // first; keep that behavior by delivering the arrived response.
                 if (!_responseHeadersComplete) {
+                    if (callerCancellationToken.IsCancellationRequested) {
+                        CancelByCaller();
+                        Parent.NotifyDispose(this);
+
+                        throw;
+                    }
+
                     throw new ClientErrorException(1,
                         "The connection was interrupted before receiving response header",
                         networkErrorCode: NetworkErrorCodes.ProtocolError);
