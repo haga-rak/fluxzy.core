@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Fluxzy.Clients.Dns;
 using Fluxzy.Core;
+using Fluxzy.Utils;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Misc
@@ -127,6 +128,21 @@ namespace Fluxzy.Tests.UnitTests.Misc
             Assert.Equal(NetworkErrorCodes.DnsNoData, ex.ClientError.NetworkErrorCode);
         }
 
+        [Fact]
+        public async Task CachedResult_DoesNotWaitForHostLock()
+        {
+            const string host = "cached.example";
+            var solver = new CountingResolver();
+            var expected = await solver.SolveDnsAll(host);
+
+            using var hostLock = await Synchronizer<string>.Shared.LockAsync(host);
+            var cached = await solver.SolveDnsAll(host).WaitAsync(
+                System.TimeSpan.FromSeconds(1));
+
+            Assert.Same(expected, cached);
+            Assert.Equal(1, solver.CallCount);
+        }
+
         [Theory]
         [InlineData(System.Net.Sockets.SocketError.HostNotFound, NetworkErrorCodes.DnsNotFound)]
         [InlineData(System.Net.Sockets.SocketError.NoData, NetworkErrorCodes.DnsNoData)]
@@ -143,6 +159,18 @@ namespace Fluxzy.Tests.UnitTests.Misc
         {
             protected override Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
                 => Task.FromResult(Enumerable.Empty<IPAddress>());
+        }
+
+        private sealed class CountingResolver : DefaultDnsResolver
+        {
+            public int CallCount { get; private set; }
+
+            protected override Task<IEnumerable<IPAddress>> InternalSolveDns(string hostName)
+            {
+                CallCount++;
+                return Task.FromResult<IEnumerable<IPAddress>>(
+                    new[] { IPAddress.Loopback });
+            }
         }
     }
 }

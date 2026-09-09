@@ -57,14 +57,11 @@ namespace Fluxzy.Tests.UnitTests.Core
                 UseProxy = true
             });
 
-            for (var i = 0; i < 2; i++) {
+            for (var i = 0; i < 100; i++) {
                 using var response = await httpClient.GetAsync($"http://127.0.0.1:{origin.Port}/");
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Equal("OK", await response.Content.ReadAsStringAsync());
-
-                // recycling happens on a completion continuation, leave it time to land
-                await Task.Delay(250);
             }
 
             Assert.Equal(1, origin.ConnectionCount);

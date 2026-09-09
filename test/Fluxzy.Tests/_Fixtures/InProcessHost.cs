@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,8 @@ public class InProcessHost : IAsyncDisposable
 
     public static async Task<InProcessHost> Create(
         Action<WebApplication>? configureRoutes = null,
-        bool suppressLogging = false)
+        bool suppressLogging = false,
+        HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
     {
         var certificate = CreateSelfSignedCertificate();
 
@@ -50,6 +52,7 @@ public class InProcessHost : IAsyncDisposable
         {
             k.Listen(IPAddress.Loopback, 0, listenOptions =>
             {
+                listenOptions.Protocols = protocols;
                 listenOptions.UseHttps(certificate);
             });
         });

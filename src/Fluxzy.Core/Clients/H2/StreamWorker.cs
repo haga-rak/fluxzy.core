@@ -19,7 +19,12 @@ namespace Fluxzy.Clients.H2
     {
         private readonly Exchange _exchange;
 
-        private readonly SemaphoreSlim _headerReceivedSemaphore = new(0, 1);
+        // One-shot "response headers arrived" signal. Must stay idempotent: on a
+        // body-less response, ProcessResponse can skip the wait and dispose this
+        // stream before the read loop signals, so a second signal must be a no-op
+        // (a SemaphoreSlim(0, 1) here threw and killed the connection read loop).
+        private readonly TaskCompletionSource _headerReceived =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
         
         private Pipe? _pipeResponseBody;
         private readonly CancellationTokenSource _resetTokenSource;
@@ -33,10 +38,16 @@ namespace Fluxzy.Clients.H2
 
         private bool _headerEndedStream;
         private bool _noBodyStream;
-        private bool _responseHeadersComplete;
+
+        // Written by the read loop before the signal, read cross-thread by the
+        // skip gate and the post-wait re-checks in ProcessResponse.
+        private volatile bool _responseHeadersComplete;
 
         private volatile bool _abandonedByGoAway;
         private Exception? _abandonInnerCause;
+
+        private Task? _headerWriteTask;
+        private int _cancelledByCaller;
 
         private int _totalBodyReceived;
 
@@ -88,13 +99,8 @@ namespace Fluxzy.Clients.H2
                 _headerBuffer = null;
             }
 
-            try {
-                _headerReceivedSemaphore.Release();
-                _headerReceivedSemaphore.Dispose();
-            }
-            catch (SemaphoreFullException) {
-                // We do nothing here
-            }
+            // Unblocks a parked ProcessResponse waiter. Idempotent.
+            _headerReceived.TrySetResult();
         }
 
         private async ValueTask<int> BookWindowSize(int requestedBodyLength, CancellationToken cancellationToken)
@@ -141,7 +147,7 @@ namespace Fluxzy.Clients.H2
         ///     exchange on a new connection.
         ///     <para>
         ///         Sets the abandon marker and cancels the stream's CTS so any in-flight
-        ///         awaits (header-received semaphore, window booking, body read) unblock
+        ///         awaits (header-received signal, window booking, body read) unblock
         ///         with <see cref="OperationCanceledException"/>. The OCE catch paths
         ///         upstream check <see cref="AbandonedByGoAway"/> and rewrap as
         ///         <see cref="ConnectionCloseException"/> before returning to
@@ -161,6 +167,29 @@ namespace Fluxzy.Clients.H2
                     // CTS already disposed — stream is tearing down on another path.
                 }
             }
+        }
+
+        // RST_STREAM must follow HEADERS on the wire, so it waits for that write.
+        internal void CancelByCaller()
+        {
+            if (Interlocked.Exchange(ref _cancelledByCaller, 1) != 0)
+                return;
+
+            var headerWriteTask = _headerWriteTask;
+
+            if (headerWriteTask == null)
+                return;
+
+            if (headerWriteTask.IsCompletedSuccessfully) {
+                ResetByCaller(H2ErrorCode.Cancel);
+                return;
+            }
+
+            headerWriteTask.ContinueWith(
+                _ => ResetByCaller(H2ErrorCode.Cancel),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnRanToCompletion,
+                TaskScheduler.Default);
         }
 
         public void ResetByCaller(H2ErrorCode reason = H2ErrorCode.StreamClosed)
@@ -242,6 +271,7 @@ namespace Fluxzy.Clients.H2
                 StreamDependency, ownedHeader);
 
             Parent.Context.UpStreamChannel(ref writeHeaderTask);
+            _headerWriteTask = writeHeaderTask.DoneTask;
 
             return (
                 CompleteRequestHeaderWrite(
@@ -437,8 +467,8 @@ namespace Fluxzy.Clients.H2
 
                 _responseHeadersComplete = true;
                 _totalHeaderReceived = 0; // Reset for possible trailer accumulation
-                
-                _headerReceivedSemaphore.Release();
+
+                _headerReceived.TrySetResult();
             }
         }
 
@@ -474,7 +504,8 @@ namespace Fluxzy.Clients.H2
             }
         }
         
-        public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp)
+        public async ValueTask ProcessResponse(CancellationToken cancellationToken, H2ConnectionPool cp,
+            CancellationToken callerCancellationToken = default)
         {
             try {
                 // Skip the wait only when the header is already in hand (deliver a response
@@ -489,13 +520,24 @@ namespace Fluxzy.Clients.H2
                                                headerTimeout != Timeout.InfiniteTimeSpan;
 
                     if (!headerTimeoutEnabled) {
-                        await _headerReceivedSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        await _headerReceived.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
                     }
                     else {
                         while (true) {
-                            var acquired = await _headerReceivedSemaphore
-                                                 .WaitAsync(headerTimeout, cancellationToken)
-                                                 .ConfigureAwait(false);
+                            bool acquired;
+
+                            try {
+                                await _headerReceived.Task
+                                                     .WaitAsync(headerTimeout, cancellationToken)
+                                                     .ConfigureAwait(false);
+
+                                acquired = true;
+                            }
+                            catch (TimeoutException) {
+                                // A timeout that raced the signal must not discard an
+                                // arrived response; the flag is written before the signal.
+                                acquired = _responseHeadersComplete;
+                            }
 
                             if (acquired)
                                 break;
@@ -524,9 +566,24 @@ namespace Fluxzy.Clients.H2
                         _abandonInnerCause);
                 }
 
-                throw new ClientErrorException(1,
-                    "The connection was interrupted before receiving response header",
-                    networkErrorCode: NetworkErrorCodes.ProtocolError);
+                // A reset right behind the response (RST after headers, as some
+                // servers do) cancels the stream token while the signal is in
+                // flight. Task.WaitAsync runs the cancellation callback inline but
+                // the completion continuation queued, so cancellation can win
+                // against an already-fired signal. SemaphoreSlim served the signal
+                // first; keep that behavior by delivering the arrived response.
+                if (!_responseHeadersComplete) {
+                    if (callerCancellationToken.IsCancellationRequested) {
+                        CancelByCaller();
+                        Parent.NotifyDispose(this);
+
+                        throw;
+                    }
+
+                    throw new ClientErrorException(1,
+                        "The connection was interrupted before receiving response header",
+                        networkErrorCode: NetworkErrorCodes.ProtocolError);
+                }
             }
             catch (Exception) {
                 Parent.NotifyDispose(this);

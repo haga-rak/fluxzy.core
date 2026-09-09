@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients;
 using Fluxzy.Clients.H11;
@@ -17,6 +18,8 @@ namespace Fluxzy.Core
 {
     public class Exchange : IExchange
     {
+        private Task? _connectionDisposition;
+
         private Exchange(
             IIdProvider idProvider,
             ExchangeContext context,
@@ -115,6 +118,17 @@ namespace Fluxzy.Core
         ///     This tasks indicates the status of the exchange
         /// </summary>
         internal Task<bool> Complete => ExchangeCompletionSource.Task;
+
+        internal Task ConnectionDisposition =>
+            Volatile.Read(ref _connectionDisposition) ?? Task.CompletedTask;
+
+        internal void RegisterConnectionDisposition(Task disposition)
+        {
+            ArgumentNullException.ThrowIfNull(disposition);
+
+            if (Interlocked.CompareExchange(ref _connectionDisposition, disposition, null) != null)
+                throw new InvalidOperationException("Connection disposition is already registered.");
+        }
 
         /// <summary>
         /// </summary>

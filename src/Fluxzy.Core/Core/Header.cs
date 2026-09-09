@@ -209,6 +209,34 @@ namespace Fluxzy.Core
             return false;
         }
 
+        protected bool HasHeaderValueToken(ReadOnlyMemory<char> name, string value)
+        {
+            foreach (var field in _rawHeaderFields) {
+                if (!field.Name.Span.Equals(name.Span, StringComparison.OrdinalIgnoreCase)) {
+                    continue;
+                }
+
+                var remaining = field.Value.Span;
+
+                while (true) {
+                    var commaIndex = remaining.IndexOf(',');
+                    var token = (commaIndex < 0 ? remaining : remaining.Slice(0, commaIndex)).Trim();
+
+                    if (token.Equals(value, StringComparison.OrdinalIgnoreCase)) {
+                        return true;
+                    }
+
+                    if (commaIndex < 0) {
+                        break;
+                    }
+
+                    remaining = remaining.Slice(commaIndex + 1);
+                }
+            }
+
+            return false;
+        }
+
         protected bool HasHeaderValueContains(ReadOnlyMemory<char> name, string value)
         {
             foreach (var f in _rawHeaderFields) {

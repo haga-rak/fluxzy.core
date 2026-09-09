@@ -17,16 +17,17 @@ public class BenchmarkServerProcess : IAsyncDisposable
 
     public string BaseUrl => $"https://localhost:{Port}";
 
-    public async Task StartAsync(TimeSpan? timeout = null)
+    public async Task StartAsync(TimeSpan? timeout = null, bool http1Only = false)
     {
         timeout ??= TimeSpan.FromSeconds(30);
 
         var serverProjectPath = ResolveServerProjectPath();
+        var serverArgs = http1Only ? " -- --http1-only" : "";
 
         var psi = new ProcessStartInfo
         {
             FileName = "dotnet",
-            Arguments = $"run --project \"{serverProjectPath}\" -c Release --no-build",
+            Arguments = $"run --project \"{serverProjectPath}\" -c Release --no-build{serverArgs}",
             RedirectStandardOutput = true,
             RedirectStandardInput = true,
             RedirectStandardError = false,

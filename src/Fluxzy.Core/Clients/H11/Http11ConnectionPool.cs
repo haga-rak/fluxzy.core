@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
@@ -259,78 +258,14 @@ namespace Fluxzy.Clients.H11
                     if (exchange.Response.Header != null)
                         exchange.Connection.TimeoutIdleSeconds = exchange.Response.Header.TimeoutIdleSeconds;
 
-                    void OnExchangeCompleteFunction(Task<bool> completeTask)
-                    {
-                        try {
-                            abortRegistration.Dispose();
+                    var connection = exchange.Connection!;
+                    var maxConnection = exchange.Response.Header!.MaxConnection;
+                    var closeForConnectionAuth =
+                        !_dedicated && ConnectionAuthHeuristic.InvolvesConnectionAuth(exchange);
 
-                            // A faulted or cancelled completion means the body read failed:
-                            // never recycle, always free. Reading .Result unguarded would
-                            // rethrow here and skip the teardown entirely.
-                            var closeConnectionRequest =
-                                !completeTask.IsCompletedSuccessfully || completeTask.Result;
-
-                            if (exchange.Response.Header!.MaxConnection != -1 &&
-                                exchange.Response.Header!.MaxConnection <= exchange.Connection.RequestProcessed) {
-                                closeConnectionRequest = true;
-                            }
-
-                            // Leakage guard: a shared connection that carried NTLM/Negotiate auth
-                            // is bound to one client's identity. Never return it to the shared pool.
-                            // Dedicated (pinned) pools keep it since they serve a single client.
-                            if (!_dedicated && ConnectionAuthHeuristic.InvolvesConnectionAuth(exchange)) {
-                                closeConnectionRequest = true;
-                            }
-
-                            if (exchange.Metrics.ResponseBodyEnd == default)
-                                exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
-
-                            if (completeTask.Exception != null && completeTask.Exception.InnerExceptions.Any()) {
-                                foreach (var exception in completeTask.Exception.InnerExceptions) {
-                                    exchange.Errors.Add(new Error("Error while reading response", exception));
-                                }
-                            }
-                            else if (completeTask.IsCompletedSuccessfully && !closeConnectionRequest) { //
-
-                                // Idle age starts when the response body has been consumed, not
-                                // when its headers arrived. With connection-oriented auth, using
-                                // the header timestamp can make a slow response recycle an
-                                // already-expired authenticated connection.
-                                var lastUsed = _timingProvider.Instant();
-
-                                if (_pendingConnections.Writer.TryWrite(
-                                        new Http11ProcessingState(exchange.Connection, lastUsed)))
-                                {
-                                    return;
-                                }
-                            }
-                            else {
-                                // should close connection
-                            }
-
-                            FreeConnectionStreams(exchange.Connection);
-                        }
-                        finally {
-                            // Send returns after response headers, while the connection remains
-                            // occupied until the response body completes. Keep the pool active
-                            // through that whole lifetime so idle teardown cannot remove the pin
-                            // or dispose the pool underneath this continuation.
-                            lock (_idleGate) {
-                                _activeRequestCount--;
-                                _lastActivity = _timingProvider.Instant();
-                            }
-
-                            // Released only here on the success path: the connection is now
-                            // back in the channel (or freed), so the next pinned Send can
-                            // dequeue it instead of racing ahead and opening a fresh one.
-                            _pinnedLease?.Release();
-                        }
-                    }
-
-                    // CancellationToken.None: the cleanup must run even when the caller
-                    // has already cancelled, otherwise an aborted exchange leaks its
-                    // connection (the continuation would be cancelled instead of run).
-                    var _ = exchange.Complete.ContinueWith(OnExchangeCompleteFunction, CancellationToken.None);
+                    exchange.RegisterConnectionDisposition(DisposeConnectionAfterExchange(
+                        exchange, connection, maxConnection, closeForConnectionAuth,
+                        abortRegistration, cancellationToken));
                     activityHandedToContinuation = true;
                     leaseHandedToContinuation = leaseAcquired;
                 }
@@ -394,6 +329,70 @@ namespace Fluxzy.Clients.H11
                     _pinnedLease!.Release();
 
                 ITimingProvider.Default.Instant();
+            }
+        }
+
+        private async Task DisposeConnectionAfterExchange(
+            Exchange exchange, Connection connection, int maxConnection,
+            bool closeForConnectionAuth,
+            CancellationTokenRegistration abortRegistration,
+            CancellationToken cancellationToken)
+        {
+            var closeConnection = true;
+            var completionSucceeded = false;
+
+            try {
+                try {
+                    closeConnection = await exchange.Complete.ConfigureAwait(false);
+                    completionSucceeded = true;
+                }
+                catch {
+                    if (exchange.Complete.Exception != null) {
+                        foreach (var exception in exchange.Complete.Exception.InnerExceptions) {
+                            exchange.Errors.Add(new Error("Error while reading response", exception));
+                        }
+                    }
+                }
+
+                try {
+                    abortRegistration.Dispose();
+                }
+                catch (Exception exception) {
+                    exchange.Errors.Add(new Error("Error while releasing response cancellation", exception));
+                    closeConnection = true;
+                }
+
+                if (cancellationToken.IsCancellationRequested || closeForConnectionAuth)
+                    closeConnection = true;
+
+                if (maxConnection != -1 && maxConnection <= connection.RequestProcessed)
+                    closeConnection = true;
+
+                if (exchange.Metrics.ResponseBodyEnd == default)
+                    exchange.Metrics.ResponseBodyEnd = ITimingProvider.Default.Instant();
+
+                if (completionSucceeded && !closeConnection &&
+                    _pendingConnections.Writer.TryWrite(
+                        new Http11ProcessingState(connection, _timingProvider.Instant()))) {
+                    return;
+                }
+
+                try {
+                    FreeConnectionStreams(connection);
+                }
+                catch (Exception exception) {
+                    exchange.Errors.Add(new Error("Error while disposing remote connection", exception));
+                }
+            }
+            finally {
+                // The request remains active until its connection is reusable or closed.
+                lock (_idleGate) {
+                    _activeRequestCount--;
+                    _lastActivity = _timingProvider.Instant();
+                }
+
+                // A pinned sender can proceed only after disposition is complete.
+                _pinnedLease?.Release();
             }
         }
 
@@ -499,3 +498,4 @@ namespace Fluxzy.Clients.H11
         public DateTime LastUsed { get; set; }
     }
 }
+

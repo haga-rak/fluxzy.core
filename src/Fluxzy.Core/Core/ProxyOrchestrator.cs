@@ -707,7 +707,7 @@ namespace Fluxzy.Core
                         if (_archiveWriter?.CapturesBodyContent == true)
                         {
                             var dispatchStream = new DispatchStream(responseBodyStream,
-                                true,
+                                true, DispatchStreamOwnership.OwnBaseStream,
                                 _archiveWriter.CreateResponseBodyStream(exchange.Id));
 
                             exchange.Response.Body = dispatchStream;
@@ -832,6 +832,8 @@ namespace Fluxzy.Core
                     {
                         // Enhance your calm
                     }
+
+                    await exchange.ConnectionDisposition.ConfigureAwait(false);
 
                     FluxzyLogEvents.LogExchangeCompleted(_logger, exchange, _proxyRuntimeSetting.StartupSetting);
                 }
@@ -964,3 +966,4 @@ namespace Fluxzy.Core
         }
     }
 }
+

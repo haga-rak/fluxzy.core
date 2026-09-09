@@ -41,11 +41,16 @@ namespace Fluxzy.Tests.UnitTests.H11Client
             // Contrast case: the ordinary shared pool has no single-connection lease, so two
             // concurrent sends fan out onto two sockets. This is what made simply dedicating a
             // shared pool to one client insufficient for connection-oriented auth.
-            await using var server = CountingHttpServer.Start();
+            await using var server = CountingHttpServer.Start(gateResponseBodies: true);
 
             await using var pool = BuildPool(server.Port, dedicated: false);
 
-            await SendConcurrently(pool, server.Port);
+            await SendConcurrently(pool, server.Port, () => {
+                var acceptedConnections = server.AcceptedConnections;
+                server.ReleaseResponseBodies();
+
+                Assert.Equal(2, acceptedConnections);
+            });
 
             Assert.Equal(2, server.AcceptedConnections);
         }
@@ -113,7 +118,8 @@ namespace Fluxzy.Tests.UnitTests.H11Client
             return pool;
         }
 
-        private static async Task SendConcurrently(Http11ConnectionPool pool, int port)
+        private static async Task SendConcurrently(
+            Http11ConnectionPool pool, int port, Action? beforeBodyDrain = null)
         {
             var authority = new Authority("127.0.0.1", port, false);
 
@@ -127,8 +133,12 @@ namespace Fluxzy.Tests.UnitTests.H11Client
 
             await Task.WhenAll(task1, task2);
 
-            // Content-Length: 0 responses complete synchronously inside Send, so awaiting here
-            // just observes the already-set result and any recycle exception.
+            beforeBodyDrain?.Invoke();
+
+            await Task.WhenAll(
+                exchange1.Response.Body!.CopyToAsync(Stream.Null),
+                exchange2.Response.Body!.CopyToAsync(Stream.Null));
+
             await exchange1.Complete;
             await exchange2.Complete;
         }

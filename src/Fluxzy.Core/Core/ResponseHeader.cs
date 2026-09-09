@@ -13,6 +13,9 @@ namespace Fluxzy.Core
 {
     public class ResponseHeader : Header
     {
+        private readonly bool _hasCloseDelimitedTransferEncoding;
+        private readonly bool _isHttp10Response;
+
         /// <summary>
         ///     Building from flat header
         /// </summary>
@@ -24,6 +27,8 @@ namespace Fluxzy.Core
             bool isSecure, bool parseConnectionInfo)
             : base(headerContent, isSecure)
         {
+            _isHttp10Response = IsHttp10Response(headerContent.Span);
+            _hasCloseDelimitedTransferEncoding = NormalizeCloseDelimitedTransferEncoding();
             StatusCode = ParseStatusCode();
 
             if (parseConnectionInfo) {
@@ -42,6 +47,8 @@ namespace Fluxzy.Core
         public ResponseHeader(IEnumerable<HeaderField> headers)
             : base(headers)
         {
+            _isHttp10Response = false;
+            _hasCloseDelimitedTransferEncoding = NormalizeCloseDelimitedTransferEncoding();
             StatusCode = ParseStatusCode();
 
             ConnectionCloseRequest = ReadConnectionCloseRequest();
@@ -60,7 +67,39 @@ namespace Fluxzy.Core
             return int.Parse(field.Value.Span);
         }
 
-        public int TimeoutIdleSeconds { get; set; } = 1;
+        private bool NormalizeCloseDelimitedTransferEncoding()
+        {
+            if (ChunkedBody || !TryGetFirstHeader(Http11Constants.TransferEncodingVerb, out _)) {
+                return false;
+            }
+
+            // Any Transfer-Encoding overrides Content-Length. A response whose final
+            // transfer coding is not chunked is delimited by closing the connection.
+            RemoveHeader("content-length");
+            ContentLength = -1;
+
+            return true;
+        }
+
+        private static bool IsHttp10Response(ReadOnlySpan<char> headerContent)
+        {
+            var lineStart = 0;
+
+            while (lineStart < headerContent.Length &&
+                   (headerContent[lineStart] == '\r' || headerContent[lineStart] == '\n')) {
+                lineStart++;
+            }
+
+            const string protocol = "HTTP/1.0";
+            var firstLine = headerContent.Slice(lineStart);
+
+            return firstLine.Length > protocol.Length &&
+                   firstLine.Slice(0, protocol.Length)
+                       .Equals(protocol.AsSpan(), StringComparison.OrdinalIgnoreCase) &&
+                   (firstLine[protocol.Length] == ' ' || firstLine[protocol.Length] == '\t');
+        }
+
+        public int TimeoutIdleSeconds { get; set; } = -1;
 
         public int MaxConnection { get; set; } = -1;
 
@@ -70,21 +109,34 @@ namespace Fluxzy.Core
 
         private bool ReadConnectionCloseRequest()
         {
-            if (HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "close")) {
+            if (HasHeaderValueToken(Http11Constants.ConnectionVerb, "close")) {
+                return true;
+            }
+
+            if (_hasCloseDelimitedTransferEncoding) {
+                return true;
+            }
+
+            if (_isHttp10Response &&
+                (!HasHeaderValueToken(Http11Constants.ConnectionVerb, "keep-alive") ||
+                 !HasSelfDelimitedHttp10Response())) {
                 return true;
             }
 
             // upgrade token only ends the http/1.1 usage when the protocol switch
             // actually happens (101); on any other status it is a mere advertisement
             return StatusCode == 101 &&
-                   HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "upgrade");
+                   HasHeaderValueToken(Http11Constants.ConnectionVerb, "upgrade");
         }
+
+        private bool HasSelfDelimitedHttp10Response() =>
+            ContentLength >= 0 || StatusCode < 200 || StatusCode is 204 or 304;
 
         private bool ReadKeepAliveSettings()
         {
             var immediateClose = false;
 
-            if (HasHeaderValueEqualsAny(Http11Constants.ConnectionVerb, "keep-alive")) {
+            if (HasHeaderValueToken(Http11Constants.ConnectionVerb, "keep-alive")) {
                 if (TryGetLastHeader(Http11Constants.KeepAliveVerb, out var keepHeaderValue)
                     && !keepHeaderValue.Value.IsEmpty) {
                     if (HeaderUtility.TryParseKeepAlive(keepHeaderValue.Value.Span, out var max, out var timeout)) {

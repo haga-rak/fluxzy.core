@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace Fluxzy.Misc.Streams
 {
+    public enum DispatchStreamOwnership
+    {
+        LeaveBaseStreamOpen,
+        OwnBaseStream
+    }
+
     /// <summary>
     ///     Read stream and dispatch read bytes to listener streams
     /// </summary>
@@ -15,7 +21,9 @@ namespace Fluxzy.Misc.Streams
     {
         private readonly Stream _baseStream;
         private readonly bool _closeOnDone;
+        private readonly DispatchStreamOwnership _ownership;
         private List<Stream>? _destinations;
+        private int _disposed;
 
         /// <summary>
         ///     Constructor
@@ -26,9 +34,25 @@ namespace Fluxzy.Misc.Streams
         public DispatchStream(
             Stream baseStream, bool closeOnDone,
             params Stream[] listenerStreams)
+            : this(baseStream, closeOnDone, DispatchStreamOwnership.LeaveBaseStreamOpen, listenerStreams)
+        {
+        }
+
+        /// <summary>
+        ///     Constructor with explicit base stream ownership
+        /// </summary>
+        /// <param name="baseStream">Read stream</param>
+        /// <param name="closeOnDone">When readStream reach EOF, close listener streams</param>
+        /// <param name="ownership">Whether disposing this stream also disposes the base stream</param>
+        /// <param name="listenerStreams">List of listenerStreams</param>
+        public DispatchStream(
+            Stream baseStream, bool closeOnDone,
+            DispatchStreamOwnership ownership,
+            params Stream[] listenerStreams)
         {
             _baseStream = baseStream;
             _closeOnDone = closeOnDone;
+            _ownership = ownership;
             _destinations = new List<Stream>(listenerStreams);
         }
 
@@ -62,13 +86,13 @@ namespace Fluxzy.Misc.Streams
             var read = _baseStream.Read(buffer, offset, count);
 
             if (read == 0 && _closeOnDone) {
-                if (_destinations != null) {
-                    foreach (var dest in _destinations) {
+                var destinations = Interlocked.Exchange(ref _destinations, null);
+
+                if (destinations != null) {
+                    foreach (var dest in destinations) {
                         dest.Dispose();
                     }
                 }
-
-                _destinations = null;
             }
             else {
                 if (_destinations != null) {
@@ -95,13 +119,13 @@ namespace Fluxzy.Misc.Streams
             var read = await _baseStream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
 
             if (read == 0 && _closeOnDone) {
-                if (_destinations != null) {
-                    foreach (var dest in _destinations) {
+                var destinations = Interlocked.Exchange(ref _destinations, null);
+
+                if (destinations != null) {
+                    foreach (var dest in destinations) {
                         await dest.DisposeAsync().ConfigureAwait(false);
                     }
                 }
-
-                _destinations = null;
 
                 if (OnDisposeDoneTask != null) {
                     await OnDisposeDoneTask().ConfigureAwait(false);
@@ -138,32 +162,52 @@ namespace Fluxzy.Misc.Streams
 
         public override async ValueTask DisposeAsync()
         {
-            // Console.WriteLine($"Dispatched stream realeased async {_closeOnDone}");
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
 
-            if (_destinations != null && _closeOnDone) {
-                foreach (var dest in _destinations) {
-                    await dest.DisposeAsync().ConfigureAwait(false);
+            try {
+                var destinations = _closeOnDone
+                    ? Interlocked.Exchange(ref _destinations, null)
+                    : null;
+
+                if (destinations != null) {
+                    foreach (var dest in destinations) {
+                        await dest.DisposeAsync().ConfigureAwait(false);
+                    }
                 }
-
-                _destinations = null;
             }
+            finally {
+                if (_ownership == DispatchStreamOwnership.OwnBaseStream)
+                    await _baseStream.DisposeAsync().ConfigureAwait(false);
 
-            await base.DisposeAsync().ConfigureAwait(false);
+                base.Dispose(true);
+                GC.SuppressFinalize(this);
+            }
         }
 
         protected override void Dispose(bool disposing)
         {
-            // Console.WriteLine($"Dispatched stream realeased sync {_closeOnDone}");
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
 
-            if (_destinations != null && _closeOnDone) {
-                foreach (var dest in _destinations) {
-                    dest.Dispose();
+            try {
+                var destinations = disposing && _closeOnDone
+                    ? Interlocked.Exchange(ref _destinations, null)
+                    : null;
+
+                if (destinations != null) {
+                    foreach (var dest in destinations) {
+                        dest.Dispose();
+                    }
                 }
-
-                _destinations = null;
             }
+            finally {
+                if (disposing && _ownership == DispatchStreamOwnership.OwnBaseStream)
+                    _baseStream.Dispose();
 
-            base.Dispose(disposing);
+                base.Dispose(disposing);
+            }
         }
     }
 }
+

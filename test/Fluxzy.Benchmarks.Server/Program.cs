@@ -12,8 +12,12 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-var builder = WebApplication.CreateBuilder();
+var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
+
+// --http1-only: don't advertise h2 in ALPN, so H1 benchmark cases stay HTTP/1.1
+// on the fluxzy → server leg without needing a proxy-side rule.
+var http1Only = args.Contains("--http1-only");
 
 var certificate = CreateSelfSignedCertificate();
 
@@ -22,7 +26,7 @@ builder.WebHost.ConfigureKestrel(k =>
     k.Listen(IPAddress.Loopback, 0, listenOptions =>
     {
         listenOptions.UseHttps(certificate);
-        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+        listenOptions.Protocols = http1Only ? HttpProtocols.Http1 : HttpProtocols.Http1AndHttp2;
     });
 });
 

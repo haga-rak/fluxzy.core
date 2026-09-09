@@ -54,7 +54,6 @@ namespace Fluxzy.Tests.UnitTests.Handlers
 
         [Theory]
         [InlineData("https://fr.wiktionary.org/static/images/icons/wiktionary.svg")]
-        [InlineData("https://services.gfe.nvidia.com/GFE/v1.0/dao/x64")]
         [InlineData($"https://{TestConstants.HttpBinHost}/ip")]
         public async Task Get_Error_Case(string url)
         {

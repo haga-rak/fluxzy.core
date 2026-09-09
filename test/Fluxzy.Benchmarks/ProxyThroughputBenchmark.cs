@@ -26,6 +26,7 @@ namespace Fluxzy.Benchmarks;
 /// </summary>
 [MemoryDiagnoser]
 //[ThreadingDiagnoser]
+[GcServer(true)] // proxy + client run in this process; workstation GC caps throughput at this concurrency
 [Config(typeof(Config))]
 public class ProxyThroughputBenchmark
 {
@@ -76,9 +77,11 @@ public class ProxyThroughputBenchmark
     [GlobalSetup]
     public async Task Setup()
     {
-        // 1. Start external HTTPS test server (separate process to avoid polluting memory measurements)
+        // 1. Start external HTTPS test server (separate process to avoid polluting memory measurements).
+        //    In H1 cases the server doesn't advertise h2 at all, so the fluxzy → server leg
+        //    can't negotiate HTTP/2 behind the benchmark's back.
         _server = new BenchmarkServerProcess();
-        await _server.StartAsync();
+        await _server.StartAsync(http1Only: !ServeH2);
 
         var httpVersion = ServeH2 ? new Version(2, 0) : new Version(1, 1);
         _byteCounter = new ByteCounter();
@@ -267,11 +270,12 @@ public class ProxyThroughputBenchmark
 
     private async Task SendRequest()
     {
-        using var response = await _client.GetAsync(_targetUrl, HttpCompletionOption.ResponseContentRead)
+        // ResponseHeadersRead avoids pre-buffering the body into a per-request MemoryStream;
+        // the drain below streams it to null through pooled buffers instead.
+        using var response = await _client.GetAsync(_targetUrl, HttpCompletionOption.ResponseHeadersRead)
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        // Drain the response body using pooled buffers (no per-request allocations)
         await response.Content.CopyToAsync(Stream.Null).ConfigureAwait(false);
     }
 
