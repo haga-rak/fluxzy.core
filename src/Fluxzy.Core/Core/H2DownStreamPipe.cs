@@ -494,6 +494,8 @@ namespace Fluxzy.Core
         internal int ClosedStreamCountForTests => Volatile.Read(ref _closedStreamCount);
         internal int DroppedResponseBufferCountForTests
             => Volatile.Read(ref _droppedResponseBufferCount);
+        internal int NextDataFrameLengthForTests
+            => _dataChannel.Reader.TryPeek(out var entry) ? entry.Length : 0;
 
         internal void PauseWriteLoopForTests()
         {
@@ -692,40 +694,38 @@ namespace Fluxzy.Core
 
                             if (window < entry.FlowControlledBytes)
                                 break; // connection window exhausted
-
-                            Interlocked.Add(ref _connectionWindow, -entry.FlowControlledBytes);
                         }
+
+                        // Flush the current batch before claiming ownership of an entry that
+                        // does not fit. If the write fails, the entry remains queued so teardown
+                        // can still return its rented buffer.
+                        if (gatherOffset > 0 && gatherOffset + entry.Length > gatherBuffer.Length) {
+                            await FlushGatheredDataAsync(
+                                gatherBuffer, gatherOffset, completedResponses, token)
+                                .ConfigureAwait(false);
+                            gatherOffset = 0;
+                            didWork = true;
+                            continue;
+                        }
+
+                        if (entry.FlowControlledBytes > 0)
+                            Interlocked.Add(ref _connectionWindow, -entry.FlowControlledBytes);
 
                         _dataChannel.Reader.TryRead(out _); // consume the peeked entry
 
                         // Single frame with nothing else queued — write directly, skip gather
                         if (gatherOffset == 0 && !_dataChannel.Reader.TryPeek(out _)) {
-                            try {
-                                await _writeStream.WriteAsync(
-                                    entry.RentedBuffer!.AsMemory(0, entry.Length), token)
-                                    .ConfigureAwait(false);
-                            }
-                            finally {
-                                ArrayPool<byte>.Shared.Return(entry.RentedBuffer!);
-                            }
-
-                            if (entry.CompletesResponse)
-                                CompleteWrittenResponse(entry.StreamIdentifier);
+                            await WriteDataEntryAsync(entry, token).ConfigureAwait(false);
 
                             didWork = true;
                             break;
                         }
 
-                        // Gather mode: accumulate frames for batched write
-                        if (gatherOffset + entry.Length > gatherBuffer.Length) {
-                            // Flush current batch before it overflows
-                            if (gatherOffset > 0) {
-                                await FlushGatheredDataAsync(
-                                    gatherBuffer, gatherOffset, completedResponses, token)
-                                    .ConfigureAwait(false);
-                                gatherOffset = 0;
-                                didWork = true;
-                            }
+                        // A peer's negotiated frame size can exceed the fixed gather buffer.
+                        if (entry.Length > gatherBuffer.Length) {
+                            await WriteDataEntryAsync(entry, token).ConfigureAwait(false);
+                            didWork = true;
+                            continue;
                         }
 
                         entry.RentedBuffer!.AsSpan(0, entry.Length).CopyTo(gatherBuffer.AsSpan(gatherOffset));
@@ -854,6 +854,20 @@ namespace Fluxzy.Core
             if (_currentStreams.TryGetValue(streamIdentifier, out var worker) &&
                 worker.CompleteResponse())
                 CheckoutServerStreamWorker(worker);
+        }
+
+        private async ValueTask WriteDataEntryAsync(DataFrameEntry entry, CancellationToken token)
+        {
+            try {
+                await _writeStream.WriteAsync(entry.RentedBuffer!.AsMemory(0, entry.Length), token)
+                    .ConfigureAwait(false);
+            }
+            finally {
+                ArrayPool<byte>.Shared.Return(entry.RentedBuffer!);
+            }
+
+            if (entry.CompletesResponse)
+                CompleteWrittenResponse(entry.StreamIdentifier);
         }
 
         private async ValueTask FlushGatheredDataAsync(
