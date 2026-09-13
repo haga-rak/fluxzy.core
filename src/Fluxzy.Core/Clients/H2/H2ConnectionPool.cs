@@ -704,6 +704,13 @@ namespace Fluxzy.Clients.H2
                 var sendAck = false;
 
                 while (frame.TryReadNextSetting(out var settingFrame, ref indexer)) {
+                    if (H2Helper.TryGetSettingError(ref settingFrame, out var settingError)) {
+                        EmitGoAway(settingError);
+
+                        throw new H2Exception(
+                            $"Invalid SETTINGS_{settingFrame.SettingIdentifier} value {settingFrame.Value}",
+                            settingError);
+                    }
 
                     var needAck = H2Helper.ProcessIncomingSettingFrame(Setting, ref settingFrame);
 
