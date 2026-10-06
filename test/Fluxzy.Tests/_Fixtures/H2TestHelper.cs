@@ -363,7 +363,8 @@ namespace Fluxzy.Tests._Fixtures
         /// and calls Init on the pipe.
         /// </summary>
         public static async Task<H2TestContext> Create(
-            Func<Stream, Stream>? serverWriteStreamFactory = null)
+            Func<Stream, Stream>? serverWriteStreamFactory = null,
+            H2StreamSetting? h2StreamSetting = null)
         {
             var pipe = new DuplexPipe();
             var authority = new Authority("localhost", 443, true);
@@ -373,7 +374,8 @@ namespace Fluxzy.Tests._Fixtures
                 authority,
                 pipe.ServerReadStream,
                 serverWriteStreamFactory?.Invoke(pipe.ServerWriteStream) ?? pipe.ServerWriteStream,
-                new TestExchangeContextBuilder());
+                new TestExchangeContextBuilder(),
+                h2StreamSetting);
 
             var memoryProvider = ArrayPoolMemoryProvider<char>.Default;
             var clientEncoder = new HPackEncoder(
