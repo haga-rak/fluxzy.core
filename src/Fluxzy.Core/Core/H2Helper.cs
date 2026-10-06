@@ -121,6 +121,12 @@ namespace Fluxzy.Core
         private const int DecodeMaxBufferSize = 1024 * 1024;
 
         internal static Memory<char> DecodeAndAllocate(IHeaderEncoder headerEncoder, ReadOnlySpan<byte> onWire)
+            => Decode(headerEncoder, onWire, allocate: true);
+
+        internal static void DecodeAndDiscard(IHeaderEncoder headerEncoder, ReadOnlySpan<byte> onWire)
+            => Decode(headerEncoder, onWire, allocate: false);
+
+        private static Memory<char> Decode(IHeaderEncoder headerEncoder, ReadOnlySpan<byte> onWire, bool allocate)
         {
             var bufferSize = DecodeInitialBufferSize;
 
@@ -133,6 +139,10 @@ namespace Fluxzy.Core
                     Span<char> tempBuffer = byteArray;
 
                     var decoded = headerEncoder.Decoder.Decode(onWire, tempBuffer);
+
+                    if (!allocate)
+                        return default;
+
                     Memory<char> charBuffer = new char[decoded.Length + 256];
 
                     decoded.CopyTo(charBuffer.Span);

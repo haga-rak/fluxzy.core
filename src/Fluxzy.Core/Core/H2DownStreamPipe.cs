@@ -40,11 +40,10 @@ namespace Fluxzy.Core
             Channel.CreateUnbounded<PendingHeaderWrite>(
                 new UnboundedChannelOptions() { SingleReader = true });
         private readonly RsBuffer _headerEncodeBuffer = RsBuffer.Allocate(16 * 1024);
-        private readonly H2StreamSetting _h2StreamSetting = new H2StreamSetting() {
-            Local = new () {
-                SettingsMaxConcurrentStreams = 256
-            }
-        };
+        private readonly H2StreamSetting _h2StreamSetting;
+        private int _openStreamCount;
+        private int _resetCount;
+        private long _resetWindowStart;
 
         private readonly Channel<DataFrameEntry> _dataChannel;
         private const int GatherBufferSize = 256 * 1024;
@@ -82,13 +81,16 @@ namespace Fluxzy.Core
         public H2DownStreamPipe(
             IIdProvider idProvider,
             Authority requestedAuthority, Stream readStream, Stream writeStream,
-            IExchangeContextBuilder contextBuilder)
+            IExchangeContextBuilder contextBuilder, H2StreamSetting? h2StreamSetting = null)
         {
             _readStream = readStream;
             _writeStream = writeStream;
             _idProvider = idProvider;
             _contextBuilder = contextBuilder;
             RequestedAuthority = requestedAuthority;
+            _h2StreamSetting = h2StreamSetting ?? new H2StreamSetting();
+            _h2StreamSetting.AdvertiseSettings.Add(SettingIdentifier.SettingsMaxConcurrentStreams);
+            _resetWindowStart = Environment.TickCount64;
 
             var hPackEncoder =
                 new HPackEncoder(new EncodingContext(ArrayPoolMemoryProvider<char>.Default));
@@ -253,6 +255,7 @@ namespace Fluxzy.Core
         {
             if (_currentStreams.TryRemove(streamWorker.StreamIdentifier, out var removedWorker)) {
                 removedWorker.Dispose();
+                Interlocked.Decrement(ref _openStreamCount);
                 Interlocked.Increment(ref _closedStreamCount);
             }
         }
@@ -261,6 +264,30 @@ namespace Fluxzy.Core
         {
             streamWorker.Abort(errorCode);
             CheckoutServerStreamWorker(streamWorker);
+        }
+
+        private bool RegisterStreamReset()
+        {
+            var now = Environment.TickCount64;
+
+            if (now - _resetWindowStart >= (long) _h2StreamSetting.StreamResetWindow.TotalMilliseconds) {
+                _resetWindowStart = now;
+                _resetCount = 0;
+            }
+
+            return ++_resetCount > _h2StreamSetting.MaxStreamResetsPerWindow;
+        }
+
+        private bool ResetStream(ServerStreamWorker worker, H2ErrorCode errorCode)
+        {
+            WriteRstStream(worker.StreamIdentifier, errorCode);
+            AbortServerStreamWorker(worker, errorCode);
+
+            if (!RegisterStreamReset())
+                return false;
+
+            WriteGoAway(H2ErrorCode.EnhanceYourCalm);
+            return true;
         }
 
         private async Task ReadLoop(CancellationToken token)
@@ -338,6 +365,11 @@ namespace Fluxzy.Core
                         if (_currentStreams.TryGetValue(frame.StreamIdentifier, out var rstWorker)) {
                             AbortServerStreamWorker(
                                 rstWorker, frame.GetRstStreamFrame().ErrorCode);
+
+                            if (RegisterStreamReset()) {
+                                WriteGoAway(H2ErrorCode.EnhanceYourCalm);
+                                break;
+                            }
                         }
                         continue;
                     }
@@ -366,6 +398,7 @@ namespace Fluxzy.Core
                             _h2StreamSetting);
 
                         _currentStreams.TryAdd(frame.StreamIdentifier, worker);
+                        Interlocked.Increment(ref _openStreamCount);
                         _highestAcceptedStreamId = frame.StreamIdentifier;
 
                         if (frame.StreamIdentifier == Volatile.Read(ref _activeStreamWaitIdentifier))
@@ -373,9 +406,9 @@ namespace Fluxzy.Core
                     }
 
                     if (frame.BodyType == H2FrameType.PushPromise) {
-                        var pushErrorCode = H2ErrorCode.ProtocolError;
-                        WriteRstStream(frame.StreamIdentifier, pushErrorCode);
-                        AbortServerStreamWorker(worker, pushErrorCode);
+                        if (ResetStream(worker, H2ErrorCode.ProtocolError))
+                            break;
+
                         continue;
                     }
 
@@ -384,8 +417,9 @@ namespace Fluxzy.Core
 
                         if (headerErrorCode != H2ErrorCode.NoError)
                         {
-                            WriteRstStream(frame.StreamIdentifier, headerErrorCode);
-                            AbortServerStreamWorker(worker, headerErrorCode);
+                            if (ResetStream(worker, headerErrorCode))
+                                break;
+
                             continue;
                         }
 
@@ -401,8 +435,9 @@ namespace Fluxzy.Core
                             if (frame.GetContinuationFrame().EndHeaders)
                                 _expectedContinuationStreamId = 0;
 
-                            WriteRstStream(frame.StreamIdentifier, contErrorCode);
-                            AbortServerStreamWorker(worker, contErrorCode);
+                            if (ResetStream(worker, contErrorCode))
+                                break;
+
                             continue;
                         }
 
@@ -416,8 +451,9 @@ namespace Fluxzy.Core
 
                         if (dataErrorCode != H2ErrorCode.NoError)
                         {
-                            WriteRstStream(frame.StreamIdentifier, dataErrorCode);
-                            AbortServerStreamWorker(worker, dataErrorCode);
+                            if (ResetStream(worker, dataErrorCode))
+                                break;
+
                             continue;
                         }
                         else {
@@ -439,6 +475,16 @@ namespace Fluxzy.Core
                     }
 
                     if (worker.ReadyToCreateExchange) {
+                        if (Volatile.Read(ref _openStreamCount) >
+                            _h2StreamSetting.Local.SettingsMaxConcurrentStreams) {
+                            worker.DiscardHeaderBlock();
+
+                            if (ResetStream(worker, H2ErrorCode.RefusedStream))
+                                break;
+
+                            continue;
+                        }
+
                         var exchange = await worker.CreateExchange(_idProvider, _contextBuilder,
                             RequestedAuthority, true).ConfigureAwait(false);
 
