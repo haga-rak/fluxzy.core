@@ -148,8 +148,13 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         set -euo pipefail
+        # git archive must run at the repository root: from a subdirectory it
+        # archives only that subtree (which does not exist at the tag).
+        git archive --format=tar.gz --prefix="fluxzy.core-${VERSION}/" -o "oem/fluxzy.core-${VERSION}-src.tar.gz" "$TAG"
+        entries=$(tar -tzf "oem/fluxzy.core-${VERSION}-src.tar.gz" | wc -l)
+        echo "Source tarball: ${entries} entries"
+        [ "$entries" -gt 100 ]
         cd oem
-        git archive --format=tar.gz --prefix="fluxzy.core-${VERSION}/" -o "fluxzy.core-${VERSION}-src.tar.gz" "$TAG"
         {
           echo "# ${PACKAGE_ID} ${VERSION}"
           echo
