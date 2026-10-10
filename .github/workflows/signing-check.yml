@@ -1,0 +1,130 @@
+name: Signing Check
+
+# Cheap end-to-end check of the code-signing chain without a release build:
+# AZURE_* client secret -> Artifact Signing role on the fluxzy-public profile
+# -> `sign` tool -> a real, timestamped signature on a throwaway DLL, verified
+# with Get-AuthenticodeSignature. Run it after touching the Azure setup or the
+# GitHub secrets (build/setup-artifact-signing.cmd). It also runs weekly so a
+# revoked secret, an expired identity validation or a dead endpoint is noticed
+# before release day. Nothing is built, published or uploaded.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+
+concurrency:
+  group: signing-check
+  cancel-in-progress: true
+
+jobs:
+  signing-check:
+    name: Sign a probe DLL with Artifact Signing
+    runs-on: [self-hosted, Windows]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      SIGN_TOOL_VERSION: 0.9.1-beta.26475.3
+      ARTIFACT_SIGNING_ENDPOINT: https://weu.codesigning.azure.net/
+      ARTIFACT_SIGNING_ACCOUNT: fluxzyartifact
+      ARTIFACT_SIGNING_PROFILE: fluxzy-public
+    steps:
+      - name: Validate required secrets
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        run: |
+          missing=""
+          [ -z "$AZURE_CLIENT_ID" ] && missing="$missing AZURE_CLIENT_ID"
+          [ -z "$AZURE_TENANT_ID" ] && missing="$missing AZURE_TENANT_ID"
+          [ -z "$AZURE_CLIENT_SECRET" ] && missing="$missing AZURE_CLIENT_SECRET"
+
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required secrets:$missing"
+            exit 1
+          fi
+
+      # Same pinned version as build/Fluxzy.Build (needs the artifact-signing command)
+      - name: Install dotnet sign tool
+        shell: pwsh
+        run: |
+          dotnet tool update --global sign --version $env:SIGN_TOOL_VERSION
+          if ($LASTEXITCODE -ne 0) {
+            dotnet tool install --global sign --version $env:SIGN_TOOL_VERSION
+          }
+
+      - name: Build an unsigned probe DLL
+        shell: pwsh
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP 'signing-probe'
+          New-Item -ItemType Directory -Force $dir | Out-Null
+          $dll = Join-Path $dir 'fluxzy-signing-probe.dll'
+          Add-Type -TypeDefinition 'public static class FluxzySigningProbe { }' -OutputAssembly $dll -OutputType Library
+          $status = (Get-AuthenticodeSignature $dll).Status
+          if ($status -ne 'NotSigned') { throw "Probe should start unsigned, got $status" }
+          "PROBE_DIR=$dir" >> $env:GITHUB_ENV
+          "PROBE_DLL=$dll" >> $env:GITHUB_ENV
+
+      # Same invocation as SignHelper.cs, authentication through the AZURE_*
+      # environment variables (EnvironmentCredential), nothing else on the runner
+      - name: Sign the probe
+        shell: pwsh
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        run: |
+          sign code artifact-signing fluxzy-signing-probe.dll `
+            --base-directory $env:PROBE_DIR `
+            --artifact-signing-endpoint $env:ARTIFACT_SIGNING_ENDPOINT `
+            --artifact-signing-account $env:ARTIFACT_SIGNING_ACCOUNT `
+            --artifact-signing-certificate-profile $env:ARTIFACT_SIGNING_PROFILE `
+            --timestamp-url http://timestamp.acs.microsoft.com `
+            --timestamp-digest sha256 `
+            --file-digest sha256 `
+            --publisher-name "Fluxzy SAS" `
+            --description "Fluxzy signing check" `
+            --description-url https://www.fluxzy.io `
+            --verbosity Information
+          if ($LASTEXITCODE -ne 0) { throw "sign exited with $LASTEXITCODE" }
+
+      - name: Inspect the signature
+        shell: pwsh
+        run: |
+          $sig = Get-AuthenticodeSignature $env:PROBE_DLL
+          $cert = $sig.SignerCertificate
+          $ts = $sig.TimeStamperCertificate
+
+          $problems = @()
+          if ($sig.Status -ne 'Valid') { $problems += "signature status is $($sig.Status) ($($sig.StatusMessage))" }
+          if (-not $cert -or $cert.Subject -notmatch '^CN=Fluxzy\b') { $problems += "unexpected signer: $($cert.Subject)" }
+          if (-not $ts) { $problems += 'no RFC 3161 timestamp (signature would die with the 3-day certificate)' }
+          if ($cert -and $cert.NotAfter -lt (Get-Date)) { $problems += "certificate already expired at $($cert.NotAfter)" }
+
+          $rows = @(
+            "| Field | Value |", "|---|---|",
+            "| Status | $($sig.Status) |",
+            "| Subject | $($cert.Subject) |",
+            "| Issuer | $($cert.Issuer) |",
+            "| Thumbprint | $($cert.Thumbprint) |",
+            "| Valid from | $($cert.NotBefore.ToString('u')) |",
+            "| Valid to | $($cert.NotAfter.ToString('u')) |",
+            "| Timestamp authority | $(if ($ts) { $ts.Subject } else { 'none' }) |"
+          )
+          $verdict = if ($problems) { 'FAIL' } else { 'PASS' }
+          @("## Signing check: $verdict", "") + $rows + @("") + ($problems | ForEach-Object { "- :x: $_" }) |
+            Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          $rows | Write-Host
+
+          if ($problems) {
+            $problems | ForEach-Object { Write-Host "::error::$_" }
+            exit 1
+          }
+
+      - name: Clean up
+        if: always()
+        shell: pwsh
+        run: if ($env:PROBE_DIR) { Remove-Item -Recurse -Force $env:PROBE_DIR -ErrorAction SilentlyContinue }

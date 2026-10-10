@@ -1,7 +1,14 @@
 name: Publish CLI
 
 on: workflow_dispatch
-      
+
+# Windows binaries are Authenticode-signed with Azure Artifact Signing. The
+# sign tool authenticates with the "fluxzy-ci-signing" app registration
+# through a client secret read from the environment (AZURE_CLIENT_ID,
+# AZURE_TENANT_ID, AZURE_CLIENT_SECRET): no Azure CLI, no azure/login, no
+# certificate file on the runner. The app must hold "Artifact Signing
+# Certificate Profile Signer" on the fluxzy-public profile
+# (build/setup-artifact-signing.cmd). Linux/ARM64 artifacts are not signed.
 jobs:
   publish-release:
     name: "Publish release"
@@ -20,6 +27,25 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 10.0.x
+
+    - name: Validate signing secrets
+      if: runner.os == 'Windows'
+      shell: bash
+      env:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      run: |
+        missing=""
+        [ -z "$AZURE_CLIENT_ID" ] && missing="$missing AZURE_CLIENT_ID"
+        [ -z "$AZURE_TENANT_ID" ] && missing="$missing AZURE_TENANT_ID"
+        [ -z "$AZURE_CLIENT_SECRET" ] && missing="$missing AZURE_CLIENT_SECRET"
+
+        if [ -n "$missing" ]; then
+          echo "::error::Missing required secrets:$missing"
+          exit 1
+        fi
+
     - name: Publish CLI
       shell: bash
       env:
@@ -32,13 +58,9 @@ jobs:
 
         UPLOAD_RELEASE_TOKEN : ${{ secrets.UPLOAD_RELEASE_TOKEN }}
 
-        AZURE_VAULT_DESCRIPTION_URL : ${{ secrets.AZURE_VAULT_DESCRIPTION_URL }}
-        AZURE_VAULT_URL : ${{ secrets.AZURE_VAULT_URL }}
-        AZURE_VAULT_CERTIFICATE : ${{ secrets.AZURE_VAULT_CERTIFICATE }}
-
-        AZURE_CLIENT_ID : ${{ secrets.AZURE_VAULT_CLIENT_ID }}
-        AZURE_CLIENT_SECRET : ${{ secrets.AZURE_VAULT_CLIENT_SECRET }}
-        AZURE_TENANT_ID : ${{ secrets.AZURE_VAULT_TENANT_ID }}
+        # Azure Artifact Signing (EnvironmentCredential)
+        AZURE_CLIENT_ID : ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID : ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_CLIENT_SECRET : ${{ secrets.AZURE_CLIENT_SECRET }}
 
       run: bash build.sh fluxzy-cli-publish-with-note
-

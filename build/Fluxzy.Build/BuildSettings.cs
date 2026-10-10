@@ -6,6 +6,8 @@ namespace Fluxzy.Build
     {
         public static bool SkipSigning { get; } = string.Equals(Environment.GetEnvironmentVariable("NO_SIGN"), "1");
         
+        public static bool SignNugetPackages { get; } = string.Equals(Environment.GetEnvironmentVariable("NUGET_PACKAGE_SIGN"), "1");
+
         public static int ConcurrentSignCount { get; } =
             int.Parse(Environment.GetEnvironmentVariable("CONCURRENT_SIGN")?.Trim() ?? "6");
     }
