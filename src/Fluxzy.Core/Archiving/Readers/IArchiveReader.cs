@@ -72,7 +72,7 @@ namespace Fluxzy.Readers
         Stream? GetRequestBody(int exchangeId);
 
         /// <summary>
-        ///  Get the decoded (unchunked and uncompressed) request body of an exchange
+        ///  Get the decoded (uncompressed) request body of an exchange. Stored bodies are never chunked.
         /// </summary>
         /// <param name="exchangeId"></param>
         /// <returns></returns>
@@ -109,7 +109,7 @@ namespace Fluxzy.Readers
         Stream? GetResponseWebsocketContent(int exchangeId, int messageId);
 
         /// <summary>
-        ///  Get the decoded (unchunked and uncompressed) response body of an exchange
+        ///  Get the decoded (uncompressed) response body of an exchange. Stored bodies are never chunked.
         /// </summary>
         /// <param name="exchangeId"></param>
         /// <returns></returns>
