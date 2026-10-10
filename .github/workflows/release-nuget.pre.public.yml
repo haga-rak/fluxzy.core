@@ -2,6 +2,7 @@ name: Publish NuGet (PUBLIC!) (PRERELEASE!)
 
 on: workflow_dispatch
 
+# No author signature on nuget.org packages, see release-nuget.public.yml.
 jobs:
   publish-release:
     name: "Publish pre-release"
@@ -20,7 +21,7 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 10.0.x
-    - name: Publish to private Nugets
+    - name: Publish pre-release to nuget.org
       shell: bash
       env:
         TOKEN_FOR_NUGET : ${{ secrets.TOKEN_FOR_NUGET }}
@@ -29,12 +30,5 @@ jobs:
         REPOSITORY_NAME : ${{ github.event.repository.name }}
         PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
         NUGET_ORG_API_KEY : ${{ secrets.NUGET_ORG_API_KEY }}
-        
-        AZURE_VAULT_DESCRIPTION_URL : ${{ secrets.AZURE_VAULT_DESCRIPTION_URL }}
-        AZURE_VAULT_URL : ${{ secrets.AZURE_VAULT_URL }}
-        AZURE_VAULT_CERTIFICATE : ${{ secrets.AZURE_VAULT_CERTIFICATE }}
-        AZURE_VAULT_CLIENT_ID : ${{ secrets.AZURE_VAULT_CLIENT_ID }}
-        AZURE_VAULT_CLIENT_SECRET : ${{ secrets.AZURE_VAULT_CLIENT_SECRET }}
-        AZURE_VAULT_TENANT_ID : ${{ secrets.AZURE_VAULT_TENANT_ID }}
 
       run: bash build.sh fluxzy-publish-nuget-public-pre-release

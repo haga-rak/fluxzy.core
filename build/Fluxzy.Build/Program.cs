@@ -189,6 +189,14 @@ namespace Fluxzy.Build
 
                     await RunAsync("dotnet",
                         "tool install --global dotnet-project-licenses", handleExitCode: _ => true);
+
+                    // Azure Artifact Signing needs this version's `artifact-signing` command
+                    // (older betas only know Key Vault / Trusted Signing)
+                    await RunAsync("dotnet",
+                        $"tool update --global sign --version {SignHelper.SignToolVersion}", handleExitCode: _ => true);
+
+                    await RunAsync("dotnet",
+                        $"tool install --global sign --version {SignHelper.SignToolVersion}", handleExitCode: _ => true);
                 });
 
             Target(Targets.FluxzyCoreCreatePackage,
@@ -211,9 +219,21 @@ namespace Fluxzy.Build
                         "pack -c Release src/Fluxzy.Core.Pcap -o _npkgout");
                 });
 
+            // Author-signing nupkg is opt-in: nuget.org only accepts author signatures whose
+            // certificate is registered on the account, and the Artifact Signing certificate is
+            // rotated every 3 days. Private feeds do not check that, so the private publish
+            // workflow sets NUGET_PACKAGE_SIGN=1. nuget.org adds its repository signature anyway.
             Target(Targets.FluxzyPackageSign,
                 DependsOn(Targets.FluxzyCorePcapCreatePackage),
-                async () => { await SignHelper.SignPackages("_npkgout"); });
+                async () => {
+                    if (BuildSettings.SkipSigning || !BuildSettings.SignNugetPackages) {
+                        Console.WriteLine("Skipping nupkg author signing (set NUGET_PACKAGE_SIGN=1 to enable)");
+
+                        return;
+                    }
+
+                    await SignHelper.SignPackages("_npkgout");
+                });
 
             Target(Targets.FluxzyPackagePushGithub,
                 DependsOn(Targets.ValidateNugetToken, Targets.FluxzyPackageSign),
