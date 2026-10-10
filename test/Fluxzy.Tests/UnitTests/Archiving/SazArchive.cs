@@ -90,6 +90,12 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             Assert.Equal(string.Empty, exchange3RequestBody);
             Assert.Equal("::ffff:127.0.0.1", exchange2ResponseBody);
 
+            // Chunked framing is removed on import, the stored body is the gzip entity
+            using var rawStream = directoryArchiveReader.GetResponseBody(exchanges[1].Id)!;
+            var magic = new byte[2];
+            Assert.Equal(2, rawStream.Read(magic, 0, 2));
+            Assert.Equal(new byte[] { 0x1f, 0x8b }, magic);
+
             var packager = new FxzyDirectoryPackager();
 
             await packager.Pack(outputDirectory, RegisterFile(@"sortie.fxzy"));
