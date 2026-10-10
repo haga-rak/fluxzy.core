@@ -84,7 +84,10 @@ jobs:
     - name: Verify package signatures
       shell: bash
       env:
-        # Fluxzy SAS author certificate(s); comma separated, update on rotation
+        # Accepted signing certificate(s), comma separated. Public packages carry
+        # only the nuget.org repository signature since the move to Azure Artifact
+        # Signing (3-day author certificates are not registered on nuget.org), so
+        # this must list the nuget.org repository certificate fingerprint.
         AUTHOR_CERT_FINGERPRINTS: ${{ vars.OEM_AUTHOR_CERT_FINGERPRINTS }}
       run: |
         set -euo pipefail
