@@ -13,7 +13,6 @@ namespace Fluxzy.Extensions
             ExchangeInfo exchangeInfo,
             Stream responseBodyInStream, int maximumLength, out CompressionInfo compressionInfo)
         {
-            // Check for chunked body
             var workStream = GetDecodedResponseBodyStream(exchangeInfo, responseBodyInStream, out var compressionType);
 
             var encodingToken = exchangeInfo.GetResponseContentEncoding();
@@ -33,14 +32,18 @@ namespace Fluxzy.Extensions
             }
         }
 
+        /// <summary>
+        ///     Wraps a stored response body with the decoder matching its content-encoding.
+        ///     Bodies handed to this method are already de-framed: the proxy strips chunked
+        ///     transfer coding before recording, so a Transfer-Encoding header in the exchange
+        ///     only describes the wire format and is ignored here.
+        /// </summary>
+        /// <param name="skipForwarded">Unused, kept for binary compatibility.</param>
         public static Stream GetDecodedResponseBodyStream(this
             IExchange exchangeInfo, Stream responseBodyInStream,
             out CompressionType compressionType, bool skipForwarded = false)
         {
             var workStream = responseBodyInStream;
-
-            if (exchangeInfo.IsResponseChunkedTransferEncoded(skipForwarded))
-                workStream = GetUnChunkedStream(workStream);
 
             var encodingToken = exchangeInfo.GetResponseContentEncoding();
             compressionType = ExchangeExtensions.TokenToCompressionType(encodingToken);
@@ -50,14 +53,16 @@ namespace Fluxzy.Extensions
             return workStream;
         }
 
+        /// <summary>
+        ///     Request counterpart of <see cref="GetDecodedResponseBodyStream" />. The stored body
+        ///     is never chunked, so only content-encoding is undone.
+        /// </summary>
+        /// <param name="skipForwarded">Unused, kept for binary compatibility.</param>
         public static Stream GetDecodedRequestBodyStream(this
             IExchange exchangeInfo, Stream requestBodyStream,
             out CompressionType compressionType, bool skipForwarded = false)
         {
             var workStream = requestBodyStream;
-
-            if (exchangeInfo.IsRequestChunkedTransferEncoded(skipForwarded))
-                workStream = new ChunkedTransferReadStream(workStream, true);
 
             var encodingToken = exchangeInfo.GetRequestContentEncoding();
             compressionType = ExchangeExtensions.TokenToCompressionType(encodingToken);
