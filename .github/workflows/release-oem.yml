@@ -1,0 +1,200 @@
+name: Publish OEM release
+
+# Delivers an already published Fluxzy.Core release to the private OEM
+# distribution endpoints (Azure Artifacts feed + Azure Repos mirror) and to the
+# immutable release archive. The package is taken from nuget.org, so what the
+# OEM customer receives is bit-identical to the public package: nothing is
+# rebuilt or re-signed here, and this job needs no signing material.
+#
+# Steps: download from nuget.org -> verify author + repository signatures ->
+# push to the feed -> promote to the @Release view -> mirror main and the
+# release tags -> archive nupkg, source tarball, release notes and SHA256SUMS.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Fluxzy.Core version already on nuget.org (e.g. 1.39.48)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PACKAGE_ID: Fluxzy.Core
+  VERSION: ${{ inputs.version }}
+  DEVOPS_ORG: fluxzy
+  DEVOPS_PROJECT: Fluxzy.Core
+  FEED: fluxzy-core
+  FEED_VIEW: Release
+  MIRROR_REPO: fluxzy.core
+  ARCHIVE_ACCOUNT: stfluxzyreleases
+  ARCHIVE_CONTAINER: releases
+  # Azure DevOps resource id for Entra access tokens
+  DEVOPS_RESOURCE: 499b84ac-1321-427f-aa17-267ca6975798
+
+jobs:
+  publish:
+    name: "Publish ${{ inputs.version }} to OEM endpoints"
+    runs-on: ubuntu-latest
+    environment: oem-release
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Resolve release tag
+      id: tag
+      shell: bash
+      run: |
+        set -euo pipefail
+        mapfile -t tags < <(git tag --list "v${VERSION}.*" | grep -v -- '-cli$' || true)
+        if [ "${#tags[@]}" -ne 1 ]; then
+          echo "::error::Expected exactly one release tag for ${VERSION}, found: ${tags[*]:-none}"
+          exit 1
+        fi
+        echo "tag=${tags[0]}" >> "$GITHUB_OUTPUT"
+        echo "Release tag: ${tags[0]}"
+
+    - name: Download package from nuget.org
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p oem
+        lower=$(echo "$PACKAGE_ID" | tr '[:upper:]' '[:lower:]')
+        url="https://api.nuget.org/v3-flatcontainer/${lower}/${VERSION}/${lower}.${VERSION}.nupkg"
+        # nuget.org indexes a fresh push within a few minutes
+        for attempt in $(seq 1 20); do
+          if curl -sfL -o "oem/${PACKAGE_ID}.${VERSION}.nupkg" "$url"; then
+            break
+          fi
+          echo "Not indexed yet (attempt $attempt), waiting 30s"
+          sleep 30
+        done
+        test -s "oem/${PACKAGE_ID}.${VERSION}.nupkg"
+
+    - name: Verify package signatures
+      shell: bash
+      env:
+        # Fluxzy SAS author certificate(s); comma separated, update on rotation
+        AUTHOR_CERT_FINGERPRINTS: ${{ vars.OEM_AUTHOR_CERT_FINGERPRINTS }}
+      run: |
+        set -euo pipefail
+        args=()
+        IFS=',' read -ra fps <<< "${AUTHOR_CERT_FINGERPRINTS:-}"
+        for fp in "${fps[@]}"; do
+          [ -n "$fp" ] && args+=(--certificate-fingerprint "$fp")
+        done
+        dotnet nuget verify --all "${args[@]}" "oem/${PACKAGE_ID}.${VERSION}.nupkg"
+
+    - name: Azure login (OIDC)
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.OEM_AZURE_CLIENT_ID }}
+        tenant-id: ${{ vars.OEM_AZURE_TENANT_ID }}
+        subscription-id: ${{ vars.OEM_AZURE_SUBSCRIPTION_ID }}
+
+    - name: Get Azure DevOps token
+      shell: bash
+      run: |
+        set -euo pipefail
+        token=$(az account get-access-token --resource "$DEVOPS_RESOURCE" --query accessToken -o tsv)
+        echo "::add-mask::$token"
+        echo "DEVOPS_TOKEN=$token" >> "$GITHUB_ENV"
+
+    - name: Push to OEM feed
+      shell: bash
+      run: |
+        set -euo pipefail
+        source="https://pkgs.dev.azure.com/${DEVOPS_ORG}/${DEVOPS_PROJECT}/_packaging/${FEED}/nuget/v3/index.json"
+        dotnet nuget add source "$source" --name oem --username oem --password "$DEVOPS_TOKEN" --store-password-in-clear-text
+        dotnet nuget push "oem/${PACKAGE_ID}.${VERSION}.nupkg" --source oem --api-key az --skip-duplicate
+
+    - name: Promote to @${{ env.FEED_VIEW }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        url="https://pkgs.dev.azure.com/${DEVOPS_ORG}/${DEVOPS_PROJECT}/_apis/packaging/feeds/${FEED}/nuget/packagesbatch?api-version=7.1-preview.1"
+        body=$(printf '{"data":{"viewId":"%s"},"operation":"promote","packages":[{"id":"%s","version":"%s"}]}' "$FEED_VIEW" "$PACKAGE_ID" "$VERSION")
+        code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$url" \
+          -H "Authorization: Bearer $DEVOPS_TOKEN" -H "Content-Type: application/json" -d "$body")
+        echo "promote -> HTTP $code"
+        [ "$code" = "202" ] || [ "$code" = "200" ]
+
+    - name: Mirror source to Azure Repos
+      shell: bash
+      run: |
+        set -euo pipefail
+        remote="https://dev.azure.com/${DEVOPS_ORG}/${DEVOPS_PROJECT}/_git/${MIRROR_REPO}"
+        # main plus every library release tag (CLI tags are not part of the OEM delivery)
+        refspecs=(refs/remotes/origin/main:refs/heads/main)
+        while read -r t; do
+          refspecs+=("refs/tags/${t}:refs/tags/${t}")
+        done < <(git tag --list 'v[0-9]*' | grep -v -- '-cli$')
+        git -c http.extraheader="AUTHORIZATION: bearer $DEVOPS_TOKEN" push "$remote" "${refspecs[@]}"
+
+    - name: Build archive bundle
+      shell: bash
+      env:
+        TAG: ${{ steps.tag.outputs.tag }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        # git archive must run at the repository root: from a subdirectory it
+        # archives only that subtree (which does not exist at the tag).
+        git archive --format=tar.gz --prefix="fluxzy.core-${VERSION}/" -o "oem/fluxzy.core-${VERSION}-src.tar.gz" "$TAG"
+        entries=$(tar -tzf "oem/fluxzy.core-${VERSION}-src.tar.gz" | wc -l)
+        echo "Source tarball: ${entries} entries"
+        [ "$entries" -gt 100 ]
+        cd oem
+        {
+          echo "# ${PACKAGE_ID} ${VERSION}"
+          echo
+          echo "Tag: ${TAG}  "
+          echo "Commit: $(git rev-parse "${TAG}^{commit}")  "
+          echo "Public package: https://www.nuget.org/packages/${PACKAGE_ID}/${VERSION}"
+          echo
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body || echo "(no GitHub release notes for ${TAG})"
+        } > RELEASE-NOTES.md
+        sha256sum "${PACKAGE_ID}.${VERSION}.nupkg" "fluxzy.core-${VERSION}-src.tar.gz" RELEASE-NOTES.md > SHA256SUMS
+        cat SHA256SUMS
+
+    - name: Upload to release archive
+      shell: bash
+      run: |
+        set -euo pipefail
+        # The container is immutable (WORM): a version is archived once.
+        existing=$(az storage blob list --auth-mode login --account-name "$ARCHIVE_ACCOUNT" \
+          -c "$ARCHIVE_CONTAINER" --prefix "${VERSION}/" --query "length(@)" -o tsv)
+        if [ "$existing" != "0" ]; then
+          echo "::notice::${VERSION}/ already archived (${existing} blobs), skipping upload"
+          exit 0
+        fi
+        az storage blob upload-batch --auth-mode login --account-name "$ARCHIVE_ACCOUNT" \
+          -d "$ARCHIVE_CONTAINER" --destination-path "$VERSION" -s oem --overwrite false -o none
+        echo "Archived ${VERSION}/ to ${ARCHIVE_ACCOUNT}/${ARCHIVE_CONTAINER}"
+
+    - name: Summary
+      shell: bash
+      env:
+        TAG: ${{ steps.tag.outputs.tag }}
+      run: |
+        {
+          echo "## ${PACKAGE_ID} ${VERSION} delivered"
+          echo
+          echo "- Feed: \`https://pkgs.dev.azure.com/${DEVOPS_ORG}/${DEVOPS_PROJECT}/_packaging/${FEED}@${FEED_VIEW}/nuget/v3/index.json\`"
+          echo "- Mirror: \`https://dev.azure.com/${DEVOPS_ORG}/${DEVOPS_PROJECT}/_git/${MIRROR_REPO}\` (${TAG})"
+          echo "- Archive: \`${ARCHIVE_ACCOUNT}/${ARCHIVE_CONTAINER}/${VERSION}/\`"
+          echo
+          echo '```'
+          cat oem/SHA256SUMS
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"

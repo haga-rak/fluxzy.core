@@ -38,6 +38,15 @@ namespace Fluxzy.Clients.H2
         internal TimeSpan ResponseBodyIdleTimeout { get; set; } = TimeSpan.Zero;
 
         /// <summary>
+        ///     Downstream only. Number of stream resets (client RST_STREAM on an open stream,
+        ///     refused streams, protocol-error resets) tolerated per <see cref="StreamResetWindow"/>
+        ///     before the connection is closed with ENHANCE_YOUR_CALM (CVE-2023-44487).
+        /// </summary>
+        public int MaxStreamResetsPerWindow { get; set; } = 20;
+
+        public TimeSpan StreamResetWindow { get; set; } = TimeSpan.FromSeconds(5);
+
+        /// <summary>
         ///     Read buffer used by the connection. Should be at least MAX_FRAME_SIZE
         /// </summary>
         public int ReadBufferLength { get; set; } = 0x4000;

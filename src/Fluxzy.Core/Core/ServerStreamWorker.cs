@@ -206,6 +206,13 @@ namespace Fluxzy.Core
 
         public bool ReadyToCreateExchange => _endHeader && !_exchangeCreated;
 
+        public void DiscardHeaderBlock()
+        {
+            _exchangeCreated = true;
+            H2Helper.DecodeAndDiscard(_headerEncoder, _headerBuffer.AsSpan(0, _receivedHeaderLength));
+            _receivedHeaderLength = 0;
+        }
+
         public async ValueTask<Exchange> CreateExchange(
             IIdProvider idProvider,
             IExchangeContextBuilder contextBuilder,

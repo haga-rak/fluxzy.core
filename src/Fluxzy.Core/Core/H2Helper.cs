@@ -18,6 +18,26 @@ namespace Fluxzy.Core
             settingFrame.Write(SettingAckBuffer);
         }
 
+        public const int MinMaxFrameSize = 1 << 14;
+
+        public const int MaxMaxFrameSize = (1 << 24) - 1;
+
+        public static bool TryGetSettingError(ref SettingFrame settingFrame, out H2ErrorCode errorCode)
+        {
+            errorCode = default;
+
+            if (settingFrame.Ack)
+                return false;
+
+            if (settingFrame.SettingIdentifier == SettingIdentifier.SettingsMaxFrameSize
+                && (settingFrame.Value < MinMaxFrameSize || settingFrame.Value > MaxMaxFrameSize)) {
+                errorCode = H2ErrorCode.ProtocolError;
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Should return true if an ACK frame is need to be sent
         /// </summary>
@@ -36,6 +56,11 @@ namespace Fluxzy.Core
                     isAckFrame = true;
                 }
                 else {
+                    if (TryGetSettingError(ref settingFrame, out var settingError)) {
+                        fatalError = settingError;
+                        continue;
+                    }
+
                     ProcessIncomingSettingFrame(streamSetting, ref settingFrame);
 
                     if (settingFrame.SettingIdentifier == SettingIdentifier.SettingsEnablePush
@@ -96,6 +121,12 @@ namespace Fluxzy.Core
         private const int DecodeMaxBufferSize = 1024 * 1024;
 
         internal static Memory<char> DecodeAndAllocate(IHeaderEncoder headerEncoder, ReadOnlySpan<byte> onWire)
+            => Decode(headerEncoder, onWire, allocate: true);
+
+        internal static void DecodeAndDiscard(IHeaderEncoder headerEncoder, ReadOnlySpan<byte> onWire)
+            => Decode(headerEncoder, onWire, allocate: false);
+
+        private static Memory<char> Decode(IHeaderEncoder headerEncoder, ReadOnlySpan<byte> onWire, bool allocate)
         {
             var bufferSize = DecodeInitialBufferSize;
 
@@ -108,6 +139,10 @@ namespace Fluxzy.Core
                     Span<char> tempBuffer = byteArray;
 
                     var decoded = headerEncoder.Decoder.Decode(onWire, tempBuffer);
+
+                    if (!allocate)
+                        return default;
+
                     Memory<char> charBuffer = new char[decoded.Length + 256];
 
                     decoded.CopyTo(charBuffer.Span);

@@ -291,16 +291,37 @@ namespace Fluxzy.Readers
                 writer.Update(exchangeInfo, default);
 
 
+                // SAZ keeps wire bytes. Archived bodies are de-framed, so chunked
+                // transfer coding is removed here and only content-encoding remains.
                 if (requestBodyStream.CanRead)
-                    requestBodyStream
+                    UnChunkIfNeeded(requestBodyStream, requestHeaders)
                         .CopyToThenDisposeDestination(writer.CreateRequestBodyStream(exchangeInfo.Id));
 
                 if (responseBodyStream?.CanRead ?? false)
-                    responseBodyStream
+                    UnChunkIfNeeded(responseBodyStream, responseHeaders)
                         .CopyToThenDisposeDestination(writer.CreateResponseBodyStream(exchangeInfo.Id));
                 
                 // Read exchanges 
             }
+        }
+
+        private static Stream UnChunkIfNeeded(Stream body, List<HeaderField> headers)
+        {
+            var chunked = false;
+
+            foreach (var header in headers) {
+                if (!header.Name.Span.Equals(Http11Constants.TransferEncodingVerb.Span,
+                        StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var value = header.Value.Span;
+                var lastComma = value.LastIndexOf(',');
+                var token = lastComma < 0 ? value : value.Slice(lastComma + 1);
+
+                chunked = token.Trim().Equals("chunked", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return chunked ? new ChunkedTransferReadStream(body, false) : body;
         }
 
         private static Stream? ReadHeaders(ZipArchiveEntry? entry, out List<HeaderField> headers)
