@@ -10,8 +10,12 @@ namespace Fluxzy.Cli.Commands.Dissects
             bool mustBeUnique,
             HashSet<int>? exchangeIds, string format,
             DissectOutputMode outputMode = DissectOutputMode.Format,
-            ExchangeFilterOptions? filter = null)
+            ExchangeFilterOptions? filter = null,
+            bool withHeaders = false,
+            int? maxBodyBytes = null)
         {
+            WithHeaders = withHeaders;
+            MaxBodyBytes = maxBodyBytes;
             MustBeUnique = mustBeUnique;
             ExchangeIds = exchangeIds;
             Format = format;
@@ -20,6 +24,10 @@ namespace Fluxzy.Cli.Commands.Dissects
         }
 
         public ExchangeFilterOptions Filter { get; }
+
+        public bool WithHeaders { get; }
+
+        public int? MaxBodyBytes { get; }
 
         public string Format { get; }
 

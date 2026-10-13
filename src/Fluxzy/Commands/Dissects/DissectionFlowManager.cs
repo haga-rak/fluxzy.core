@@ -71,7 +71,7 @@ namespace Fluxzy.Cli.Commands.Dissects
 
             if (dissectionOptions.OutputMode != DissectOutputMode.Format) {
                 await WriteJson(archiveReader, filteredExchangeInfos, connectionInfos, writer,
-                    dissectionOptions.OutputMode == DissectOutputMode.NdJson);
+                    dissectionOptions.OutputMode == DissectOutputMode.NdJson, dissectionOptions.WithHeaders);
 
                 return true;
             }
@@ -89,7 +89,7 @@ namespace Fluxzy.Cli.Commands.Dissects
                 connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo);
 
                 await _formatter.Format(dissectionOptions.Format, _formatterMap, writer, stdErrorWriter,
-                    new EntryInfo(exchangeInfo, connectionInfo, archiveReader));
+                    new EntryInfo(exchangeInfo, connectionInfo, archiveReader, dissectionOptions.MaxBodyBytes));
             }
 
             return true;
@@ -99,14 +99,14 @@ namespace Fluxzy.Cli.Commands.Dissects
             IArchiveReader archiveReader,
             List<ExchangeInfo> exchanges,
             Dictionary<int, ConnectionInfo> connectionInfos,
-            StreamWriter writer, bool ndJson)
+            StreamWriter writer, bool ndJson, bool withHeaders)
         {
             IEnumerable<ExchangeJsonModel> Models()
             {
                 foreach (var exchangeInfo in exchanges) {
                     connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo);
 
-                    yield return ExchangeJsonModel.Create(exchangeInfo, connectionInfo, archiveReader);
+                    yield return ExchangeJsonModel.Create(exchangeInfo, connectionInfo, archiveReader, withHeaders);
                 }
             }
 

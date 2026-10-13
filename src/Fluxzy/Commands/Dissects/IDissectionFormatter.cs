@@ -10,5 +10,13 @@ namespace Fluxzy.Cli.Commands.Dissects
         string Indicator { get; }
 
         Task Write(T payload, StreamWriter stdOutWriter);
+
+        /// <summary>
+        /// Called for placeholders of the form {indicator:argument}. Defaults to ignoring the argument.
+        /// </summary>
+        Task Write(T payload, StreamWriter stdOutWriter, string? argument)
+        {
+            return Write(payload, stdOutWriter);
+        }
     }
 }

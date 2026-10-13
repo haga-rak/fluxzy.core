@@ -73,8 +73,12 @@ namespace Fluxzy.Cli.Commands.Dissects.Json
 
         public List<ClientErrorJsonModel> ClientErrors { get; init; } = new();
 
+        public List<HeaderJsonModel>? RequestHeaders { get; init; }
+
+        public List<HeaderJsonModel>? ResponseHeaders { get; init; }
+
         public static ExchangeJsonModel Create(ExchangeInfo exchange, ConnectionInfo? connection,
-            IArchiveReader reader)
+            IArchiveReader reader, bool withHeaders = false)
         {
             var metrics = exchange.Metrics;
             var start = metrics.ReceivedFromProxy;
@@ -99,9 +103,9 @@ namespace Fluxzy.Cli.Commands.Dissects.Json
                 Pending = exchange.Pending,
                 IsWebSocket = exchange.IsWebSocket,
                 HasPcap = connection != null && reader.HasCapture(connection.Id),
-                StartTime = Instant(start),
-                TtfbMs = ElapsedMs(start, metrics.ResponseHeaderStart),
-                DurationMs = ElapsedMs(start, metrics.ResponseBodyEnd),
+                StartTime = ExchangeTimings.Instant(start),
+                TtfbMs = ExchangeTimings.TtfbMs(exchange),
+                DurationMs = ExchangeTimings.DurationMs(exchange),
                 RemoteAddress = connection?.RemoteAddress,
                 TlsVersion = connection?.SslInfo?.SslProtocol.ToString(),
                 Alpn = connection?.SslInfo?.NegotiatedApplicationProtocol,
@@ -117,23 +121,26 @@ namespace Fluxzy.Cli.Commands.Dissects.Json
                 ClientErrors = exchange.ClientErrors.Select(e => new ClientErrorJsonModel {
                     Code = e.ErrorCode,
                     Message = e.Message
-                }).ToList()
+                }).ToList(),
+                RequestHeaders = withHeaders ? Headers(exchange.GetRequestHeaders()) : null,
+                ResponseHeaders = withHeaders ? Headers(exchange.GetResponseHeaders()) : null
             };
         }
 
-        private static DateTime? Instant(DateTime value)
+        private static List<HeaderJsonModel>? Headers(IEnumerable<HeaderFieldInfo>? headers)
         {
-            return value == default ? null : value;
+            return headers?.Select(h => new HeaderJsonModel {
+                Name = h.Name.ToString(),
+                Value = h.Value.ToString()
+            }).ToList();
         }
+    }
 
-        private static double? ElapsedMs(DateTime start, DateTime end)
-        {
-            if (start == default || end == default || end < start) {
-                return null;
-            }
+    internal class HeaderJsonModel
+    {
+        public string Name { get; init; } = string.Empty;
 
-            return Math.Round((end - start).TotalMilliseconds, 2);
-        }
+        public string Value { get; init; } = string.Empty;
     }
 
     internal class ProcessJsonModel

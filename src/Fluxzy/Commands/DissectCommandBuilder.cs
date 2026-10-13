@@ -43,6 +43,8 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(CreateFormatOption());
             command.AddOption(CreateJsonOption());
             command.AddOption(CreateNdJsonOption());
+            command.AddOption(WithHeadersOption);
+            command.AddOption(MaxBodyBytesOption);
             command.AddOption(CreateOutputFileOption());
             command.AddOption(CreateUniqueOption());
             command.AddArgument(archiveReaderArgument);
@@ -190,7 +192,9 @@ namespace Fluxzy.Cli.Commands
             };
 
             var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds?.ToHashSet(), format,
-                outputMode, filter);
+                outputMode, filter,
+                context.ParseResult.GetValueForOption(WithHeadersOption),
+                context.ParseResult.GetValueForOption(MaxBodyBytesOption));
             var flowManager = new DissectionFlowManager(new SequentialFormatter(),
                 FormatterRegistration.Formatters);
 
@@ -279,6 +283,15 @@ namespace Fluxzy.Cli.Commands
             "--limit",
             "Output at most this many matching exchanges");
 
+        private static readonly Option<bool> WithHeadersOption = new(
+            "--with-headers",
+            () => false,
+            "Include request and response headers in --json and --ndjson output");
+
+        private static readonly Option<int?> MaxBodyBytesOption = new(
+            "--max-body-bytes",
+            "Truncate body placeholders to this many bytes and append a [truncated] marker");
+
         private static Option<List<int>?> CreateExchangeIdsOption()
         {
             var option = new Option<List<int>?>(
@@ -331,7 +344,8 @@ namespace Fluxzy.Cli.Commands
                 description: "Specify how to format each matching exchanges to the outputted result." +
                              " The default value is \"{id} - {url} - {status}\"\r\n" +
                              $"Possible format values are : {string.Join(", ", FormatterRegistration.Indicators)}.\r\n" +
-                             "Use this option to extract specific part of an exchange. Example: \"{response-body}\" for response body content, ...",
+                             "Use this option to extract specific part of an exchange. Example: \"{response-body}\" for response body content, ...\r\n" +
+                             "{request-header:Name} and {response-header:Name} select a single header.",
                 getDefaultValue: () => defaultFormatValue) {
                 Arity = ArgumentArity.ZeroOrOne
             };

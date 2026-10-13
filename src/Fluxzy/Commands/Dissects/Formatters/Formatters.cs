@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Fluxzy.Core.Pcap.Pcapng;
@@ -136,35 +137,93 @@ namespace Fluxzy.Cli.Commands.Dissects.Formatters
         }
     }
 
-    internal class ResponseBodyFormatter : IDissectionFormatter<EntryInfo>
+    internal abstract class BodyFormatter : IDissectionFormatter<EntryInfo>
     {
-        public string Indicator => "response-body";
+        public abstract string Indicator { get; }
+
+        protected abstract Stream? Open(EntryInfo payload);
 
         public async Task Write(EntryInfo payload, StreamWriter stdOutWriter)
         {
-            await using var responseBodyStream = payload.ArchiveReader.GetResponseBody(payload.Exchange.Id);
+            await using var bodyStream = Open(payload);
 
-            if (responseBodyStream == null) {
+            if (bodyStream == null) {
                 return;
             }
 
-            await responseBodyStream.CopyToAsync(stdOutWriter.BaseStream);
+            await stdOutWriter.FlushAsync();
+
+            if (payload.MaxBodyBytes == null) {
+                await bodyStream.CopyToAsync(stdOutWriter.BaseStream);
+
+                return;
+            }
+
+            await CopyTruncated(bodyStream, stdOutWriter, payload.MaxBodyBytes.Value);
+        }
+
+        private static async Task CopyTruncated(Stream source, StreamWriter stdOutWriter, int max)
+        {
+            var buffer = new byte[16 * 1024];
+            long written = 0;
+            long total = 0;
+            int read;
+
+            while ((read = await source.ReadAsync(buffer)) > 0) {
+                total += read;
+
+                var remaining = (int) Math.Min(read, Math.Max(0, max - written));
+
+                if (remaining > 0) {
+                    await stdOutWriter.BaseStream.WriteAsync(buffer.AsMemory(0, remaining));
+                    written += remaining;
+                }
+            }
+
+            if (total > written) {
+                await stdOutWriter.WriteAsync($"\n[truncated: {written} of {total} bytes]");
+                await stdOutWriter.FlushAsync();
+            }
         }
     }
 
-    internal class RequestBodyFormatter : IDissectionFormatter<EntryInfo>
+    internal class ResponseBodyFormatter : BodyFormatter
     {
-        public string Indicator => "request-body";
+        public override string Indicator => "response-body";
 
-        public async Task Write(EntryInfo payload, StreamWriter stdOutWriter)
+        protected override Stream? Open(EntryInfo payload)
         {
-            await using var requestBodyStream = payload.ArchiveReader.GetRequestBody(payload.Exchange.Id);
+            return payload.ArchiveReader.GetResponseBody(payload.Exchange.Id);
+        }
+    }
 
-            if (requestBodyStream == null) {
-                return;
-            }
+    internal class RequestBodyFormatter : BodyFormatter
+    {
+        public override string Indicator => "request-body";
 
-            await requestBodyStream.CopyToAsync(stdOutWriter.BaseStream);
+        protected override Stream? Open(EntryInfo payload)
+        {
+            return payload.ArchiveReader.GetRequestBody(payload.Exchange.Id);
+        }
+    }
+
+    internal class ResponseBodyDecodedFormatter : BodyFormatter
+    {
+        public override string Indicator => "response-body-decoded";
+
+        protected override Stream? Open(EntryInfo payload)
+        {
+            return payload.ArchiveReader.GetDecodedResponseBody(payload.Exchange.Id);
+        }
+    }
+
+    internal class RequestBodyDecodedFormatter : BodyFormatter
+    {
+        public override string Indicator => "request-body-decoded";
+
+        protected override Stream? Open(EntryInfo payload)
+        {
+            return payload.ArchiveReader.GetDecodedRequestBody(payload.Exchange.Id);
         }
     }
 
