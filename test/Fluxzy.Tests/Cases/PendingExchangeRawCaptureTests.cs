@@ -81,17 +81,22 @@ namespace Fluxzy.Tests.Cases
 
             Assert.NotNull(packedReader.ReadConnection(exchange.ConnectionId));
 
-            using var rawCapture = packedReader.GetRawCaptureStream(exchange.ConnectionId);
+            Assert.True(await ReadLength(packedReader.GetRawCaptureStream(exchange.ConnectionId)) > 0);
 
-            Assert.NotNull(rawCapture);
-            Assert.True(rawCapture!.Length > 0);
+            if (useBouncyCastle)
+                Assert.True(await ReadLength(packedReader.GetRawCaptureKeyStream(exchange.ConnectionId)) > 0);
+        }
 
-            if (useBouncyCastle) {
-                using var keyLog = packedReader.GetRawCaptureKeyStream(exchange.ConnectionId);
+        private static async Task<long> ReadLength(Stream? stream)
+        {
+            Assert.NotNull(stream);
 
-                Assert.NotNull(keyLog);
-                Assert.True(keyLog!.Length > 0);
-            }
+            using var _ = stream;
+            using var sink = new MemoryStream();
+
+            await stream!.CopyToAsync(sink);
+
+            return sink.Length;
         }
     }
 }
