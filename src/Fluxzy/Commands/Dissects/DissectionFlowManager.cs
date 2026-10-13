@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Fluxzy.Cli.Commands.Dissects.Json;
 using Fluxzy.Readers;
 
 namespace Fluxzy.Cli.Commands.Dissects
@@ -59,6 +61,13 @@ namespace Fluxzy.Cli.Commands.Dissects
                 return false;
             }
 
+            if (dissectionOptions.OutputMode != DissectOutputMode.Format) {
+                await WriteJson(archiveReader, filteredExchangeInfos, connectionInfos, writer,
+                    dissectionOptions.OutputMode == DissectOutputMode.NdJson);
+
+                return true;
+            }
+
             var first = true;
 
             foreach (var exchangeInfo in filteredExchangeInfos) {
@@ -76,6 +85,38 @@ namespace Fluxzy.Cli.Commands.Dissects
             }
 
             return true;
+        }
+
+        private static async Task WriteJson(
+            IArchiveReader archiveReader,
+            List<ExchangeInfo> exchanges,
+            Dictionary<int, ConnectionInfo> connectionInfos,
+            StreamWriter writer, bool ndJson)
+        {
+            IEnumerable<ExchangeJsonModel> Models()
+            {
+                foreach (var exchangeInfo in exchanges) {
+                    connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo);
+
+                    yield return ExchangeJsonModel.Create(exchangeInfo, connectionInfo, archiveReader);
+                }
+            }
+
+            if (ndJson) {
+                foreach (var model in Models()) {
+                    await writer.WriteLineAsync(JsonSerializer.Serialize(model, DissectJsonOptions.Compact));
+                }
+
+                await writer.FlushAsync();
+
+                return;
+            }
+
+            await writer.FlushAsync();
+
+            await JsonSerializer.SerializeAsync(writer.BaseStream, Models(), DissectJsonOptions.Indented);
+
+            await writer.BaseStream.FlushAsync();
         }
     }
 }
