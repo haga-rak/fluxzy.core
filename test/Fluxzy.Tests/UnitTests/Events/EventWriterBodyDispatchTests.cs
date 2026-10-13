@@ -82,7 +82,12 @@ public class EventWriterBodyDispatchTests
         await firstResponseHalfSent.Task.WaitAsync(TimeSpan.FromSeconds(10));
         Assert.Equal(requestBody, await requestReceived.Task.WaitAsync(TimeSpan.FromSeconds(10)));
         Assert.Equal(
-            new[] { ArchiveUpdateType.BeforeRequestHeader, ArchiveUpdateType.AfterResponseHeader },
+            new[]
+            {
+                ArchiveUpdateType.BeforeRequestHeader,
+                ArchiveUpdateType.ConnectionAssigned,
+                ArchiveUpdateType.AfterResponseHeader
+            },
             updates.ToArray());
         Assert.Equal(0, setup.Proxy.Writer.TotalProcessedExchanges);
 
@@ -95,6 +100,7 @@ public class EventWriterBodyDispatchTests
             new[]
             {
                 ArchiveUpdateType.BeforeRequestHeader,
+                ArchiveUpdateType.ConnectionAssigned,
                 ArchiveUpdateType.AfterResponseHeader,
                 ArchiveUpdateType.AfterResponse
             },
@@ -246,6 +252,7 @@ public class EventWriterBodyDispatchTests
             new[]
             {
                 ArchiveUpdateType.BeforeRequestHeader,
+                ArchiveUpdateType.ConnectionAssigned,
                 ArchiveUpdateType.AfterResponseHeader,
                 ArchiveUpdateType.AfterResponse
             },

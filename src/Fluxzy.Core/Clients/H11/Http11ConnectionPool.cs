@@ -238,6 +238,9 @@ namespace Fluxzy.Clients.H11
                         _archiveWriter.Update(exchange.Connection, cancellationToken);
                 }
 
+                if (_archiveWriter != null!)
+                    _archiveWriter.Update(exchange, ArchiveUpdateType.ConnectionAssigned, cancellationToken);
+
                 var poolProcessing = new Http11PoolProcessing(
                     _proxyRuntimeSetting.ExpectContinueTimeout,
                     _proxyRuntimeSetting.ResponseHeaderTimeout,

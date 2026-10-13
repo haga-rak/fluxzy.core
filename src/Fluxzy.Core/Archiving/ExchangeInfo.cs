@@ -35,7 +35,7 @@ namespace Fluxzy
         {
             Id = exchange.Id;
             HttpVersion = exchange.HttpVersion ?? "-";
-            ConnectionId = exchange.Connection?.Id ?? 0;
+            ConnectionId = exchange.Connection?.Id ?? exchange.LastConnectionId;
             Metrics = exchange.Metrics;
             Agent = exchange.Agent;
 
