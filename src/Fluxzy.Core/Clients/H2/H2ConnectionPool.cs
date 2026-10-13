@@ -15,6 +15,7 @@ using Fluxzy.Clients.H2.Frames;
 using Fluxzy.Core;
 using Fluxzy.Logging;
 using Fluxzy.Misc;
+using Fluxzy.Writers;
 using Fluxzy.Misc.ResizableBuffers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -26,6 +27,7 @@ namespace Fluxzy.Clients.H2
         private static int _connectionIdCounter;
 
         private readonly Connection _connection;
+        private readonly RealtimeArchiveWriter? _archiveWriter;
         private readonly CancellationToken _connectionToken;
 
         private readonly Action<H2ConnectionPool>? _onConnectionFaulted;
@@ -75,8 +77,9 @@ namespace Fluxzy.Clients.H2
             H2StreamSetting setting,
             Authority authority,
             Connection connection, Action<H2ConnectionPool> onConnectionFaulted,
-            ILogger? logger = null)
+            ILogger? logger = null, RealtimeArchiveWriter? archiveWriter = null)
         {
+            _archiveWriter = archiveWriter;
             Id = Interlocked.Increment(ref _connectionIdCounter);
 
             Authority = authority;
@@ -282,6 +285,8 @@ namespace Fluxzy.Clients.H2
 
             try {
                 exchange.Connection = _connection;
+
+                _archiveWriter?.Update(exchange, ArchiveUpdateType.ConnectionAssigned, cancellationToken);
 
                 await InternalSend(exchange, buffer, cancellationToken).ConfigureAwait(false);
             }

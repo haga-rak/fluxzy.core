@@ -273,7 +273,7 @@ namespace Fluxzy.Clients
                                  .ReadStream!, // Read and write stream are the same after the sslhandshake
                     h2StreamSetting,
                     exchange.Authority, exchange.Connection!, OnConnectionFaulted,
-                    proxyRuntimeSetting.GetLogger<H2ConnectionPool>());
+                    proxyRuntimeSetting.GetLogger<H2ConnectionPool>(), _archiveWriter);
 
                 exchange.HttpVersion = exchange.Connection!.HttpVersion = "HTTP/2";
 
