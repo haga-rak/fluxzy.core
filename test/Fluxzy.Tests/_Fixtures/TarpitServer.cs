@@ -32,6 +32,8 @@ namespace Fluxzy.Tests._Fixtures
 
         private readonly X509Certificate2? _certificate;
 
+        private int _requestCount;
+
         private TarpitServer(bool useTls, TimeSpan? respondAfter, bool answerFirstRequest)
         {
             _useTls = useTls;
@@ -55,6 +57,20 @@ namespace Fluxzy.Tests._Fixtures
         public static TarpitServer Start(bool useTls, TimeSpan? respondAfter = null, bool answerFirstRequest = false)
         {
             return new TarpitServer(useTls, respondAfter, answerFirstRequest);
+        }
+
+        public async Task<bool> WaitForRequestCount(int count, TimeSpan timeout)
+        {
+            var deadline = DateTime.UtcNow + timeout;
+
+            while (Volatile.Read(ref _requestCount) < count) {
+                if (DateTime.UtcNow > deadline)
+                    return false;
+
+                await Task.Delay(20);
+            }
+
+            return true;
         }
 
         public async Task<bool> WaitForTeardown(TimeSpan timeout)
@@ -114,6 +130,7 @@ namespace Fluxzy.Tests._Fixtures
 
                     received.Remove(0, endOfHeaders + 4);
                     requestCount++;
+                    Interlocked.Increment(ref _requestCount);
 
                     if (_answerFirstRequest && requestCount == 1) {
                         var keepAliveResponse =
