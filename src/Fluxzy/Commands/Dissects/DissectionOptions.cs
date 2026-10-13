@@ -9,13 +9,17 @@ namespace Fluxzy.Cli.Commands.Dissects
         public DissectionOptions(
             bool mustBeUnique,
             HashSet<int>? exchangeIds, string format,
-            DissectOutputMode outputMode = DissectOutputMode.Format)
+            DissectOutputMode outputMode = DissectOutputMode.Format,
+            ExchangeFilterOptions? filter = null)
         {
             MustBeUnique = mustBeUnique;
             ExchangeIds = exchangeIds;
             Format = format;
             OutputMode = outputMode;
+            Filter = filter ?? new ExchangeFilterOptions { ExchangeIds = exchangeIds };
         }
+
+        public ExchangeFilterOptions Filter { get; }
 
         public string Format { get; }
 

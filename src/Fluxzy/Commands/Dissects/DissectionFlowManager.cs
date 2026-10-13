@@ -44,12 +44,20 @@ namespace Fluxzy.Cli.Commands.Dissects
             var connectionInfos = archiveReader.ReadAllConnections().ToList()
                                                .ToDictionary(t => t.Id, t => t);
 
-            var filteredExchangeInfos = exchangeInfos;
+            var filter = dissectionOptions.Filter;
+            var matcher = filter.Compile();
 
-            if (dissectionOptions.ExchangeIds != null && dissectionOptions.ExchangeIds.Any()) {
-                filteredExchangeInfos = filteredExchangeInfos
-                                        .Where(t => dissectionOptions.ExchangeIds.Contains(t.Id)).ToList();
+            IEnumerable<ExchangeInfo> query = exchangeInfos.Where(matcher.Match);
+
+            if (filter.Offset > 0) {
+                query = query.Skip(filter.Offset);
             }
+
+            if (filter.Limit != null) {
+                query = query.Take(filter.Limit.Value);
+            }
+
+            var filteredExchangeInfos = query.ToList();
 
             await using var stdErrorWriter = new StreamWriter(stdErrorStream, leaveOpen: true);
             await using var writer = new StreamWriter(stdoutStream, new UTF8Encoding(false), leaveOpen: true);

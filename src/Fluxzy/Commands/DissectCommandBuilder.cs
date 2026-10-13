@@ -33,6 +33,13 @@ namespace Fluxzy.Cli.Commands
             command.AddCommand(BuildSummaryCommand());
 
             command.AddOption(CreateExchangeIdsOption());
+            command.AddOption(HostOption);
+            command.AddOption(PathOption);
+            command.AddOption(MethodOption);
+            command.AddOption(StatusOption);
+            command.AddOption(ContentTypeOption);
+            command.AddOption(OffsetOption);
+            command.AddOption(LimitOption);
             command.AddOption(CreateFormatOption());
             command.AddOption(CreateJsonOption());
             command.AddOption(CreateNdJsonOption());
@@ -171,7 +178,19 @@ namespace Fluxzy.Cli.Commands
                 : json ? DissectOutputMode.Json
                 : DissectOutputMode.Format;
 
-            var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds?.ToHashSet(), format, outputMode);
+            var filter = new ExchangeFilterOptions {
+                ExchangeIds = exchangeIds?.ToHashSet(),
+                Host = context.ParseResult.GetValueForOption(HostOption),
+                Path = context.ParseResult.GetValueForOption(PathOption),
+                Method = context.ParseResult.GetValueForOption(MethodOption),
+                Status = context.ParseResult.GetValueForOption(StatusOption),
+                ContentType = context.ParseResult.GetValueForOption(ContentTypeOption),
+                Offset = context.ParseResult.GetValueForOption(OffsetOption),
+                Limit = context.ParseResult.GetValueForOption(LimitOption)
+            };
+
+            var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds?.ToHashSet(), format,
+                outputMode, filter);
             var flowManager = new DissectionFlowManager(new SequentialFormatter(),
                 FormatterRegistration.Formatters);
 
@@ -230,6 +249,35 @@ namespace Fluxzy.Cli.Commands
             return argument;
         }
 
+
+        private static readonly Option<string?> HostOption = new(
+            "--host",
+            "Keep exchanges whose host matches this glob (* and ?), case insensitive. Example: *.wikipedia.org");
+
+        private static readonly Option<string?> PathOption = new(
+            "--path",
+            "Keep exchanges whose path (with query) matches this glob. Wrap in slashes for a regex: \"/^\\/api\\/.*/\"");
+
+        private static readonly Option<string?> MethodOption = new(
+            "--method",
+            "Keep exchanges with one of these methods, comma separated. Example: GET,POST");
+
+        private static readonly Option<string?> StatusOption = new(
+            "--status",
+            "Keep exchanges with one of these statuses: code (404), range (400-499) or class (5xx), comma separated");
+
+        private static readonly Option<string?> ContentTypeOption = new(
+            "--content-type",
+            "Keep exchanges whose simplified content type contains this text. Example: json");
+
+        private static readonly Option<int> OffsetOption = new(
+            "--offset",
+            () => 0,
+            "Skip this many matching exchanges");
+
+        private static readonly Option<int?> LimitOption = new(
+            "--limit",
+            "Output at most this many matching exchanges");
 
         private static Option<List<int>?> CreateExchangeIdsOption()
         {
