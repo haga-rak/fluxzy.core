@@ -12,7 +12,7 @@ namespace Fluxzy
     /// Holds information about a downstream error (error between Fluxzy and the client)
     /// </summary>
     [MessagePackObject]
-    public class DownstreamErrorInfo
+    public partial class DownstreamErrorInfo
     {
         private static int _errorId = 0;
 

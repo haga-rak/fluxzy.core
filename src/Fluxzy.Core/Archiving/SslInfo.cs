@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using MessagePack;
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
@@ -14,6 +15,7 @@ namespace Fluxzy
     /// <summary>
     ///    Represent a SSL information
     /// </summary>
+    [MessagePackObject(true)]
     public class SslInfo
     {
         /// <summary>
