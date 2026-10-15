@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 using Fluxzy.Clients.H11;
@@ -25,12 +26,15 @@ namespace Fluxzy.Clients.DotNetBridge
 
         private readonly SemaphoreSlim _semaphore = new(1);
         private readonly SslProvider _sslProvider;
+        private readonly SslProtocols _sslProtocols;
 
         private readonly ExchangeScope _exchangeScope = new();
 
-        public FluxzyHttp11Handler(SslProvider sslProvider = SslProvider.OsDefault)
+        public FluxzyHttp11Handler(SslProvider sslProvider = SslProvider.OsDefault,
+            SslProtocols sslProtocols = SslProtocols.None)
         {
             _sslProvider = sslProvider;
+            _sslProtocols = sslProtocols;
             _idProvider = IIdProvider.FromZero;
         }
 
@@ -60,6 +64,8 @@ namespace Fluxzy.Clients.DotNetBridge
             var reqHttpString = request.ToHttp11String();
 
             var exchange = new Exchange(_idProvider, authority, reqHttpString.AsMemory(), "HTTP/1.1", DateTime.Now);
+
+            exchange.Context.ProxyTlsProtocols = _sslProtocols;
 
             if (request.Content != null)
                 exchange.Request.Body = await request.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);

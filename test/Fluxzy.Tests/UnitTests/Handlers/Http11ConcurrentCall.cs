@@ -4,6 +4,7 @@ using System;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using Fluxzy.Clients.DotNetBridge;
 using Fluxzy.Tests._Fixtures;
@@ -67,11 +68,11 @@ namespace Fluxzy.Tests.UnitTests.Handlers
         /// </summary>
         /// <returns></returns>
         [Theory]
-        [InlineData(SslProvider.BouncyCastle)]
-        [InlineData(SslProvider.OsDefault)]
-        public async Task Post_Multi_Header_Dynamic_Table_Evict_Simple(SslProvider sslProvider)
+        [InlineData(SslProvider.BouncyCastle, SslProtocols.None)]
+        [InlineData(SslProvider.OsDefault, SslProtocols.Tls12)]
+        public async Task Post_Multi_Header_Dynamic_Table_Evict_Simple(SslProvider sslProvider, SslProtocols sslProtocols)
         {
-            using var handler = new FluxzyHttp11Handler(sslProvider);
+            using var handler = new FluxzyHttp11Handler(sslProvider, sslProtocols);
 
             using var httpClient = new HttpClient(handler, false);
 
