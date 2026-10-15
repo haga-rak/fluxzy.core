@@ -30,6 +30,9 @@ namespace Fluxzy.Clients.DotNetBridge
             if (message!.Content?.Headers != null)
             {
                 builder.Append(message.Content.Headers.ToString());
+
+                if (message.Content.Headers.ContentLength == null && !message.Headers.TransferEncodingChunked.GetValueOrDefault())
+                    builder.Append("Transfer-Encoding: chunked\r\n");
             }
 
             builder.Append("\r\n");
