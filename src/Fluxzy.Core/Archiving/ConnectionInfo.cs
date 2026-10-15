@@ -10,8 +10,8 @@ namespace Fluxzy
     /// <summary>
     /// Holds information about a connection between fluxzy and a remote server
     /// </summary>
-    [MessagePackObject]
-    public class ConnectionInfo
+    [MessagePackObject(AllowPrivate = true)]
+    public partial class ConnectionInfo
     {
         [SerializationConstructor]
 #pragma warning disable CS8618

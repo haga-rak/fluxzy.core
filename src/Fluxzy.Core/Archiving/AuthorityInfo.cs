@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using MessagePack;
 using System;
 using System.Text.Json.Serialization;
 using Fluxzy.Core;
@@ -9,6 +10,7 @@ namespace Fluxzy
     /// <summary>
     /// Information about a remote authority
     /// </summary>
+    [MessagePackObject(true)]
     public class AuthorityInfo
     {
         public AuthorityInfo(Authority original)
