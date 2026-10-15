@@ -48,6 +48,9 @@ namespace Fluxzy.Clients.H2.Encoder
             var reader = new Http11HeaderReader(headerContent, isHttps);
 
             while (reader.MoveNext()) {
+                if (reader.Current.Name.Span.Equals(Http11Constants.TransferEncodingVerb.Span, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 offset += Encode(reader.Current, buffer.Slice(offset));
             }
 
