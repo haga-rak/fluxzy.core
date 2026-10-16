@@ -6,9 +6,13 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Fluxzy.Cli.Commands.Dissects;
 using Fluxzy.Cli.Commands.Dissects.Formatters;
+using Fluxzy.Cli.Commands.Dissects.Summary;
+using Fluxzy.Cli.Commands.Dissects.Json;
+using System.Text.Json;
 using Fluxzy.Core.Pcap.Pcapng.Merge;
 using Fluxzy.Readers;
 
@@ -26,9 +30,21 @@ namespace Fluxzy.Cli.Commands
             var archiveReaderArgument = CreateInputFileOrDirectoryArgument(); 
 
             command.AddCommand(BuildExportPcapCommand());
+            command.AddCommand(BuildSummaryCommand());
 
             command.AddOption(CreateExchangeIdsOption());
+            command.AddOption(HostOption);
+            command.AddOption(PathOption);
+            command.AddOption(MethodOption);
+            command.AddOption(StatusOption);
+            command.AddOption(ContentTypeOption);
+            command.AddOption(OffsetOption);
+            command.AddOption(LimitOption);
             command.AddOption(CreateFormatOption());
+            command.AddOption(CreateJsonOption());
+            command.AddOption(CreateNdJsonOption());
+            command.AddOption(WithHeadersOption);
+            command.AddOption(MaxBodyBytesOption);
             command.AddOption(CreateOutputFileOption());
             command.AddOption(CreateUniqueOption());
             command.AddArgument(archiveReaderArgument);
@@ -91,16 +107,94 @@ namespace Fluxzy.Cli.Commands
         }
 
 
+        private static Command BuildSummaryCommand()
+        {
+            var summaryCommand = new Command("summary",
+                "Print an overview of an archive: counts, hosts, status and method histograms, errors, time span.");
+
+            var archiveReaderArgument = CreateInputFileOrDirectoryArgument();
+            var jsonOption = CreateJsonOption();
+            var outFileOption = CreateOutputFileOption();
+
+            var maxHostsOption = new Option<int>(
+                "--max-hosts",
+                description: "Number of hosts to list, most requested first",
+                getDefaultValue: () => 20);
+
+            summaryCommand.AddArgument(archiveReaderArgument);
+            summaryCommand.AddOption(jsonOption);
+            summaryCommand.AddOption(outFileOption);
+            summaryCommand.AddOption(maxHostsOption);
+
+            summaryCommand.SetHandler(async context => {
+                var archiveReader = context.ParseResult.GetValueForArgument(archiveReaderArgument);
+                var json = context.ParseResult.GetValueForOption(jsonOption);
+                var outputFile = context.ParseResult.GetValueForOption(outFileOption);
+                var maxHosts = context.ParseResult.GetValueForOption(maxHostsOption);
+
+                var source = context.ParseResult.GetValueForArgument(archiveReaderArgument) is DirectoryArchiveReader
+                    ? "directory"
+                    : "file";
+
+                var sourceName = context.ParseResult.Tokens
+                                        .Select(t => t.Value)
+                                        .FirstOrDefault(v => File.Exists(v) || Directory.Exists(v)) ?? string.Empty;
+
+                var summary = ArchiveSummaryBuilder.Build(archiveReader, sourceName, source, maxHosts);
+
+                outputFile?.Directory?.Create();
+
+                var stdout = outputFile != null ? outputFile.Create() :
+                    context.Console is OutputConsole outputConsole ?
+                        outputConsole.BinaryStdout : Console.OpenStandardOutput();
+
+                await using var writer = new StreamWriter(stdout, new UTF8Encoding(false),
+                    leaveOpen: outputFile == null);
+
+                if (json) {
+                    await writer.WriteAsync(JsonSerializer.Serialize(summary, DissectJsonOptions.Indented));
+                    await writer.WriteLineAsync();
+                }
+                else {
+                    ArchiveSummaryTextWriter.Write(summary, writer);
+                }
+
+                await writer.FlushAsync();
+            });
+
+            return summaryCommand;
+        }
+
         private async Task Run(InvocationContext context, Argument<IArchiveReader> archiveReaderArgument)
         {
             var exchangeIds = context.Value<List<int>?>("id");
             var format = context.Value<string>("format");
             var outputFile = context.Value<FileInfo?>("output-file");
             var mustBeUnique = context.Value<bool>("unique");
+            var json = context.Value<bool>("json");
+            var ndJson = context.Value<bool>("ndjson");
 
             var archiveReader = context.ParseResult.GetValueForArgument(archiveReaderArgument);
 
-            var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds?.ToHashSet(), format);
+            var outputMode = ndJson ? DissectOutputMode.NdJson
+                : json ? DissectOutputMode.Json
+                : DissectOutputMode.Format;
+
+            var filter = new ExchangeFilterOptions {
+                ExchangeIds = exchangeIds?.ToHashSet(),
+                Host = context.ParseResult.GetValueForOption(HostOption),
+                Path = context.ParseResult.GetValueForOption(PathOption),
+                Method = context.ParseResult.GetValueForOption(MethodOption),
+                Status = context.ParseResult.GetValueForOption(StatusOption),
+                ContentType = context.ParseResult.GetValueForOption(ContentTypeOption),
+                Offset = context.ParseResult.GetValueForOption(OffsetOption),
+                Limit = context.ParseResult.GetValueForOption(LimitOption)
+            };
+
+            var dissectionOptions = new DissectionOptions(mustBeUnique, exchangeIds?.ToHashSet(), format,
+                outputMode, filter,
+                context.ParseResult.GetValueForOption(WithHeadersOption),
+                context.ParseResult.GetValueForOption(MaxBodyBytesOption));
             var flowManager = new DissectionFlowManager(new SequentialFormatter(),
                 FormatterRegistration.Formatters);
 
@@ -160,6 +254,44 @@ namespace Fluxzy.Cli.Commands
         }
 
 
+        private static readonly Option<string?> HostOption = new(
+            "--host",
+            "Keep exchanges whose host matches this glob (* and ?), case insensitive. Example: *.wikipedia.org");
+
+        private static readonly Option<string?> PathOption = new(
+            "--path",
+            "Keep exchanges whose path (with query) matches this glob. Wrap in slashes for a regex: \"/^\\/api\\/.*/\"");
+
+        private static readonly Option<string?> MethodOption = new(
+            "--method",
+            "Keep exchanges with one of these methods, comma separated. Example: GET,POST");
+
+        private static readonly Option<string?> StatusOption = new(
+            "--status",
+            "Keep exchanges with one of these statuses: code (404), range (400-499) or class (5xx), comma separated");
+
+        private static readonly Option<string?> ContentTypeOption = new(
+            "--content-type",
+            "Keep exchanges whose simplified content type contains this text. Example: json");
+
+        private static readonly Option<int> OffsetOption = new(
+            "--offset",
+            () => 0,
+            "Skip this many matching exchanges");
+
+        private static readonly Option<int?> LimitOption = new(
+            "--limit",
+            "Output at most this many matching exchanges");
+
+        private static readonly Option<bool> WithHeadersOption = new(
+            "--with-headers",
+            () => false,
+            "Include request and response headers in --json and --ndjson output");
+
+        private static readonly Option<int?> MaxBodyBytesOption = new(
+            "--max-body-bytes",
+            "Truncate body placeholders to this many bytes and append a [truncated] marker");
+
         private static Option<List<int>?> CreateExchangeIdsOption()
         {
             var option = new Option<List<int>?>(
@@ -212,7 +344,8 @@ namespace Fluxzy.Cli.Commands
                 description: "Specify how to format each matching exchanges to the outputted result." +
                              " The default value is \"{id} - {url} - {status}\"\r\n" +
                              $"Possible format values are : {string.Join(", ", FormatterRegistration.Indicators)}.\r\n" +
-                             "Use this option to extract specific part of an exchange. Example: \"{response-body}\" for response body content, ...",
+                             "Use this option to extract specific part of an exchange. Example: \"{response-body}\" for response body content, ...\r\n" +
+                             "{request-header:Name} and {response-header:Name} select a single header.",
                 getDefaultValue: () => defaultFormatValue) {
                 Arity = ArgumentArity.ZeroOrOne
             };
@@ -238,6 +371,32 @@ namespace Fluxzy.Cli.Commands
 
             option.AddAlias("-o");
             option.SetDefaultValue(null);
+
+            return option;
+        }
+
+        private static Option<bool> CreateJsonOption()
+        {
+            var option = new Option<bool>(
+                "--json",
+                description: "Output matching exchanges as a JSON array with a stable schema. Overrides --format.",
+                getDefaultValue: () => false) {
+                Arity = ArgumentArity.ZeroOrOne
+            };
+
+            option.AddAlias("-j");
+
+            return option;
+        }
+
+        private static Option<bool> CreateNdJsonOption()
+        {
+            var option = new Option<bool>(
+                "--ndjson",
+                description: "Output one JSON object per line (newline delimited). Same schema as --json.",
+                getDefaultValue: () => false) {
+                Arity = ArgumentArity.ZeroOrOne
+            };
 
             return option;
         }

@@ -23,9 +23,15 @@ namespace Fluxzy.Cli.Commands.Dissects.Formatters
                 new ResponseBodyLengthFormatter(),
                 new ResponseBodyFormatter(),
                 new RequestBodyFormatter(),
+                new ResponseBodyDecodedFormatter(),
+                new RequestBodyDecodedFormatter(),
+                new RequestHeadersFormatter(),
+                new ResponseHeadersFormatter(),
+                new RequestHeaderFormatter(),
+                new ResponseHeaderFormatter(),
                 new PcapFormatter(),
                 new PcapRawFormatter()
-            };
+            }.Concat(MetaFormatters.All()).ToList();
 
         public static IReadOnlyCollection<string> Indicators { get; } = Formatters.Select(s => s.Indicator)
             .ToList();
