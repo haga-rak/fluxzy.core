@@ -334,6 +334,26 @@ namespace Fluxzy.Core
             }
         }
 
+        internal void RemoveAcceptEncodingToken(string token)
+        {
+            var fields = this["accept-encoding"].ToList();
+
+            if (fields.Count == 0)
+                return;
+
+            var kept = fields
+                       .SelectMany(f => f.Value.ToString().Split(','))
+                       .Select(t => t.Trim())
+                       .Where(t => t.Length > 0 &&
+                                   !t.Split(';')[0].Trim().Equals(token, StringComparison.OrdinalIgnoreCase))
+                       .ToList();
+
+            RemoveHeader("accept-encoding");
+
+            if (kept.Count > 0)
+                AltAddHeader("accept-encoding", string.Join(", ", kept));
+        }
+
         public void RemoveHeader(string headerName)
         {
             _rawHeaderFields.RemoveAll(r => r.Name.Span.Equals(headerName, StringComparison.OrdinalIgnoreCase));
