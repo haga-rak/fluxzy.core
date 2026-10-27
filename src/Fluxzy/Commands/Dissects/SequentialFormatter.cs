@@ -51,13 +51,16 @@ namespace Fluxzy.Cli.Commands.Dissects
                         // Dump expression 
 
                         var hint = pendingText.ToString(1, pendingText.Length - 2).Trim();
+                        var separator = hint.IndexOf(':');
+                        var name = separator < 0 ? hint : hint[..separator].Trim();
+                        var argument = separator < 0 ? null : hint[(separator + 1)..].Trim();
 
-                        if (!map.TryGetValue(hint, out var formatter)) {
+                        if (!map.TryGetValue(name, out var formatter)) {
                             await stdOutWriter.WriteAsync(pendingText.ToString());
                             await stdErrorWriter.WriteLineAsync($"WARN: Unknown formatter {hint}");
                         }
                         else {
-                            await formatter.Write(payload, stdOutWriter);
+                            await formatter.Write(payload, stdOutWriter, argument);
                         }
 
                         pendingText.Clear();

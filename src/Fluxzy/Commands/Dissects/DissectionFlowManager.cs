@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Fluxzy.Cli.Commands.Dissects.Json;
 using Fluxzy.Readers;
 
 namespace Fluxzy.Cli.Commands.Dissects
@@ -42,12 +44,20 @@ namespace Fluxzy.Cli.Commands.Dissects
             var connectionInfos = archiveReader.ReadAllConnections().ToList()
                                                .ToDictionary(t => t.Id, t => t);
 
-            var filteredExchangeInfos = exchangeInfos;
+            var filter = dissectionOptions.Filter;
+            var matcher = filter.Compile();
 
-            if (dissectionOptions.ExchangeIds != null && dissectionOptions.ExchangeIds.Any()) {
-                filteredExchangeInfos = filteredExchangeInfos
-                                        .Where(t => dissectionOptions.ExchangeIds.Contains(t.Id)).ToList();
+            IEnumerable<ExchangeInfo> query = exchangeInfos.Where(matcher.Match);
+
+            if (filter.Offset > 0) {
+                query = query.Skip(filter.Offset);
             }
+
+            if (filter.Limit != null) {
+                query = query.Take(filter.Limit.Value);
+            }
+
+            var filteredExchangeInfos = query.ToList();
 
             await using var stdErrorWriter = new StreamWriter(stdErrorStream, leaveOpen: true);
             await using var writer = new StreamWriter(stdoutStream, new UTF8Encoding(false), leaveOpen: true);
@@ -57,6 +67,13 @@ namespace Fluxzy.Cli.Commands.Dissects
                     $"Error: results not unique ({filteredExchangeInfos.Count}) when --unique option set");
 
                 return false;
+            }
+
+            if (dissectionOptions.OutputMode != DissectOutputMode.Format) {
+                await WriteJson(archiveReader, filteredExchangeInfos, connectionInfos, writer,
+                    dissectionOptions.OutputMode == DissectOutputMode.NdJson, dissectionOptions.WithHeaders);
+
+                return true;
             }
 
             var first = true;
@@ -72,10 +89,42 @@ namespace Fluxzy.Cli.Commands.Dissects
                 connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo);
 
                 await _formatter.Format(dissectionOptions.Format, _formatterMap, writer, stdErrorWriter,
-                    new EntryInfo(exchangeInfo, connectionInfo, archiveReader));
+                    new EntryInfo(exchangeInfo, connectionInfo, archiveReader, dissectionOptions.MaxBodyBytes));
             }
 
             return true;
+        }
+
+        private static async Task WriteJson(
+            IArchiveReader archiveReader,
+            List<ExchangeInfo> exchanges,
+            Dictionary<int, ConnectionInfo> connectionInfos,
+            StreamWriter writer, bool ndJson, bool withHeaders)
+        {
+            IEnumerable<ExchangeJsonModel> Models()
+            {
+                foreach (var exchangeInfo in exchanges) {
+                    connectionInfos.TryGetValue(exchangeInfo.ConnectionId, out var connectionInfo);
+
+                    yield return ExchangeJsonModel.Create(exchangeInfo, connectionInfo, archiveReader, withHeaders);
+                }
+            }
+
+            if (ndJson) {
+                foreach (var model in Models()) {
+                    await writer.WriteLineAsync(JsonSerializer.Serialize(model, DissectJsonOptions.Compact));
+                }
+
+                await writer.FlushAsync();
+
+                return;
+            }
+
+            await writer.FlushAsync();
+
+            await JsonSerializer.SerializeAsync(writer.BaseStream, Models(), DissectJsonOptions.Indented);
+
+            await writer.BaseStream.FlushAsync();
         }
     }
 }

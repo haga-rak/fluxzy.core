@@ -421,6 +421,10 @@ namespace Fluxzy
             _runTimeSetting.EndPoints = endPoints.ToHashSet();
             _runTimeSetting.ProxyListenPort = endPoints.FirstOrDefault()?.Port ?? 0;
 
+            if (FluxzySharedSetting.BrotliAutoDisabled) {
+                _logger.LogWarning(FluxzySharedSetting.BrotliAutoDisabledMessage);
+            }
+
             _loopTask = MainLoop().AsTask();
 
             EndPoints = endPoints;

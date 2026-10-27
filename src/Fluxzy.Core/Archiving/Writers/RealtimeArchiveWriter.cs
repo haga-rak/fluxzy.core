@@ -245,6 +245,7 @@ namespace Fluxzy.Writers
         AfterResponseHeader,
         AfterResponse,
         WsMessageSent,
-        WsMessageReceived
+        WsMessageReceived,
+        ConnectionAssigned
     }
 }

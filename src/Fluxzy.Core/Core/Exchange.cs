@@ -18,6 +18,8 @@ namespace Fluxzy.Core
 {
     public class Exchange : IExchange
     {
+        private Connection? _connection;
+
         private Task? _connectionDisposition;
 
         private Exchange(
@@ -158,7 +160,20 @@ namespace Fluxzy.Core
         ///     Connection used by this exchange. The connection object is the connection open between
         ///     the proxy and the remote server
         /// </summary>
-        public Connection? Connection { get; set; }
+        public Connection? Connection {
+            get => _connection;
+            set {
+                _connection = value;
+
+                if (value != null)
+                    LastConnectionId = value.Id;
+            }
+        }
+
+        /// <summary>
+        ///     Id of the last upstream connection assigned to this exchange, kept after <see cref="Connection"/> is cleared.
+        /// </summary>
+        public int LastConnectionId { get; private set; }
 
         /// <summary>
         ///     Contains a list of errors

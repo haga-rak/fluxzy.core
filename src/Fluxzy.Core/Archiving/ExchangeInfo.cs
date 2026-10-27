@@ -16,8 +16,8 @@ namespace Fluxzy
     /// <summary>
     /// Packed information about an exchange
     /// </summary>
-    [MessagePackObject]
-    public class ExchangeInfo : IExchange, IExchangeLine
+    [MessagePackObject(AllowPrivate = true)]
+    public partial class ExchangeInfo : IExchange, IExchangeLine
     {
         [SerializationConstructor]
 #pragma warning disable CS8618 // Used by messagepack
@@ -35,7 +35,7 @@ namespace Fluxzy
         {
             Id = exchange.Id;
             HttpVersion = exchange.HttpVersion ?? "-";
-            ConnectionId = exchange.Connection?.Id ?? 0;
+            ConnectionId = exchange.Connection?.Id ?? exchange.LastConnectionId;
             Metrics = exchange.Metrics;
             Agent = exchange.Agent;
 

@@ -342,6 +342,10 @@ namespace Fluxzy.Cli.Commands
                     invocationContext.BindingContext.Console
                                      .WriteLine($"Listen on {string.Join(", ", endPoints.Select(s => s))}");
 
+                    if (FluxzySharedSetting.BrotliAutoDisabled) {
+                        invocationContext.Console.Error.WriteLine(FluxzySharedSetting.BrotliAutoDisabledMessage);
+                    }
+
                     if (registerAsSystemProxy) {
                         var setting = await systemProxyManager.Register(endPoints, proxyStartUpSetting);
 

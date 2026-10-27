@@ -1,5 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using MessagePack;
 using System;
 
 namespace Fluxzy.Core
@@ -7,6 +8,7 @@ namespace Fluxzy.Core
     /// <summary>
     /// An object holding metrics information about an exchange
     /// </summary>
+    [MessagePackObject(true)]
     public class ExchangeMetrics
     {
         /// <summary>

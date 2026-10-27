@@ -8,17 +8,40 @@ namespace Fluxzy.Cli.Commands.Dissects
     {
         public DissectionOptions(
             bool mustBeUnique,
-            HashSet<int>? exchangeIds, string format)
+            HashSet<int>? exchangeIds, string format,
+            DissectOutputMode outputMode = DissectOutputMode.Format,
+            ExchangeFilterOptions? filter = null,
+            bool withHeaders = false,
+            int? maxBodyBytes = null)
         {
+            WithHeaders = withHeaders;
+            MaxBodyBytes = maxBodyBytes;
             MustBeUnique = mustBeUnique;
             ExchangeIds = exchangeIds;
             Format = format;
+            OutputMode = outputMode;
+            Filter = filter ?? new ExchangeFilterOptions { ExchangeIds = exchangeIds };
         }
 
+        public ExchangeFilterOptions Filter { get; }
+
+        public bool WithHeaders { get; }
+
+        public int? MaxBodyBytes { get; }
+
         public string Format { get; }
+
+        public DissectOutputMode OutputMode { get; }
 
         public bool MustBeUnique { get; }
 
         public HashSet<int>? ExchangeIds { get; }
+    }
+
+    internal enum DissectOutputMode
+    {
+        Format,
+        Json,
+        NdJson
     }
 }
