@@ -15,6 +15,7 @@ namespace Fluxzy.Tests.UnitTests.Misc
     ///     gzip/deflate/brotli are decoded natively, anything else is resolved through
     ///     <see cref="ContentDecoderRegistry" /> and throws when no decoder is registered.
     /// </summary>
+    [Collection("DisableBrotli")]
     public class ContentDecoderRegistryTests
     {
         private const string Payload = "the quick brown fox jumps over the lazy dog";
@@ -26,8 +27,16 @@ namespace Fluxzy.Tests.UnitTests.Misc
         public void Native_encodings_decode_out_of_the_box(string token)
         {
             var compressed = Compress(token, Payload);
+            var initial = FluxzySharedSetting.DisableBrotli;
 
-            Assert.Equal(Payload, DecodeToString(token, compressed));
+            FluxzySharedSetting.DisableBrotli = false;
+
+            try {
+                Assert.Equal(Payload, DecodeToString(token, compressed));
+            }
+            finally {
+                FluxzySharedSetting.DisableBrotli = initial;
+            }
         }
 
         [Fact]

@@ -136,6 +136,77 @@ namespace Fluxzy
             EnvironmentUtility.GetInt32("FLUXZY_PROCESS_TRACKER_CACHE_SECONDS", 30);
 
         /// <summary>
+        ///     When true, Fluxzy never decodes brotli bodies and removes "br" from the accept-encoding
+        ///     header of forwarded requests so that upstream servers fall back to gzip or deflate.
+        ///     Defaults to true when the current .NET runtime ships a Brotli decoder affected by
+        ///     CVE-2026-111497 (before 8.0.33, 9.0.22, 10.0.14 and 11.0.0-rc.3).
+        ///     The FLUXZY_DISABLE_BROTLI environment variable overrides the default with "1" or "0".
+        /// </summary>
+        public static bool DisableBrotli { get; set; } = ComputeDisableBrotli(out BrotliAutoDisabled);
+
+        internal static readonly bool BrotliAutoDisabled;
+
+        internal static string BrotliAutoDisabledMessage =>
+            $"Brotli decoding disabled: .NET runtime {Environment.Version} ships a Brotli decoder affected by " +
+            "CVE-2026-111497. Update the runtime (8.0.33, 9.0.22 or 10.0.14) or set FLUXZY_DISABLE_BROTLI=0 " +
+            "to re-enable it. Impersonation profiles will advertise accept-encoding without br.";
+
+        private static bool ComputeDisableBrotli(out bool autoDisabled)
+        {
+            autoDisabled = false;
+
+            switch (Environment.GetEnvironmentVariable("FLUXZY_DISABLE_BROTLI")?.Trim()) {
+                case "1":
+                    return true;
+                case "0":
+                    return false;
+            }
+
+            autoDisabled = IsBrotliRuntimeVulnerable(Environment.Version);
+
+            return autoDisabled;
+        }
+
+        internal static bool IsBrotliRuntimeVulnerable(Version runtime)
+        {
+            var fixedBuild = runtime.Major switch {
+                < 8 => int.MaxValue,
+                8 => 33,
+                9 => 22,
+                10 => 14,
+                11 => 0,
+                _ => -1
+            };
+
+            if (fixedBuild < 0)
+                return false;
+
+            if (runtime.Major == 11)
+                return IsPreviewBefore(runtime, "rc.3");
+
+            return runtime.Build < fixedBuild;
+        }
+
+        private static bool IsPreviewBefore(Version runtime, string fixedPreRelease)
+        {
+            var informational = typeof(object).Assembly
+                                              .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                                              ?.InformationalVersion ?? string.Empty;
+
+            if (runtime.Build > 0)
+                return false;
+
+            var dash = informational.IndexOf('-');
+
+            if (dash < 0)
+                return false;
+
+            var preRelease = informational.Substring(dash + 1).Split('+')[0];
+
+            return string.CompareOrdinal(preRelease, fixedPreRelease) < 0;
+        }
+
+        /// <summary>
         ///     True when Fluxzy runs under Fluxzy Desktop (detected via the FluxzyDesktopVersion
         ///     environment variable). Gates desktop-only hot-path checks like live-edit header scanning.
         /// </summary>

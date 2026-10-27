@@ -104,6 +104,11 @@ namespace Fluxzy.Extensions
 
                 case "br":
                 case "brotli":
+                    if (FluxzySharedSetting.DisableBrotli) {
+                        throw new FluxzyException(
+                            "Brotli decoding is disabled (FluxzySharedSetting.DisableBrotli / FLUXZY_DISABLE_BROTLI).");
+                    }
+
                     return new BrotliStream(workStream, CompressionMode.Decompress, false);
 
                 default:

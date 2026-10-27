@@ -475,6 +475,11 @@ namespace Fluxzy.Core
                     requestHeaderAlteration.Apply(exchange.Request.Header);
                 }
 
+                if (FluxzySharedSetting.DisableBrotli)
+                {
+                    exchange.Request.Header.RemoveAcceptEncodingToken("br");
+                }
+
                 Stream? originalRequestBodyStream = null;
                 Stream? originalResponseBodyStream = null;
                 var requestBodyWrapped = false;
