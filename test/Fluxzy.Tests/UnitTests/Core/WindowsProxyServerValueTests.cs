@@ -15,7 +15,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         }
 
         [Theory]
-        [InlineData("127.0.0.1:44344", "127.0.0.1", 44344, true)]
+        [InlineData("127.0.0.1:44344", "127.0.0.1", 44344, false)]
         [InlineData("http=127.0.0.1:44344;https=127.0.0.1:44344", "127.0.0.1", 44344, true)]
         [InlineData("HTTP=proxy:3128;HTTPS=proxy:3128", "proxy", 3128, true)]
         [InlineData("http=proxy:3128;https=proxy:3129", "proxy", 3128, false)]

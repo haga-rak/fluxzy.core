@@ -119,7 +119,9 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
                 if (!TryParseHostPort(proxyServer, out host, out port))
                     host = ProxyConstants.NoProxyWord;
 
-                return host != ProxyConstants.NoProxyWord;
+                // A bare host:port covers every protocol; the per-protocol value
+                // Fluxzy writes cannot reproduce it, so keep the raw string for restore
+                return false;
             }
 
             string? httpTarget = null;
