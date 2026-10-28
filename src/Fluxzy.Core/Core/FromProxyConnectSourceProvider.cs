@@ -183,6 +183,15 @@ namespace Fluxzy.Core
                     stream);
             }
 
+            if (AuthorityUtility.TryGetUnsupportedScheme(plainHeader, out var unsupportedUri)) {
+                var response = ConnectionErrorPageHelper.GetUnsupportedSchemeResponse(unsupportedUri);
+
+                await stream.WriteAsync(response, token).ConfigureAwait(false);
+                await stream.FlushAsync(token).ConfigureAwait(false);
+
+                return new(false, null);
+            }
+
             if (!AuthorityUtility.TryParsePlainRequestAuthority(plainHeader, null, out var plainAuthority))
                 return new (false, null); // UNABLE TO READ URI FROM CLIENT
 

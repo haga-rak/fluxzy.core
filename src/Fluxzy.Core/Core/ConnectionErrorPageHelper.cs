@@ -83,6 +83,33 @@ namespace Fluxzy.Core
             return (header, body);
         }
 
+        /// <summary>
+        /// Full 528 response (header + body) for an absolute-form request whose scheme
+        /// cannot be forwarded by an HTTP proxy.
+        /// </summary>
+        public static byte[] GetUnsupportedSchemeResponse(Uri uri)
+        {
+            var authority = new Authority(uri.Host, uri.Port, false);
+
+            var clientError = new ClientError(0,
+                $"Fluxzy is an HTTP proxy and cannot forward {uri.Scheme}:// requests. " +
+                "Configure the client to bypass the proxy for this scheme.",
+                NetworkErrorCodes.UnsupportedScheme);
+
+            var (header, body) = GetPrettyErrorPage(authority, new[] { clientError }, null);
+
+            var endOfHeaders = header.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+            header = header.Insert(endOfHeaders + 2, $"x-fluxzy-network-error: {NetworkErrorCodes.UnsupportedScheme}\r\n");
+
+            var headerBytes = Encoding.ASCII.GetBytes(header);
+            var result = new byte[headerBytes.Length + body.Length];
+
+            headerBytes.CopyTo(result, 0);
+            body.CopyTo(result, headerBytes.Length);
+
+            return result;
+        }
+
         public static (string FlatHeader, byte[] BodyContent) GetSimplePlainTextResponse(
             Authority authority, string messageText, string errorTypeText)
         {
