@@ -108,16 +108,33 @@ namespace Fluxzy.Core
             // Plain proxy connections carry a per-request authority: routing with the
             // connection-level one sends the request to whichever host came first
             // (cross-host contamination, 421). Tunnels (CONNECT, SOCKS5) keep it.
-            if (_plainAuthorityPerRequest
-                && !AuthorityUtility.TryParsePlainRequestAuthority(
-                    secureHeader, _plainAuthorityForcedPort, out authority))
-                return null;
+            if (_plainAuthorityPerRequest) {
+                if (AuthorityUtility.TryGetUnsupportedScheme(secureHeader, out var unsupportedUri)) {
+                    await WriteUnsupportedScheme(unsupportedUri, token).ConfigureAwait(false);
+                    return null;
+                }
+
+                if (!AuthorityUtility.TryParsePlainRequestAuthority(
+                        secureHeader, _plainAuthorityForcedPort, out authority))
+                    return null;
+            }
 
             var exchangeContext = await _contextBuilder.Create(authority, authority.Secure).ConfigureAwait(false);
 
             var bodyStream = SetChunkedBody(secureHeader, _readStream);
 
             return new Exchange(_idProvider, exchangeContext, authority, secureHeader, bodyStream, null!, receivedFromProxy);
+        }
+
+        private async ValueTask WriteUnsupportedScheme(Uri uri, CancellationToken token)
+        {
+            if (_writeStream == null)
+                return;
+
+            var response = ConnectionErrorPageHelper.GetUnsupportedSchemeResponse(uri);
+
+            await _writeStream.WriteAsync(response, 0, response.Length, token).ConfigureAwait(false);
+            await _writeStream.FlushAsync(token).ConfigureAwait(false);
         }
 
         public async ValueTask WriteInterimResponse(int statusCode, ReadOnlyMemory<char> reasonPhrase, int _, CancellationToken token)

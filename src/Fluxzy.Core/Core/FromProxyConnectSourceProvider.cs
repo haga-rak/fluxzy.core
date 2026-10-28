@@ -83,6 +83,20 @@ namespace Fluxzy.Core
             var (blockReadResult, receivedFromProxy, plainHeaderChars,
                 plainHeader) = readBlockResult;
 
+            // Bytes received past the header block belong to whatever comes next: the request
+            // body on a plain request, the TLS ClientHello on a CONNECT when the client does not
+            // wait for the 200 before sending it. Replay them in front of the stream for both paths
+            // (issue #823: dropping them on CONNECT left the handshake stuck on a read).
+
+            var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
+
+            if (remainder > 0)
+            {
+                stream = new RecomposedStream(
+                    new CombinedReadonlyStream(true, buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder), stream),
+                    stream);
+            }
+
             // Classic TLS Request 
 
             if (plainHeader.Method.Span.Equals("CONNECT", StringComparison.OrdinalIgnoreCase) 
@@ -174,13 +188,13 @@ namespace Fluxzy.Core
 
             // Plain request 
 
-            var remainder = blockReadResult.TotalReadLength - blockReadResult.HeaderLength;
+            if (AuthorityUtility.TryGetUnsupportedScheme(plainHeader, out var unsupportedUri)) {
+                var response = ConnectionErrorPageHelper.GetUnsupportedSchemeResponse(unsupportedUri);
 
-            if (remainder > 0)
-            {
-                stream = new RecomposedStream(
-                    new CombinedReadonlyStream(true, buffer.Buffer.AsSpan(blockReadResult.HeaderLength, remainder), stream),
-                    stream);
+                await stream.WriteAsync(response, token).ConfigureAwait(false);
+                await stream.FlushAsync(token).ConfigureAwait(false);
+
+                return new(false, null);
             }
 
             if (!AuthorityUtility.TryParsePlainRequestAuthority(plainHeader, null, out var plainAuthority))
