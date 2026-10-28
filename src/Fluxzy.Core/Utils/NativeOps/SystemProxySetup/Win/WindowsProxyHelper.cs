@@ -34,20 +34,16 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
             var proxyServer = (string) registry.GetValue("ProxyServer", string.Empty)!;
 
             var proxyOverrideList = proxyOverride.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
-            var proxyServerTab = proxyServer.Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
 
-            var proxyServerName = proxyServerTab.Length != 2 ? ProxyConstants.NoProxyWord : proxyServerTab[0];
-            var proxyPort = proxyServerTab.Length != 2 ? -1 : int.Parse(proxyServerTab[1]);
+            var lossless = TryParseProxyServer(proxyServer, out var proxyServerName, out var proxyPort);
 
             var setting = new SystemProxySetting(proxyServerName, proxyPort, proxyOverrideList) {
                 Enabled = proxyEnabled
             };
 
-            // Preserve the raw ProxyServer string when it does not match the standard
-            // "host:port" format (e.g. legacy per-protocol entries like
-            // "http=proxy:80;https=proxy:443"). Without this, the value would be lost
-            // on restore because BoundHost collapses to NoProxyWord.
-            if (proxyServerTab.Length != 2 && !string.IsNullOrEmpty(proxyServer))
+            // Keep the raw value when it cannot be regenerated from host/port
+            // (ftp=, socks=, differing http/https targets) so restore is verbatim
+            if (!lossless && !string.IsNullOrEmpty(proxyServer))
                 setting.PrivateValues[ProxyConstants.WinProxyServerRawKey] = proxyServer;
 
             return setting;
@@ -85,8 +81,8 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
                 registry.DeleteValue("ProxyServer", false);
             }
             else {
-                var actualServerLine = $"{systemProxySetting.BoundHost}:{systemProxySetting.ListenPort}";
-                registry.SetValue("ProxyServer", actualServerLine);
+                registry.SetValue("ProxyServer",
+                    BuildProxyServerValue(systemProxySetting.BoundHost, systemProxySetting.ListenPort));
             }
 
             var proxyOverrideLine = string.Join(";", systemProxySetting.ByPassHosts);
@@ -97,6 +93,87 @@ namespace Fluxzy.Utils.NativeOps.SystemProxySetup.Win
 #else
             throw new NotSupportedException("This method is only supported on .NET 6.0 or greater");
 #endif
+        }
+        /// <summary>
+        /// Per-protocol form so that WinINET only routes http and https through Fluxzy.
+        /// A bare "host:port" applies to every protocol, including ftp (#821).
+        /// </summary>
+        internal static string BuildProxyServerValue(string host, int port)
+        {
+            return $"http={host}:{port};https={host}:{port}";
+        }
+
+        /// <summary>
+        /// Accepts "host:port" and "scheme=host:port;..." lists. Returns true when the
+        /// value can be regenerated from host/port without loss.
+        /// </summary>
+        internal static bool TryParseProxyServer(string? proxyServer, out string host, out int port)
+        {
+            host = ProxyConstants.NoProxyWord;
+            port = -1;
+
+            if (string.IsNullOrWhiteSpace(proxyServer))
+                return false;
+
+            if (!proxyServer!.Contains('=')) {
+                if (!TryParseHostPort(proxyServer, out host, out port))
+                    host = ProxyConstants.NoProxyWord;
+
+                return host != ProxyConstants.NoProxyWord;
+            }
+
+            string? httpTarget = null;
+            string? httpsTarget = null;
+            var otherEntries = false;
+
+            foreach (var entry in proxyServer.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)) {
+                var separator = entry.IndexOf('=');
+
+                if (separator <= 0) {
+                    otherEntries = true;
+                    continue;
+                }
+
+                var scheme = entry.Substring(0, separator).Trim();
+                var target = entry.Substring(separator + 1).Trim();
+
+                if (scheme.Equals("http", StringComparison.OrdinalIgnoreCase))
+                    httpTarget = target;
+                else if (scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+                    httpsTarget = target;
+                else
+                    otherEntries = true;
+            }
+
+            var mainTarget = httpTarget ?? httpsTarget;
+
+            if (mainTarget == null || !TryParseHostPort(mainTarget, out host, out port)) {
+                host = ProxyConstants.NoProxyWord;
+                port = -1;
+
+                return false;
+            }
+
+            return !otherEntries && httpTarget != null && httpsTarget != null
+                   && string.Equals(httpTarget, httpsTarget, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool TryParseHostPort(string value, out string host, out int port)
+        {
+            host = string.Empty;
+            port = -1;
+
+            var separator = value.LastIndexOf(':');
+
+            if (separator <= 0 || separator == value.Length - 1)
+                return false;
+
+            if (!int.TryParse(value.Substring(separator + 1), out port))
+                return false;
+
+            host = value.Substring(0, separator);
+
+            return true;
         }
     }
 }
