@@ -34,6 +34,7 @@ namespace Fluxzy.Core
 
         // Other
         public const string ProtocolError = "protocol_error";
+        public const string UnsupportedScheme = "unsupported_scheme";
         public const string RuleFailure = "rule_failure";
         public const string UpstreamConfigurationFailed = "upstream_configuration_failed";
         public const string Unknown = "unknown";

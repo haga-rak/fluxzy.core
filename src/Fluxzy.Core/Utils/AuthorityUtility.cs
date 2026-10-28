@@ -11,6 +11,32 @@ namespace Fluxzy.Utils
         /// Resolve the target authority of a plain (non-tunneled) request, from an
         /// absolute-form URI or the Host header.
         /// </summary>
+        /// <summary>
+        /// True when the request target is absolute-form with a scheme Fluxzy cannot
+        /// forward (ftp://, ws://...). Happens when a system proxy registration covers
+        /// every protocol and a client sends an FTP-over-HTTP gateway request (#821).
+        /// </summary>
+        internal static bool TryGetUnsupportedScheme(RequestHeader header, out Uri uri)
+        {
+            uri = null!;
+
+            var path = header.Path.Span;
+
+            if (path.IndexOf("://".AsSpan(), StringComparison.Ordinal) <= 0)
+                return false;
+
+            if (!Uri.TryCreate(path.ToString(), UriKind.Absolute, out var parsed))
+                return false;
+
+            if (parsed.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase)
+                || parsed.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            uri = parsed;
+
+            return true;
+        }
+
         internal static bool TryParsePlainRequestAuthority(
             RequestHeader header, int? forcedPort, out Authority authority)
         {

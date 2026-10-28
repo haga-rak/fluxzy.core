@@ -25,6 +25,7 @@ namespace Fluxzy.Tests.UnitTests.Core
         [InlineData("tls_cert_invalid", NetworkErrorCodes.TlsCertInvalid)]
         [InlineData("tls_handshake_failure", NetworkErrorCodes.TlsHandshakeFailure)]
         [InlineData("protocol_error", NetworkErrorCodes.ProtocolError)]
+        [InlineData("unsupported_scheme", NetworkErrorCodes.UnsupportedScheme)]
         [InlineData("rule_failure", NetworkErrorCodes.RuleFailure)]
         [InlineData("unknown", NetworkErrorCodes.Unknown)]
         public void Token_Strings_Are_Stable(string expected, string actual)
