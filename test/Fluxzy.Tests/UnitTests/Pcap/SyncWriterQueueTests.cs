@@ -70,23 +70,20 @@ namespace Fluxzy.Tests.UnitTests.Pcap
         }
 
         [Fact]
-        public void GetOrAdd_Then_Rotate_Disposes_PreSubscribe_Writer()
+        public void GetOrAdd_Then_Rotate_Keeps_PreSubscribe_Writer()
         {
             using var queue = new SyncWriterQueue();
 
             const long connectionKey = 45678;
 
-            // Packet-arrival path creates a writer before Subscribe.
             var early = queue.GetOrAdd(connectionKey);
-            var earlySubId = early.SubscriptionId;
 
-            // Subscribe rotates — must not throw "Already registered!".
             var file = GetRegisteredRandomFile();
             var registered = queue.Rotate(connectionKey);
             registered.Register(file);
 
-            Assert.NotSame(early, registered);
-            Assert.NotEqual(earlySubId, registered.SubscriptionId);
+            Assert.Same(early, registered);
+            Assert.True(registered.Registered);
         }
 
         [Fact]
