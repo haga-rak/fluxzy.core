@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,39 +23,110 @@ namespace Fluxzy.Tests.Cases
         public async Task Curl_Favicon_With_Pcap_Extracts_Capture_Next_To_Fxzy()
         {
             var outDirectory = Path.Combine("Drop", $"curl-favicon-capture-{Guid.NewGuid()}");
-            var packedFile = Path.Combine(outDirectory, "capture.fxzy");
 
-            var setting = FluxzySetting.CreateLocalRandomPort();
-            setting.SetOutDirectory(outDirectory);
+            await RunCurlThroughCapturingProxy(outDirectory, 1);
 
+            var pcapFiles = await PackAndExtractCaptures(outDirectory);
+
+            var pcapPath = Assert.Single(pcapFiles);
+            var tcpFlags = await ReadTcpFlags(pcapPath);
+
+            Assert.Contains("S", tcpFlags);
+            Assert.Contains("AS", tcpFlags);
+        }
+
+        [Fact]
+        public async Task Sequential_Connections_Each_Keep_Their_Handshake_While_Previous_Writer_Lingers()
+        {
+            var outDirectory = Path.Combine("Drop", $"curl-favicon-sequential-{Guid.NewGuid()}");
+            var originalLinger = FluxzySharedSetting.RawCaptureLingerDelayBeforeTearDownMillis;
+
+            FluxzySharedSetting.RawCaptureLingerDelayBeforeTearDownMillis = 3000;
+
+            var runDirectories = new List<string>();
+
+            try {
+                var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
+                    a => new OutOfProcessCaptureContext(a));
+
+                await using (scope) {
+                    await using var tcpProvider = await CapturedTcpConnectionProvider.Create(scope, true);
+
+                    for (var i = 0; i < 6; i++) {
+                        var runDirectory = Path.Combine(outDirectory, $"run-{i}");
+                        runDirectories.Add(runDirectory);
+
+                        await RunCurlThroughProxy(runDirectory, tcpProvider, 1);
+                    }
+                }
+            }
+            finally {
+                FluxzySharedSetting.RawCaptureLingerDelayBeforeTearDownMillis = originalLinger;
+            }
+
+            var pcapFiles = new List<string>();
+
+            foreach (var runDirectory in runDirectories) {
+                pcapFiles.AddRange(await PackAndExtractCaptures(runDirectory));
+            }
+
+            Assert.Equal(6, pcapFiles.Count);
+
+            foreach (var pcapPath in pcapFiles) {
+                var tcpFlags = await ReadTcpFlags(pcapPath);
+
+                Assert.Equal(1, tcpFlags.Count(f => f == "S"));
+                Assert.Equal(1, tcpFlags.Count(f => f == "AS"));
+                Assert.Equal("S", tcpFlags.First());
+            }
+        }
+
+        private static async Task RunCurlThroughCapturingProxy(string outDirectory, int requestCount)
+        {
             var scope = new ProxyScope(() => new FluxzyNetOutOfProcessHost(),
                 a => new OutOfProcessCaptureContext(a));
 
             await using (scope) {
                 await using var tcpProvider = await CapturedTcpConnectionProvider.Create(scope, true);
 
-                await using var proxy = new Proxy(setting, tcpProvider);
+                await RunCurlThroughProxy(outDirectory, tcpProvider, requestCount);
+            }
+        }
 
+        private static async Task RunCurlThroughProxy(
+            string outDirectory, ITcpConnectionProvider tcpProvider, int requestCount)
+        {
+            var setting = FluxzySetting.CreateLocalRandomPort();
+            setting.SetOutDirectory(outDirectory);
+
+            await using (var proxy = new Proxy(setting, tcpProvider)) {
                 var endPoint = proxy.Run().First();
                 var proxyUrl = $"http://{endPoint.Address}:{endPoint.Port}";
 
-                var (stderr, exitCode) = await RunCurl(proxyUrl, "https://www.fluxzy.io/favicon.ico");
+                for (var i = 0; i < requestCount; i++) {
+                    var (stderr, exitCode) = await RunCurl(proxyUrl, "https://www.fluxzy.io/favicon.ico");
 
-                Assert.True(exitCode == 0, $"curl failed with exit code {exitCode}. stderr: {stderr}");
+                    Assert.True(exitCode == 0, $"curl failed with exit code {exitCode}. stderr: {stderr}");
+                }
             }
 
-            using (var directoryReader = new DirectoryArchiveReader(outDirectory)) {
-                var exchange = Assert.Single(directoryReader.ReadAllExchanges());
+            using var directoryReader = new DirectoryArchiveReader(outDirectory);
 
-                Assert.Equal(200, exchange.StatusCode);
-                Assert.NotEqual(0, exchange.ConnectionId);
-            }
+            var exchanges = directoryReader.ReadAllExchanges().ToList();
+
+            Assert.Equal(requestCount, exchanges.Count);
+            Assert.All(exchanges, e => Assert.Equal(200, e.StatusCode));
+        }
+
+        private static async Task<List<string>> PackAndExtractCaptures(string outDirectory)
+        {
+            var packedFile = Path.Combine(outDirectory, "capture.fxzy");
 
             await new FxzyDirectoryPackager().Pack(outDirectory, packedFile);
 
             using var packedReader = new FluxzyArchiveReader(packedFile);
 
-            var extractedFiles = 0;
+            var extracted = new List<string>();
 
             foreach (var connection in packedReader.ReadAllConnections()) {
                 await using var captureStream = packedReader.GetRawCaptureStream(connection.Id);
@@ -71,15 +143,10 @@ namespace Fluxzy.Tests.Cases
 
                 Assert.True(new FileInfo(pcapPath).Length > 0, $"{pcapPath} is empty");
 
-                var tcpFlags = await ReadTcpFlags(pcapPath);
-
-                Assert.Contains("S", tcpFlags);
-                Assert.Contains("AS", tcpFlags);
-
-                extractedFiles++;
+                extracted.Add(pcapPath);
             }
 
-            Assert.True(extractedFiles > 0);
+            return extracted;
         }
 
         private static async Task<string[]> ReadTcpFlags(string pcapPath)
