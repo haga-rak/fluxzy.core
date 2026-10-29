@@ -1,6 +1,7 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,6 +12,8 @@ using Fluxzy.Archiving;
 using Fluxzy.Core;
 using Fluxzy.Core.Pcap;
 using Fluxzy.Core.Pcap.Cli.Clients;
+using Fluxzy.Core.Pcap.Pcapng.Structs;
+using Fluxzy.Core.Pcap.Reading;
 using Fluxzy.Readers;
 using Xunit;
 
@@ -104,7 +107,7 @@ namespace Fluxzy.Tests.Cases
                 var proxyUrl = $"http://{endPoint.Address}:{endPoint.Port}";
 
                 for (var i = 0; i < requestCount; i++) {
-                    var (stderr, exitCode) = await RunCurl(proxyUrl, "https://www.fluxzy.io/favicon.ico");
+                    var (stderr, exitCode) = await RunCurl(proxyUrl, "https://www.fluxzy.io/favicon.ico", outDirectory);
 
                     Assert.True(exitCode == 0, $"curl failed with exit code {exitCode}. stderr: {stderr}");
                 }
@@ -149,34 +152,71 @@ namespace Fluxzy.Tests.Cases
             return extracted;
         }
 
-        private static async Task<string[]> ReadTcpFlags(string pcapPath)
+        private static Task<string[]> ReadTcpFlags(string pcapPath)
         {
-            var psi = new ProcessStartInfo {
-                FileName = "tshark",
-                Arguments = $"-r {pcapPath} -T fields -e tcp.flags.str",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+            var bytes = File.ReadAllBytes(pcapPath);
+            var flags = new List<string>();
+            var offset = 0;
 
-            using var process = Process.Start(psi)!;
+            while (offset + 8 <= bytes.Length) {
+                var blockType = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(offset));
+                var blockLength = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(offset + 4));
 
-            var stdout = await process.StandardOutput.ReadToEndAsync();
-            await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+                if (blockType == EnhancedPacketBlock.BlockTypeValue) {
+                    var capturedLength = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(offset + 20));
+                    var packet = bytes.AsSpan(offset + 28, capturedLength);
 
-            return stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                         .Select(l => new string(l.Where(char.IsLetter).ToArray()))
-                         .ToArray();
+                    var ethernet = new EthernetPacketInfo();
+
+                    if (RawPacketParser.TryParseEthernet(ref ethernet, packet, out var ethernetLength)) {
+                        var ip = new IpPacketInfo();
+                        var ipSlice = packet.Slice(ethernetLength);
+
+                        if (RawPacketParser.TryParseIp(ref ip, ipSlice) && ip.IsTcp) {
+                            var tcp = ipSlice.Slice(ip.HeaderLength);
+                            flags.Add(FormatTcpFlags(tcp[13]));
+                        }
+                    }
+                }
+
+                offset += blockLength;
+            }
+
+            return Task.FromResult(flags.ToArray());
+        }
+
+        private static string FormatTcpFlags(byte flags)
+        {
+            var result = string.Empty;
+
+            if ((flags & 0x10) != 0)
+                result += "A";
+
+            if ((flags & 0x08) != 0)
+                result += "P";
+
+            if ((flags & 0x04) != 0)
+                result += "R";
+
+            if ((flags & 0x02) != 0)
+                result += "S";
+
+            if ((flags & 0x01) != 0)
+                result += "F";
+
+            return result;
         }
 
         private static async Task<(string stderr, int exitCode)> RunCurl(
-            string proxyUrl, string url, int timeoutSeconds = 60)
+            string proxyUrl, string url, string outDirectory, int timeoutSeconds = 60)
         {
+            Directory.CreateDirectory(outDirectory);
+
+            var bodyFile = Path.GetFullPath(Path.Combine(outDirectory, $"curl-{Guid.NewGuid()}.body"));
+
             var psi = new ProcessStartInfo {
                 FileName = "curl",
-                Arguments = $"-sS -k -o /dev/null --proxy {proxyUrl} {url}",
+                Arguments = $"-sS -k -o \"{bodyFile}\" --proxy {proxyUrl} {url}",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -197,6 +237,9 @@ namespace Fluxzy.Tests.Cases
                 try { process.Kill(entireProcessTree: true); } catch { }
 
                 return ($"curl timed out after {timeoutSeconds}s", -1);
+            }
+            finally {
+                try { File.Delete(bodyFile); } catch { }
             }
         }
     }
