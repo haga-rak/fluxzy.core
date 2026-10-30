@@ -24,8 +24,10 @@ namespace Fluxzy.Tests.Cases
     [Collection("RUNS_RAW_CAPTURE")]
     public class SlowEndpointProxyTearDownRawCaptureTests
     {
-        [Fact]
-        public async Task Proxy_Torn_Down_Before_Slow_Endpoint_Answers_Keeps_Connection_And_Pcap()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Proxy_Torn_Down_Before_Slow_Endpoint_Answers_Keeps_Connection_And_Pcap(bool captureLoopback)
         {
             var requestReceived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -40,6 +42,9 @@ namespace Fluxzy.Tests.Cases
 
             var outDirectory = Path.Combine("Drop", $"slow-endpoint-capture-{Guid.NewGuid()}");
             Directory.CreateDirectory(outDirectory);
+
+            var originalLoopback = FluxzySharedSetting.CaptureLoopbackTraffic;
+            FluxzySharedSetting.CaptureLoopbackTraffic = captureLoopback;
 
             var setting = FluxzySetting.CreateLocalRandomPort();
             setting.SetOutDirectory(outDirectory);
@@ -87,6 +92,8 @@ namespace Fluxzy.Tests.Cases
                 Assert.NotEqual(0, curl.ExitCode);
             }
             finally {
+                FluxzySharedSetting.CaptureLoopbackTraffic = originalLoopback;
+
                 if (curl != null) {
                     try { curl.Kill(entireProcessTree: true); } catch { }
                     curl.Dispose();
@@ -115,7 +122,11 @@ namespace Fluxzy.Tests.Cases
             var pcapBytes = await ReadAll(packedReader.GetRawCaptureStream(exchange.ConnectionId));
 
             Assert.True(pcapBytes.Length > 0);
-            Assert.True(CountPacketBlocks(pcapBytes) > 0, "pcapng holds no packet block, only the section header");
+
+            if (captureLoopback)
+                Assert.True(CountPacketBlocks(pcapBytes) > 0, "pcapng holds no packet block, only the section header");
+            else
+                Assert.Equal(0, CountPacketBlocks(pcapBytes));
         }
 
         private static int CountPacketBlocks(byte[] bytes)

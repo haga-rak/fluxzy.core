@@ -129,6 +129,14 @@ namespace Fluxzy
             EnvironmentUtility.GetInt32("RAW_CAPTURE_LINGER_DELAY_BEFORE_TEARDOWN", 200);
 
         /// <summary>
+        ///     When true, raw capture also listens on the loopback interface so connections
+        ///     to local upstreams are recorded. Disabled by default.
+        ///     Can be set by environment variable FLUXZY_CAPTURE_LOOPBACK=1.
+        /// </summary>
+        public static bool CaptureLoopbackTraffic { get; set; } =
+            Environment.GetEnvironmentVariable("FLUXZY_CAPTURE_LOOPBACK") == "1";
+
+        /// <summary>
         ///     The cache validity duration in seconds for process tracking information.
         ///     Can be set by environment variable FLUXZY_PROCESS_TRACKER_CACHE_SECONDS.
         /// </summary>

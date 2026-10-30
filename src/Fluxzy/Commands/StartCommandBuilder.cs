@@ -75,6 +75,7 @@ namespace Fluxzy.Cli.Commands
             command.AddOption(StartCommandOptions.CreateBouncyCastleOption());
             command.AddOption(StartCommandOptions.CreateTcpDumpOption());
             command.AddOption(StartCommandOptions.CreateOutOfProcCaptureOption());
+            command.AddOption(StartCommandOptions.CreateCaptureLoopbackOption());
             command.AddOption(StartCommandOptions.CreateSkipCertInstallOption());
             command.AddOption(StartCommandOptions.CreateNoCertCacheOption());
             command.AddOption(StartCommandOptions.CreateCertificateFileOption());
@@ -124,6 +125,7 @@ namespace Fluxzy.Cli.Commands
             var ruleStdin = invocationContext.Value<bool>("rule-stdin");
             var parseUserAgent = invocationContext.Value<bool>("parse-ua");
             var outOfProcCapture = invocationContext.Value<bool>("external-capture");
+            var captureLoopback = invocationContext.Value<bool>("capture-loopback");
             var bouncyCastle = invocationContext.Value<bool>("bouncy-castle");
             var requestBuffer = invocationContext.Value<int?>("request-buffer");
             var maxConnectionPerHost = invocationContext.Value<int>("max-upstream-connection");
@@ -144,6 +146,9 @@ namespace Fluxzy.Cli.Commands
             var skipInternalRules = invocationContext.Value<bool>("skip-internal-rules");
 
             FluxzySharedSetting.Use528 = !use502;
+
+            if (captureLoopback)
+                FluxzySharedSetting.CaptureLoopbackTraffic = true;
 
             var invokeCancellationToken = invocationContext.GetCancellationToken();
 

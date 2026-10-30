@@ -19,7 +19,7 @@ namespace Fluxzy.Core.Pcap
         private bool _halted;
         private SyncWriterQueue? _packetQueue;
 
-        public DirectCaptureContext(IPAddress? localAddress = null)
+        public DirectCaptureContext(IPAddress? localAddress = null, bool? captureLoopback = null)
         {
             var localAddress1 = localAddress ?? IpUtility.GetDefaultRouteV4Address();
 
@@ -39,7 +39,9 @@ namespace Fluxzy.Core.Pcap
                                      d.Interface.GatewayAddresses.Any(g => !g.IsIPv6LinkLocal))
                                  .FirstOrDefault();
 
-            var loopbackDevice = devices.FirstOrDefault(l => l.IsLoopback());
+            var loopbackDevice = captureLoopback ?? FluxzySharedSetting.CaptureLoopbackTraffic
+                ? devices.FirstOrDefault(l => l.IsLoopback())
+                : null;
 
             if (physicalDevice == null && loopbackDevice == null)
                 throw new InvalidOperationException("No capture device available");
