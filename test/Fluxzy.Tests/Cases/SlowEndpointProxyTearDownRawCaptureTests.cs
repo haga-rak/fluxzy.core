@@ -48,6 +48,7 @@ namespace Fluxzy.Tests.Cases
 
             var setting = FluxzySetting.CreateLocalRandomPort();
             setting.SetOutDirectory(outDirectory);
+            setting.UseBouncyCastleSslEngine();
 
             setting.ConfigureRule().WhenAny()
                    .Do(new SkipRemoteCertificateValidationAction());
@@ -127,6 +128,10 @@ namespace Fluxzy.Tests.Cases
                 Assert.True(CountPacketBlocks(pcapBytes) > 0, "pcapng holds no packet block, only the section header");
             else
                 Assert.Equal(0, CountPacketBlocks(pcapBytes));
+
+            var keyBytes = await ReadAll(packedReader.GetRawCaptureKeyStream(exchange.ConnectionId));
+
+            Assert.True(keyBytes.Length > 0, "NSS key log is missing");
         }
 
         private static int CountPacketBlocks(byte[] bytes)
