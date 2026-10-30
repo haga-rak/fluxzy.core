@@ -95,6 +95,16 @@ namespace Fluxzy.Rules.Filters.ResponseFilters
         {
             return builder.When(new StatusCodeServerErrorFilter());
         }
+
+        /// <summary>
+        ///  When the remote never answered (no response header, no proxy error)
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigureActionBuilder WhenNoResponse(this IConfigureFilterBuilder builder)
+        {
+            return builder.When(new NoResponseFilter());
+        }
     }
 
 
