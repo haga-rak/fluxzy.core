@@ -77,7 +77,7 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         public void Write(Stream stream, ref PacketCapture capture)
         {
-            var interfaceKey = capture.Device.MacAddress.GetHashCode();
+            var interfaceKey = (capture.Device.Name ?? string.Empty).GetHashCode();
 
             if (!_interfaces.TryGetValue(interfaceKey, out var description)) {
                 _interfaces[interfaceKey] = description = new InterfaceDescription(

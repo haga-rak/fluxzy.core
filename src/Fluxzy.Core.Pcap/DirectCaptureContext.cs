@@ -3,6 +3,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using Fluxzy.Core.Pcap.Reading;
+using PacketDotNet;
 using SharpPcap;
 using SharpPcap.LibPcap;
 
@@ -10,10 +11,9 @@ namespace Fluxzy.Core.Pcap
 {
     public class DirectCaptureContext : ICaptureContext
     {
-        private readonly PcapDevice _captureDevice;
+        private readonly List<CaptureSource> _sources = new();
 
         private readonly ConcurrentDictionary<long, object?> _knownAuthorities = new();
-        private readonly long _physicalAddressLong;
         private bool _disposed;
 
         private bool _halted;
@@ -23,23 +23,49 @@ namespace Fluxzy.Core.Pcap
         {
             var localAddress1 = localAddress ?? IpUtility.GetDefaultRouteV4Address();
 
+            var devices = CaptureDeviceList.Instance.OfType<PcapDevice>().ToList();
+
             // TODO: use a better heuristic to select the capture device
             // TODO: demand the interface name as parameter
 
-            _captureDevice = CaptureDeviceList.Instance.OfType<PcapDevice>()
-                                              .Where(l => !l.IsLoopback())
-                                              .OrderByDescending(l => l.IsUp())
-                                              .ThenByDescending(l => l.IsRunning())
-                                              .ThenByDescending(l => l.IsConnected())
-                                              .ThenByDescending(d => d.Interface.Addresses.Any(
-                                                  a => Equals(a.Addr.ipAddress, localAddress1)))
-                                              .ThenByDescending(d =>
-                                                  d.Interface.GatewayAddresses.Any(g => !g.IsIPv6LinkLocal))
-                                              .First();
+            var physicalDevice = devices
+                                 .Where(l => !l.IsLoopback())
+                                 .OrderByDescending(l => l.IsUp())
+                                 .ThenByDescending(l => l.IsRunning())
+                                 .ThenByDescending(l => l.IsConnected())
+                                 .ThenByDescending(d => d.Interface.Addresses.Any(
+                                     a => Equals(a.Addr.ipAddress, localAddress1)))
+                                 .ThenByDescending(d =>
+                                     d.Interface.GatewayAddresses.Any(g => !g.IsIPv6LinkLocal))
+                                 .FirstOrDefault();
 
-            _physicalAddressLong = NetUtility.MacToLong(_captureDevice.MacAddress.GetAddressBytes());
+            var loopbackDevice = devices.FirstOrDefault(l => l.IsLoopback());
 
-            //Start();
+            if (physicalDevice == null && loopbackDevice == null)
+                throw new InvalidOperationException("No capture device available");
+
+            if (physicalDevice != null)
+                _sources.Add(new CaptureSource(physicalDevice, ReadMac(physicalDevice), this));
+
+            if (loopbackDevice != null)
+                _sources.Add(new CaptureSource(loopbackDevice, null, this));
+        }
+
+        private static long? ReadMac(PcapDevice device)
+        {
+            try {
+                var bytes = device.MacAddress?.GetAddressBytes();
+
+                if (bytes == null || bytes.Length != 6)
+                    return null;
+
+                var mac = NetUtility.MacToLong(bytes);
+
+                return mac == 0 ? null : mac;
+            }
+            catch {
+                return null;
+            }
         }
 
         public void Include(IPAddress remoteAddress, int remotePort)
@@ -126,10 +152,21 @@ namespace Fluxzy.Core.Pcap
                 if (_disposed)
                     return Task.CompletedTask;
 
-                _captureDevice.OnPacketArrival += OnCaptureDeviceOnPacketArrival;
-                _captureDevice.Open(DeviceModes.MaxResponsiveness);
-                _captureDevice.Filter = "tcp"; // TODO H3 : add udp
-                _captureDevice.StartCapture();
+                Exception? lastError = null;
+
+                foreach (var source in _sources.ToList()) {
+                    try {
+                        source.Start();
+                    }
+                    catch (Exception ex) {
+                        lastError = ex;
+                        _sources.Remove(source);
+                        source.Dispose();
+                    }
+                }
+
+                if (_sources.Count == 0 && lastError != null)
+                    throw lastError;
             }
 
             return Task.CompletedTask;
@@ -145,7 +182,10 @@ namespace Fluxzy.Core.Pcap
 
                 Stop();
 
-                _captureDevice.Dispose();
+                foreach (var source in _sources) {
+                    source.Dispose();
+                }
+
                 _packetQueue?.Dispose();
             }
 
@@ -159,54 +199,103 @@ namespace Fluxzy.Core.Pcap
 
             _halted = true;
 
-            _captureDevice.StopCapture();
-            _captureDevice.OnPacketArrival -= OnCaptureDeviceOnPacketArrival;
+            foreach (var source in _sources) {
+                source.Stop();
+            }
         }
 
-        private void OnCaptureDeviceOnPacketArrival(object sender, PacketCapture capture)
+        private void OnPacketArrival(CaptureSource source, ref PacketCapture capture)
         {
             if (_packetQueue == null)
                 return;
 
-            var ethernetPacketInfo = new EthernetPacketInfo();
+            var data = capture.Data;
+            bool? sentPacket = null;
 
-            var indexedPackedData = capture.Data;
+            switch (capture.Device.LinkType) {
+                case LinkLayers.Ethernet: {
+                    var ethernetPacketInfo = new EthernetPacketInfo();
 
-            if (!RawPacketParser.TryParseEthernet(ref ethernetPacketInfo, indexedPackedData,
-                    out var ethernetHeaderLength))
-                return; // Invalid Ethernet packet
+                    if (!RawPacketParser.TryParseEthernet(ref ethernetPacketInfo, data,
+                            out var ethernetHeaderLength))
+                        return; // Invalid Ethernet packet
 
-            if (ethernetPacketInfo.DestinationMac != _physicalAddressLong &&
-                ethernetPacketInfo.SourceMac != _physicalAddressLong)
-                return; // Unknown mac address or not Ethernet II, we don't handle this now
+                    if (!ethernetPacketInfo.IsIPv4 && !ethernetPacketInfo.IsIPv6)
+                        return; // We consider only IP packet 
 
-            if (!ethernetPacketInfo.IsIPv4 && !ethernetPacketInfo.IsIPv6)
-                return; // We consider only IP packet 
+                    if (source.Mac is { } mac) {
+                        if (ethernetPacketInfo.DestinationMac != mac &&
+                            ethernetPacketInfo.SourceMac != mac)
+                            return; // Unknown mac address or not Ethernet II, we don't handle this now
 
-            indexedPackedData = indexedPackedData.Slice(ethernetHeaderLength);
+                        sentPacket = ethernetPacketInfo.SourceMac == mac;
+                    }
+
+                    data = data.Slice(ethernetHeaderLength);
+
+                    break;
+                }
+
+                case LinkLayers.Null:
+                case LinkLayers.Loop: {
+                    if (data.Length < 4)
+                        return;
+
+                    data = data.Slice(4);
+
+                    break;
+                }
+
+                case LinkLayers.Raw:
+                case LinkLayers.RawLegacy:
+                    break;
+
+                default:
+                    return;
+            }
 
             var ipPacketInfo = new IpPacketInfo();
 
-            if (!RawPacketParser.TryParseIp(ref ipPacketInfo, indexedPackedData))
+            if (!RawPacketParser.TryParseIp(ref ipPacketInfo, data))
                 return; // Invalid IP packet here 
 
             if (!ipPacketInfo.IsTcp)
                 return; // TCP packet only, update need here for H3
 
-            indexedPackedData = indexedPackedData.Slice(ipPacketInfo.HeaderLength);
+            data = data.Slice(ipPacketInfo.HeaderLength);
 
             var tcpPacketInfo = new TcpPacketInfo();
 
-            if (!RawPacketParser.TryParseTcp(ref tcpPacketInfo, indexedPackedData))
+            if (!RawPacketParser.TryParseTcp(ref tcpPacketInfo, data))
                 return; // Not a valid TCP packet
 
-            // This should be true 
+            IPAddress remoteAddress;
+            int remotePort;
+            int localPort;
 
-            var sentPacket = ethernetPacketInfo.SourceMac == _physicalAddressLong;
+            if (sentPacket == null) {
+                // No link layer hint (loopback or raw IP): the direction is
+                // inferred from which end is a registered authority
 
-            var remoteAddress = sentPacket ? ipPacketInfo.DestinationIp : ipPacketInfo.SourceIp;
-            var remotePort = sentPacket ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
-            var localPort = !sentPacket ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
+                var destinationKey =
+                    PacketKeyBuilder.GetAuthorityKey(ipPacketInfo.DestinationIp, tcpPacketInfo.DestinationPort);
+
+                if (_knownAuthorities.ContainsKey(destinationKey))
+                    sentPacket = true;
+                else {
+                    var sourceKey =
+                        PacketKeyBuilder.GetAuthorityKey(ipPacketInfo.SourceIp, tcpPacketInfo.SourcePort);
+
+                    if (!_knownAuthorities.ContainsKey(sourceKey))
+                        return; // No one registered for this 
+
+                    sentPacket = false;
+                }
+            }
+
+            remoteAddress = sentPacket.Value ? ipPacketInfo.DestinationIp : ipPacketInfo.SourceIp;
+            remotePort = sentPacket.Value ? tcpPacketInfo.DestinationPort : tcpPacketInfo.SourcePort;
+            localPort = sentPacket.Value ? tcpPacketInfo.SourcePort : tcpPacketInfo.DestinationPort;
 
             var authorityKey = PacketKeyBuilder.GetAuthorityKey(remoteAddress, remotePort);
 
@@ -225,6 +314,56 @@ namespace Fluxzy.Core.Pcap
             }
             catch {
                 // We ignore any write error here to not break the capture thread
+            }
+        }
+
+        private sealed class CaptureSource : IDisposable
+        {
+            private readonly DirectCaptureContext _context;
+            private readonly PacketArrivalEventHandler _handler;
+            private bool _started;
+
+            public CaptureSource(PcapDevice device, long? mac, DirectCaptureContext context)
+            {
+                Device = device;
+                Mac = mac;
+                _context = context;
+                _handler = OnPacketArrival;
+            }
+
+            public PcapDevice Device { get; }
+
+            public long? Mac { get; }
+
+            public void Start()
+            {
+                Device.OnPacketArrival += _handler;
+                Device.Open(DeviceModes.MaxResponsiveness);
+                Device.Filter = "tcp"; // TODO H3 : add udp
+                Device.StartCapture();
+                _started = true;
+            }
+
+            public void Stop()
+            {
+                if (!_started)
+                    return;
+
+                _started = false;
+
+                Device.StopCapture();
+                Device.OnPacketArrival -= _handler;
+            }
+
+            public void Dispose()
+            {
+                Stop();
+                Device.Dispose();
+            }
+
+            private void OnPacketArrival(object sender, PacketCapture capture)
+            {
+                _context.OnPacketArrival(this, ref capture);
             }
         }
     }
