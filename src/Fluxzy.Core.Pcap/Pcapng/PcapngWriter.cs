@@ -33,6 +33,8 @@ namespace Fluxzy.Core.Pcap.Pcapng
 
         public bool Faulted { get; private set; }
 
+        public bool Registered => _waitBuffer == null;
+
         public void Flush()
         {
             lock (_pcapngStreamWriter)

@@ -57,8 +57,9 @@ namespace Fluxzy.Core.Pcap
             var connectionKey = PacketKeyBuilder.GetConnectionKey(localPort, remotePort, remoteAddress);
 
             // The OS can reuse an ephemeral local port while the previous writer is still in
-            // its linger window, which would collide on connectionKey. Always rotate so a
-            // fresh writer serves the new connection; the stale writer is disposed here.
+            // its linger window, which would collide on connectionKey. Rotate replaces such a
+            // registered stale writer but keeps an unregistered one so the packets captured
+            // before Subscribe (SYN, SYN-ACK, ACK) are preserved.
             var writer = _packetQueue.Rotate(connectionKey);
 
             writer.Register(outFileName);

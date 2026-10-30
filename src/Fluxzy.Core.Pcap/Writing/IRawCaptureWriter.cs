@@ -13,6 +13,8 @@ namespace Fluxzy.Core.Pcap.Writing
 
         bool Faulted { get; }
 
+        bool Registered { get; }
+
         void Flush();
 
         void Register(string outFileName);
