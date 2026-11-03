@@ -110,5 +110,50 @@ namespace Fluxzy.Tests.UnitTests.Core
                 Directory.Delete(outDirectory, true);
             }
         }
+        [Fact]
+        public async Task Put_Relaunched_After_Body_Was_Sent_On_Dead_Connection_Replays_Body()
+        {
+            var expectedBody = new string('x', 64 * 1024);
+            var putCount = 0;
+
+            await using var origin = await InProcessHost.Create(app => {
+                app.MapGet("/warm", () => Results.Text("ok"));
+
+                app.MapPut("/put", async (HttpContext context) => {
+                    var attempt = Interlocked.Increment(ref putCount);
+                    using var reader = new StreamReader(context.Request.Body, Encoding.UTF8);
+                    var body = await reader.ReadToEndAsync();
+
+                    if (attempt == 1) {
+                        context.Features.Get<IConnectionLifetimeFeature>()!.Abort();
+                        return Results.Empty;
+                    }
+
+                    return Results.Text(body);
+                });
+            }, suppressLogging: true, protocols: HttpProtocols.Http1);
+
+            var setting = FluxzySetting.CreateLocalRandomPort();
+            setting.ConfigureRule().WhenAny()
+                   .Do(new SkipRemoteCertificateValidationAction());
+
+            await using var proxy = new Proxy(setting);
+            using var client = HttpClientUtility.CreateHttpClient(proxy.Run(), setting,
+                handler => handler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator);
+            client.DefaultRequestVersion = HttpVersion.Version11;
+            client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+
+            using var warm = await client.GetAsync($"https://localhost:{origin.Port}/warm");
+            Assert.Equal(HttpStatusCode.OK, warm.StatusCode);
+
+            using var content = new StringContent(expectedBody, Encoding.UTF8, "text/plain");
+            using var response = await client.PutAsync($"https://localhost:{origin.Port}/put", content);
+            var actualBody = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedBody, actualBody);
+            Assert.Equal(2, putCount);
+        }
     }
 }

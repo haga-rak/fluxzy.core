@@ -228,6 +228,20 @@ namespace Fluxzy.Core
         /// </summary>
         public bool RecycledConnection { get; set; }
 
+        internal bool RequestBodyConsumptionStarted { get; set; }
+
+        internal RequestBodyReplay? RequestBodyReplay { get; set; }
+
+        internal bool CanRelaunch =>
+            !RequestBodyConsumptionStarted || (RequestBodyReplay?.Replayable ?? false);
+
+        internal void ReleaseRequestBodyReplay()
+        {
+            var replay = RequestBodyReplay;
+            RequestBodyReplay = null;
+            replay?.Dispose();
+        }
+
         public int StreamIdentifier { get; set; }
 
         /// <summary>

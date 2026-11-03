@@ -245,6 +245,7 @@ namespace Fluxzy.Clients.H11
                     _proxyRuntimeSetting.ExpectContinueTimeout,
                     _proxyRuntimeSetting.ResponseHeaderTimeout,
                     _proxyRuntimeSetting.ResponseBodyIdleTimeout,
+                    _proxyRuntimeSetting.RequestBodyReplayLimit,
                     _proxyRuntimeSetting.GetLogger<Http11PoolProcessing>());
 
                 // Covers the whole exchange (request write, header read, body streaming):
@@ -407,7 +408,7 @@ namespace Fluxzy.Clients.H11
         internal Connection? DequeueReusableConnection(DateTime instantNow)
         {
             while (_pendingConnections.Reader.TryRead(out var state)) {
-                if (HasConnectionExpired(instantNow, state)) {
+                if (HasConnectionExpired(instantNow, state) || !state.Connection.IsTransportReusable()) {
                     FreeConnectionStreams(state.Connection);
 
                     continue;

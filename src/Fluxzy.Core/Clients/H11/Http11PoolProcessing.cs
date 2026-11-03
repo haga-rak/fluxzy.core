@@ -24,17 +24,19 @@ namespace Fluxzy.Clients.H11
         private readonly TimeSpan _expectContinueTimeout;
         private readonly TimeSpan _responseHeaderTimeout;
         private readonly TimeSpan _responseBodyIdleTimeout;
+        private readonly int _requestBodyReplayLimit;
         private readonly ILogger _logger;
         private readonly ArrayPool<byte> _chunkBufferPool;
 
         public Http11PoolProcessing(
             TimeSpan expectContinueTimeout, TimeSpan responseHeaderTimeout,
-            TimeSpan responseBodyIdleTimeout, ILogger? logger = null,
+            TimeSpan responseBodyIdleTimeout, int requestBodyReplayLimit = 256 * 1024, ILogger? logger = null,
             ArrayPool<byte>? chunkBufferPool = null)
         {
             _expectContinueTimeout = expectContinueTimeout;
             _responseHeaderTimeout = responseHeaderTimeout;
             _responseBodyIdleTimeout = responseBodyIdleTimeout;
+            _requestBodyReplayLimit = requestBodyReplayLimit;
             _logger = logger ?? NullLogger.Instance;
             _chunkBufferPool = chunkBufferPool ?? ArrayPool<byte>.Shared;
         }
@@ -129,9 +131,8 @@ namespace Fluxzy.Clients.H11
 
                 writeStream = chunkedStream ?? writeStream;
 
-                var totalBodySize = await
-                    exchange.Request.Body.CopyDetailed(writeStream, 1024 * 16,
-                        _ => { }, cancellationToken).ConfigureAwait(false);
+                var totalBodySize = await SendRequestBody(exchange, writeStream, cancellationToken)
+                    .ConfigureAwait(false);
 
                 exchange.Metrics.TotalSent += totalBodySize;
 
@@ -282,6 +283,8 @@ namespace Fluxzy.Clients.H11
                     networkErrorCode: NetworkErrorCodes.ConnectionClosed);
             }
 
+            exchange.ReleaseRequestBodyReplay();
+
             Memory<char> headerContent = exchangeScope.RegisterForReturn(headerBlockDetectResult.HeaderLength);
 
             Encoding.ASCII
@@ -380,6 +383,54 @@ namespace Fluxzy.Clients.H11
                 );
 
             return shouldCloseConnection;
+        }
+
+        private async ValueTask<long> SendRequestBody(Exchange exchange, Stream writeStream, CancellationToken cancellationToken)
+        {
+            var body = exchange.Request.Body!;
+
+            if (body.CanSeek) {
+                if (body.Length == 0)
+                    return 0;
+
+                body.Position = 0;
+
+                return await body.CopyDetailed(writeStream, 1024 * 16, _ => { }, cancellationToken)
+                                 .ConfigureAwait(false);
+            }
+
+            long total = 0;
+            var replay = exchange.RequestBodyReplay;
+
+            if (replay != null && replay.Length > 0) {
+                await writeStream.WriteAsync(replay.Retained, cancellationToken).ConfigureAwait(false);
+                await writeStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                total += replay.Length;
+            }
+
+            var retain = exchange.RecycledConnection
+                ? replay ??= exchange.RequestBodyReplay = new RequestBodyReplay(_requestBodyReplayLimit)
+                : null;
+
+            exchange.RequestBodyConsumptionStarted = true;
+
+            var buffer = ArrayPool<byte>.Shared.Rent(1024 * 16);
+
+            try {
+                int read;
+
+                while ((read = await body.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0) {
+                    retain?.Append(buffer.AsSpan(0, read));
+                    await writeStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+                    await writeStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                    total += read;
+                }
+            }
+            finally {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+
+            return total;
         }
 
         /// <summary>

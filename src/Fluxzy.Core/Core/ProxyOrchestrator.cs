@@ -570,6 +570,16 @@ namespace Fluxzy.Core
                                 // This connection was "goawayed" while current exchange 
                                 // tries to use it. 
 
+                                if (!exchange.CanRelaunch)
+                                {
+                                    throw new ClientErrorException(0,
+                                        "The connection was closed after the request body was partially sent " +
+                                        "and the body is too large to be replayed on a new connection",
+                                        innerMessageException: ex.Message,
+                                        innerException: ex,
+                                        networkErrorCode: NetworkErrorCodes.ConnectionClosed);
+                                }
+
                                 // let a chance for the _poolbuilder to release it
 
                                 await Task.Yield();
@@ -579,27 +589,28 @@ namespace Fluxzy.Core
 
                             throw;
                         }
-                        finally
-                        {
-                            // We close the request body dispatchstream.
-                            // DispatchStream leaves its base stream open. Without a
-                            // wrapper the body is the raw downstream stream and a full
-                            // duplex exchange may still be streaming it upstream, so
-                            // it is closed later with the response.
-                            if (requestBodyWrapped)
-                            {
-                                await SafeCloseRequestBody(exchange, originalRequestBodyStream)
-                                    .ConfigureAwait(false);
-                            }
-                        }
 
                         break;
+                    }
+
+                    exchange.ReleaseRequestBodyReplay();
+
+                    // We close the request body dispatchstream.
+                    // DispatchStream leaves its base stream open. Without a
+                    // wrapper the body is the raw downstream stream and a full
+                    // duplex exchange may still be streaming it upstream, so
+                    // it is closed later with the response.
+                    if (requestBodyWrapped)
+                    {
+                        await SafeCloseRequestBody(exchange, originalRequestBodyStream)
+                            .ConfigureAwait(false);
                     }
                 }
                 catch (Exception exception)
                 {
                     // The caller cancelled the task 
 
+                    exchange.ReleaseRequestBodyReplay();
                     await SafeCloseRequestBody(exchange, originalRequestBodyStream).ConfigureAwait(false);
                     await SafeCloseResponseBody(exchange, originalResponseBodyStream).ConfigureAwait(false);
 
