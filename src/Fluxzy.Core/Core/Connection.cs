@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading;
+using Fluxzy.Misc.Streams;
 using Fluxzy.Clients;
 
 namespace Fluxzy.Core
@@ -77,6 +78,11 @@ namespace Fluxzy.Core
         public void AddNewRequestProcessed()
         {
             Interlocked.Increment(ref _requestProcessed);
+        }
+
+        internal bool IsTransportReusable()
+        {
+            return UnderlyingTransport is not DisposeEventNotifierStream notifier || !notifier.IsReadableWhileIdle();
         }
 
         internal void AbortTransport()

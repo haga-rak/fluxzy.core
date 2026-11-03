@@ -37,7 +37,8 @@ public class InProcessHost : IAsyncDisposable
     public static async Task<InProcessHost> Create(
         Action<WebApplication>? configureRoutes = null,
         bool suppressLogging = false,
-        HttpProtocols protocols = HttpProtocols.Http1AndHttp2)
+        HttpProtocols protocols = HttpProtocols.Http1AndHttp2,
+        Action<KestrelServerOptions>? configureKestrel = null)
     {
         var certificate = CreateSelfSignedCertificate();
 
@@ -50,6 +51,8 @@ public class InProcessHost : IAsyncDisposable
 
         builder.WebHost.ConfigureKestrel(k =>
         {
+            configureKestrel?.Invoke(k);
+
             k.Listen(IPAddress.Loopback, 0, listenOptions =>
             {
                 listenOptions.Protocols = protocols;

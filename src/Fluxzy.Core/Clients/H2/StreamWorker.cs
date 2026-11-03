@@ -307,6 +307,9 @@ namespace Fluxzy.Clients.H2
 
             if (requestBodyStream != null
                 && (!requestBodyStream.CanSeek || requestBodyStream.Length > 0)) {
+                if (!requestBodyStream.CanSeek)
+                    exchange.RequestBodyConsumptionStarted = true;
+
                 while (true) {
                     var bookedSize = Math.Min(
                         Parent.Context.Setting.Remote.MaxFrameSize,
