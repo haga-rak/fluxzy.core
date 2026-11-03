@@ -408,6 +408,9 @@ namespace Fluxzy.Clients.H11
                 total += replay.Length;
             }
 
+            if (replay?.SourceExhausted == true)
+                return total;
+
             var retain = exchange.RecycledConnection
                 ? replay ??= exchange.RequestBodyReplay = new RequestBodyReplay(_requestBodyReplayLimit)
                 : null;
@@ -425,6 +428,9 @@ namespace Fluxzy.Clients.H11
                     await writeStream.FlushAsync(cancellationToken).ConfigureAwait(false);
                     total += read;
                 }
+
+                if (replay != null)
+                    replay.SourceExhausted = true;
             }
             finally {
                 ArrayPool<byte>.Shared.Return(buffer);

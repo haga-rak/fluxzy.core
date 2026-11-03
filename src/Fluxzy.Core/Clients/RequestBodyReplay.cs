@@ -19,6 +19,8 @@ namespace Fluxzy.Clients
 
         public bool Replayable => _buffer != null;
 
+        public bool SourceExhausted { get; set; }
+
         public int Length => _length;
 
         public ReadOnlyMemory<byte> Retained => _buffer == null ? default : new ReadOnlyMemory<byte>(_buffer, 0, _length);
