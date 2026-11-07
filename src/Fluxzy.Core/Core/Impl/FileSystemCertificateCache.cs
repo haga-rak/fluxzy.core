@@ -20,6 +20,14 @@ namespace Fluxzy.Core
         /// </summary>
         private const int ExpirationHeaderSize = sizeof(long);
 
+        /// <summary>
+        ///     Entries written before the leaf validity span was anchored on NotBefore may exceed
+        ///     the CA/B Forum cap for their whole lifetime, so they are never served again.
+        /// </summary>
+        private const string LegacyFileSuffix = ".validitychecked.pfx";
+
+        private const string FileSuffix = ".shortlived.pfx";
+
         private readonly string _baseDirectory;
         private readonly FluxzySetting _startupSetting;
 
@@ -65,6 +73,11 @@ namespace Fluxzy.Core
                 File.Delete(fullFileName);
             }
 
+            var legacyFileName = Path.Combine(Path.GetDirectoryName(fullFileName)!, rootDomain + LegacyFileSuffix);
+
+            if (File.Exists(legacyFileName))
+                File.Delete(legacyFileName);
+
             // Generate new certificate
             var certContent = certificateBuilder(rootDomain);
             var notAfterDate = GetCertificateNotAfter(certContent);
@@ -106,7 +119,7 @@ namespace Fluxzy.Core
         private static DateTime GetCertificateNotAfter(byte[] certificateBytes)
         {
             using var cert = new X509Certificate2(certificateBytes);
-            return cert.NotAfter;
+            return cert.NotAfter.ToUniversalTime();
         }
 
         private bool TryGetCertificateFileName(string baseSerialNumber, string rootDomain, out string fullFileName)
@@ -125,7 +138,7 @@ namespace Fluxzy.Core
                 return false;
 
             var candidate = Path.GetFullPath(
-                Path.Combine(serialDirectory, $"{rootDomain}.validitychecked.pfx"));
+                Path.Combine(serialDirectory, rootDomain + FileSuffix));
 
             // Reject traversal that escapes the per-serial cache directory.
             if (Path.GetDirectoryName(candidate) != serialDirectory)
@@ -174,7 +187,7 @@ namespace Fluxzy.Core
         private static DateTime GetCertificateNotAfter(byte[] certificateBytes)
         {
             using var cert = new X509Certificate2(certificateBytes);
-            return cert.NotAfter;
+            return cert.NotAfter.ToUniversalTime();
         }
 
         private readonly record struct CertificateCacheEntry(byte[] Bytes, DateTime NotAfter);
