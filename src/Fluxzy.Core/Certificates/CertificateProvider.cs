@@ -29,9 +29,10 @@ namespace Fluxzy.Certificates
         private readonly ConcurrentDictionary<string, X509Certificate2> _solveCertificateRepository = new();
 
         // CA/Browser Forum ballot SC-081v3 caps TLS certificate validity at 200 days
-        // since 2026-03-15. Browsers reject longer-lived certificates, so generated
-        // leaf certificates must stay within this limit.
-        private const int MaxLeafValidityDays = 200;
+        // since 2026-03-15, 100 days from 2027-03-15 and 47 days from 2029-03-15.
+        // Chromium enforces the cap on the exact span between NotBefore and NotAfter,
+        // so leaves stay under the final tier regardless of the current date.
+        private const int MaxLeafValidityDays = 45;
 
         private readonly Dictionary<string, string> _rootDomainCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -134,7 +135,28 @@ namespace Fluxzy.Certificates
         private static bool IsCertificateExpired(X509Certificate2 certificate)
         {
             // Use a 1-minute buffer before actual expiration to avoid edge cases
-            return certificate.NotAfter <= DateTime.UtcNow.AddMinutes(1);
+            return certificate.NotAfter.ToUniversalTime() <= DateTime.UtcNow.AddMinutes(1);
+        }
+
+        // Start the leaf no earlier than the root CA, but never in the future: a freshly
+        // created root has a NotBefore set to "now", so adding any positive offset would
+        // make the leaf not-yet-valid until the wall clock catches up.
+        // NotAfter is derived from NotBefore so the exact span never exceeds the cap.
+        private static (DateTimeOffset NotBefore, DateTimeOffset NotAfter) GetLeafValidityPeriod(
+            X509Certificate2 rootCertificate)
+        {
+            var notBefore = rootCertificate.NotBefore;
+            var today = DateTime.Today;
+            notBefore = today < notBefore ? notBefore : today;
+
+            var notAfter = notBefore.AddDays(MaxLeafValidityDays);
+            var rootEnd = rootCertificate.NotAfter.AddSeconds(-1);
+
+            if (notAfter > rootEnd) {
+                notAfter = rootEnd;
+            }
+
+            return (new DateTimeOffset(notBefore), new DateTimeOffset(notAfter));
         }
 
         public void Dispose()
@@ -228,12 +250,7 @@ namespace Fluxzy.Certificates
 
             // Sign the certificate according to parent 
 
-            var offSetEnd = new DateTimeOffset(rootCertificate.NotAfter.AddSeconds(-1));
-            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddDays(MaxLeafValidityDays));
-
-            if (offSetEnd > offsetLimit) {
-                offSetEnd = offsetLimit;
-            }
+            var (notBefore, notAfter) = GetLeafValidityPeriod(rootCertificate);
 
 #if NET5_0_OR_GREATER
 
@@ -244,17 +261,7 @@ namespace Fluxzy.Certificates
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
 
-            // Start the leaf no earlier than the root CA, but never in the future: a freshly
-            // created root has a NotBefore set to "now", so adding any positive offset would
-            // make the leaf not-yet-valid until the wall clock catches up.
-            var notBefore = rootCertificate.NotBefore;
-            var now = DateTime.Today;
-            notBefore = now < notBefore ? notBefore : now;
-
-            using var cert = certificateRequest.Create(rootCertificate,
-                new DateTimeOffset(notBefore),
-                offSetEnd,
-                buffer);
+            using var cert = certificateRequest.Create(rootCertificate, notBefore, notAfter, buffer);
 
             using var privateKeyCertificate = cert.CopyWithPrivateKey(privateKey);
 
@@ -298,12 +305,7 @@ namespace Fluxzy.Certificates
 
             // Sign the certificate according to parent 
 
-            var offSetEnd = new DateTimeOffset(rootCertificate.NotAfter.AddSeconds(-1));
-            var offsetLimit = new DateTimeOffset(DateTime.UtcNow.AddDays(MaxLeafValidityDays));
-
-            if (offSetEnd > offsetLimit) {
-                offSetEnd = offsetLimit;
-            }
+            var (notBefore, notAfter) = GetLeafValidityPeriod(rootCertificate);
 
 #if NET5_0_OR_GREATER
 
@@ -314,17 +316,7 @@ namespace Fluxzy.Certificates
 
             randomGenerator.NextBytes(buffer); // TODO check for collision here 
 
-            // Start the leaf no earlier than the root CA, but never in the future: a freshly
-            // created root has a NotBefore set to "now", so adding any positive offset would
-            // make the leaf not-yet-valid until the wall clock catches up.
-            var notBefore = rootCertificate.NotBefore;
-            var now = DateTime.Today;
-            notBefore = now < notBefore ? notBefore : now;
-
-            using var cert = certificateRequest.Create(rootCertificate,
-                new DateTimeOffset(notBefore),
-                offSetEnd,
-                buffer);
+            using var cert = certificateRequest.Create(rootCertificate, notBefore, notAfter, buffer);
 
             using var privateKeyCertificate = cert.CopyWithPrivateKey(privateKey);
 
