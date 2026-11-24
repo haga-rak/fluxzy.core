@@ -779,7 +779,7 @@ namespace Fluxzy.Tests.UnitTests.Archiving
 
             using var packedReader = new FluxzyArchiveReader(fxzyPath);
 
-            Assert.Equal(keptExchangeIds, packedReader.ReadAllExchanges().Select(e => e.Id));
+            Assert.Equal(keptExchangeIds.ToArray(), packedReader.ReadAllExchanges().Select(e => e.Id).ToArray());
             Assert.Equal(MutesValue, packedReader.ReadMetaInformation().Properties[MutesKey]);
             Assert.Equal(originalMeta.CaptureDate, packedReader.ReadMetaInformation().CaptureDate);
         }
