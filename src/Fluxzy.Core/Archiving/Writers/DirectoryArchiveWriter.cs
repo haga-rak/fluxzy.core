@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -29,7 +30,9 @@ namespace Fluxzy.Writers
     /// </summary>
     public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {
-        private const int MetaReplaceAttempts = 5;
+        // How long replacing meta.json is tried again on Windows, where it fails while another
+        // handle is open on the file (a reader, an antivirus). Such a handle lasts the time of a read.
+        private static readonly TimeSpan MetaReplaceTimeout = TimeSpan.FromSeconds(2);
 
         // One lock per meta.json for the whole process, shared by every writer of the same directory.
         // The comparer ignores case so that two spellings of the same path on a case-insensitive
@@ -230,16 +233,22 @@ namespace Fluxzy.Writers
                 meta.WriteTo(jsonWriter, options);
             }
 
-            for (var attempt = 1;; attempt++) {
+            Stopwatch? watch = null;
+            var spinWait = new SpinWait();
+
+            while (true) {
                 try {
                     File.Move(temporaryPath, _archiveMetaInformationPath, true);
 
                     return;
                 }
-                catch (Exception ex) when (attempt < MetaReplaceAttempts
-                                           && (ex is IOException || ex is UnauthorizedAccessException)) {
-                    // On Windows, the file cannot be replaced while a reader holds it open.
-                    Thread.Sleep(15 * attempt);
+                catch (Exception ex) when (OperatingSystem.IsWindows()
+                                           && (ex is IOException || ex is UnauthorizedAccessException)
+                                           && (watch ??= Stopwatch.StartNew()).Elapsed < MetaReplaceTimeout) {
+                    // Tried again at once, then with pauses that grow up to a millisecond. Waiting
+                    // for a fixed time instead would keep failing against a reader that polls the
+                    // file, as both would wake up on the same system timer tick.
+                    spinWait.SpinOnce();
                 }
             }
         }
