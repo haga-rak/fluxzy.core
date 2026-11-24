@@ -50,6 +50,26 @@ namespace Fluxzy.Writers
         public abstract void UpdateTags(IEnumerable<Tag> tags);
 
         /// <summary>
+        /// Sets or removes a custom property of the archive meta information
+        /// (<see cref="ArchiveMetaInformation.Properties"/>). The property is stored with the archive:
+        /// it is kept when the archive is packed and is available through
+        /// <see cref="Fluxzy.Readers.IArchiveReader.ReadMetaInformation"/>.
+        /// Keys and values are opaque to fluxzy. Keys starting with <c>fluxzy.</c> are reserved
+        /// for fluxzy products.
+        /// </summary>
+        /// <param name="key">The property key, case sensitive.</param>
+        /// <param name="value">The property value, or null to remove the property.</param>
+        /// <returns>
+        /// True when the stored meta information changed. False when the property already had this
+        /// value, when there was no property to remove, or when this writer does not store
+        /// meta information.
+        /// </returns>
+        public virtual bool UpdateProperty(string key, string? value)
+        {
+            return false;
+        }
+
+        /// <summary>
         ///  Check whether calling Update(ExchangeInfo, CancellationToken) is necessary
         /// </summary>
         /// <param name="exchange"></param>
