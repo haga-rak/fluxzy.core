@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -94,6 +95,13 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             using var reader = new FluxzyArchiveReader(fxzyPath);
 
             return reader.ReadMetaInformation();
+        }
+
+        private static ExchangeInfo ReadSampleExchange()
+        {
+            using var source = new FluxzyArchiveReader("_Files/Archives/with-request-payload.fxzy");
+
+            return source.ReadAllExchanges().First();
         }
 
         private void EditRawMeta(Action<JsonObject> edit)
@@ -441,12 +449,7 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             firstWriter.UpdateProperty(MutesKey, MutesValue);
             firstWriter.Dispose();
 
-            ExchangeInfo exchange;
-
-            using (var source = new FluxzyArchiveReader("_Files/Archives/with-request-payload.fxzy")) {
-                exchange = source.ReadAllExchanges().First();
-            }
-
+            var exchange = ReadSampleExchange();
             var pastedTag = new Tag(Guid.NewGuid(), "pasted");
 
             exchange.Tags.Add(pastedTag);
@@ -573,6 +576,262 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             var files = Directory.GetFiles(_baseDirectory).Select(Path.GetFileName);
 
             Assert.Equal(new[] { "meta.json" }, files);
+        }
+
+        /// <summary>
+        ///     Each exchange update goes through the tags of the exchange: it must not cost a
+        ///     read or a write of meta.json once the writer stored them.
+        /// </summary>
+        [Fact]
+        public void Exchange_With_A_Stored_Tag_Does_Not_Access_Meta()
+        {
+            var writer = CreateInitializedWriter();
+            var exchange = ReadSampleExchange();
+
+            exchange.Tags.Add(new Tag(Guid.NewGuid(), "tag"));
+
+            writer.Update(exchange, CancellationToken.None);
+
+            Assert.Single(ReadDirectoryMeta().Tags);
+
+            // Without the file, any access of the writer to meta.json would create it again
+            File.Delete(MetaPath);
+
+            for (var i = 0; i < 5; i++) {
+                writer.Update(exchange, CancellationToken.None);
+            }
+
+            writer.UpdateTags(exchange.Tags);
+            writer.Dispose();
+
+            Assert.False(File.Exists(MetaPath));
+        }
+
+        /// <summary>
+        ///     A change that could not be written must leave the previous file as it was, and must
+        ///     not be considered as stored: the same change succeeds once writing is possible again.
+        /// </summary>
+        [Fact]
+        public void Failed_Write_Leaves_Meta_Untouched_And_Can_Be_Done_Again()
+        {
+            var tag = new Tag(Guid.NewGuid(), "tag");
+            var writer = CreateInitializedWriter();
+
+            writer.UpdateProperty("before", "value");
+
+            var before = File.ReadAllText(MetaPath);
+
+            // A directory in place of the temporary file of the writer makes every write fail
+            var temporaryPath = MetaPath + ".tmp";
+
+            Directory.CreateDirectory(temporaryPath);
+
+            var propertyFailure = Record.Exception(() => writer.UpdateProperty(MutesKey, MutesValue));
+            var tagFailure = Record.Exception(() => writer.UpdateTags(new[] { tag }));
+
+            Assert.True(propertyFailure is IOException || propertyFailure is UnauthorizedAccessException);
+            Assert.True(tagFailure is IOException || tagFailure is UnauthorizedAccessException);
+            Assert.Equal(before, File.ReadAllText(MetaPath));
+
+            Directory.Delete(temporaryPath);
+
+            writer.UpdateTags(new[] { tag });
+
+            Assert.True(writer.UpdateProperty(MutesKey, MutesValue));
+
+            writer.Dispose();
+
+            var meta = ReadDirectoryMeta();
+
+            Assert.Equal(tag, Assert.Single(meta.Tags));
+            Assert.Equal("value", meta.Properties["before"]);
+            Assert.Equal(MutesValue, meta.Properties[MutesKey]);
+        }
+
+        /// <summary>
+        ///     A process that stopped while writing leaves the temporary file behind.
+        /// </summary>
+        [Fact]
+        public async Task Leftover_Temporary_File_Is_Harmless_And_Never_Packed()
+        {
+            var temporaryPath = MetaPath + ".tmp";
+            var writer = CreateInitializedWriter();
+
+            File.WriteAllText(temporaryPath, "{ \"captureDate\": ");
+
+            Assert.True(writer.UpdateProperty(MutesKey, MutesValue));
+            Assert.False(File.Exists(temporaryPath));
+            Assert.Equal(MutesValue, ReadDirectoryMeta().Properties[MutesKey]);
+
+            writer.Dispose();
+
+            File.WriteAllText(temporaryPath, "{ \"captureDate\": ");
+
+            var fxzyPath = await Pack();
+
+            using (var zip = ZipFile.OpenRead(fxzyPath)) {
+                Assert.Equal(new[] { "meta.json" }, zip.Entries.Select(e => e.FullName));
+            }
+
+            Assert.Equal(MutesValue, ReadPackedMeta(fxzyPath).Properties[MutesKey]);
+        }
+
+        [Fact]
+        public void Deleted_Meta_Is_Created_Again_With_What_The_Writer_Stored()
+        {
+            var tag = new Tag(Guid.NewGuid(), "tag");
+            var writer = CreateInitializedWriter(7);
+
+            writer.UpdateTags(new[] { tag });
+            writer.SetResolvedEndPoints(new[] { new IPEndPoint(IPAddress.Loopback, 1111) });
+
+            File.Delete(MetaPath);
+
+            Assert.True(writer.UpdateProperty(MutesKey, MutesValue));
+
+            writer.Dispose();
+
+            var meta = ReadDirectoryMeta();
+
+            Assert.Equal(tag, Assert.Single(meta.Tags));
+            Assert.Equal(1111, Assert.Single(meta.ResolvedEndPoints).Port);
+            Assert.Equal(7, meta.CapturedSetting!.ConnectionPerHost);
+            Assert.Equal(MutesValue, meta.Properties[MutesKey]);
+        }
+
+        /// <summary>
+        ///     Archives produced by earlier versions, which hold less meta information, opened then
+        ///     captured into again, then saved with a subset of their exchanges.
+        /// </summary>
+        [Theory]
+        [InlineData("with-request-payload.fxzy")]
+        [InlineData("pink-floyd.fxzy")]
+        [InlineData("fail-merge.fxzy")]
+        public async Task Archive_From_An_Earlier_Version_Goes_Through_A_New_Session(string archiveName)
+        {
+            var archivePath = Path.Combine("_Files", "Archives", archiveName);
+
+            new FxzyImportEngine(new FxzyDirectoryPackager()).WriteToDirectory(archivePath, _baseDirectory);
+
+            var originalMeta = ReadPackedMeta(archivePath);
+            int[] originalExchangeIds;
+
+            using (var reader = new DirectoryArchiveReader(_baseDirectory)) {
+                originalExchangeIds = reader.ReadAllExchanges().Select(e => e.Id).OrderBy(i => i).ToArray();
+            }
+
+            Assert.NotEmpty(originalExchangeIds);
+
+            var writer = CreateInitializedWriter(7);
+
+            writer.SetResolvedEndPoints(new[] { new IPEndPoint(IPAddress.Loopback, 1111) });
+            writer.UpdateProperty(MutesKey, MutesValue);
+            writer.Dispose();
+
+            var meta = ReadDirectoryMeta();
+
+            Assert.Equal(originalMeta.CaptureDate, meta.CaptureDate);
+            Assert.Equal(originalMeta.Tags, meta.Tags);
+            Assert.Equal(MutesValue, meta.Properties[MutesKey]);
+            Assert.Equal(7, meta.CapturedSetting!.ConnectionPerHost);
+            Assert.Equal(new ArchiveMetaInformation().ArchiveVersion, meta.ArchiveVersion);
+            Assert.Equal(new ArchiveMetaInformation().FluxzyVersion, meta.FluxzyVersion);
+
+            using (var reader = new DirectoryArchiveReader(_baseDirectory)) {
+                Assert.Equal(originalExchangeIds, reader.ReadAllExchanges().Select(e => e.Id).OrderBy(i => i));
+            }
+
+            // Saved with a subset of the exchanges, as an application that lets exchanges be deleted
+            var keptExchangeIds = originalExchangeIds.Take(1).ToHashSet();
+            var fxzyPath = Path.Combine(_rootDirectory, "subset.fxzy");
+
+            await using (var output = File.Create(fxzyPath)) {
+                await new FxzyDirectoryPackager().Pack(_baseDirectory, output, keptExchangeIds);
+            }
+
+            using var packedReader = new FluxzyArchiveReader(fxzyPath);
+
+            Assert.Equal(keptExchangeIds, packedReader.ReadAllExchanges().Select(e => e.Id));
+            Assert.Equal(MutesValue, packedReader.ReadMetaInformation().Properties[MutesKey]);
+            Assert.Equal(originalMeta.CaptureDate, packedReader.ReadMetaInformation().CaptureDate);
+        }
+
+        /// <summary>
+        ///     An action declared outside Fluxzy.Core cannot be read back from the captured setting.
+        ///     Starting a new session on a capture that holds one, with a setting that holds one,
+        ///     must not fail, and the meta information must stay readable.
+        /// </summary>
+        [Fact]
+        public void New_Session_With_An_Action_Declared_Outside_Core_Keeps_Meta()
+        {
+            FluxzySetting CreateSettingWithCustomAction()
+            {
+                var setting = FluxzySetting.CreateDefault();
+
+                setting.AddAlterationRules(new CustomLabelingAction { Label = "vip" },
+                    new HostFilter("example.com"));
+
+                return setting;
+            }
+
+            var tag = new Tag(Guid.NewGuid(), "tag");
+
+            var firstWriter = new DirectoryArchiveWriter(_baseDirectory, null, CreateSettingWithCustomAction());
+
+            firstWriter.Init();
+            firstWriter.UpdateTags(new[] { tag });
+            firstWriter.UpdateProperty(MutesKey, MutesValue);
+            firstWriter.Dispose();
+
+            var secondWriter = new DirectoryArchiveWriter(_baseDirectory, null, CreateSettingWithCustomAction());
+
+            secondWriter.Init();
+            secondWriter.SetResolvedEndPoints(new[] { new IPEndPoint(IPAddress.Loopback, 2222) });
+            secondWriter.UpdateProperty("other", "value");
+            secondWriter.Dispose();
+
+            var meta = ReadDirectoryMeta();
+
+            Assert.Equal(tag, Assert.Single(meta.Tags));
+            Assert.Equal(MutesValue, meta.Properties[MutesKey]);
+            Assert.Equal("value", meta.Properties["other"]);
+            Assert.Equal(2222, Assert.Single(meta.ResolvedEndPoints).Port);
+        }
+
+        /// <summary>
+        ///     The lock that protects meta.json is found from the path of the directory: writers
+        ///     that were given different spellings of the same directory must share it.
+        /// </summary>
+        [Fact]
+        public void Writers_Given_Different_Spellings_Of_The_Directory_Keep_Every_Change()
+        {
+            const int changePerWriter = 40;
+
+            CreateInitializedWriter().Dispose();
+
+            var spellings = new List<string> {
+                _baseDirectory,
+                _baseDirectory + Path.DirectorySeparatorChar,
+                Path.Combine(_rootDirectory, "capture", "..", "capture"),
+                Path.GetRelativePath(Directory.GetCurrentDirectory(), _baseDirectory)
+            };
+
+            if (OperatingSystem.IsWindows())
+                spellings.Add(_baseDirectory.ToUpperInvariant());
+
+            Parallel.For(0, spellings.Count * changePerWriter, new ParallelOptions { MaxDegreeOfParallelism = 8 },
+                index => {
+                    var writer = new DirectoryArchiveWriter(spellings[index % spellings.Count], null);
+
+                    writer.UpdateProperty($"property-{index}", $"{index}");
+                    writer.UpdateTags(new[] { new Tag(Guid.NewGuid(), $"tag-{index}") });
+                    writer.Dispose();
+                });
+
+            var meta = ReadDirectoryMeta();
+
+            Assert.Equal(spellings.Count * changePerWriter, meta.Properties.Count);
+            Assert.Equal(spellings.Count * changePerWriter, meta.Tags.Count);
         }
 
         [Fact]
