@@ -676,6 +676,34 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             Assert.Equal(MutesValue, ReadPackedMeta(fxzyPath).Properties[MutesKey]);
         }
 
+        /// <summary>
+        ///     On Windows, meta.json cannot be replaced while a reader holds it open, with the sharing
+        ///     mode File.ReadAllBytes uses. The writer must wait for the reader instead of failing.
+        ///     On the other systems the file is replaced at once.
+        /// </summary>
+        [Fact]
+        public void Meta_Is_Replaced_While_A_Reader_Briefly_Holds_It_Open()
+        {
+            var writer = CreateInitializedWriter();
+            var readerStream = new FileStream(MetaPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            var readerThread = new Thread(() => {
+                Thread.Sleep(30);
+                readerStream.Dispose();
+            });
+
+            readerThread.Start();
+
+            var modified = writer.UpdateProperty(MutesKey, MutesValue);
+
+            readerThread.Join();
+            writer.Dispose();
+
+            Assert.True(modified);
+            Assert.Equal(MutesValue, ReadDirectoryMeta().Properties[MutesKey]);
+            Assert.False(File.Exists(MetaPath + ".tmp"));
+        }
+
         [Fact]
         public void Deleted_Meta_Is_Created_Again_With_What_The_Writer_Stored()
         {
