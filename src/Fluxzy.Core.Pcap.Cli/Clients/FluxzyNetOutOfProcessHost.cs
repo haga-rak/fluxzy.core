@@ -17,7 +17,11 @@ namespace Fluxzy.Core.Pcap.Cli.Clients
             var currentPid = Process.GetCurrentProcess().Id;
             var commandName = FluxzyNetOutOfProcessHostHelper.GetExecutableCommandName();
 
-            _process = await ProcessUtils.RunElevatedAsync(commandName, new[] { $"{currentPid}" }, true,
+            var arguments = FluxzySharedSetting.CaptureLoopbackTraffic
+                ? new[] { $"{currentPid}", "--loopback" }
+                : new[] { $"{currentPid}" };
+
+            _process = await ProcessUtils.RunElevatedAsync(commandName, arguments, true,
                 "Fluxzy needs to acquire privilege for capturing raw packet", redirectStandardError: FnpLog.LoggingEnabled);
 
             if (_process == null) {

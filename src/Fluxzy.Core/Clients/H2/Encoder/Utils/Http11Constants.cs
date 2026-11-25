@@ -166,6 +166,11 @@ namespace Fluxzy.Clients.H2.Encoder.Utils
             return "Unknown status".AsMemory();
         }
 
+        internal static string? GetStatusLineOrNull(int statusCode)
+        {
+            return StatusLineMappingStr.TryGetValue(statusCode.ToString(), out var res) ? res : null;
+        }
+
         public static ReadOnlySpan<byte> GetStatusLineBytes(int statusCode)
         {
             var arr = StatusLineBytesByCode;

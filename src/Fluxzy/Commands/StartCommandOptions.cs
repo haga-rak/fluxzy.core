@@ -282,6 +282,18 @@ namespace Fluxzy.Cli.Commands
             return option;
         }
 
+        public static Option CreateCaptureLoopbackOption()
+        {
+            var option = new Option<bool>(
+                "--capture-loopback",
+                "Also capture raw packets on the loopback interface (requires --include-dump)");
+
+            option.SetDefaultValue(false);
+            option.Arity = ArgumentArity.Zero;
+
+            return option;
+        }
+
         public static Option CreateCertificateFileOption()
         {
             var option = new Option<FileInfo>(

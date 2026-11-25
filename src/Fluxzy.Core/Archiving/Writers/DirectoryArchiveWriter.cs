@@ -1,12 +1,15 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using Fluxzy.Core;
 using Fluxzy.Misc;
@@ -15,10 +18,49 @@ using MessagePack;
 
 namespace Fluxzy.Writers
 {
+    /// <summary>
+    ///     Writes a capture into a dump directory.
+    ///     <para>
+    ///         Several writers can work on the same directory, at the same time or one after the other:
+    ///         the proxy creates a new one each time it starts, and short-lived ones are created to
+    ///         paste or import exchanges. For this reason <c>meta.json</c> on disk is the reference for
+    ///         the archive meta information. Every change (tags, resolved endpoints, properties) reads
+    ///         the file, applies the change and replaces the file, so what another writer stored is kept.
+    ///     </para>
+    /// </summary>
     public class DirectoryArchiveWriter : RealtimeArchiveWriter
     {
+        // How long replacing meta.json is tried again on Windows, where it fails while another
+        // handle is open on the file (a reader, an antivirus). Such a handle lasts the time of a read.
+        private static readonly TimeSpan MetaReplaceTimeout = TimeSpan.FromSeconds(2);
+
+        // One lock per meta.json for the whole process, shared by every writer of the same directory.
+        // The comparer ignores case so that two spellings of the same path on a case-insensitive
+        // file system never end up with distinct locks.
+        private static readonly ConcurrentDictionary<string, object> MetaLocks =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        private static readonly string TagsName = GetMetaName(nameof(ArchiveMetaInformation.Tags));
+
+        private static readonly string ResolvedEndPointsName =
+            GetMetaName(nameof(ArchiveMetaInformation.ResolvedEndPoints));
+
+        private static readonly string PropertiesName = GetMetaName(nameof(ArchiveMetaInformation.Properties));
+
+        // What describes the capture session, as opposed to what belongs to the archive content.
+        private static readonly string[] SessionNames = {
+            GetMetaName(nameof(ArchiveMetaInformation.CapturedSetting)),
+            GetMetaName(nameof(ArchiveMetaInformation.EnvironmentInformation)),
+            GetMetaName(nameof(ArchiveMetaInformation.FluxzyVersion)),
+            GetMetaName(nameof(ArchiveMetaInformation.ArchiveVersion))
+        };
+
+        // Content of a new meta.json, used when the directory has none (or an unreadable one).
+        // Its Tags are the tags this writer already stored, which spares a file read for each
+        // tagged exchange. The file is never rebuilt from this instance when it exists.
         private readonly ArchiveMetaInformation _archiveMetaInformation;
-        private readonly object _metaLock = new object();
+        private readonly object _metaLock;
+        private readonly bool _describesSession;
 
         private static ArchiveMetaInformation CreateNewCaptureArchiveMetaInformation(FluxzySetting? capturedSetting)
         {
@@ -74,6 +116,7 @@ namespace Fluxzy.Writers
         public DirectoryArchiveWriter(string baseDirectory, Filter? saveFilter, FluxzySetting? capturedSetting)
         {
             _archiveMetaInformation = CreateNewCaptureArchiveMetaInformation(capturedSetting);
+            _describesSession = capturedSetting != null;
             _baseDirectory = baseDirectory;
             _saveFilter = saveFilter;
             _contentDirectory = Path.Combine(baseDirectory, "contents");
@@ -83,16 +126,41 @@ namespace Fluxzy.Writers
             _connectionDirectory = Path.Combine(baseDirectory, "connections");
 
             _archiveMetaInformationPath = DirectoryArchiveHelper.GetMetaPath(baseDirectory);
+
+            _metaLock = MetaLocks.GetOrAdd(Path.GetFullPath(_archiveMetaInformationPath), _ => new object());
         }
 
+        /// <summary>
+        ///     Stores the endpoints the proxy is listening on in the archive meta information.
+        /// </summary>
         public void SetResolvedEndPoints(IEnumerable<IPEndPoint> endPoints)
         {
+            var resolvedEndPoints = endPoints.ToList();
+
             lock (_metaLock) {
-                _archiveMetaInformation.ResolvedEndPoints = endPoints.ToList();
-                UpdateMeta(true);
+                _archiveMetaInformation.ResolvedEndPoints = resolvedEndPoints;
+
+                EditMeta(meta => {
+                    meta[ResolvedEndPointsName] = JsonSerializer.SerializeToNode(resolvedEndPoints,
+                        GlobalArchiveOption.DefaultSerializerOptions);
+
+                    return true;
+                });
             }
         }
 
+        /// <summary>
+        ///     Creates the directory layout and <c>meta.json</c>.
+        ///     <para>
+        ///         When the directory already holds a capture, its meta information is kept (capture
+        ///         date, tags, view filters, properties). A writer that was given a captured setting
+        ///         starts a new capture session on it, and replaces what describes the session:
+        ///         <see cref="ArchiveMetaInformation.CapturedSetting" />,
+        ///         <see cref="ArchiveMetaInformation.EnvironmentInformation" />,
+        ///         <see cref="ArchiveMetaInformation.FluxzyVersion" /> and
+        ///         <see cref="ArchiveMetaInformation.ArchiveVersion" />.
+        ///     </para>
+        /// </summary>
         public override void Init()
         {
             base.Init();
@@ -105,32 +173,188 @@ namespace Fluxzy.Writers
             Directory.CreateDirectory(_exchangeDirectory);
             Directory.CreateDirectory(_connectionDirectory);
 
-            UpdateMeta(false);
+            EditMeta(meta => _describesSession && SetSession(meta));
         }
 
-        private void UpdateMeta(bool force)
+        /// <summary>
+        ///     Applies a change to <c>meta.json</c>, starting from the file on disk, and replaces the
+        ///     file when the change modified it. The file is created when it does not exist yet.
+        /// </summary>
+        /// <param name="edit">Returns true when it modified the provided meta information</param>
+        /// <returns>The value returned by <paramref name="edit" /></returns>
+        private bool EditMeta(Func<JsonObject, bool> edit)
         {
-            if (!force && File.Exists(_archiveMetaInformationPath))
-                return;
+            lock (_metaLock) {
+                var existing = ReadMeta();
+                var meta = existing ?? CreateMeta();
+                var modified = edit(meta);
 
-            lock (_metaLock)
-            {
-                using var fileStream = File.Create(_archiveMetaInformationPath);
-                JsonSerializer.Serialize(fileStream, _archiveMetaInformation, GlobalArchiveOption.DefaultSerializerOptions);
+                if (existing == null || modified)
+                    WriteMeta(meta);
+
+                return modified;
             }
         }
 
-        public override void UpdateTags(IEnumerable<Tag> tags)
+        private JsonObject? ReadMeta()
         {
-            lock (_metaLock)
-            {
-                foreach (var tag in tags)
-                {
-                    _archiveMetaInformation.Tags.Add(tag);
+            if (!File.Exists(_archiveMetaInformationPath))
+                return null;
+
+            try {
+                return JsonNode.Parse(File.ReadAllBytes(_archiveMetaInformationPath)) as JsonObject;
+            }
+            catch (JsonException) {
+                // An empty or truncated file, left by a process that stopped while writing it.
+                // The capture must go on, so the meta information starts over.
+                return null;
+            }
+        }
+
+        private JsonObject CreateMeta()
+        {
+            return JsonSerializer.SerializeToNode(_archiveMetaInformation,
+                GlobalArchiveOption.DefaultSerializerOptions)!.AsObject();
+        }
+
+        private void WriteMeta(JsonObject meta)
+        {
+            // Written aside then moved, so that a reader never sees a partial file and a crash
+            // never leaves a truncated one.
+            var temporaryPath = _archiveMetaInformationPath + ".tmp";
+            var options = GlobalArchiveOption.DefaultSerializerOptions;
+
+            using (var fileStream = File.Create(temporaryPath)) {
+                using var jsonWriter = new Utf8JsonWriter(fileStream, new JsonWriterOptions {
+                    Indented = options.WriteIndented,
+                    Encoder = options.Encoder
+                });
+
+                meta.WriteTo(jsonWriter, options);
+            }
+
+            Stopwatch? watch = null;
+            var spinWait = new SpinWait();
+
+            while (true) {
+                try {
+                    File.Move(temporaryPath, _archiveMetaInformationPath, true);
+
+                    return;
+                }
+                catch (Exception ex) when (OperatingSystem.IsWindows()
+                                           && (ex is IOException || ex is UnauthorizedAccessException)
+                                           && (watch ??= Stopwatch.StartNew()).Elapsed < MetaReplaceTimeout) {
+                    // Tried again at once, then with pauses that grow up to a millisecond. Waiting
+                    // for a fixed time instead would keep failing against a reader that polls the
+                    // file, as both would wake up on the same system timer tick.
+                    spinWait.SpinOnce();
+                }
+            }
+        }
+
+        private bool SetSession(JsonObject meta)
+        {
+            var session = CreateMeta();
+
+            foreach (var name in SessionNames) {
+                meta[name] = session[name]?.DeepClone();
+            }
+
+            return true;
+        }
+
+        private void AddTags(IEnumerable<Tag> tags)
+        {
+            lock (_metaLock) {
+                List<Tag>? newTags = null;
+
+                foreach (var tag in tags) {
+                    if (!_archiveMetaInformation.Tags.Contains(tag))
+                        (newTags ??= new List<Tag>()).Add(tag);
                 }
 
-                UpdateMeta(true);
+                if (newTags == null)
+                    return;
+
+                EditMeta(meta => {
+                    var storedTags = ReadTags(meta);
+                    var modified = false;
+
+                    foreach (var tag in newTags) {
+                        modified = storedTags.Add(tag) || modified;
+                    }
+
+                    if (modified) {
+                        meta[TagsName] = JsonSerializer.SerializeToNode(storedTags,
+                            GlobalArchiveOption.DefaultSerializerOptions);
+                    }
+
+                    return modified;
+                });
+
+                // Only once the file holds them, so that a failed write is tried again.
+                foreach (var tag in newTags) {
+                    _archiveMetaInformation.Tags.Add(tag);
+                }
             }
+        }
+
+        private static HashSet<Tag> ReadTags(JsonObject meta)
+        {
+            try {
+                return meta[TagsName].Deserialize<HashSet<Tag>>(GlobalArchiveOption.DefaultSerializerOptions)
+                       ?? new HashSet<Tag>();
+            }
+            catch (JsonException) {
+                return new HashSet<Tag>();
+            }
+        }
+
+        private static string GetMetaName(string propertyName)
+        {
+            return GlobalArchiveOption.DefaultSerializerOptions.PropertyNamingPolicy?.ConvertName(propertyName)
+                   ?? propertyName;
+        }
+
+        /// <summary>
+        ///     Adds the provided tags to the tags of the archive. Tags that the archive already holds
+        ///     are left as they are.
+        /// </summary>
+        public override void UpdateTags(IEnumerable<Tag> tags)
+        {
+            AddTags(tags);
+        }
+
+        /// <inheritdoc />
+        public override bool UpdateProperty(string key, string? value)
+        {
+            if (key == null)
+                throw new ArgumentNullException(nameof(key));
+
+            if (key.Length == 0)
+                throw new ArgumentException("A property key cannot be empty", nameof(key));
+
+            return EditMeta(meta => {
+                var properties = meta[PropertiesName] as JsonObject;
+
+                if (value == null)
+                    return properties != null && properties.Remove(key);
+
+                if (properties == null) {
+                    properties = new JsonObject();
+                    meta[PropertiesName] = properties;
+                }
+
+                if (properties[key] is JsonValue current
+                    && current.TryGetValue<string>(out var currentValue)
+                    && currentValue == value)
+                    return false;
+
+                properties[key] = value;
+
+                return true;
+            });
         }
 
         protected override bool ExchangeUpdateRequired(Exchange exchange)
@@ -164,20 +388,7 @@ namespace Fluxzy.Writers
             }
 
             if (exchangeInfo.Tags?.Any() ?? false)
-            {
-                lock (_metaLock)
-                {
-                    var modified = false;
-
-                    foreach (var tag in exchangeInfo.Tags)
-                    {
-                        modified = _archiveMetaInformation.Tags.Add(tag) || modified;
-                    }
-
-                    if (modified)
-                        UpdateMeta(true);
-                }
-            }
+                AddTags(exchangeInfo.Tags);
 
             return true;
         }

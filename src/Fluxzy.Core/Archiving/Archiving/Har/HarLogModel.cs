@@ -1,13 +1,12 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.Requests;
@@ -36,7 +35,10 @@ namespace Fluxzy.Archiving.Har
             Dictionary<int, ConnectionInfo> connections,
             HttpArchiveSavingSetting savingSetting)
         {
-            Entries = exchanges.Select(s => new HarEntry(s,
+            Entries = exchanges
+                      .OrderBy(e => e.Metrics.ReceivedFromProxy)
+                      .ThenBy(e => e.Id)
+                      .Select(s => new HarEntry(s,
                 connections.ContainsKey(s.ConnectionId) ? connections[s.ConnectionId] : null,
                 archiveReader,
                 savingSetting)).ToList();
@@ -68,7 +70,7 @@ namespace Fluxzy.Archiving.Har
             IArchiveReader archiveReader,
             HttpArchiveSavingSetting savingSetting)
         {
-            var producerContext = new ProducerContext(exchangeInfo, archiveReader, FormatSettings.Default);
+            using var producerContext = new ProducerContext(exchangeInfo, archiveReader, FormatSettings.Default);
 
             if (exchangeInfo.Metrics.ResponseBodyEnd != default) {
                 Time = (int) (exchangeInfo.Metrics.ResponseBodyEnd - exchangeInfo.Metrics.ReceivedFromProxy)
@@ -81,6 +83,7 @@ namespace Fluxzy.Archiving.Har
             Connection = connectionInfo?.Id.ToString();
             Timings = new HarTimings(exchangeInfo, connectionInfo);
             Cache = new HarCache();
+            Comment = exchangeInfo.Comment;
 
             Request = new HarEntryRequest(producerContext, savingSetting);
             Response = new HarEntryResponse(producerContext, savingSetting);
@@ -93,6 +96,7 @@ namespace Fluxzy.Archiving.Har
 
         public int Time { get; }
 
+        [JsonPropertyName("serverIPAddress")]
         public string? ServerIpAddress { get; }
 
         public string? Connection { get; }
@@ -130,11 +134,9 @@ namespace Fluxzy.Archiving.Har
             BodySize = archiveReader.GetRequestBodyLength(exchangeInfo.Id);
 
             Headers = exchangeInfo.GetRequestHeaders().Select(s => new HarHeader(s)).ToList();
-            PostData = new HarPostData(producerContext, savingSetting);
 
-            //if (PostData.IsBase64) {
-            //    Headers.Add(new(new("Content-Transfer-Encoding", "base64")));
-            //}
+            if (BodySize > 0)
+                PostData = new HarPostData(producerContext, savingSetting);
         }
 
         public List<HarQueryString> QueryString { get; } = new();
@@ -153,7 +155,7 @@ namespace Fluxzy.Archiving.Har
 
         public List<HarHeader> Headers { get; }
 
-        public HarPostData PostData { get; }
+        public HarPostData? PostData { get; }
 
         public string? Comment { get; }
     }
@@ -163,7 +165,7 @@ namespace Fluxzy.Archiving.Har
         public HarEntryResponse(ProducerContext producerContext, HttpArchiveSavingSetting saveSetting)
         {
             Status = producerContext.Exchange.StatusCode;
-            StatusText = ((HttpStatusCode) Status).ToString();
+            StatusText = Http11Constants.GetStatusLineOrNull(Status) ?? string.Empty;
             HttpVersion = producerContext.Exchange.HttpVersion;
 
             var responseHeaders = producerContext.Exchange.GetResponseHeaders()?.ToList();
@@ -175,7 +177,7 @@ namespace Fluxzy.Archiving.Har
                 Headers = responseHeaders.Select(r => new HarHeader(r)).ToList();
             }
 
-            RedirectURL = producerContext.Exchange.FullUrl;
+            RedirectURL = producerContext.Exchange.GetResponseHeaderValue("Location") ?? string.Empty;
             HeadersSize = producerContext.Exchange.Metrics.ResponseHeaderLength;
             BodySize = producerContext.ArchiveReader.GetResponseBodyLength(producerContext.Exchange.Id);
 
@@ -224,7 +226,7 @@ namespace Fluxzy.Archiving.Har
             Value = cookieItem.Value;
             Path = cookieItem.Path;
             Domain = cookieItem.Domain;
-            Expires = cookieItem.Expired;
+            Expires = cookieItem.Expired == default ? null : cookieItem.Expired;
             HttpOnly = cookieItem.HttpOnly;
             Secure = cookieItem.Secure;
         }
@@ -281,34 +283,18 @@ namespace Fluxzy.Archiving.Har
         public HarPostData(ProducerContext producerContext, HttpArchiveSavingSetting savingSetting)
         {
             var exchangeInfo = producerContext.Exchange;
-            var archiveReader = producerContext.ArchiveReader;
 
-            MimeType = exchangeInfo.GetResponseHeaderValue("Content-Type");
+            MimeType = exchangeInfo.GetRequestHeaderValue("Content-Type") ?? "application/octet-stream";
 
-            var requestLength = producerContext.ArchiveReader.GetRequestBodyLength(exchangeInfo.Id);
+            var content = producerContext.RequestBody.Span;
 
-            if (requestLength > 0 && savingSetting.Comply(requestLength)) {
-                var destBuffer = ArrayPool<byte>.Shared.Rent((int) requestLength);
-
-                try {
-                    using var requestBodyStream = archiveReader.GetRequestBody(exchangeInfo.Id);
-                    var length = requestBodyStream?.FillArray(destBuffer);
-
-                    if (length != null) {
-                        var content = new Span<byte>(destBuffer, 0, (int) length);
-                        var isText = ArrayTextUtilities.IsText(content, (int) length);
-
-                        if (isText)
-                            Text = Encoding.UTF8.GetString(content);
-                        else {
-                            Text = Convert.ToBase64String(content);
-                            Comment = "base64";
-                            IsBase64 = true;
-                        }
-                    }
-                }
-                finally {
-                    ArrayPool<byte>.Shared.Return(destBuffer);
+            if (content.Length > 0 && savingSetting.Comply(content.Length)) {
+                if (ArrayTextUtilities.IsText(content, content.Length))
+                    Text = Encoding.UTF8.GetString(content);
+                else {
+                    Text = Convert.ToBase64String(content);
+                    Comment = "base64";
+                    IsBase64 = true;
                 }
             }
 
@@ -383,11 +369,17 @@ namespace Fluxzy.Archiving.Har
         public HarContent(ProducerContext producerContext, HttpArchiveSavingSetting savingSetting)
         {
             var exchangeInfo = producerContext.Exchange;
-            Size = producerContext.ArchiveReader.GetResponseBodyLength(exchangeInfo.Id);
-            Compressing = Size;
+            var bodySize = producerContext.ArchiveReader.GetResponseBodyLength(exchangeInfo.Id);
+            var decodedBody = producerContext.ResponseBodyContent;
+
+            Size = decodedBody?.Length ?? bodySize;
+
+            if (decodedBody != null && producerContext.CompressionInfo?.EncodingToken != null)
+                Compression = Size - bodySize;
+
             MimeType = producerContext.Exchange.GetResponseHeaderValue("content-type") ?? "application/octet-stream";
 
-            if (Size > 0 && savingSetting.Comply(Size)) {
+            if (bodySize > 0 && savingSetting.Comply(bodySize)) {
                 var textContext = producerContext.IsTextContent;
 
                 if (textContext) {
@@ -395,8 +387,9 @@ namespace Fluxzy.Archiving.Har
                            ?? string.Empty;
                 }
                 else {
-                    Text = producerContext.ArchiveReader.GetResponseBody(exchangeInfo.Id)
-                                          ?.ToBase64String();
+                    Text = decodedBody != null
+                        ? Convert.ToBase64String(decodedBody)
+                        : producerContext.ArchiveReader.GetResponseBody(exchangeInfo.Id)?.ToBase64String(true);
                     Encoding = "base64";
                 }
             }
@@ -404,7 +397,14 @@ namespace Fluxzy.Archiving.Har
 
         public long Size { get; set; }
 
-        public long Compressing { get; set; }
+        public long? Compression { get; set; }
+
+        [Obsolete("Use Compression instead")]
+        [JsonIgnore]
+        public long Compressing {
+            get => Compression ?? 0;
+            set => Compression = value;
+        }
 
         public string MimeType { get; set; }
 
@@ -437,7 +437,10 @@ namespace Fluxzy.Archiving.Har
                     .TotalMilliseconds;
             }
 
-            if (connectionInfo != null) {
+            var openedConnection = connectionInfo != null
+                                   && connectionInfo.TcpConnectionOpening >= exchangeInfo.Metrics.ReceivedFromProxy;
+
+            if (connectionInfo != null && openedConnection) {
                 if (connectionInfo.DnsSolveEnd != default) {
                     Dns = (connectionInfo.DnsSolveEnd - connectionInfo.DnsSolveStart)
                         .TotalMilliseconds;
@@ -472,9 +475,9 @@ namespace Fluxzy.Archiving.Har
 
         public double Blocked { get; } = -1;
 
-        public double Dns { get; }
+        public double Dns { get; } = -1;
 
-        public double Connect { get; }
+        public double Connect { get; } = -1;
 
         public double Send { get; }
 
@@ -482,7 +485,7 @@ namespace Fluxzy.Archiving.Har
 
         public double Receive { get; }
 
-        public double Ssl { get; }
+        public double Ssl { get; } = -1;
 
         public string? Comment { get; set; }
     }

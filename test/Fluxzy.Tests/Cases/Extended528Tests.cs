@@ -125,7 +125,25 @@ namespace Fluxzy.Tests.Cases
             AssertNetworkErrorCode(response, NetworkErrorCodes.TlsHandshakeFailure);
         }
 
+        // Several cases reach a remote host whose TCP connect stalls now and then. A fresh
+        // attempt usually connects at once, so a short timeout with retries beats a long wait.
+        private const int MaxAttempts = 3;
+
+        private static readonly TimeSpan AttemptTimeout = TimeSpan.FromSeconds(5);
+
         private static async Task<HttpResponseMessage> Run(string url, bool useBouncyCastle)
+        {
+            for (var attempt = 1; ; attempt++) {
+                try {
+                    return await RunOnce(url, useBouncyCastle);
+                }
+                catch (TaskCanceledException) when (attempt < MaxAttempts) {
+                    // Timed out, retry with a fresh proxy and a fresh upstream connection
+                }
+            }
+        }
+
+        private static async Task<HttpResponseMessage> RunOnce(string url, bool useBouncyCastle)
         {
             var setting = FluxzySetting.CreateLocalRandomPort();
             setting.UseBouncyCastle = useBouncyCastle;
@@ -134,6 +152,8 @@ namespace Fluxzy.Tests.Cases
             var endPoints = proxy.Run();
 
             var httpClient = HttpClientUtility.CreateHttpClient(endPoints, setting);
+            httpClient.Timeout = AttemptTimeout;
+
             var response = await httpClient.GetAsync(url);
             _ = await response.Content.ReadAsStringAsync();
             return response;

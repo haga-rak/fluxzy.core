@@ -13,6 +13,9 @@ jobs:
       fail-fast: false
 
     runs-on: ${{ matrix.osversion }}
+    permissions:
+      contents: read
+      id-token: write  # OIDC token for nuget.org trusted publishing
     steps:
     - uses: actions/checkout@v3
       with:
@@ -21,6 +24,11 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 10.0.x
+    - name: NuGet login (OIDC to temporary API key, valid 1 hour)
+      uses: NuGet/login@v1
+      id: nuget-login
+      with:
+        user: ${{ secrets.NUGET_USER }}
     - name: Publish pre-release to nuget.org
       shell: bash
       env:
@@ -29,6 +37,6 @@ jobs:
         REPOSITORY_OWNER : ${{ github.repository_owner }}
         REPOSITORY_NAME : ${{ github.event.repository.name }}
         PARTNER_SECRET : ${{ secrets.PARTNER_SECRET }}
-        NUGET_ORG_API_KEY : ${{ secrets.NUGET_ORG_API_KEY }}
+        NUGET_ORG_API_KEY : ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
 
       run: bash build.sh fluxzy-publish-nuget-public-pre-release

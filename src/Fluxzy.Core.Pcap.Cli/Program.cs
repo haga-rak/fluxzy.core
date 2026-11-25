@@ -31,6 +31,7 @@ namespace Fluxzy.Core.Pcap.Cli
 
         /// <summary>
         ///     args[0] => caller PID
+        ///     --loopback => also capture the loopback interface
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
@@ -48,6 +49,8 @@ namespace Fluxzy.Core.Pcap.Cli
                 return 2;
             }
 
+            var captureLoopback = args.Skip(1).Any(a => a.Equals("--loopback", StringComparison.OrdinalIgnoreCase));
+
             var haltSource = new CancellationTokenSource();
 
             var stdInClose = Task.Run(() => CancelTokenSourceOnStandardInputClose(haltSource), haltSource.Token);
@@ -55,7 +58,7 @@ namespace Fluxzy.Core.Pcap.Cli
             var parentMonitoringTask = Task.Run(() => CancelTokenWhenParentProcessExit(haltSource, processId));
 
             await using var receiverContext =
-                new PipeMessageReceiverContext(new DirectCaptureContext(), haltSource.Token);
+                new PipeMessageReceiverContext(new DirectCaptureContext(captureLoopback: captureLoopback), haltSource.Token);
 
             receiverContext.Start();
 

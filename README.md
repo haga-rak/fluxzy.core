@@ -145,6 +145,8 @@ Options:
   -c, --include-dump                                   Include tcp dumps on captured output [default: False]
   --external-capture                                   Indicates that the raw capture will be done by an external process
                                                        [default: False]
+  --capture-loopback                                   Also capture raw packets on the loopback interface (requires
+                                                       --include-dump) [default: False]
   -t, --trace                                          Output trace on stdout [default: False]
   -i, --install-cert                                   Install root CA in current cert store if absent (require higher
                                                        privilege) [default: False]

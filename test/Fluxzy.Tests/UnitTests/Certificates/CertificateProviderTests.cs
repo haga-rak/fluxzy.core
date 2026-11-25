@@ -1,16 +1,21 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
+using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using Fluxzy.Certificates;
 using Fluxzy.Core;
+using Fluxzy.Tests._Fixtures;
 using Xunit;
 
 namespace Fluxzy.Tests.UnitTests.Certificates
 {
-    public class CertificateProviderTests
+    public class CertificateProviderTests : ProduceDeletableItem
     {
+        private static readonly TimeSpan MaxLeafValidity = TimeSpan.FromDays(45);
+
         [Theory]
         [InlineData("192.168.1.1")]
         [InlineData("10.0.0.1")]
@@ -142,6 +147,58 @@ namespace Fluxzy.Tests.UnitTests.Certificates
 
             var ipAddresses = sanExtension.EnumerateIPAddresses().ToList();
             Assert.Empty(ipAddresses);
+        }
+
+        [Theory]
+        [InlineData(CertificateKeyAlgorithm.Rsa)]
+        [InlineData(CertificateKeyAlgorithm.EcdsaP256)]
+        public void GetCertificate_LeafValiditySpan_StaysWithinCap(CertificateKeyAlgorithm algorithm)
+        {
+            var rootCertificate = CreateRoot(algorithm, 365 * 10);
+            using var provider = new CertificateProvider(rootCertificate, new InMemoryCertificateCache());
+
+            var cert = provider.GetCertificate("example.com");
+
+            Assert.True(cert.NotBefore <= DateTime.Now);
+            Assert.True(cert.NotAfter - cert.NotBefore <= MaxLeafValidity);
+            Assert.True(cert.NotAfter >= DateTime.Now.Add(MaxLeafValidity).AddDays(-1));
+        }
+
+        [Fact]
+        public void GetCertificate_DefaultRoot_LeafValiditySpanStaysWithinCap()
+        {
+            using var provider = new CertificateProvider(Certificate.UseDefault(), new InMemoryCertificateCache());
+
+            var cert = provider.GetCertificate("example.com");
+
+            Assert.True(cert.NotAfter - cert.NotBefore <= MaxLeafValidity);
+        }
+
+        [Fact]
+        public void GetCertificate_RootExpiringSoon_LeafEndsBeforeRoot()
+        {
+            var rootCertificate = CreateRoot(CertificateKeyAlgorithm.Rsa, 10);
+            using var provider = new CertificateProvider(rootCertificate, new InMemoryCertificateCache());
+
+            var cert = provider.GetCertificate("example.com");
+
+            Assert.True(cert.NotBefore >= rootCertificate.GetX509Certificate().NotBefore);
+            Assert.True(cert.NotAfter < rootCertificate.GetX509Certificate().NotAfter);
+            Assert.True(cert.NotAfter - cert.NotBefore <= MaxLeafValidity);
+        }
+
+        private Certificate CreateRoot(CertificateKeyAlgorithm algorithm, int daysBeforeExpiration)
+        {
+            var options = new CertificateBuilderOptions($"Fluxzy test root {algorithm}") {
+                KeyAlgorithm = algorithm,
+                DaysBeforeExpiration = daysBeforeExpiration,
+                P12Password = "test"
+            };
+
+            var rootPath = GetRegisteredRandomFile();
+            File.WriteAllBytes(rootPath, new CertificateBuilder(options).CreateSelfSigned());
+
+            return Certificate.LoadFromPkcs12(rootPath, "test");
         }
     }
 }

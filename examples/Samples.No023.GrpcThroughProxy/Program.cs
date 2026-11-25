@@ -41,7 +41,7 @@ namespace Samples.No023.GrpcThroughProxy
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
 
-            using var channel = GrpcChannel.ForAddress("https://grpcb.in:9001", new GrpcChannelOptions
+            using var channel = GrpcChannel.ForAddress("https://grpcb.in", new GrpcChannelOptions
             {
                 HttpHandler = handler
             });

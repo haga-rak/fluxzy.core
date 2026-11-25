@@ -18,7 +18,7 @@ namespace Fluxzy.Tests.Cases;
 /// </summary>
 public class GrpcRemoteEndpointTests
 {
-    private const string GrpcBinHost = "grpcb.in:9001";
+    private const string GrpcBinHost = "grpcb.in:443";
 
     private static string ProtoDir =>
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Cases", "proto");
@@ -228,8 +228,8 @@ public class GrpcRemoteEndpointTests
     }
 
     /// <summary>
-    /// Tests grpcurl list against grpcb.in:9001 using server reflection (no proto files needed).
-    /// Uses port 9001 (TLS) because port 9000 is plaintext H2C which cannot be proxied through
+    /// Tests grpcurl list against grpcb.in:443 using server reflection (no proto files needed).
+    /// Uses the TLS port because plaintext H2C cannot be proxied through
     /// an HTTPS forward proxy. Requires SetServeH2 because gRPC needs HTTP/2 downstream.
     /// </summary>
     [Fact]
@@ -261,7 +261,7 @@ public class GrpcRemoteEndpointTests
     // HTTP/2 ":authority" pseudo-header to grpcb.in, which is what the remote
     // vhost expects.
 
-    private const int GrpcBinTlsPort = 9001;
+    private const int GrpcBinTlsPort = 443;
 
     private static async Task<(Proxy proxy, int port)> CreateReverseProxy(
         Action<FluxzySetting>? configure = null)

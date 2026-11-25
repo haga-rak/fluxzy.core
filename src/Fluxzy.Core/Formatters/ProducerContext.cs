@@ -47,9 +47,16 @@ namespace Fluxzy.Formatters
 
                 ResponseBodyLength = archiveReader.GetResponseBodyLength(exchange.Id); 
 
-                ResponseBodyContent = exchange.ReadResponseBodyContent(responseBodyStream,
-                    settings.MaximumRenderableBodyLength,
-                    out var compressionInfo);
+                try {
+                    ResponseBodyContent = exchange.ReadResponseBodyContent(responseBodyStream,
+                        settings.MaximumRenderableBodyLength,
+                        out var compressionInfo);
+
+                    CompressionInfo = compressionInfo;
+                }
+                catch (Exception) {
+                    // Undecodable body (corrupted payload, unknown content-encoding)
+                }
 
                 var responseEncoding = exchange.GetResponseEncoding();
 
@@ -59,8 +66,6 @@ namespace Fluxzy.Formatters
                     responseEncoding = responseEncoding ?? Encoding.UTF8;
                     ResponseBodyText = responseEncoding.GetString(ResponseBody.Span);
                 }
-
-                CompressionInfo = compressionInfo;
             }
         }
 

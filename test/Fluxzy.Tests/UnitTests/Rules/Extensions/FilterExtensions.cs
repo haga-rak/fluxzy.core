@@ -161,6 +161,10 @@ namespace Fluxzy.Tests.UnitTests.Rules.Extensions
                     new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenClientError()) };
 
             yield return
+                new object[] { typeof(NoResponseFilter).FullName!,
+                    new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenNoResponse()) };
+
+            yield return
                 new object[] { typeof(StatusCodeRedirectionFilter).FullName!,
                     new Func<IConfigureFilterBuilder, IConfigureActionBuilder>(builder => builder.WhenRedirect()) };
 

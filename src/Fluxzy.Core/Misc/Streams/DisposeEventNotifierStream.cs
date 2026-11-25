@@ -45,6 +45,16 @@ namespace Fluxzy.Misc.Streams
 
         public bool Faulted { get; private set; }
 
+        public bool IsReadableWhileIdle()
+        {
+            try {
+                return Faulted || _sourceClient.Client.Poll(0, SelectMode.SelectRead);
+            }
+            catch {
+                return true;
+            }
+        }
+
         public override bool CanRead => InnerStream.CanRead;
 
         public override bool CanSeek => InnerStream.CanSeek;

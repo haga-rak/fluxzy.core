@@ -99,6 +99,13 @@ namespace Fluxzy.Core
         public int TimeOutSecondsUnusedConnection { get; set; } = 4;
 
         /// <summary>
+        ///     Maximum request body size retained in memory while it is sent on a recycled
+        ///     HTTP/1.1 connection, so the request can be replayed on a fresh connection when
+        ///     the recycled one turns out to be dead. Larger bodies are not replayable.
+        /// </summary>
+        public int RequestBodyReplayLimit { get; set; } = 256 * 1024;
+
+        /// <summary>
         ///     Maximum number of distinct authorities a single downstream connection may pin an
         ///     upstream connection for (connection-oriented auth). Bounds the sockets a client can
         ///     hold by sending NTLM/Negotiate credentials to many hosts. Extra authorities fall

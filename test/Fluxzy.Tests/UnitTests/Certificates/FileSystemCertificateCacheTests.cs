@@ -85,7 +85,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             // Write an expired certificate directly to file
             var expiredTicks = DateTime.UtcNow.AddMinutes(-5).Ticks;
             var oldCertBytes = new byte[] { 1, 2, 3, 4 };
-            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.validitychecked.pfx");
+            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.shortlived.pfx");
             Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
 
             using (var stream = File.Create(fileName)) {
@@ -119,7 +119,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             // Write a valid certificate directly to file
             var validTicks = DateTime.UtcNow.AddMonths(6).Ticks;
             var cachedCertBytes = new byte[] { 10, 20, 30, 40, 50 };
-            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.validitychecked.pfx");
+            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.shortlived.pfx");
             Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
 
             using (var stream = File.Create(fileName)) {
@@ -173,7 +173,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             var cache = new FileSystemCertificateCache(_setting);
 
             // Write a file with invalid format (too short, no header)
-            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.validitychecked.pfx");
+            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.shortlived.pfx");
             Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
             File.WriteAllBytes(fileName, new byte[] { 1, 2, 3 }); // Only 3 bytes, less than header size
 
@@ -255,7 +255,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             cache.Load("serial123", "example.com", Builder);
 
             // Assert
-            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.validitychecked.pfx");
+            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.shortlived.pfx");
             Assert.True(File.Exists(fileName));
 
             var fileContent = File.ReadAllBytes(fileName);
@@ -280,7 +280,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             // Write a certificate that expires in 30 seconds (within 1-minute buffer)
             var almostExpiredTicks = DateTime.UtcNow.AddSeconds(30).Ticks;
             var oldCertBytes = new byte[] { 1, 2, 3, 4 };
-            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.validitychecked.pfx");
+            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.shortlived.pfx");
             Directory.CreateDirectory(Path.GetDirectoryName(fileName)!);
 
             using (var stream = File.Create(fileName)) {
@@ -322,7 +322,7 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             var normalized = maliciousDomain.Replace('\\', Path.DirectorySeparatorChar)
                                             .Replace('/', Path.DirectorySeparatorChar);
             var escapedTarget = Path.GetFullPath(
-                Path.Combine(_tempDirectory, "serial123", $"{normalized}.validitychecked.pfx"));
+                Path.Combine(_tempDirectory, "serial123", $"{normalized}.shortlived.pfx"));
 
             // Drop any leftover from a previous run to avoid a false positive.
             if (File.Exists(escapedTarget) &&
@@ -378,11 +378,67 @@ namespace Fluxzy.Tests.UnitTests.Certificates
             var result2 = cache.Load("serial123", "example.com", Builder);
 
             // Assert
-            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.validitychecked.pfx");
+            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.shortlived.pfx");
             Assert.True(File.Exists(fileName));
             Assert.Equal(1, builderCallCount);
             Assert.Equal(certBytes, result1);
             Assert.Equal(certBytes, result2);
+        }
+
+        [Fact]
+        public void Load_WritesNotAfterHeaderAsUtcTicks()
+        {
+            // Arrange
+            var cache = new FileSystemCertificateCache(_setting);
+            var notAfter = new DateTime(DateTime.UtcNow.AddDays(30).Ticks, DateTimeKind.Utc);
+            notAfter = notAfter.AddTicks(-(notAfter.Ticks % TimeSpan.TicksPerSecond));
+            var certBytes = CreateFakeCertificateBytes(notAfter);
+
+            // Act
+            cache.Load("serial123", "example.com", _ => certBytes);
+
+            // Assert
+            var fileName = Path.Combine(_tempDirectory, "serial123", "example.com.shortlived.pfx");
+            var header = new byte[ExpirationHeaderSize];
+
+            using (var stream = File.OpenRead(fileName)) {
+                stream.ReadExactly(header);
+            }
+
+            Assert.Equal(notAfter.Ticks, BitConverter.ToInt64(header));
+        }
+
+        [Fact]
+        public void Load_LegacyCacheFile_IsIgnoredAndDeleted()
+        {
+            // Arrange
+            var cache = new FileSystemCertificateCache(_setting);
+
+            var legacyFileName = Path.Combine(_tempDirectory, "serial123", "example.com.validitychecked.pfx");
+            Directory.CreateDirectory(Path.GetDirectoryName(legacyFileName)!);
+
+            using (var stream = File.Create(legacyFileName)) {
+                stream.Write(BitConverter.GetBytes(DateTime.UtcNow.AddDays(200).Ticks));
+                stream.Write(new byte[] { 1, 2, 3, 4 });
+            }
+
+            var newCertBytes = CreateFakeCertificateBytes(DateTime.UtcNow.AddDays(45));
+            var builderCallCount = 0;
+
+            byte[] Builder(string domain)
+            {
+                builderCallCount++;
+                return newCertBytes;
+            }
+
+            // Act
+            var result = cache.Load("serial123", "example.com", Builder);
+
+            // Assert
+            Assert.Equal(1, builderCallCount);
+            Assert.Equal(newCertBytes, result);
+            Assert.False(File.Exists(legacyFileName));
+            Assert.True(File.Exists(Path.Combine(_tempDirectory, "serial123", "example.com.shortlived.pfx")));
         }
 
         /// <summary>

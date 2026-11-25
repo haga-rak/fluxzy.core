@@ -130,7 +130,7 @@ namespace Fluxzy.Formatters.Producers.Requests
                             ?.Split(':')
                             .Skip(1) ?? Array.Empty<string>()).Trim();
 
-            contentType = string.IsNullOrWhiteSpace(contentType) ? contentType : null;
+            contentType = string.IsNullOrWhiteSpace(contentType) ? null : contentType;
 
             var contentDispositionLine = allLines.FirstOrDefault(r =>
                 r.StartsWith("Content-disposition", StringComparison.OrdinalIgnoreCase));

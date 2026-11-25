@@ -32,6 +32,11 @@ namespace Fluxzy.Core.Pcap
         public IRawCaptureWriter Rotate(long key)
         {
             lock (this) {
+                if (_writersByKey.TryGetValue(key, out var pending)
+                    && !pending.Registered && !pending.Faulted) {
+                    return pending;
+                }
+
                 if (_writersByKey.TryRemove(key, out var stale)) {
                     _writersBySubId.TryRemove(stale.SubscriptionId, out _);
 
