@@ -416,6 +416,13 @@ namespace Fluxzy.Archiving.Har
 
         public long? Compression { get; set; }
 
+        [Obsolete("Use Compression instead")]
+        [JsonIgnore]
+        public long Compressing {
+            get => Compression ?? 0;
+            set => Compression = value;
+        }
+
         public string MimeType { get; set; }
 
         public string? Text { get; set; }
