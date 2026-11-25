@@ -593,6 +593,20 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Status_Text_Is_Reason_Phrase()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+            dump.AddExchange(1, 1, "GET", "https://example.com/missing", statusCode: 404);
+            dump.AddExchange(2, 1, "GET", "https://example.com/pending", noResponse: true);
+
+            var root = await Export(dump);
+
+            Assert.Equal("Not Found", Entry(root, 1).GetProperty("response").GetProperty("statusText").GetString());
+            Assert.Equal(string.Empty, Entry(root, 2).GetProperty("response").GetProperty("statusText").GetString());
+        }
+
+        [Fact]
         public void Packager_Export_As_Http_Archive_Produces_Valid_Json_File()
         {
             var dump = NewDump();

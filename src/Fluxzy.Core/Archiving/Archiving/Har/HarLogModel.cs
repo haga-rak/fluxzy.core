@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using Fluxzy.Clients.H2.Encoder;
+using Fluxzy.Clients.H2.Encoder.Utils;
 using Fluxzy.Extensions;
 using Fluxzy.Formatters;
 using Fluxzy.Formatters.Producers.Requests;
@@ -166,7 +167,7 @@ namespace Fluxzy.Archiving.Har
         public HarEntryResponse(ProducerContext producerContext, HttpArchiveSavingSetting saveSetting)
         {
             Status = producerContext.Exchange.StatusCode;
-            StatusText = ((HttpStatusCode) Status).ToString();
+            StatusText = Http11Constants.GetStatusLineOrNull(Status) ?? string.Empty;
             HttpVersion = producerContext.Exchange.HttpVersion;
 
             var responseHeaders = producerContext.Exchange.GetResponseHeaders()?.ToList();
