@@ -14,7 +14,7 @@ jobs:
 
     runs-on: ${{ matrix.osversion }}
     permissions:
-      contents: read
+      contents: write  # push the version tag
       id-token: write  # OIDC token for nuget.org trusted publishing
     steps:
     - uses: actions/checkout@v3
