@@ -93,6 +93,7 @@ namespace Fluxzy.Archiving.Har
 
         public int Time { get; }
 
+        [JsonPropertyName("serverIPAddress")]
         public string? ServerIpAddress { get; }
 
         public string? Connection { get; }

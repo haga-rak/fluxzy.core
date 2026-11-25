@@ -121,6 +121,22 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Entry_Uses_Har_Spec_Casing_For_ServerIPAddress()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1, remoteAddress: "93.184.216.34");
+            dump.AddExchange(1, 1, "GET", "https://example.com/");
+
+            var entry = Entry(await Export(dump), 1);
+
+            Assert.True(entry.TryGetProperty("serverIPAddress", out var address),
+                "entry has no 'serverIPAddress' property");
+
+            Assert.Equal("93.184.216.34", address.GetString());
+            Assert.Equal("1", entry.GetProperty("connection").GetString());
+        }
+
+        [Fact]
         public async Task PostData_Form_Url_Encoded_Has_Params()
         {
             var dump = NewDump();
