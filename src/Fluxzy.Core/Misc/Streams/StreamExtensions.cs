@@ -179,12 +179,11 @@ namespace Fluxzy.Misc.Streams
 
         public static long FillArray(this Stream stream, byte[] destinationArray)
         {
-            var memoryStream = new MemoryStream(destinationArray);
-            var read = 0;
-            var totalRead = 0L;
+            int read;
+            var totalRead = 0;
 
-            while ((read = stream.Read(destinationArray, 0, destinationArray.Length)) > 0) {
-                memoryStream.Write(destinationArray, 0, read);
+            while (totalRead < destinationArray.Length
+                   && (read = stream.Read(destinationArray, totalRead, destinationArray.Length - totalRead)) > 0) {
                 totalRead += read;
             }
 
