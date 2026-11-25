@@ -71,7 +71,7 @@ namespace Fluxzy.Archiving.Har
             IArchiveReader archiveReader,
             HttpArchiveSavingSetting savingSetting)
         {
-            var producerContext = new ProducerContext(exchangeInfo, archiveReader, FormatSettings.Default);
+            using var producerContext = new ProducerContext(exchangeInfo, archiveReader, FormatSettings.Default);
 
             if (exchangeInfo.Metrics.ResponseBodyEnd != default) {
                 Time = (int) (exchangeInfo.Metrics.ResponseBodyEnd - exchangeInfo.Metrics.ReceivedFromProxy)
