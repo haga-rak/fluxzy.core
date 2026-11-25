@@ -1,7 +1,6 @@
 // Copyright 2021 - Haga Rakotoharivelo - https://github.com/haga-rak
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -285,34 +284,18 @@ namespace Fluxzy.Archiving.Har
         public HarPostData(ProducerContext producerContext, HttpArchiveSavingSetting savingSetting)
         {
             var exchangeInfo = producerContext.Exchange;
-            var archiveReader = producerContext.ArchiveReader;
 
             MimeType = exchangeInfo.GetRequestHeaderValue("Content-Type") ?? "application/octet-stream";
 
-            var requestLength = producerContext.ArchiveReader.GetRequestBodyLength(exchangeInfo.Id);
+            var content = producerContext.RequestBody.Span;
 
-            if (requestLength > 0 && savingSetting.Comply(requestLength)) {
-                var destBuffer = ArrayPool<byte>.Shared.Rent((int) requestLength);
-
-                try {
-                    using var requestBodyStream = archiveReader.GetRequestBody(exchangeInfo.Id);
-                    var length = requestBodyStream?.FillArray(destBuffer);
-
-                    if (length != null) {
-                        var content = new Span<byte>(destBuffer, 0, (int) length);
-                        var isText = ArrayTextUtilities.IsText(content, (int) length);
-
-                        if (isText)
-                            Text = Encoding.UTF8.GetString(content);
-                        else {
-                            Text = Convert.ToBase64String(content);
-                            Comment = "base64";
-                            IsBase64 = true;
-                        }
-                    }
-                }
-                finally {
-                    ArrayPool<byte>.Shared.Return(destBuffer);
+            if (content.Length > 0 && savingSetting.Comply(content.Length)) {
+                if (ArrayTextUtilities.IsText(content, content.Length))
+                    Text = Encoding.UTF8.GetString(content);
+                else {
+                    Text = Convert.ToBase64String(content);
+                    Comment = "base64";
+                    IsBase64 = true;
                 }
             }
 
