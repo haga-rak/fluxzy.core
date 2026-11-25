@@ -36,7 +36,10 @@ namespace Fluxzy.Archiving.Har
             Dictionary<int, ConnectionInfo> connections,
             HttpArchiveSavingSetting savingSetting)
         {
-            Entries = exchanges.Select(s => new HarEntry(s,
+            Entries = exchanges
+                      .OrderBy(e => e.Metrics.ReceivedFromProxy)
+                      .ThenBy(e => e.Id)
+                      .Select(s => new HarEntry(s,
                 connections.ContainsKey(s.ConnectionId) ? connections[s.ConnectionId] : null,
                 archiveReader,
                 savingSetting)).ToList();

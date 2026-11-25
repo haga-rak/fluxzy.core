@@ -294,6 +294,25 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Entries_Are_Sorted_By_Started_Date_Time()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            for (var i = 1; i <= 12; i++) {
+                var offset = i;
+
+                dump.AddExchange(i, 1, "GET", $"https://example.com/{i}",
+                    configureMetrics: m => ShiftMetrics(m, TimeSpan.FromSeconds(offset)));
+            }
+
+            var dates = (await Export(dump)).GetProperty("log").GetProperty("entries").EnumerateArray()
+                                            .Select(e => e.GetProperty("startedDateTime").GetDateTime()).ToList();
+
+            Assert.Equal(dates.OrderBy(d => d).ToList(), dates);
+        }
+
+        [Fact]
         public async Task Saving_Policy_Skip_Body()
         {
             var dump = NewDump();
