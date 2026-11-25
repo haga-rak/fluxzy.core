@@ -404,8 +404,9 @@ namespace Fluxzy.Archiving.Har
                            ?? string.Empty;
                 }
                 else {
-                    Text = producerContext.ArchiveReader.GetResponseBody(exchangeInfo.Id)
-                                          ?.ToBase64String();
+                    Text = decodedBody != null
+                        ? Convert.ToBase64String(decodedBody)
+                        : producerContext.ArchiveReader.GetResponseBody(exchangeInfo.Id)?.ToBase64String(true);
                     Encoding = "base64";
                 }
             }

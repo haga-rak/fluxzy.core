@@ -344,6 +344,29 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Gzip_Binary_Response_Is_Exported_Decoded()
+        {
+            var raw = BinaryPayload(8192);
+            var compressed = Gzip(raw);
+
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "GET", "https://example.com/img",
+                responseHeaders: new[] {
+                    ("Content-Type", "application/octet-stream"),
+                    ("Content-Encoding", "gzip")
+                },
+                responseBody: compressed);
+
+            var content = Entry(await Export(dump), 1).GetProperty("response").GetProperty("content");
+
+            Assert.Equal("base64", content.GetProperty("encoding").GetString());
+
+            Assert.Equal(raw, Convert.FromBase64String(content.GetProperty("text").GetString()!));
+        }
+
+        [Fact]
         public async Task Exchange_Without_Response_Is_Exported()
         {
             var dump = NewDump();
