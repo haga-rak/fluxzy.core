@@ -225,7 +225,7 @@ namespace Fluxzy.Archiving.Har
             Value = cookieItem.Value;
             Path = cookieItem.Path;
             Domain = cookieItem.Domain;
-            Expires = cookieItem.Expired;
+            Expires = cookieItem.Expired == default ? null : cookieItem.Expired;
             HttpOnly = cookieItem.HttpOnly;
             Secure = cookieItem.Secure;
         }

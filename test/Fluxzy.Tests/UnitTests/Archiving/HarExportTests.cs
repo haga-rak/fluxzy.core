@@ -121,6 +121,22 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Response_Cookie_Without_Expires_Attribute_Has_No_Expires()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "GET", "https://example.com/",
+                responseHeaders: new[] { ("Set-Cookie", "sid=abc; Path=/") });
+
+            var cookie = Assert.Single(
+                Entry(await Export(dump), 1).GetProperty("response").GetProperty("cookies").EnumerateArray());
+
+            Assert.False(cookie.TryGetProperty("expires", out var expires),
+                $"unexpected expires: {expires}");
+        }
+
+        [Fact]
         public async Task Entry_Uses_Har_Spec_Casing_For_ServerIPAddress()
         {
             var dump = NewDump();
