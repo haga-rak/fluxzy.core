@@ -137,6 +137,24 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task PostData_MimeType_Comes_From_Request_Content_Type()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "POST", "https://example.com/api",
+                requestHeaders: new[] { ("Content-Type", "application/json") },
+                responseHeaders: new[] { ("Content-Type", "text/html") },
+                requestBody: Encoding.UTF8.GetBytes("{\"a\":1}"),
+                responseBody: Encoding.UTF8.GetBytes("<html></html>"));
+
+            var postData = Entry(await Export(dump), 1).GetProperty("request").GetProperty("postData");
+
+            Assert.Equal("{\"a\":1}", postData.GetProperty("text").GetString());
+            Assert.Equal("application/json", postData.GetProperty("mimeType").GetString());
+        }
+
+        [Fact]
         public async Task PostData_Form_Url_Encoded_Has_Params()
         {
             var dump = NewDump();

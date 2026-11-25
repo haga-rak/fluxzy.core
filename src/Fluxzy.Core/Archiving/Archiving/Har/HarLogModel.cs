@@ -284,7 +284,7 @@ namespace Fluxzy.Archiving.Har
             var exchangeInfo = producerContext.Exchange;
             var archiveReader = producerContext.ArchiveReader;
 
-            MimeType = exchangeInfo.GetResponseHeaderValue("Content-Type");
+            MimeType = exchangeInfo.GetRequestHeaderValue("Content-Type");
 
             var requestLength = producerContext.ArchiveReader.GetRequestBodyLength(exchangeInfo.Id);
 
