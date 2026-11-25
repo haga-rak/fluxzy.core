@@ -440,7 +440,10 @@ namespace Fluxzy.Archiving.Har
                     .TotalMilliseconds;
             }
 
-            if (connectionInfo != null) {
+            var openedConnection = connectionInfo != null
+                                   && connectionInfo.TcpConnectionOpening >= exchangeInfo.Metrics.ReceivedFromProxy;
+
+            if (connectionInfo != null && openedConnection) {
                 if (connectionInfo.DnsSolveEnd != default) {
                     Dns = (connectionInfo.DnsSolveEnd - connectionInfo.DnsSolveStart)
                         .TotalMilliseconds;
@@ -475,9 +478,9 @@ namespace Fluxzy.Archiving.Har
 
         public double Blocked { get; } = -1;
 
-        public double Dns { get; }
+        public double Dns { get; } = -1;
 
-        public double Connect { get; }
+        public double Connect { get; } = -1;
 
         public double Send { get; }
 
@@ -485,7 +488,7 @@ namespace Fluxzy.Archiving.Har
 
         public double Receive { get; }
 
-        public double Ssl { get; }
+        public double Ssl { get; } = -1;
 
         public string? Comment { get; set; }
     }

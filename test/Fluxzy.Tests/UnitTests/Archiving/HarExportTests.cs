@@ -442,6 +442,38 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Timings_Of_Exchange_Reusing_Connection_Do_Not_Repeat_Connection_Setup()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+            dump.AddExchange(1, 1, "GET", "https://example.com/1");
+
+            dump.AddExchange(2, 1, "GET", "https://example.com/2",
+                configureMetrics: m => {
+                    ShiftMetrics(m, TimeSpan.FromSeconds(5));
+                    m.ReusingConnection = true;
+                });
+
+            var timings = Entry(await Export(dump), 2).GetProperty("timings");
+
+            Assert.Equal(-1, timings.GetProperty("dns").GetDouble());
+            Assert.Equal(-1, timings.GetProperty("connect").GetDouble());
+            Assert.Equal(-1, timings.GetProperty("ssl").GetDouble());
+        }
+
+        [Fact]
+        public async Task Timings_Ssl_Is_Not_Applicable_On_Plain_Http()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1, secure: false);
+            dump.AddExchange(1, 1, "GET", "http://example.com/");
+
+            var timings = Entry(await Export(dump), 1).GetProperty("timings");
+
+            Assert.Equal(-1, timings.GetProperty("ssl").GetDouble());
+        }
+
+        [Fact]
         public async Task Exchange_Comment_Is_Exported()
         {
             var dump = NewDump();
