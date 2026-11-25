@@ -193,6 +193,44 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task PostData_Multipart_Has_Params()
+        {
+            const string boundary = "----fluxzyboundary";
+
+            var body = $"--{boundary}\r\n" +
+                       "Content-Disposition: form-data; name=\"field\"\r\n\r\n" +
+                       "value\r\n" +
+                       $"--{boundary}\r\n" +
+                       "Content-Disposition: form-data; name=\"upload\"; filename=\"a.txt\"\r\n" +
+                       "Content-Type: text/plain\r\n\r\n" +
+                       "file content\r\n" +
+                       $"--{boundary}--\r\n";
+
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "POST", "https://example.com/upload",
+                requestHeaders: new[] { ("Content-Type", $"multipart/form-data; boundary={boundary}") },
+                requestBody: Encoding.UTF8.GetBytes(body));
+
+            var @params = Entry(await Export(dump), 1).GetProperty("request").GetProperty("postData")
+                                                      .GetProperty("params").EnumerateArray().ToList();
+
+            Assert.Equal(2, @params.Count);
+
+            Assert.Equal("field", @params[0].GetProperty("name").GetString());
+            Assert.Equal("value", @params[0].GetProperty("value").GetString());
+
+            Assert.Equal("upload", @params[1].GetProperty("name").GetString());
+            Assert.Equal("a.txt", @params[1].GetProperty("fileName").GetString());
+
+            Assert.True(@params[1].TryGetProperty("contentType", out var contentType),
+                $"file param has no 'contentType': {@params[1]}");
+
+            Assert.Equal("text/plain", contentType.GetString());
+        }
+
+        [Fact]
         public async Task Binary_Request_Body_Is_Base64()
         {
             var payload = BinaryPayload(4096);
