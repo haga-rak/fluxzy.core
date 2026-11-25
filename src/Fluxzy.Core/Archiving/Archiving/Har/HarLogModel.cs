@@ -176,7 +176,7 @@ namespace Fluxzy.Archiving.Har
                 Headers = responseHeaders.Select(r => new HarHeader(r)).ToList();
             }
 
-            RedirectURL = producerContext.Exchange.FullUrl;
+            RedirectURL = producerContext.Exchange.GetResponseHeaderValue("Location") ?? string.Empty;
             HeadersSize = producerContext.Exchange.Metrics.ResponseHeaderLength;
             BodySize = producerContext.ArchiveReader.GetResponseBodyLength(producerContext.Exchange.Id);
 

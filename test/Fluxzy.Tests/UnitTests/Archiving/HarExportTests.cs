@@ -216,6 +216,26 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Redirect_Url_Is_Location_Header()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "GET", "https://example.com/old", statusCode: 302,
+                responseHeaders: new[] { ("Location", "https://example.com/new") });
+
+            dump.AddExchange(2, 1, "GET", "https://example.com/new");
+
+            var root = await Export(dump);
+
+            Assert.Equal("https://example.com/new",
+                Entry(root, 1).GetProperty("response").GetProperty("redirectURL").GetString());
+
+            Assert.Equal(string.Empty,
+                Entry(root, 2).GetProperty("response").GetProperty("redirectURL").GetString());
+        }
+
+        [Fact]
         public async Task Exchange_Without_Response_Is_Exported()
         {
             var dump = NewDump();
