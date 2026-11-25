@@ -171,6 +171,18 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Request_Without_Body_Has_No_PostData()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+            dump.AddExchange(1, 1, "GET", "https://example.com/");
+
+            var request = Entry(await Export(dump), 1).GetProperty("request");
+
+            Assert.False(request.TryGetProperty("postData", out _));
+        }
+
+        [Fact]
         public async Task PostData_Form_Url_Encoded_Has_Params()
         {
             var dump = NewDump();

@@ -135,11 +135,9 @@ namespace Fluxzy.Archiving.Har
             BodySize = archiveReader.GetRequestBodyLength(exchangeInfo.Id);
 
             Headers = exchangeInfo.GetRequestHeaders().Select(s => new HarHeader(s)).ToList();
-            PostData = new HarPostData(producerContext, savingSetting);
 
-            //if (PostData.IsBase64) {
-            //    Headers.Add(new(new("Content-Transfer-Encoding", "base64")));
-            //}
+            if (BodySize > 0)
+                PostData = new HarPostData(producerContext, savingSetting);
         }
 
         public List<HarQueryString> QueryString { get; } = new();
@@ -158,7 +156,7 @@ namespace Fluxzy.Archiving.Har
 
         public List<HarHeader> Headers { get; }
 
-        public HarPostData PostData { get; }
+        public HarPostData? PostData { get; }
 
         public string? Comment { get; }
     }
@@ -288,7 +286,7 @@ namespace Fluxzy.Archiving.Har
             var exchangeInfo = producerContext.Exchange;
             var archiveReader = producerContext.ArchiveReader;
 
-            MimeType = exchangeInfo.GetRequestHeaderValue("Content-Type");
+            MimeType = exchangeInfo.GetRequestHeaderValue("Content-Type") ?? "application/octet-stream";
 
             var requestLength = producerContext.ArchiveReader.GetRequestBodyLength(exchangeInfo.Id);
 
