@@ -468,6 +468,20 @@ namespace Fluxzy.Tests.UnitTests.Archiving
             Assert.Equal(expected, new HttpArchivePackager().ShouldApplyTo(fileName));
         }
 
+        [Fact]
+        public void Fill_Array_Handles_Partial_Reads()
+        {
+            var data = Encoding.ASCII.GetBytes("0123456789");
+            var destination = new byte[16];
+
+            using var stream = new SlowStream(data, 3);
+
+            var length = stream.FillArray(destination);
+
+            Assert.Equal(data.Length, length);
+            Assert.Equal(data, destination.AsSpan(0, (int) length).ToArray());
+        }
+
         private DumpBuilder NewDump()
         {
             return new DumpBuilder(GetRegisteredRandomDirectory());
