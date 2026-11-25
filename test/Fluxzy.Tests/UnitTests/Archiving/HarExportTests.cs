@@ -373,6 +373,19 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Exchange_Comment_Is_Exported()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+            dump.AddExchange(1, 1, "GET", "https://example.com/", comment: "flagged by QA");
+
+            var entry = Entry(await Export(dump), 1);
+
+            Assert.True(entry.TryGetProperty("comment", out var comment), "entry has no 'comment' property");
+            Assert.Equal("flagged by QA", comment.GetString());
+        }
+
+        [Fact]
         public void Packager_Export_As_Http_Archive_Produces_Valid_Json_File()
         {
             var dump = NewDump();

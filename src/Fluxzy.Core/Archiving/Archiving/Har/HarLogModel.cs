@@ -81,6 +81,7 @@ namespace Fluxzy.Archiving.Har
             Connection = connectionInfo?.Id.ToString();
             Timings = new HarTimings(exchangeInfo, connectionInfo);
             Cache = new HarCache();
+            Comment = exchangeInfo.Comment;
 
             Request = new HarEntryRequest(producerContext, savingSetting);
             Response = new HarEntryResponse(producerContext, savingSetting);
