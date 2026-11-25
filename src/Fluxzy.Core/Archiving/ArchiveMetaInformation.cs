@@ -61,9 +61,11 @@ namespace Fluxzy
         public List<IPEndPoint> ResolvedEndPoints { get; set; } = new();
 
         /// <summary>
-        ///  Can be used to store additional information about the archive.
+        ///     Free-form properties stored with the archive. Keys and values are opaque to fluxzy,
+        ///     and readers ignore the keys they do not know. Keys starting with <c>fluxzy.</c> are
+        ///     reserved for fluxzy products.
+        ///     Use <see cref="Fluxzy.Writers.RealtimeArchiveWriter.UpdateProperty"/> to set or remove one.
         /// </summary>
-
         public Dictionary<string, string> Properties { get; set; } = new();
     }
 }
