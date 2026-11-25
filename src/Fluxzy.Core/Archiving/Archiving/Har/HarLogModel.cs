@@ -386,11 +386,17 @@ namespace Fluxzy.Archiving.Har
         public HarContent(ProducerContext producerContext, HttpArchiveSavingSetting savingSetting)
         {
             var exchangeInfo = producerContext.Exchange;
-            Size = producerContext.ArchiveReader.GetResponseBodyLength(exchangeInfo.Id);
-            Compressing = Size;
+            var bodySize = producerContext.ArchiveReader.GetResponseBodyLength(exchangeInfo.Id);
+            var decodedBody = producerContext.ResponseBodyContent;
+
+            Size = decodedBody?.Length ?? bodySize;
+
+            if (decodedBody != null && producerContext.CompressionInfo?.EncodingToken != null)
+                Compression = Size - bodySize;
+
             MimeType = producerContext.Exchange.GetResponseHeaderValue("content-type") ?? "application/octet-stream";
 
-            if (Size > 0 && savingSetting.Comply(Size)) {
+            if (bodySize > 0 && savingSetting.Comply(bodySize)) {
                 var textContext = producerContext.IsTextContent;
 
                 if (textContext) {
@@ -407,7 +413,7 @@ namespace Fluxzy.Archiving.Har
 
         public long Size { get; set; }
 
-        public long Compressing { get; set; }
+        public long? Compression { get; set; }
 
         public string MimeType { get; set; }
 

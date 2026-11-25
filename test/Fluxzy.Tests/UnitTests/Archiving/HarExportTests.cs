@@ -302,6 +302,48 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Content_Uses_Compression_Property_Name()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "GET", "https://example.com/",
+                responseHeaders: new[] { ("Content-Type", "text/plain") },
+                responseBody: Encoding.UTF8.GetBytes("hello"));
+
+            var content = Entry(await Export(dump), 1).GetProperty("response").GetProperty("content");
+
+            Assert.False(content.TryGetProperty("compressing", out _), "non standard 'compressing' property");
+        }
+
+        [Fact]
+        public async Task Gzip_Text_Response_Is_Exported_Decoded()
+        {
+            var text = string.Join("\n", Enumerable.Repeat("a line of compressible text", 200));
+            var raw = Encoding.UTF8.GetBytes(text);
+            var compressed = Gzip(raw);
+
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "GET", "https://example.com/",
+                responseHeaders: new[] {
+                    ("Content-Type", "text/plain; charset=utf-8"),
+                    ("Content-Encoding", "gzip")
+                },
+                responseBody: compressed);
+
+            var response = Entry(await Export(dump), 1).GetProperty("response");
+            var content = response.GetProperty("content");
+
+            Assert.Equal(text, content.GetProperty("text").GetString());
+
+            Assert.Equal(compressed.Length, response.GetProperty("bodySize").GetInt64());
+            Assert.Equal(raw.Length, content.GetProperty("size").GetInt64());
+            Assert.Equal(raw.Length - compressed.Length, content.GetProperty("compression").GetInt64());
+        }
+
+        [Fact]
         public async Task Exchange_Without_Response_Is_Exported()
         {
             var dump = NewDump();
