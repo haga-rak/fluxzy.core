@@ -367,6 +367,47 @@ namespace Fluxzy.Tests.UnitTests.Archiving
         }
 
         [Fact]
+        public async Task Undecodable_Response_Body_Does_Not_Abort_Export()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "GET", "https://example.com/broken",
+                responseHeaders: new[] { ("Content-Type", "text/plain"), ("Content-Encoding", "gzip") },
+                responseBody: Encoding.UTF8.GetBytes("definitely not a gzip stream"));
+
+            dump.AddExchange(2, 1, "GET", "https://example.com/fine",
+                responseHeaders: new[] { ("Content-Type", "text/plain") },
+                responseBody: Encoding.UTF8.GetBytes("fine"));
+
+            var root = await Export(dump);
+
+            Assert.Equal(2, root.GetProperty("log").GetProperty("entries").GetArrayLength());
+
+            Assert.Equal("fine",
+                Entry(root, 2).GetProperty("response").GetProperty("content").GetProperty("text").GetString());
+        }
+
+        [Fact]
+        public async Task Unknown_Content_Encoding_Does_Not_Abort_Export()
+        {
+            var dump = NewDump();
+            dump.AddConnection(1);
+
+            dump.AddExchange(1, 1, "GET", "https://example.com/exotic",
+                responseHeaders: new[] { ("Content-Type", "text/plain"), ("Content-Encoding", "x-unit-test-enc") },
+                responseBody: Encoding.UTF8.GetBytes("payload"));
+
+            dump.AddExchange(2, 1, "GET", "https://example.com/fine",
+                responseHeaders: new[] { ("Content-Type", "text/plain") },
+                responseBody: Encoding.UTF8.GetBytes("fine"));
+
+            var root = await Export(dump);
+
+            Assert.Equal(2, root.GetProperty("log").GetProperty("entries").GetArrayLength());
+        }
+
+        [Fact]
         public async Task Exchange_Without_Response_Is_Exported()
         {
             var dump = NewDump();
